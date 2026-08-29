@@ -25,7 +25,20 @@
           ]
         },
         {
-          "source": "@(favicon.ico|brand-icon.png|brand-logo.svg|logo.png|apple-touch-icon.png|android-chrome-*.png|site.webmanifest|og-image.png|og-image.svg)",
+          "source": "sw.js",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=0, must-revalidate"
+            },
+            {
+              "key": "Service-Worker-Allowed",
+              "value": "/"
+            }
+          ]
+        },
+        {
+          "source": "@(manifest.json|site.webmanifest|favicon.ico|brand-icon.png|brand-logo.svg|logo.png|apple-touch-icon.png|android-chrome-*.png|og-image.png|og-image.svg)",
           "headers": [
             {
               "key": "Cache-Control",
@@ -64,7 +77,20 @@
           ]
         },
         {
-          "source": "@(favicon.ico|brand-icon.png|brand-logo.svg|logo.png|apple-touch-icon.png|android-chrome-*.png|site.webmanifest|og-image.png|og-image.svg)",
+          "source": "sw.js",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=0, must-revalidate"
+            },
+            {
+              "key": "Service-Worker-Allowed",
+              "value": "/"
+            }
+          ]
+        },
+        {
+          "source": "@(manifest.json|site.webmanifest|favicon.ico|brand-icon.png|brand-logo.svg|logo.png|apple-touch-icon.png|android-chrome-*.png|og-image.png|og-image.svg)",
           "headers": [
             {
               "key": "Cache-Control",

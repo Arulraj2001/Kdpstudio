@@ -58,6 +58,8 @@ import { SystemHealthPage } from '../admin/system/SystemHealthPage';
 import { BroadcastEmailPage } from '../admin/system/BroadcastEmailPage';
 import { AppSettingsPage } from '../admin/system/AppSettingsPage';
 import { SupportCenterPage } from '../admin/support/SupportCenterPage';
+import { InstallPrompt } from '../pwa/InstallPrompt';
+import { UpdatePrompt } from '../pwa/UpdatePrompt';
 import { ContentModerationPage } from '../admin/content/ContentModerationPage';
 import { AuditReportsPage } from '../admin/content/AuditReportsPage';
 import { GeoTestView } from '../geo/GeoTestView';
@@ -931,6 +933,10 @@ export const AppShell: React.FC = () => {
 
       {/* Global Notifications */}
       <ToastContainer />
+
+      {/* PWA Prompts */}
+      <InstallPrompt />
+      <UpdatePrompt />
     </AuthProvider>
   );
 };
