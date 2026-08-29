@@ -86,64 +86,162 @@ import { useBookStore } from '../../lib/store';
 import { useSeriesStore } from '../../lib/seriesStore';
 import { trackFeatureUse } from '../../lib/featureTracker';
 
+export const ROUTE_PATH_MAP: Record<PageRoute, string> = {
+  home: '/',
+  pricing: '/pricing',
+  about: '/about',
+  terms: '/terms',
+  privacy: '/privacy',
+  contact: '/contact',
+  changelog: '/changelog',
+  blog: '/blog',
+  login: '/login',
+  signup: '/signup',
+  'forgot-password': '/forgot-password',
+  'verify-email': '/verify-email',
+  onboarding: '/onboarding',
+  dashboard: '/dashboard',
+  studio: '/studio',
+  formatter: '/formatter',
+  cover: '/cover',
+  puzzles: '/puzzles',
+  'word-search': '/word-search',
+  'word-search-generating': '/word-search-generating',
+  'word-search-detail': '/word-search-detail',
+  'word-fit': '/word-fit',
+  'word-fit-generating': '/word-fit-generating',
+  'word-fit-detail': '/word-fit-detail',
+  coloring: '/coloring',
+  'coloring-generating': '/coloring-generating',
+  'coloring-detail': '/coloring-detail',
+  'color-by-number': '/color-by-number',
+  'color-by-number-generating': '/color-by-number-generating',
+  'color-by-number-detail': '/color-by-number-detail',
+  kdp: '/kdp',
+  research: '/research',
+  'research-detail': '/research-detail',
+  'research-saved': '/research-saved',
+  bulk: '/bulk',
+  'bulk-template-new': '/bulk/new',
+  'bulk-template-detail': '/bulk/template',
+  'bulk-job-detail': '/bulk/job',
+  'bulk-job-results': '/bulk/results',
+  analytics: '/analytics',
+  'analytics-calculator': '/analytics-calculator',
+  'analytics-goals': '/analytics-goals',
+  'analytics-books': '/analytics-books',
+  books: '/books',
+  series: '/series',
+  'series-new': '/series/new',
+  'series-detail': '/series/detail',
+  publish: '/publish',
+  'brand-kit': '/brand-kit',
+  settings: '/settings',
+  billing: '/billing',
+  admin: '/admin',
+  'admin-users': '/admin/users',
+  'admin-user-detail': '/admin/users/detail',
+  'admin-revenue': '/admin/revenue',
+  'admin-payments': '/admin/payments',
+  'admin-payments-upi': '/admin/payments/upi',
+  'admin-payments-bmac': '/admin/payments/bmac',
+  'admin-usage': '/admin/system/usage',
+  'admin-health': '/admin/system/health',
+  'admin-broadcast': '/admin/system/broadcast',
+  'admin-settings': '/admin/system/settings',
+  'admin-support': '/admin/support',
+  'admin-content': '/admin/content',
+  'admin-content-audits': '/admin/content/audits',
+  'geo-test': '/geo-test',
+  'payment-success': '/payment-success',
+};
+
+export function parsePathToRoute(pathname: string): PageRoute | null {
+  const clean = pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+  if (!clean) return null;
+
+  if (clean === 'payment/success' || clean === 'payment-success') return 'payment-success';
+  if (clean === 'pricing') return 'pricing';
+  if (clean === 'about') return 'about';
+  if (clean === 'terms') return 'terms';
+  if (clean === 'privacy') return 'privacy';
+  if (clean === 'contact') return 'contact';
+  if (clean === 'changelog') return 'changelog';
+  if (clean === 'blog') return 'blog';
+  if (clean === 'login') return 'login';
+  if (clean === 'signup') return 'signup';
+  if (clean === 'forgot-password') return 'forgot-password';
+  if (clean === 'verify-email') return 'verify-email';
+  if (clean === 'onboarding') return 'onboarding';
+  if (clean === 'dashboard') return 'dashboard';
+  if (clean === 'studio') return 'studio';
+  if (clean === 'formatter') return 'formatter';
+  if (clean === 'cover') return 'cover';
+  if (clean === 'puzzles') return 'puzzles';
+  if (clean === 'puzzles/word-search' || clean === 'word-search') return 'word-search';
+  if (clean === 'puzzles/word-search/generating' || clean === 'word-search-generating') return 'word-search-generating';
+  if (clean === 'puzzles/word-search/detail' || clean === 'word-search-detail') return 'word-search-detail';
+  if (clean === 'puzzles/word-fit' || clean === 'word-fit') return 'word-fit';
+  if (clean === 'puzzles/word-fit/generating' || clean === 'word-fit-generating') return 'word-fit-generating';
+  if (clean === 'puzzles/word-fit/detail' || clean === 'word-fit-detail') return 'word-fit-detail';
+  if (clean === 'puzzles/coloring' || clean === 'coloring') return 'coloring';
+  if (clean === 'puzzles/coloring/generating' || clean === 'coloring-generating') return 'coloring-generating';
+  if (clean === 'puzzles/coloring/detail' || clean === 'coloring-detail') return 'coloring-detail';
+  if (clean === 'puzzles/color-by-number' || clean === 'color-by-number') return 'color-by-number';
+  if (clean === 'puzzles/color-by-number/generating' || clean === 'color-by-number-generating') return 'color-by-number-generating';
+  if (clean === 'puzzles/color-by-number/detail' || clean === 'color-by-number-detail') return 'color-by-number-detail';
+  if (clean === 'kdp') return 'kdp';
+  if (clean === 'research') return 'research';
+  if (clean === 'research/saved' || clean === 'research-saved') return 'research-saved';
+  if (clean.startsWith('research/niche/') || clean === 'research/detail' || clean === 'research-detail') return 'research-detail';
+  if (clean === 'bulk') return 'bulk';
+  if (clean === 'bulk/new' || clean === 'bulk/template/new' || clean === 'bulk-template-new') return 'bulk-template-new';
+  if (clean.startsWith('bulk/template') || clean === 'bulk-template-detail') return 'bulk-template-detail';
+  if (clean.endsWith('/results') || clean === 'bulk/job/results' || clean === 'bulk-job-results') return 'bulk-job-results';
+  if (clean.startsWith('bulk/job') || clean === 'bulk-job-detail') return 'bulk-job-detail';
+  if (clean === 'analytics') return 'analytics';
+  if (clean === 'analytics/books' || clean === 'analytics-books') return 'analytics-books';
+  if (clean === 'analytics/calculator' || clean === 'analytics-calculator') return 'analytics-calculator';
+  if (clean === 'analytics/goals' || clean === 'analytics-goals') return 'analytics-goals';
+  if (clean === 'books') return 'books';
+  if (clean === 'series') return 'series';
+  if (clean === 'series/new' || clean === 'series-new') return 'series-new';
+  if (clean.startsWith('series/') || clean === 'series-detail') return 'series-detail';
+  if (clean === 'publish') return 'publish';
+  if (clean === 'brand-kit' || clean === 'brand' || clean === 'settings/brand') return 'brand-kit';
+  if (clean === 'settings') return 'settings';
+  if (clean === 'billing') return 'billing';
+  if (clean === 'admin/system/usage' || clean === 'admin/usage') return 'admin-usage';
+  if (clean === 'admin/system/health' || clean === 'admin/health') return 'admin-health';
+  if (clean === 'admin/system/broadcast' || clean === 'admin/broadcast') return 'admin-broadcast';
+  if (clean === 'admin/system/settings' || clean === 'admin/settings') return 'admin-settings';
+  if (clean === 'admin/support') return 'admin-support';
+  if (clean === 'admin/content/audits') return 'admin-content-audits';
+  if (clean === 'admin/content') return 'admin-content';
+  if (clean === 'admin/revenue') return 'admin-revenue';
+  if (clean === 'admin/payments/upi' || clean === 'admin/upi') return 'admin-payments-upi';
+  if (clean === 'admin/payments/bmac' || clean === 'admin/bmac') return 'admin-payments-bmac';
+  if (clean === 'admin/payments') return 'admin-payments';
+  if (clean.startsWith('admin/users/') && clean.split('/').length >= 3) return 'admin-user-detail';
+  if (clean === 'admin/users') return 'admin-users';
+  if (clean === 'admin') return 'admin';
+  if (clean === 'geo-test') return 'geo-test';
+
+  return null;
+}
+
 export const AppShell: React.FC = () => {
-  // Determine initial route based on URL pathname/hash if present
+  // Determine initial route based on URL pathname/hash/storage
   const getInitialRoute = (): PageRoute => {
     if (typeof window !== 'undefined') {
-      const path = window.location.pathname.replace(/^\//, '').toLowerCase();
-      if (path === 'payment/success' || path === 'payment-success') return 'payment-success';
-      if (path === 'pricing') return 'pricing';
-      if (path === 'about') return 'about';
-      if (path === 'terms') return 'terms';
-      if (path === 'privacy') return 'privacy';
-      if (path === 'contact') return 'contact';
-      if (path === 'changelog') return 'changelog';
-      if (path === 'blog') return 'blog';
-      if (path === 'login') return 'login';
-      if (path === 'signup') return 'signup';
-      if (path === 'forgot-password') return 'forgot-password';
-      if (path === 'verify-email') return 'verify-email';
-      if (path === 'onboarding') return 'onboarding';
-      if (path === 'dashboard') return 'dashboard';
-      if (path === 'studio') return 'studio';
-      if (path === 'formatter') return 'formatter';
-      if (path === 'cover') return 'cover';
-      if (path === 'puzzles') return 'puzzles';
-      if (path === 'puzzles/word-search' || path === 'word-search') return 'word-search';
-      if (path === 'puzzles/word-fit' || path === 'word-fit') return 'word-fit';
-      if (path === 'puzzles/coloring' || path === 'coloring') return 'coloring';
-      if (path === 'puzzles/color-by-number' || path === 'color-by-number') return 'color-by-number';
-      if (path === 'kdp') return 'kdp';
-      if (path === 'research') return 'research';
-      if (path === 'research/saved' || path === 'research-saved') return 'research-saved';
-      if (path.startsWith('research/niche/') || path === 'research-detail') return 'research-detail';
-      if (path === 'bulk') return 'bulk';
-      if (path === 'bulk/new' || path === 'bulk-template-new') return 'bulk-template-new';
-      if (path.startsWith('bulk/template/')) return 'bulk-template-detail';
-      if (path.startsWith('bulk/job/') && path.endsWith('/results')) return 'bulk-job-results';
-      if (path.startsWith('bulk/job/')) return 'bulk-job-detail';
-      if (path === 'books') return 'books';
-      if (path === 'series') return 'series';
-      if (path === 'series/new') return 'series-new';
-      if (path.startsWith('series/')) return 'series-detail';
-      if (path === 'brand-kit' || path === 'brand' || path === 'settings/brand') return 'brand-kit';
-      if (path === 'settings') return 'settings';
-      if (path === 'billing') return 'billing';
-      if (path === 'admin/system/usage' || path === 'admin/usage') return 'admin-usage';
-      if (path === 'admin/system/health' || path === 'admin/health') return 'admin-health';
-      if (path === 'admin/system/broadcast' || path === 'admin/broadcast') return 'admin-broadcast';
-      if (path === 'admin/system/settings' || path === 'admin/settings') return 'admin-settings';
-      if (path === 'admin/support') return 'admin-support';
-      if (path === 'admin/content/audits') return 'admin-content-audits';
-      if (path === 'admin/content') return 'admin-content';
-      if (path === 'admin/revenue') return 'admin-revenue';
-      if (path === 'admin/payments/upi' || path === 'admin/upi') return 'admin-payments-upi';
-      if (path === 'admin/payments/bmac' || path === 'admin/bmac') return 'admin-payments-bmac';
-      if (path === 'admin/payments') return 'admin-payments';
-      if (path.startsWith('admin/users/') && path.split('/').length >= 3) return 'admin-user-detail';
-      if (path === 'admin/users') return 'admin-users';
-      if (path === 'admin') return 'admin';
-      if (path === 'geo-test') return 'geo-test';
+      const parsed = parsePathToRoute(window.location.pathname);
+      if (parsed) return parsed;
+
+      // If at root '/' check last visited route in session
+      const lastRoute = sessionStorage.getItem('kdp_current_route') || localStorage.getItem('kdp_last_route');
+      if (lastRoute && lastRoute !== 'home' && lastRoute in ROUTE_PATH_MAP) {
+        return lastRoute as PageRoute;
+      }
     }
     return 'home';
   };
@@ -175,6 +273,16 @@ export const AppShell: React.FC = () => {
       const cat = params.get('category');
       if (q) setResearchInitialQuery(q);
       if (cat) setResearchInitialCategory(cat as any);
+
+      // Listen to browser Back and Forward navigation buttons
+      const handlePopState = () => {
+        const route = parsePathToRoute(window.location.pathname) || 'home';
+        setCurrentRoute(route);
+        sessionStorage.setItem('kdp_current_route', route);
+      };
+
+      window.addEventListener('popstate', handlePopState);
+      return () => window.removeEventListener('popstate', handlePopState);
     }
   }, []);
 
@@ -189,17 +297,17 @@ export const AppShell: React.FC = () => {
     const isAuth = ['login', 'signup', 'forgot-password', 'verify-email'].includes(currentRoute);
 
     if (user && userDoc) {
-      // BUG 1 & 7: Redirect authenticated users away from auth routes immediately
       if (isAuth) {
-        setCurrentRoute(userDoc.onboardingComplete === false ? 'onboarding' : 'dashboard');
+        const nextRoute = userDoc.onboardingComplete === false ? 'onboarding' : 'dashboard';
+        handleNavigate(nextRoute);
         return;
       }
 
       // Onboarding guard for protected routes
       if (userDoc.onboardingComplete === false && !isAuth && currentRoute !== 'onboarding' && !isPublicMarketingRoute) {
-        setCurrentRoute('onboarding');
+        handleNavigate('onboarding');
       } else if (userDoc.onboardingComplete === true && currentRoute === 'onboarding') {
-        setCurrentRoute('dashboard');
+        handleNavigate('dashboard');
       }
     }
   }, [user, userDoc, currentRoute, isInitialized]);
@@ -214,7 +322,27 @@ export const AppShell: React.FC = () => {
     if (params?.category) {
       setResearchInitialCategory(params.category as any);
     }
+
     setCurrentRoute(route);
+
+    // Sync browser address bar with HTML5 pushState
+    if (typeof window !== 'undefined') {
+      const basePath = ROUTE_PATH_MAP[route] || `/${route}`;
+      let fullPath = basePath;
+
+      if (params && Object.keys(params).length > 0) {
+        const searchParams = new URLSearchParams(params);
+        fullPath = `${basePath}?${searchParams.toString()}`;
+      }
+
+      if (window.location.pathname !== basePath) {
+        window.history.pushState({ route, params }, '', fullPath);
+      }
+
+      sessionStorage.setItem('kdp_current_route', route);
+      localStorage.setItem('kdp_last_route', route);
+    }
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
