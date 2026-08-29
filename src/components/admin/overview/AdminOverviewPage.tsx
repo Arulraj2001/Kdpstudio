@@ -6,6 +6,7 @@ import {
   PieChart, Pie, Cell, Tooltip,
   ResponsiveContainer, XAxis, YAxis, CartesianGrid, Legend
 } from 'recharts';
+import { useAuthStore } from '../../../lib/authStore';
 import { db, isFirebaseConfigured, auth } from '../../../lib/firebase';
 import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore';
 import type { AdminOverviewStats, AdminActivity } from '../../../types/admin';

@@ -24,15 +24,45 @@ export const PendingPaymentBanner: React.FC<PendingPaymentBannerProps> = ({
     if (!user?.uid) return;
     try {
       setIsLoading(true);
-      const res = await fetch(`/api/payment/upi/status?uid=${encodeURIComponent(user.uid)}`, {
-        headers: {
-          'x-user-id': user.uid,
-        },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setPendingPayment(data.pending || null);
+      let foundPending: UpiPendingPayment | null = null;
+      let serverSuccess = false;
+
+      try {
+        const res = await fetch(`/api/payment/upi/status?uid=${encodeURIComponent(user.uid)}`, {
+          headers: {
+            'x-user-id': user.uid,
+          },
+        });
+        if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
+          const data = await res.json();
+          foundPending = data.pending || null;
+          serverSuccess = true;
+        }
+      } catch {
+        // Silent fallback
       }
+
+      if (!serverSuccess) {
+        try {
+          const { db, isFirebaseConfigured } = await import('../../lib/firebase');
+          const { collection, getDocs, query, where } = await import('firebase/firestore');
+          if (isFirebaseConfigured && db) {
+            const q = query(
+              collection(db, 'upiPendingPayments'),
+              where('uid', '==', user.uid),
+              where('status', '==', 'pending')
+            );
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+              foundPending = snap.docs[0].data() as UpiPendingPayment;
+            }
+          }
+        } catch {
+          // Silent fallback
+        }
+      }
+
+      setPendingPayment(foundPending);
     } catch (err) {
       console.warn('[PendingPaymentBanner] Error checking status:', err);
     } finally {

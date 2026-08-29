@@ -144,12 +144,13 @@ export async function getUserPublishedBooks(uid: string): Promise<PublishedBook[
     if (db) {
       const q = query(
         collection(db, 'publishedBooks'),
-        where('uid', '==', uid),
-        orderBy('publishedDate', 'desc')
+        where('uid', '==', uid)
       );
       const snap = await getDocs(q);
       if (!snap.empty) {
-        return snap.docs.map((d) => d.data() as PublishedBook);
+        return snap.docs
+          .map((d) => d.data() as PublishedBook)
+          .sort((a, b) => (b.publishedDate || '').localeCompare(a.publishedDate || ''));
       }
     }
   } catch (err) {
@@ -158,7 +159,7 @@ export async function getUserPublishedBooks(uid: string): Promise<PublishedBook[
 
   // Fallback to localStorage
   const local = getLocal<PublishedBook>(STORAGE_KEYS.BOOKS);
-  return local.filter((b) => b.uid === uid).sort((a, b) => b.publishedDate.localeCompare(a.publishedDate));
+  return local.filter((b) => b.uid === uid).sort((a, b) => (b.publishedDate || '').localeCompare(a.publishedDate || ''));
 }
 
 export async function getPublishedBook(bookId: string): Promise<PublishedBook | null> {
@@ -381,8 +382,7 @@ export async function getBookPerformanceHistory(
     if (db) {
       const q = query(
         collection(db, 'performanceEntries'),
-        where('bookId', '==', bookId),
-        orderBy('date', 'asc')
+        where('bookId', '==', bookId)
       );
       const snap = await getDocs(q);
       if (!snap.empty) {
@@ -395,8 +395,10 @@ export async function getBookPerformanceHistory(
 
   if (entries.length === 0) {
     const local = getLocal<BookPerformanceEntry>(STORAGE_KEYS.ENTRIES);
-    entries = local.filter((e) => e.bookId === bookId).sort((a, b) => a.date.localeCompare(b.date));
+    entries = local.filter((e) => e.bookId === bookId);
   }
+
+  entries.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 
   if (fromDate) {
     entries = entries.filter((e) => e.date >= fromDate);
@@ -419,8 +421,7 @@ export async function getAllUserPerformanceEntries(
     if (db) {
       const q = query(
         collection(db, 'performanceEntries'),
-        where('uid', '==', uid),
-        orderBy('date', 'asc')
+        where('uid', '==', uid)
       );
       const snap = await getDocs(q);
       if (!snap.empty) {
@@ -433,8 +434,10 @@ export async function getAllUserPerformanceEntries(
 
   if (entries.length === 0) {
     const local = getLocal<BookPerformanceEntry>(STORAGE_KEYS.ENTRIES);
-    entries = local.filter((e) => e.uid === uid).sort((a, b) => a.date.localeCompare(b.date));
+    entries = local.filter((e) => e.uid === uid);
   }
+
+  entries.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 
   if (fromDate) {
     entries = entries.filter((e) => e.date >= fromDate);
