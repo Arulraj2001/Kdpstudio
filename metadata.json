@@ -1,0 +1,6 @@
+{
+  "name": "KDP Studio",
+  "description": "All-in-one publishing suite for Amazon KDP: book writing, interior formatting, cover building, and metadata optimization.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
