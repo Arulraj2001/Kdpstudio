@@ -65,34 +65,32 @@ export function FeatureUsagePage() {
   const engagement = report?.engagement || { dau: 0, wau: 0, mau: 0, stickinessRatio: 0 };
 
   return (
-    <div className="p-6 space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-8 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <span>⚡</span> Feature Usage Analytics & Adoption
-          </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Feature Usage Analytics & Adoption</h2>
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
             Identify engagement drivers, conversion funnels, and feature popularity across creator tiers
           </p>
         </div>
 
         {/* Period Selector Tabs */}
-        <div className="flex items-center gap-1.5 bg-[#1a1a2e] border border-white/10 rounded-lg p-1">
+        <div className="flex items-center gap-1 bg-white border border-slate-200/90 rounded-2xl p-1 shadow-2xs">
           {(
             [
               { id: '7d', label: 'Last 7 Days' },
               { id: '30d', label: 'Last 30 Days' },
               { id: '90d', label: 'Last 90 Days' },
             ] as const
-          ).map(tab => (
+          ).map((tab) => (
             <button
               key={tab.id}
               onClick={() => setPeriod(tab.id)}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 period === tab.id
-                  ? 'bg-purple-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-indigo-600 text-white shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
               {tab.label}
@@ -102,66 +100,66 @@ export function FeatureUsagePage() {
       </div>
 
       {error && (
-        <div className="bg-red-900/30 border border-red-500/30 text-red-300 rounded-lg px-4 py-3 text-xs">
+        <div className="bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl px-4 py-3 text-xs font-medium shadow-xs">
           ⚠️ {error}
         </div>
       )}
 
       {/* ── Engagement Metrics ── */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-[#1a1a2e] border border-white/10 rounded-xl p-4">
-          <p className="text-xs text-slate-500 uppercase font-semibold">Daily Active (DAU)</p>
-          <p className="text-2xl font-bold text-emerald-400 mt-1">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all">
+          <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Daily Active (DAU)</p>
+          <p className="text-2xl font-extrabold text-emerald-600 mt-1.5">
             {loading ? '…' : engagement.dau.toLocaleString()}
           </p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Active in past 24 hours</p>
+          <p className="text-[11px] text-slate-400 font-medium mt-1">Active in past 24 hours</p>
         </div>
 
-        <div className="bg-[#1a1a2e] border border-white/10 rounded-xl p-4">
-          <p className="text-xs text-slate-500 uppercase font-semibold">Weekly Active (WAU)</p>
-          <p className="text-2xl font-bold text-blue-400 mt-1">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all">
+          <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Weekly Active (WAU)</p>
+          <p className="text-2xl font-extrabold text-sky-600 mt-1.5">
             {loading ? '…' : engagement.wau.toLocaleString()}
           </p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Active in past 7 days</p>
+          <p className="text-[11px] text-slate-400 font-medium mt-1">Active in past 7 days</p>
         </div>
 
-        <div className="bg-[#1a1a2e] border border-white/10 rounded-xl p-4">
-          <p className="text-xs text-slate-500 uppercase font-semibold">Monthly Active (MAU)</p>
-          <p className="text-2xl font-bold text-purple-400 mt-1">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all">
+          <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Monthly Active (MAU)</p>
+          <p className="text-2xl font-extrabold text-indigo-600 mt-1.5">
             {loading ? '…' : engagement.mau.toLocaleString()}
           </p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Active in past 30 days</p>
+          <p className="text-[11px] text-slate-400 font-medium mt-1">Active in past 30 days</p>
         </div>
 
-        <div className="bg-[#1a1a2e] border border-white/10 rounded-xl p-4">
-          <p className="text-xs text-slate-500 uppercase font-semibold">DAU / MAU Stickiness</p>
-          <p className="text-2xl font-bold text-pink-400 mt-1">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all">
+          <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">DAU / MAU Stickiness</p>
+          <p className="text-2xl font-extrabold text-violet-600 mt-1.5">
             {loading ? '…' : `${engagement.stickinessRatio}%`}
           </p>
-          <p className="text-[11px] text-slate-500 mt-0.5">10–20% is SaaS benchmark</p>
+          <p className="text-[11px] text-slate-400 font-medium mt-1">10–20% is SaaS benchmark</p>
         </div>
       </section>
 
       {/* ── Top Features Bar Chart ── */}
-      <section className="bg-[#1a1a2e] border border-white/10 rounded-xl p-5 shadow-sm">
+      <section className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-base font-semibold text-white">🔥 Top Features by Usage Count</h2>
-            <p className="text-xs text-slate-400">Total recorded user interactions in selected period</p>
+            <h3 className="text-sm font-bold text-slate-900">🔥 Top Features by Usage Frequency</h3>
+            <p className="text-xs text-slate-500">Total recorded user interactions in selected period</p>
           </div>
-          <div className="hidden sm:flex items-center gap-3 text-[11px] text-slate-400">
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-500"/> Writing</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500"/> Export</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500"/> Puzzles</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500"/> Research</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-teal-500"/> Analytics</span>
+          <div className="hidden sm:flex items-center gap-3 text-[11px] text-slate-500 font-medium">
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-purple-500"/> Writing</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500"/> Export</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"/> Puzzles</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500"/> Research</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-teal-500"/> Analytics</span>
           </div>
         </div>
 
         {loading ? (
-          <div className="h-64 bg-white/5 rounded-lg animate-pulse" />
+          <div className="h-64 bg-slate-100 rounded-2xl animate-pulse" />
         ) : topFeatures.length === 0 ? (
-          <p className="text-xs text-slate-500 py-12 text-center">No feature interactions recorded yet</p>
+          <p className="text-xs text-slate-400 py-12 text-center font-medium">No feature interactions recorded yet</p>
         ) : (
           <ResponsiveContainer width="100%" height={320}>
             <BarChart
@@ -169,20 +167,22 @@ export function FeatureUsagePage() {
               layout="vertical"
               margin={{ top: 5, right: 30, left: 140, bottom: 5 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" horizontal={false} />
-              <XAxis type="number" tick={{ fill: '#6b7280', fontSize: 10 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+              <XAxis type="number" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} />
               <YAxis
                 type="category"
                 dataKey="label"
-                tick={{ fill: '#d1d5db', fontSize: 11 }}
+                tick={{ fill: '#334155', fontSize: 11, fontWeight: 500 }}
                 width={135}
+                axisLine={false}
+                tickLine={false}
               />
               <Tooltip
                 contentStyle={{
-                  background: '#1a1a2e',
-                  border: '1px solid #ffffff20',
-                  color: '#fff',
-                  borderRadius: '6px',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '10px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
                   fontSize: '12px',
                 }}
                 formatter={(val: any, name: any, item: any) => [
@@ -190,11 +190,11 @@ export function FeatureUsagePage() {
                   'Volume',
                 ]}
               />
-              <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+              <Bar dataKey="count" radius={[0, 6, 6, 0]}>
                 {topFeatures.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={CATEGORY_COLORS[entry.category] || '#6b7280'}
+                    fill={CATEGORY_COLORS[entry.category] || '#64748b'}
                   />
                 ))}
               </Bar>
@@ -206,73 +206,75 @@ export function FeatureUsagePage() {
       {/* ── Feature Usage by Plan & Funnel ── */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Usage by Plan */}
-        <div className="bg-[#1a1a2e] border border-white/10 rounded-xl p-5">
-          <h2 className="text-sm font-semibold text-white mb-1">👥 Feature Usage by Subscription Plan</h2>
-          <p className="text-xs text-slate-400 mb-4">Shows which features drive upgrades & retain paid users</p>
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs">
+          <h3 className="text-sm font-bold text-slate-900 mb-1">👥 Feature Usage by Subscription Plan</h3>
+          <p className="text-xs text-slate-500 mb-4">Shows which features drive upgrades & retain paid users</p>
 
           {loading ? (
-            <div className="h-64 bg-white/5 rounded-lg animate-pulse" />
+            <div className="h-64 bg-slate-100 rounded-2xl animate-pulse" />
           ) : planUsage.length === 0 ? (
-            <p className="text-xs text-slate-500 py-12 text-center">No plan breakdown available</p>
+            <p className="text-xs text-slate-400 py-12 text-center font-medium">No plan breakdown available</p>
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={planUsage}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                 <XAxis
                   dataKey="label"
-                  tick={{ fill: '#6b7280', fontSize: 9 }}
+                  tick={{ fill: '#64748b', fontSize: 10 }}
                   interval={0}
                   angle={-25}
                   textAnchor="end"
                   height={50}
+                  axisLine={{ stroke: '#e2e8f0' }}
+                  tickLine={false}
                 />
-                <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
+                <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip
                   contentStyle={{
-                    background: '#1a1a2e',
-                    border: '1px solid #ffffff20',
-                    color: '#fff',
-                    borderRadius: '6px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '10px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
                     fontSize: '11px',
                   }}
                 />
-                <Legend wrapperStyle={{ fontSize: '11px' }} />
-                <Bar dataKey="free" fill={PLAN_BAR_COLORS.free} name="Free" radius={[2, 2, 0, 0]} />
-                <Bar dataKey="starter" fill={PLAN_BAR_COLORS.starter} name="Starter" radius={[2, 2, 0, 0]} />
-                <Bar dataKey="pro" fill={PLAN_BAR_COLORS.pro} name="Pro" radius={[2, 2, 0, 0]} />
-                <Bar dataKey="agency" fill={PLAN_BAR_COLORS.agency} name="Agency" radius={[2, 2, 0, 0]} />
+                <Legend wrapperStyle={{ fontSize: '11px', fontWeight: 600 }} />
+                <Bar dataKey="free" fill={PLAN_BAR_COLORS.free} name="Free" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="starter" fill={PLAN_BAR_COLORS.starter} name="Starter" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="pro" fill={PLAN_BAR_COLORS.pro} name="Pro" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="agency" fill={PLAN_BAR_COLORS.agency} name="Agency" radius={[3, 3, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
         </div>
 
         {/* Feature Conversion Funnel */}
-        <div className="bg-[#1a1a2e] border border-white/10 rounded-xl p-5">
-          <h2 className="text-sm font-semibold text-white mb-1">🎯 Publishing Lifecycle Conversion Funnel</h2>
-          <p className="text-xs text-slate-400 mb-4">Progression from manuscript creation to print export</p>
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs">
+          <h3 className="text-sm font-bold text-slate-900 mb-1">🎯 Publishing Lifecycle Funnel</h3>
+          <p className="text-xs text-slate-500 mb-4">Progression from manuscript draft to print export</p>
 
-          <div className="space-y-3 pt-2">
+          <div className="space-y-3.5 pt-2">
             {funnel.map((step, idx) => (
               <div key={step.name} className="space-y-1">
                 <div className="flex justify-between text-xs">
-                  <span className="text-white font-medium flex items-center gap-1.5">
-                    <span className="w-4 h-4 rounded-full bg-purple-600/30 text-purple-300 text-[10px] flex items-center justify-center font-bold">
+                  <span className="text-slate-800 font-bold flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] flex items-center justify-center font-extrabold border border-indigo-200">
                       {idx + 1}
                     </span>
                     {step.name}
                   </span>
-                  <span className="text-slate-400">
-                    <strong className="text-white">{step.count}</strong> authors ({step.percentage}%)
+                  <span className="text-slate-500 font-medium">
+                    <strong className="text-slate-900 font-bold">{step.count}</strong> creators ({step.percentage}%)
                   </span>
                 </div>
-                <div className="h-3 bg-white/5 rounded-full overflow-hidden flex items-center">
+                <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden flex items-center">
                   <div
-                    className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all"
+                    className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full transition-all"
                     style={{ width: `${Math.max(step.percentage, 4)}%` }}
                   />
                 </div>
                 {step.dropoffPercentage > 0 && (
-                  <p className="text-[10px] text-red-400/80 text-right">
+                  <p className="text-[10px] text-rose-600 text-right font-semibold">
                     ▼ {step.dropoffPercentage}% dropoff from step 1
                   </p>
                 )}
@@ -283,18 +285,18 @@ export function FeatureUsagePage() {
       </section>
 
       {/* ── User Activity Distribution ── */}
-      <section className="bg-[#1a1a2e] border border-white/10 rounded-xl p-5">
-        <h2 className="text-base font-semibold text-white mb-1">📊 User Depth Distribution (Features per Author)</h2>
-        <p className="text-xs text-slate-400 mb-4">
-          Identifies ghost accounts vs multi-feature power authors
+      <section className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs">
+        <h3 className="text-sm font-bold text-slate-900 mb-1">📊 Creator Depth Distribution (Tools per Creator)</h3>
+        <p className="text-xs text-slate-500 mb-4">
+          Identifies casual single-tool users vs multi-feature power authors
         </p>
 
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {distribution.map(b => (
-            <div key={b.bucket} className="bg-white/5 border border-white/5 rounded-lg p-3 text-center">
-              <p className="text-xs text-slate-400 font-semibold">{b.bucket}</p>
-              <p className="text-xl font-bold text-white mt-1">{b.count}</p>
-              <p className="text-[11px] text-purple-300 font-medium">{b.percentage}% of base</p>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
+          {distribution.map((b) => (
+            <div key={b.bucket} className="bg-slate-50 border border-slate-100 rounded-xl p-4 text-center">
+              <p className="text-xs text-slate-500 font-bold">{b.bucket}</p>
+              <p className="text-xl font-extrabold text-slate-900 mt-1">{b.count}</p>
+              <p className="text-[11px] text-indigo-700 font-bold">{b.percentage}% of base</p>
             </div>
           ))}
         </div>

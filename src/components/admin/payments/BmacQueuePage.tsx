@@ -255,10 +255,10 @@ export function BmacQueuePage() {
   }, [fetchBmacQueue]);
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto relative">
+    <div className="space-y-6 max-w-7xl mx-auto relative">
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#1e1e35] border border-white/10 text-white text-xs px-4 py-2.5 rounded-lg shadow-2xl">
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 border border-slate-800 text-white text-xs px-4 py-2.5 rounded-xl shadow-2xl">
           {toast}
         </div>
       )}
@@ -266,112 +266,110 @@ export function BmacQueuePage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <span>☕</span> Buy Me a Coffee Unmatched Queue
-          </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Supporter donations and one-time tips waiting to be linked to user accounts
+          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Buy Me a Coffee Unmatched Ledger</h2>
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Supporter donations and one-time tips waiting to be linked to creator accounts
           </p>
         </div>
 
         <button
           onClick={fetchBmacQueue}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1a1a2e] border border-white/10 hover:border-white/20 rounded-lg text-xs font-semibold text-slate-300 transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 rounded-xl text-xs font-semibold text-slate-700 transition-all shadow-2xs cursor-pointer"
         >
-          <span>🔄</span> Refresh
+          <span>🔄</span> Refresh Ledger
         </button>
       </div>
 
       {error && (
-        <div className="bg-red-900/30 border border-red-500/30 text-red-300 rounded-lg px-4 py-3 text-xs">
+        <div className="bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl px-4 py-3 text-xs font-medium shadow-xs">
           ⚠️ {error}
         </div>
       )}
 
       {/* ── Unmatched Table ── */}
-      <section className="bg-[#1a1a2e] border border-white/10 rounded-xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-white/10 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-white">Unmatched Donations</h2>
-          <span className="text-xs text-slate-500">{items.length} items</span>
+      <section className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs">
+        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+          <h3 className="text-sm font-bold text-slate-900">Unmatched Donations</h3>
+          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">{items.length} unassigned</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
             <thead>
-              <tr className="border-b border-white/10 text-slate-500 uppercase tracking-wider font-semibold">
-                <th className="px-4 py-3">Supporter</th>
-                <th className="px-4 py-3">Donation</th>
-                <th className="px-4 py-3">Coffees</th>
-                <th className="px-4 py-3">Matched Tier</th>
-                <th className="px-4 py-3">Message</th>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+              <tr className="bg-slate-50/90 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-bold">
+                <th className="px-4 py-3.5">Supporter</th>
+                <th className="px-4 py-3.5">Donation</th>
+                <th className="px-4 py-3.5">Coffees</th>
+                <th className="px-4 py-3.5">Matched Tier</th>
+                <th className="px-4 py-3.5">Message</th>
+                <th className="px-4 py-3.5">Date</th>
+                <th className="px-4 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5 text-slate-300">
+            <tbody className="divide-y divide-slate-100 text-slate-800">
               {loading ? (
                 Array.from({ length: 3 }).map((_, i) => (
                   <tr key={i}>
                     {Array.from({ length: 7 }).map((_, j) => (
-                      <td key={j} className="px-4 py-3">
-                        <div className="h-4 bg-white/5 rounded animate-pulse" />
+                      <td key={j} className="px-4 py-3.5">
+                        <div className="h-4 bg-slate-100 rounded animate-pulse" />
                       </td>
                     ))}
                   </tr>
                 ))
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-slate-500">
+                  <td colSpan={7} className="px-4 py-12 text-center text-slate-400 font-medium">
                     🎉 All Buy Me a Coffee payments have been matched!
                   </td>
                 </tr>
               ) : (
-                items.map(item => {
+                items.map((item) => {
                   const reward = getBmacTierDescription(item.amount, item.supportCoffees);
                   return (
-                    <tr key={item.id} className="hover:bg-white/5 transition-colors">
+                    <tr key={item.id} className="hover:bg-indigo-50/40 transition-colors">
                       {/* Supporter */}
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3.5">
                         <div>
-                          <p className="text-white font-medium">{item.supporterName}</p>
-                          <p className="text-[11px] text-slate-500 font-mono">
+                          <p className="text-slate-900 font-bold">{item.supporterName}</p>
+                          <p className="text-[11px] text-slate-400 font-mono">
                             {item.supporterEmail || 'No email given'}
                           </p>
                         </div>
                       </td>
 
                       {/* Donation */}
-                      <td className="px-4 py-3 font-bold text-amber-400 text-sm">
+                      <td className="px-4 py-3.5 font-extrabold text-amber-600 text-sm">
                         ${item.amount}
                       </td>
 
                       {/* Coffees */}
-                      <td className="px-4 py-3 text-slate-300 font-semibold">
+                      <td className="px-4 py-3.5 text-slate-700 font-bold">
                         ☕ {item.supportCoffees}
                       </td>
 
                       {/* Matched Tier */}
-                      <td className="px-4 py-3">
-                        <span className="text-purple-300 font-semibold">
+                      <td className="px-4 py-3.5">
+                        <span className="text-indigo-700 font-bold">
                           {reward}
                         </span>
                       </td>
 
                       {/* Message */}
-                      <td className="px-4 py-3 max-w-[200px] truncate text-slate-400 italic">
+                      <td className="px-4 py-3.5 max-w-[200px] truncate text-slate-500 italic">
                         {item.message || '—'}
                       </td>
 
                       {/* Date */}
-                      <td className="px-4 py-3 text-slate-500 whitespace-nowrap">
+                      <td className="px-4 py-3.5 text-slate-400 font-medium whitespace-nowrap">
                         {new Date(item.createdAt).toLocaleDateString()}
                       </td>
 
                       {/* Actions */}
-                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <td className="px-4 py-3.5 text-right whitespace-nowrap">
                         <button
                           onClick={() => setActiveItem(item)}
-                          className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-lg transition-colors shadow-sm"
+                          className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer"
                         >
                           Match to User
                         </button>

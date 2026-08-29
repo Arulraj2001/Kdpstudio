@@ -128,7 +128,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Sidebar Container */}
       <aside
         id="main-sidebar"
-        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-[#1a1a2e] text-slate-200 border-r border-slate-800/80 transition-all duration-300 ease-in-out
+        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-[#0f172a] text-slate-200 border-r border-slate-800/80 transition-all duration-300 ease-in-out
           ${isOpenMobile ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0'}
           ${isCollapsed ? 'md:w-20' : 'md:w-64'}
         `}
@@ -136,7 +136,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Brand Header */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800/80">
           <div className="flex items-center gap-3 overflow-hidden cursor-pointer" onClick={() => handleNavClick('dashboard')}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#7c3aed] to-indigo-500 flex items-center justify-center text-white shadow-md shadow-purple-900/30 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-950/40 shrink-0">
               <BookMarked size={22} className="stroke-[2.2]" />
             </div>
             {(!isCollapsed || isOpenMobile) && (
@@ -144,8 +144,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span className="font-bold text-lg text-white tracking-tight leading-tight truncate">
                   KDP Studio
                 </span>
-                <span className="text-[11px] text-purple-300/80 font-medium tracking-wide uppercase">
-                  Publishing Suite
+                <span className="text-[10px] text-indigo-400 font-bold tracking-widest uppercase">
+                  Creator Suite
                 </span>
               </div>
             )}
@@ -163,8 +163,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Navigation List */}
-        <div className="flex-1 py-4 px-3 overflow-y-auto space-y-1.5 scrollbar-thin scrollbar-thumb-slate-800">
-          <div className={`px-3 pb-2 text-[10px] font-semibold tracking-wider text-slate-400 uppercase ${isCollapsed && !isOpenMobile ? 'text-center' : ''}`}>
+        <div className="flex-1 py-4 px-3 overflow-y-auto space-y-1 scrollbar-thin scrollbar-thumb-slate-800">
+          <div className={`px-3 pb-2 text-[10px] font-bold tracking-wider text-slate-500 uppercase ${isCollapsed && !isOpenMobile ? 'text-center' : ''}`}>
             {isCollapsed && !isOpenMobile ? '•' : 'Main Menu'}
           </div>
 
@@ -178,17 +178,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 id={`nav-item-${item.id}`}
                 onClick={() => handleNavClick(item.id)}
                 title={isCollapsed ? item.label : undefined}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all duration-150 group relative cursor-pointer
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-150 group relative cursor-pointer
                   ${isActive 
-                    ? 'bg-[#7c3aed] text-white font-semibold shadow-md shadow-purple-950/40 ring-1 ring-purple-400/30' 
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                    ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-indigo-950/40' 
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                   }
                   ${isCollapsed && !isOpenMobile ? 'justify-center px-2' : ''}
                 `}
               >
                 <Icon 
-                  size={20} 
-                  className={`shrink-0 transition-transform duration-200 group-hover:scale-105 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-purple-300'}`} 
+                  size={19} 
+                  className={`shrink-0 transition-transform duration-200 group-hover:scale-105 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-indigo-400'}`} 
                 />
                 
                 {(!isCollapsed || isOpenMobile) && (
@@ -196,12 +196,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <span>{item.label}</span>
                     {item.badge && (
                       <span
-                        className={`text-[9px] font-bold px-1.5 py-0.2 rounded uppercase tracking-wider ${
+                        className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full uppercase tracking-wider ${
                           item.badge === 'Agency'
                             ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
                             : item.badge === 'Pro'
-                            ? 'bg-purple-900/60 text-purple-300 border border-purple-500/40'
-                            : 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/40'
+                            ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40'
+                            : item.badge === 'Admin'
+                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                         }`}
                       >
                         {item.badge}
@@ -229,15 +231,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="text-[11px] text-slate-400 font-medium">KDP Studio v1.2</span>
               </div>
-              <span className="text-[10px] text-purple-400 font-semibold uppercase tracking-wider bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-800/50">
-                Auth Active
+              <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider bg-indigo-950/60 px-2 py-0.5 rounded-full border border-indigo-800/50">
+                Cloud Active
               </span>
             </div>
           )}
           <button
             id="toggle-sidebar-collapse-btn"
             onClick={onToggleCollapse}
-            className={`p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-colors ${isCollapsed ? 'mx-auto' : 'self-end'}`}
+            className={`p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-colors cursor-pointer ${isCollapsed ? 'mx-auto' : 'self-end'}`}
             title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >

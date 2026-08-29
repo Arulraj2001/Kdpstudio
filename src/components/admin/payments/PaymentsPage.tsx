@@ -7,18 +7,18 @@ import type { AdminPaymentRow, AdminPaymentsResult } from '../../../types/admin'
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const GATEWAY_BADGES: Record<string, { label: string; bg: string; text: string }> = {
-  razorpay: { label: 'Razorpay', bg: 'bg-blue-950/60 border-blue-500/30', text: 'text-blue-300' },
-  paypal: { label: 'PayPal', bg: 'bg-indigo-950/60 border-indigo-500/30', text: 'text-indigo-300' },
-  upi: { label: 'UPI Direct', bg: 'bg-emerald-950/60 border-emerald-500/30', text: 'text-emerald-300' },
-  bmac: { label: 'BMaC', bg: 'bg-amber-950/60 border-amber-500/30', text: 'text-amber-300' },
+  razorpay: { label: 'Razorpay', bg: 'bg-blue-50 border-blue-200', text: 'text-blue-700' },
+  paypal: { label: 'PayPal', bg: 'bg-indigo-50 border-indigo-200', text: 'text-indigo-700' },
+  upi: { label: 'UPI Direct', bg: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-700' },
+  bmac: { label: 'BMaC', bg: 'bg-amber-50 border-amber-200', text: 'text-amber-700' },
 };
 
 const STATUS_BADGES: Record<string, { label: string; bg: string; text: string }> = {
-  completed: { label: 'Completed', bg: 'bg-emerald-900/40 text-emerald-300', text: '' },
-  pending: { label: 'Pending', bg: 'bg-amber-900/40 text-amber-300', text: '' },
-  failed: { label: 'Failed', bg: 'bg-red-900/40 text-red-300', text: '' },
-  refunded: { label: 'Refunded', bg: 'bg-purple-900/40 text-purple-300', text: '' },
-  cancelled: { label: 'Cancelled', bg: 'bg-slate-700 text-slate-400', text: '' },
+  completed: { label: 'Completed', bg: 'bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold', text: '' },
+  pending: { label: 'Pending', bg: 'bg-amber-50 border border-amber-200 text-amber-700 font-semibold', text: '' },
+  failed: { label: 'Failed', bg: 'bg-rose-50 border border-rose-200 text-rose-700 font-semibold', text: '' },
+  refunded: { label: 'Refunded', bg: 'bg-purple-50 border border-purple-200 text-purple-700 font-semibold', text: '' },
+  cancelled: { label: 'Cancelled', bg: 'bg-slate-100 border border-slate-200 text-slate-600 font-semibold', text: '' },
 };
 
 // ── Modals ───────────────────────────────────────────────────────────────────
@@ -453,10 +453,10 @@ export function PaymentsPage() {
   const end = Math.min((page + 1) * PAGE_SIZE, total);
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto relative">
+    <div className="space-y-6 max-w-7xl mx-auto relative">
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#1e1e35] border border-white/10 text-white text-xs px-4 py-2.5 rounded-lg shadow-2xl">
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 border border-slate-800 text-white text-xs px-4 py-2.5 rounded-xl shadow-2xl">
           {toast}
         </div>
       )}
@@ -464,44 +464,42 @@ export function PaymentsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <span>💳</span> Payment History & Transactions
-          </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Payment Ledger & Audit Trail</h2>
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
             {total > 0
-              ? `Showing ${start}–${end} of ${total.toLocaleString()} transactions across all gateways`
-              : 'All processed creator transactions'}
+              ? `Showing ${start}–${end} of ${total.toLocaleString()} transactions across all payment gateways`
+              : 'All processed creator transactions and settlements'}
           </p>
         </div>
 
         <button
           onClick={handleExportCSV}
           disabled={exporting || total === 0}
-          className="flex items-center gap-2 px-4 py-2 bg-[#1a1a2e] border border-white/10 hover:border-white/20 rounded-lg text-xs font-semibold text-slate-300 transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 shadow-2xs transition-all cursor-pointer disabled:opacity-50"
         >
           📥 {exporting ? 'Exporting…' : 'Export CSV'}
         </button>
       </div>
 
       {/* ── Filters Bar ── */}
-      <div className="bg-[#1a1a2e] border border-white/10 rounded-xl p-4 space-y-3 shadow-sm">
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-5 space-y-4 shadow-xs">
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">🔍</span>
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
           <input
             type="text"
             value={search}
-            onChange={e => handleSearchChange(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Search by customer email, name, transaction ID, or payment ID…"
-            className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-indigo-500 focus:ring-3 focus:ring-indigo-50 transition-all"
           />
         </div>
 
-        <div className="flex flex-wrap gap-2.5 items-center">
+        <div className="flex flex-wrap gap-3 items-center">
           {/* Gateway Filter */}
           <select
             value={gateway}
-            onChange={e => { setGateway(e.target.value); setPage(0); }}
-            className="bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-purple-500"
+            onChange={(e) => { setGateway(e.target.value); setPage(0); }}
+            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500"
           >
             <option value="all">All Gateways</option>
             <option value="razorpay">Razorpay</option>
@@ -513,8 +511,8 @@ export function PaymentsPage() {
           {/* Plan Filter */}
           <select
             value={plan}
-            onChange={e => { setPlan(e.target.value); setPage(0); }}
-            className="bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-purple-500"
+            onChange={(e) => { setPlan(e.target.value); setPage(0); }}
+            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500"
           >
             <option value="all">All Plans</option>
             <option value="starter">Starter</option>
@@ -526,8 +524,8 @@ export function PaymentsPage() {
           {/* Status Filter */}
           <select
             value={status}
-            onChange={e => { setStatus(e.target.value); setPage(0); }}
-            className="bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-purple-500"
+            onChange={(e) => { setStatus(e.target.value); setPage(0); }}
+            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500"
           >
             <option value="all">All Statuses</option>
             <option value="completed">Completed</option>
@@ -539,8 +537,8 @@ export function PaymentsPage() {
           {/* Currency Filter */}
           <select
             value={currency}
-            onChange={e => { setCurrency(e.target.value); setPage(0); }}
-            className="bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-purple-500"
+            onChange={(e) => { setCurrency(e.target.value); setPage(0); }}
+            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500"
           >
             <option value="all">All Currencies</option>
             <option value="USD">USD ($)</option>
@@ -552,91 +550,91 @@ export function PaymentsPage() {
           </select>
 
           {/* Start & End Date */}
-          <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg px-2 py-1">
-            <span className="text-[10px] text-slate-500 uppercase font-semibold">From</span>
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
+            <span className="text-[10px] text-slate-500 uppercase font-bold">From</span>
             <input
               type="date"
               value={startDate}
-              onChange={e => { setStartDate(e.target.value); setPage(0); }}
-              className="bg-transparent text-xs text-slate-300 focus:outline-none"
+              onChange={(e) => { setStartDate(e.target.value); setPage(0); }}
+              className="bg-transparent text-xs text-slate-800 font-semibold focus:outline-none"
             />
           </div>
 
-          <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg px-2 py-1">
-            <span className="text-[10px] text-slate-500 uppercase font-semibold">To</span>
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
+            <span className="text-[10px] text-slate-500 uppercase font-bold">To</span>
             <input
               type="date"
               value={endDate}
-              onChange={e => { setEndDate(e.target.value); setPage(0); }}
-              className="bg-transparent text-xs text-slate-300 focus:outline-none"
+              onChange={(e) => { setEndDate(e.target.value); setPage(0); }}
+              className="bg-transparent text-xs text-slate-800 font-semibold focus:outline-none"
             />
           </div>
         </div>
       </div>
 
       {/* ── Payments Table ── */}
-      <div className="bg-[#1a1a2e] border border-white/10 rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-white border border-slate-200/80 rounded-2xl shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
             <thead>
-              <tr className="border-b border-white/10 text-slate-500 uppercase tracking-wider font-semibold">
-                <th className="px-4 py-3">Date / Time</th>
-                <th className="px-4 py-3">Customer</th>
-                <th className="px-4 py-3">Plan</th>
-                <th className="px-4 py-3">Amount</th>
-                <th className="px-4 py-3">Gateway</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Transaction ID</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+              <tr className="bg-slate-50/90 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-bold">
+                <th className="px-4 py-3.5">Date / Time</th>
+                <th className="px-4 py-3.5">Customer</th>
+                <th className="px-4 py-3.5">Plan</th>
+                <th className="px-4 py-3.5">Amount</th>
+                <th className="px-4 py-3.5">Gateway</th>
+                <th className="px-4 py-3.5">Status</th>
+                <th className="px-4 py-3.5">Transaction ID</th>
+                <th className="px-4 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5 text-slate-300">
+            <tbody className="divide-y divide-slate-100 text-slate-800">
               {loading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <tr key={i}>
                     {Array.from({ length: 8 }).map((_, j) => (
-                      <td key={j} className="px-4 py-3">
-                        <div className="h-4 bg-white/5 rounded animate-pulse" />
+                      <td key={j} className="px-4 py-3.5">
+                        <div className="h-4 bg-slate-100 rounded animate-pulse" />
                       </td>
                     ))}
                   </tr>
                 ))
               ) : payments.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-slate-500">
+                  <td colSpan={8} className="px-4 py-12 text-center text-slate-400 font-medium">
                     No transactions match your search filters
                   </td>
                 </tr>
               ) : (
-                payments.map(p => {
+                payments.map((p) => {
                   const gw = GATEWAY_BADGES[p.gateway] || {
                     label: p.gateway,
-                    bg: 'bg-slate-700',
-                    text: 'text-slate-300',
+                    bg: 'bg-slate-100 border-slate-200',
+                    text: 'text-slate-700',
                   };
                   const st = STATUS_BADGES[p.status] || {
                     label: p.status,
-                    bg: 'bg-slate-700 text-slate-300',
+                    bg: 'bg-slate-100 border border-slate-200 text-slate-600',
                     text: '',
                   };
 
                   return (
-                    <tr key={p.id} className="hover:bg-white/5 transition-colors">
+                    <tr key={p.id} className="hover:bg-indigo-50/40 transition-colors">
                       {/* Date */}
-                      <td className="px-4 py-3 whitespace-nowrap text-slate-400">
+                      <td className="px-4 py-3.5 whitespace-nowrap text-slate-500 font-medium">
                         {new Date(p.createdAt).toLocaleDateString()}{' '}
-                        <span className="text-[10px] text-slate-600">
+                        <span className="text-[10px] text-slate-400">
                           {new Date(p.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </td>
 
                       {/* Customer */}
-                      <td className="px-4 py-3">
-                        <div className="max-w-[160px]">
-                          <p className="text-white font-medium truncate">{p.userName || 'Author'}</p>
+                      <td className="px-4 py-3.5">
+                        <div className="max-w-[170px]">
+                          <p className="text-slate-900 font-bold truncate">{p.userName || 'Author'}</p>
                           <a
                             href={`/admin/users/${p.uid}`}
-                            className="text-[11px] text-slate-500 hover:text-purple-300 truncate block font-mono"
+                            className="text-[11px] text-slate-400 hover:text-indigo-600 truncate block font-mono"
                           >
                             {p.userEmail}
                           </a>
@@ -644,54 +642,54 @@ export function PaymentsPage() {
                       </td>
 
                       {/* Plan */}
-                      <td className="px-4 py-3">
-                        <span className="capitalize font-semibold text-purple-300">
+                      <td className="px-4 py-3.5">
+                        <span className="capitalize font-bold text-indigo-700">
                           {p.plan}
                         </span>
-                        <span className="text-[10px] text-slate-500 block">
+                        <span className="text-[10px] text-slate-400 block font-medium">
                           {p.billingCycle}
                         </span>
                       </td>
 
                       {/* Amount */}
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <p className="text-white font-semibold">
+                      <td className="px-4 py-3.5 whitespace-nowrap">
+                        <p className="text-slate-900 font-extrabold">
                           {p.currency} {p.amount.toFixed(2)}
                         </p>
                         {p.currency !== 'USD' && (
-                          <p className="text-[10px] text-slate-500">
+                          <p className="text-[10px] text-slate-400 font-medium">
                             (${p.amountUSD.toFixed(2)} USD)
                           </p>
                         )}
                       </td>
 
                       {/* Gateway Badge */}
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3.5">
                         <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded border ${gw.bg} ${gw.text}`}
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${gw.bg} ${gw.text}`}
                         >
                           {gw.label}
                         </span>
                       </td>
 
                       {/* Status Badge */}
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3.5">
                         <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.bg}`}
+                          className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${st.bg}`}
                         >
                           {st.label}
                         </span>
                       </td>
 
                       {/* Monospace TxID */}
-                      <td className="px-4 py-3 font-mono text-[11px] text-slate-400">
+                      <td className="px-4 py-3.5 font-mono text-[11px] text-slate-500">
                         <div className="flex items-center gap-1.5">
                           <span className="truncate max-w-[100px]" title={p.gatewayPaymentId}>
                             {p.gatewayPaymentId}
                           </span>
                           <button
                             onClick={() => copyTxId(p.gatewayPaymentId)}
-                            className="text-slate-600 hover:text-slate-300 p-0.5"
+                            className="text-slate-400 hover:text-indigo-600 p-0.5 cursor-pointer"
                             title="Copy Transaction ID"
                           >
                             📋
@@ -700,18 +698,18 @@ export function PaymentsPage() {
                       </td>
 
                       {/* Actions */}
-                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <td className="px-4 py-3.5 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => setSelectedPayment(p)}
-                            className="px-2 py-1 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded text-[11px] font-medium transition-colors"
+                            className="px-2.5 py-1 bg-slate-50 hover:bg-indigo-50 border border-slate-200 text-slate-700 hover:text-indigo-600 rounded-lg text-[11px] font-semibold transition-colors shadow-2xs cursor-pointer"
                           >
                             Details
                           </button>
                           {p.status === 'completed' && (
                             <button
                               onClick={() => setRefundTarget(p)}
-                              className="px-2 py-1 bg-red-950/40 hover:bg-red-900/60 border border-red-500/20 text-red-300 rounded text-[11px] font-medium transition-colors"
+                              className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 rounded-lg text-[11px] font-semibold transition-colors shadow-2xs cursor-pointer"
                             >
                               Refund
                             </button>
@@ -728,21 +726,21 @@ export function PaymentsPage() {
 
         {/* Pagination Bar */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-white/10 text-xs">
+          <div className="flex items-center justify-between px-5 py-3.5 border-t border-slate-100 bg-slate-50/50 text-xs">
             <button
-              onClick={() => setPage(p => Math.max(0, p - 1))}
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="px-3 py-1.5 text-slate-400 hover:text-white disabled:opacity-30 transition-colors"
+              className="px-3 py-1.5 text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-lg disabled:opacity-30 transition-colors shadow-2xs font-semibold"
             >
               ← Previous
             </button>
-            <span className="text-slate-500">
+            <span className="text-slate-500 font-medium">
               Page {page + 1} of {totalPages}
             </span>
             <button
-              onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
-              className="px-3 py-1.5 text-slate-400 hover:text-white disabled:opacity-30 transition-colors"
+              className="px-3 py-1.5 text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-lg disabled:opacity-30 transition-colors shadow-2xs font-semibold"
             >
               Next →
             </button>
