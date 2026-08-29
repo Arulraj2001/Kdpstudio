@@ -80,6 +80,8 @@ import { PrivacyPageView } from '../public/PrivacyPageView';
 import { ContactPageView } from '../public/ContactPageView';
 import { ChangelogPageView } from '../public/ChangelogPageView';
 import { BlogPageView } from '../public/BlogPageView';
+import { BlogPostDetailView } from '../public/BlogPostDetailView';
+import { LaunchPageView } from '../public/LaunchPageView';
 import { useGeoStore } from '../../lib/geoStore';
 import { useAuthStore } from '../../lib/authStore';
 import { useBookStore } from '../../lib/store';
@@ -95,6 +97,8 @@ export const ROUTE_PATH_MAP: Record<PageRoute, string> = {
   contact: '/contact',
   changelog: '/changelog',
   blog: '/blog',
+  'blog-detail': '/blog',
+  launch: '/launch',
   login: '/login',
   signup: '/signup',
   'forgot-password': '/forgot-password',
@@ -167,7 +171,9 @@ export function parsePathToRoute(pathname: string): PageRoute | null {
   if (clean === 'privacy') return 'privacy';
   if (clean === 'contact') return 'contact';
   if (clean === 'changelog') return 'changelog';
-  if (clean === 'blog') return 'blog';
+  if (clean === 'blog' || clean === 'blog/') return 'blog';
+  if (clean.startsWith('blog/')) return 'blog-detail';
+  if (clean === 'launch') return 'launch';
   if (clean === 'login') return 'login';
   if (clean === 'signup') return 'signup';
   if (clean === 'forgot-password') return 'forgot-password';
@@ -259,8 +265,12 @@ export const AppShell: React.FC = () => {
   const [activePuzzleBookId, setActivePuzzleBookId] = useState<string>('');
   const [selectedNiche, setSelectedNiche] = useState<NicheResult | null>(null);
   const [selectedSavedNicheId, setSelectedSavedNicheId] = useState<string | undefined>(undefined);
-  const [researchInitialQuery, setResearchInitialQuery] = useState<string>('');
-  const [researchInitialCategory, setResearchInitialCategory] = useState<NicheCategory | 'all'>('all');
+  const [activeBlogSlug, setActiveBlogSlug] = useState<string>(() => {
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/blog/')) {
+      return window.location.pathname.replace('/blog/', '').trim() || 'kdp-niches-2026';
+    }
+    return 'kdp-niches-2026';
+  });
   const { user, userDoc, isInitialized } = useAuthStore();
 
   // Initialize IP Geolocation & URL param queries on app mount
@@ -277,6 +287,10 @@ export const AppShell: React.FC = () => {
       // Listen to browser Back and Forward navigation buttons
       const handlePopState = () => {
         const route = parsePathToRoute(window.location.pathname) || 'home';
+        if (window.location.pathname.startsWith('/blog/')) {
+          const slug = window.location.pathname.replace('/blog/', '').trim();
+          if (slug) setActiveBlogSlug(slug);
+        }
         setCurrentRoute(route);
         sessionStorage.setItem('kdp_current_route', route);
       };
@@ -291,7 +305,7 @@ export const AppShell: React.FC = () => {
     if (!isInitialized) return;
 
     const isPublicMarketingRoute = [
-      'home', 'pricing', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'payment-success'
+      'home', 'pricing', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'blog-detail', 'launch', 'payment-success'
     ].includes(currentRoute);
 
     const isAuth = ['login', 'signup', 'forgot-password', 'verify-email'].includes(currentRoute);
@@ -377,7 +391,7 @@ export const AppShell: React.FC = () => {
   };
 
   const isPublicMarketingRoute = [
-    'home', 'pricing', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'payment-success'
+    'home', 'pricing', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'blog-detail', 'launch', 'payment-success'
   ].includes(currentRoute);
 
   const isAuthRoute = ['login', 'signup', 'forgot-password', 'verify-email'].includes(currentRoute);
@@ -417,7 +431,30 @@ export const AppShell: React.FC = () => {
           {currentRoute === 'privacy' && <PrivacyPageView onNavigate={handleNavigate} />}
           {currentRoute === 'contact' && <ContactPageView onNavigate={handleNavigate} />}
           {currentRoute === 'changelog' && <ChangelogPageView onNavigate={handleNavigate} />}
-          {currentRoute === 'blog' && <BlogPageView onNavigate={handleNavigate} />}
+          {currentRoute === 'blog' && (
+            <BlogPageView
+              onNavigate={handleNavigate}
+              onSelectPost={(slug) => {
+                setActiveBlogSlug(slug);
+                setCurrentRoute('blog-detail');
+                sessionStorage.setItem('kdp_current_route', 'blog-detail');
+                window.history.pushState({ route: 'blog-detail', slug }, '', `/blog/${slug}`);
+              }}
+            />
+          )}
+          {currentRoute === 'blog-detail' && (
+            <BlogPostDetailView
+              slug={activeBlogSlug}
+              onNavigate={handleNavigate}
+              onSelectPost={(slug) => {
+                setActiveBlogSlug(slug);
+                setCurrentRoute('blog-detail');
+                sessionStorage.setItem('kdp_current_route', 'blog-detail');
+                window.history.pushState({ route: 'blog-detail', slug }, '', `/blog/${slug}`);
+              }}
+            />
+          )}
+          {currentRoute === 'launch' && <LaunchPageView onNavigate={handleNavigate} />}
           {currentRoute === 'payment-success' && <PaymentSuccessPageView onNavigate={handleNavigate} />}
         </PublicLayout>
       ) : isOnboardingRoute ? (

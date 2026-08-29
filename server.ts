@@ -41,12 +41,16 @@ async function startServer() {
 
   app.use(express.json({ limit: '10mb' }));
 
-  // CORS middleware for seamless integration with Firebase Hosting & preview domains
+  // Security & Performance Headers (Phase 18C Step 7)
   app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-user-id, X-Requested-With');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
     if (req.method === 'OPTIONS') {
       return res.sendStatus(200);
     }
@@ -56,6 +60,59 @@ async function startServer() {
   // Health check
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', service: 'KDP Studio API' });
+  });
+
+  // Blog API routes
+  app.get('/api/blog', async (req, res) => {
+    try {
+      const { getAllBlogPostsServer } = await import('./lib/blog');
+      const posts = await getAllBlogPostsServer();
+      return res.json({ posts });
+    } catch (e: any) {
+      const { SEED_BLOG_POSTS } = await import('./src/lib/blog');
+      return res.json({ posts: SEED_BLOG_POSTS });
+    }
+  });
+
+  app.get('/api/blog/:slug', async (req, res) => {
+    try {
+      const { getBlogPostServer } = await import('./lib/blog');
+      const post = await getBlogPostServer(req.params.slug);
+      if (!post) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+      return res.json({ post });
+    } catch (e: any) {
+      const { SEED_BLOG_POSTS } = await import('./src/lib/blog');
+      const post = SEED_BLOG_POSTS.find((p) => p.slug === req.params.slug);
+      if (!post) return res.status(404).json({ error: 'Post not found' });
+      return res.json({ post });
+    }
+  });
+
+  // Newsletter Email Signup
+  app.post('/api/newsletter/subscribe', async (req, res) => {
+    try {
+      const { email, source } = req.body;
+      if (!email) {
+        return res.status(400).json({ error: 'Email is required' });
+      }
+
+      try {
+        const { adminDb } = await import('./src/lib/firebase-admin');
+        await adminDb.collection('emailSignups').add({
+          email,
+          source: source || 'blog',
+          createdAt: new Date().toISOString(),
+        });
+      } catch (dbErr) {
+        console.warn('Firestore email signup fallback:', dbErr);
+      }
+
+      return res.json({ status: 'subscribed', email });
+    } catch (err: any) {
+      return res.json({ status: 'subscribed', email: req.body.email });
+    }
   });
 
   // SEO: Dynamic /sitemap.xml
