@@ -82,21 +82,30 @@ export const LaunchPageView: React.FC<LaunchPageViewProps> = ({ onNavigate }) =>
             KDP Studio is the complete AI-powered publishing suite for Amazon Kindle Direct Publishing. Write with Gemini AI, auto-format interiors, and design covers in minutes.
           </p>
 
-          {/* Product Hunt Embed Widget */}
+          {/* Product Hunt Custom Launch Badge */}
           <div className="pt-3 flex items-center justify-center">
             <a
-              href="https://www.producthunt.com/posts/kdp-studio"
+              href="https://www.producthunt.com"
               target="_blank"
               rel="noreferrer"
-              className="inline-block transform hover:scale-105 transition-transform"
+              className="inline-flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-[#da552f]/10 border border-[#da552f]/40 hover:bg-[#da552f]/20 text-white shadow-xl hover:scale-105 transition-all group"
             >
-              <img
-                src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=987654&theme=light"
-                alt="KDP Studio - AI-Powered Book Publishing Suite | Product Hunt"
-                width="250"
-                height="54"
-                className="rounded-xl shadow-lg border border-purple-500/30"
-              />
+              {/* Product Hunt Logo Icon */}
+              <div className="w-8 h-8 rounded-full bg-[#da552f] flex items-center justify-center text-white font-black text-lg shadow-md shrink-0">
+                P
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="text-[10px] font-bold text-orange-300 uppercase tracking-widest leading-none">
+                  FEATURED ON
+                </span>
+                <span className="text-sm font-extrabold text-white tracking-tight leading-tight mt-0.5 group-hover:text-orange-200 transition-colors">
+                  Product Hunt
+                </span>
+              </div>
+              <div className="ml-2 pl-3 border-l border-white/20 flex items-center gap-1.5 text-xs font-bold text-orange-300">
+                <span>▲</span>
+                <span>Launch Day</span>
+              </div>
             </a>
           </div>
 
