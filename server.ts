@@ -58,6 +58,141 @@ async function startServer() {
     res.json({ status: 'ok', service: 'KDP Studio API' });
   });
 
+  // SEO: Dynamic /sitemap.xml
+  app.get('/sitemap.xml', (req, res) => {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://kdpstudio-aio.web.app';
+    const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${baseUrl}/</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/pricing</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/about</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/contact</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/blog</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/changelog</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+</urlset>`;
+    res.setHeader('Content-Type', 'application/xml');
+    res.send(sitemapXml);
+  });
+
+  // SEO: robots.txt
+  app.get('/robots.txt', (req, res) => {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://kdpstudio-aio.web.app';
+    const robotsTxt = `User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /studio
+Disallow: /formatter
+Disallow: /cover
+Disallow: /kdp
+Disallow: /books
+Disallow: /series
+Disallow: /puzzles
+Disallow: /bulk
+Disallow: /research
+Disallow: /analytics
+Disallow: /settings
+Disallow: /admin
+Disallow: /onboarding
+Disallow: /api/
+
+Sitemap: ${baseUrl}/sitemap.xml`;
+    res.setHeader('Content-Type', 'text/plain');
+    res.send(robotsTxt);
+  });
+
+  // SEO: Dynamic Open Graph Image Generator
+  app.get('/api/og', (req, res) => {
+    const title = (req.query.title as string) || 'KDP Studio';
+    const subtitle = (req.query.subtitle as string) || 'AI-Powered Book Publishing Suite';
+    
+    // Clean strings for XML injection safety
+    const safeTitle = title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const safeSubtitle = subtitle.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    const svg = `<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f0f1a"/>
+      <stop offset="50%" stop-color="#161430"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#c084fc"/>
+      <stop offset="50%" stop-color="#e9d5ff"/>
+      <stop offset="100%" stop-color="#a5b4fc"/>
+    </linearGradient>
+    <linearGradient id="badgeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#0f0f1a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <rect x="20" y="20" width="1160" height="590" rx="24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
+
+  <g transform="translate(600, 130)">
+    <rect x="-140" y="-24" width="280" height="48" rx="24" fill="rgba(124,58,237,0.2)" stroke="rgba(168,85,247,0.5)" stroke-width="1.5"/>
+    <text x="0" y="7" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="bold" fill="#c084fc" letter-spacing="4">
+      📚 KDP STUDIO
+    </text>
+  </g>
+
+  <text x="600" y="300" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="60" font-weight="900" fill="#ffffff" letter-spacing="-1">
+    ${safeTitle}
+  </text>
+
+  <text x="600" y="390" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="normal" fill="#94a3b8">
+    ${safeSubtitle}
+  </text>
+
+  <g transform="translate(600, 500)">
+    <rect x="-190" y="-22" width="380" height="44" rx="22" fill="url(#badgeGrad)"/>
+    <text x="0" y="6" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="bold" fill="#ffffff">
+      ✨ Powered by Google Gemini 2.0 AI
+    </text>
+  </g>
+</svg>`;
+
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400');
+    res.send(svg);
+  });
+
   // Auth Session Management (Step 5)
   app.post('/api/auth/session', async (req, res) => {
     try {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, MessageSquare, Send, CheckCircle2, HelpCircle, Phone, MapPin } from 'lucide-react';
 import { PageRoute } from '../../types';
+import { SEOHead } from '../seo/SEOHead';
 
 interface ContactPageViewProps {
   onNavigate?: (route: PageRoute) => void;
@@ -38,8 +39,7 @@ export const ContactPageView: React.FC<ContactPageViewProps> = ({ onNavigate }) 
 
       setSubmitted(true);
     } catch {
-      // Fallback local acknowledgment
-      setSubmitted(true);
+      setErrorMsg('Failed to send message. Please email support@kdpstudio.com directly.');
     } finally {
       setIsSubmitting(false);
     }
@@ -47,6 +47,11 @@ export const ContactPageView: React.FC<ContactPageViewProps> = ({ onNavigate }) 
 
   return (
     <div className="w-full bg-white text-slate-900 font-sans">
+      <SEOHead
+        title="Contact — KDP Studio"
+        description="Get in touch with the KDP Studio team. Support for billing, technical issues, and feature requests."
+        canonicalPath="/contact"
+      />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-12">
         
         {/* Header */}

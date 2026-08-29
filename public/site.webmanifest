@@ -1,0 +1,21 @@
+{
+  "name": "KDP Studio — AI-Powered Book Publishing Suite",
+  "short_name": "KDP Studio",
+  "description": "Create, format and publish Amazon KDP books with AI.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0f1a",
+  "theme_color": "#7c3aed",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/og-image.png",
+      "sizes": "1200x630",
+      "type": "image/png"
+    }
+  ]
+}

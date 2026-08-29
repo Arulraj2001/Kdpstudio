@@ -1,5 +1,6 @@
 import React from 'react';
 import { PageRoute } from '../../types';
+import { SEOHead } from '../seo/SEOHead';
 
 interface TermsPageViewProps {
   onNavigate?: (route: PageRoute) => void;
@@ -8,6 +9,11 @@ interface TermsPageViewProps {
 export const TermsPageView: React.FC<TermsPageViewProps> = ({ onNavigate }) => {
   return (
     <div className="w-full bg-white text-slate-900 font-sans">
+      <SEOHead
+        title="Terms of Service — KDP Studio"
+        canonicalPath="/terms"
+        noindex={true}
+      />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-10">
         
         <div className="space-y-3">

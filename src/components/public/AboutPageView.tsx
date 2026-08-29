@@ -1,6 +1,7 @@
 import React from 'react';
 import { BookOpen, Sparkles, Heart, Globe, Cpu, Award } from 'lucide-react';
 import { PageRoute } from '../../types';
+import { SEOHead } from '../seo/SEOHead';
 
 interface AboutPageViewProps {
   onNavigate: (route: PageRoute) => void;
@@ -9,6 +10,11 @@ interface AboutPageViewProps {
 export const AboutPageView: React.FC<AboutPageViewProps> = ({ onNavigate }) => {
   return (
     <div className="w-full bg-white text-slate-900 font-sans">
+      <SEOHead
+        title="About — KDP Studio"
+        description="KDP Studio is an AI-powered book publishing suite built for Amazon KDP authors. Made in India, powered by Google AI."
+        canonicalPath="/about"
+      />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-16">
         
         {/* Header */}

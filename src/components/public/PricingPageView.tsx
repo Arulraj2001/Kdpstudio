@@ -27,10 +27,53 @@ import { UpiPayment } from '../payment/UpiPayment';
 import { BmacButton } from '../payment/BmacButton';
 import { showPaymentSuccessToast } from '../../lib/postPayment';
 import { useCheckoutStore } from '../../lib/checkoutStore';
+import { SEOHead } from '../seo/SEOHead';
+import { JsonLd } from '../seo/JsonLd';
 
 interface PricingPageViewProps {
   onNavigate: (route: PageRoute) => void;
 }
+
+const PRICING_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "KDP Studio Pricing",
+  "description": "Pricing plans for KDP Studio",
+  "url": "https://kdpstudio-aio.web.app/pricing",
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": "Free Plan",
+      "price": "0",
+      "priceCurrency": "USD",
+      "description": "1 book project, 3 AI/day"
+    },
+    {
+      "@type": "Offer",
+      "name": "Starter Plan",
+      "price": "6",
+      "priceCurrency": "USD",
+      "billingIncrement": "P1M",
+      "description": "3 book projects, 20 AI/day"
+    },
+    {
+      "@type": "Offer",
+      "name": "Pro Plan",
+      "price": "18",
+      "priceCurrency": "USD",
+      "billingIncrement": "P1M",
+      "description": "Unlimited books and AI"
+    },
+    {
+      "@type": "Offer",
+      "name": "Agency Plan",
+      "price": "49",
+      "priceCurrency": "USD",
+      "billingIncrement": "P1M",
+      "description": "5 seats, batch generator and concierge support"
+    }
+  ]
+};
 
 export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) => {
   const { currency, location } = useGeoStore();
@@ -137,6 +180,12 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
 
   return (
     <div id="pricing-page-view" className="w-full bg-white text-slate-900 font-sans">
+      <SEOHead
+        title="Pricing — KDP Studio"
+        description="Simple, transparent pricing for KDP Studio. Free plan available. Starter from $6/month. Pro from $18/month. No credit card required."
+        canonicalPath="/pricing"
+      />
+      <JsonLd id="jsonld-pricing" data={PRICING_SCHEMA} />
       
       {/* Alert Banner if redirected with status */}
       {paymentNotice && (

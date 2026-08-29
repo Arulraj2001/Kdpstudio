@@ -1,5 +1,6 @@
 import React from 'react';
 import { PageRoute } from '../../types';
+import { SEOHead } from '../seo/SEOHead';
 
 interface PrivacyPageViewProps {
   onNavigate?: (route: PageRoute) => void;
@@ -8,6 +9,11 @@ interface PrivacyPageViewProps {
 export const PrivacyPageView: React.FC<PrivacyPageViewProps> = ({ onNavigate }) => {
   return (
     <div className="w-full bg-white text-slate-900 font-sans">
+      <SEOHead
+        title="Privacy Policy — KDP Studio"
+        canonicalPath="/privacy"
+        noindex={true}
+      />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-10">
         
         <div className="space-y-3">

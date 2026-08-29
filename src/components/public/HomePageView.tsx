@@ -14,10 +14,91 @@ import { PageRoute } from '../../types';
 import { useAuthStore } from '../../lib/authStore';
 import { useGeoStore } from '../../lib/geoStore';
 import { PRICING_TABLE, formatPrice } from '../../lib/geo';
+import { SEOHead } from '../seo/SEOHead';
+import { JsonLd } from '../seo/JsonLd';
 
 interface HomePageViewProps {
   onNavigate: (route: PageRoute) => void;
 }
+
+const SOFTWARE_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "KDP Studio",
+  "description": "AI-powered book publishing suite for Amazon KDP",
+  "url": "https://kdpstudio-aio.web.app",
+  "applicationCategory": "ProductivityApplication",
+  "operatingSystem": "Web Browser",
+  "offers": {
+    "@type": "AggregateOffer",
+    "lowPrice": "0",
+    "highPrice": "49",
+    "priceCurrency": "USD",
+    "offerCount": "4"
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.9",
+    "reviewCount": "200"
+  },
+  "featureList": [
+    "AI Book Writing",
+    "KDP Interior Formatting",
+    "Cover Builder",
+    "Puzzle Book Generator",
+    "Coloring Book Generator",
+    "EPUB Export",
+    "KDP Metadata Optimizer"
+  ]
+};
+
+const FAQ_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is there really a free plan?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. The free plan includes 1 active book project, 3 AI generations per day, and basic formatting tools. No credit card is needed to sign up."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I publish on Amazon KDP with this?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. All exports are KDP-ready PDFs with calculated gutters, margins, and 300 DPI covers that upload directly to Amazon KDP without additional formatting."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What AI powers KDP Studio?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Google Gemini 2.0 powers manuscript writing, outline generation, and niche research, while Google Imagen 3 generates cover art and coloring book illustrations."
+      }
+    }
+  ]
+};
+
+const ORGANIZATION_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "KDP Studio",
+  "url": "https://kdpstudio-aio.web.app",
+  "logo": "https://kdpstudio-aio.web.app/logo.png",
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "customer support",
+    "email": "support@kdpstudio.com"
+  },
+  "sameAs": [
+    "https://twitter.com/kdpstudio",
+    "https://linkedin.com/company/kdpstudio"
+  ]
+};
 
 export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
   const { user } = useAuthStore();
@@ -46,6 +127,20 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
 
   return (
     <div className="w-full bg-white text-slate-900 font-sans selection:bg-purple-500 selection:text-white">
+      {/* SEO Head & JSON-LD Structured Data */}
+      <SEOHead
+        title="KDP Studio — Create & Publish KDP Books with AI"
+        description="The complete AI publishing suite for Amazon KDP. Write books, format interiors, design covers, and optimize metadata. Free plan available."
+        canonicalPath="/"
+        languages={{
+          en: '/',
+          'x-default': '/',
+        }}
+      />
+      <JsonLd id="jsonld-software" data={SOFTWARE_SCHEMA} />
+      <JsonLd id="jsonld-faq" data={FAQ_SCHEMA} />
+      <JsonLd id="jsonld-org" data={ORGANIZATION_SCHEMA} />
+
       
       {/* ─────────────────────────────────────────────────────────────────────────────
           STEP 2: HERO SECTION (Dark Gradient + Grid + Floating Preview)

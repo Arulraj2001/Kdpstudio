@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sparkles, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { PageRoute } from '../../types';
+import { SEOHead } from '../seo/SEOHead';
 
 interface ChangelogPageViewProps {
   onNavigate?: (route: PageRoute) => void;
@@ -42,6 +43,11 @@ export const ChangelogPageView: React.FC<ChangelogPageViewProps> = ({ onNavigate
 
   return (
     <div className="w-full bg-white text-slate-900 font-sans">
+      <SEOHead
+        title="Changelog — KDP Studio"
+        description="Latest updates, features, and improvements to KDP Studio."
+        canonicalPath="/changelog"
+      />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-12">
         <div className="space-y-3">
           <span className="text-xs font-bold uppercase tracking-wider text-purple-600 bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
