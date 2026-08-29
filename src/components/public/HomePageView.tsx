@@ -21,11 +21,9 @@ interface HomePageViewProps {
 
 export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
   const { user } = useAuthStore();
-  const { currency } = useGeoStore();
+  const { currency, getFormattedPrice } = useGeoStore();
   const [activeBookTab, setActiveBookTab] = useState<'non-fiction' | 'childrens' | 'coloring' | 'puzzle'>('non-fiction');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
-
-  const pricing = PRICING_TABLE[currency] || PRICING_TABLE.USD;
 
   const handleStart = () => {
     if (user) {
@@ -1036,7 +1034,7 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
                 </div>
                 <div className="space-y-1">
                   <div className="text-3xl font-black text-white">
-                    {formatPrice(pricing.proMonthly, currency)}
+                    {getFormattedPrice('pro')}
                     <span className="text-xs font-normal text-slate-400">/mo</span>
                   </div>
                   <p className="text-xs text-purple-300">For serious authors & publishers</p>
@@ -1066,7 +1064,7 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
                 </div>
                 <div className="space-y-1">
                   <div className="text-3xl font-black text-slate-900">
-                    {formatPrice(pricing.agencyMonthly, currency)}
+                    {getFormattedPrice('agency')}
                     <span className="text-xs font-normal text-slate-400">/mo</span>
                   </div>
                   <p className="text-xs text-slate-500">For high-volume KDP agencies</p>
