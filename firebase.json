@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "kdpstudioaio",
     "public": "dist",
     "ignore": [
       "firebase.json",
