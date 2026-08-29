@@ -18,7 +18,7 @@ const getClientEnv = (val: any, fallback: string): string => {
 const getDynamicAuthDomain = (): string => {
   if (typeof window !== 'undefined' && window.location?.hostname) {
     const host = window.location.hostname;
-    if (host.includes('kdpstudioaio-3bf53')) {
+    if (host.includes('kdpstudio-aio') || host.includes('kdpstudioaio')) {
       return 'kdpstudioaio-3bf53.firebaseapp.com';
     }
     return host;
