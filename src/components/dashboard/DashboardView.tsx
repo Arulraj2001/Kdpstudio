@@ -13,7 +13,8 @@ import {
   ShieldCheck, 
   Edit3, 
   FileText, 
-  Image as ImageIcon 
+  Image as ImageIcon,
+  Home
 } from 'lucide-react';
 import { PageRoute, Book } from '../../types';
 import { useBookStore } from '../../lib/store';
@@ -131,7 +132,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
             <button
               id="banner-start-book-btn"
               onClick={onNewBook}
-              className="px-4 py-2.5 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-sm font-semibold shadow-md shadow-purple-950/40 flex items-center gap-2 transition-all transform hover:-translate-y-0.5"
+              className="px-4 py-2.5 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-sm font-semibold shadow-md shadow-purple-950/40 flex items-center gap-2 transition-all transform hover:-translate-y-0.5 cursor-pointer"
             >
               <PlusCircle size={16} />
               <span>New Book Project</span>
@@ -139,10 +140,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
             <button
               id="banner-explore-formatter-btn"
               onClick={() => onNavigate('publish')}
-              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-100 text-sm font-medium border border-white/10 flex items-center gap-2 transition-colors"
+              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-100 text-sm font-medium border border-white/10 flex items-center gap-2 transition-colors cursor-pointer"
             >
               <ShieldCheck size={16} />
               <span>Publish Checklist</span>
+            </button>
+            <button
+              id="banner-view-homepage-btn"
+              onClick={() => onNavigate('home')}
+              className="px-4 py-2.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 text-sm font-semibold border border-purple-400/30 flex items-center gap-2 transition-all cursor-pointer"
+            >
+              <Home size={16} />
+              <span>View Home Page</span>
             </button>
           </div>
         </div>

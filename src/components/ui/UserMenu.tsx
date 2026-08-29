@@ -10,7 +10,8 @@ import {
   ShieldCheck, 
   ExternalLink,
   LogIn,
-  UserPlus
+  UserPlus,
+  Home
 } from 'lucide-react';
 import { useAuthStore } from '../../lib/authStore';
 import { PageRoute } from '../../types';
@@ -170,8 +171,16 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onNavigate }) => {
           {/* Nav Items */}
           <div className="py-1">
             <button
+              onClick={() => handleMenuClick(() => onNavigate('home'))}
+              className="w-full px-4 py-2 text-xs font-semibold text-purple-700 hover:bg-purple-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+            >
+              <Home size={15} className="text-purple-600" />
+              <span>Public Homepage</span>
+            </button>
+
+            <button
               onClick={() => handleMenuClick(() => onNavigate('settings'))}
-              className="w-full px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors"
+              className="w-full px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors cursor-pointer"
             >
               <User size={15} className="text-slate-400" />
               <span>My Account & Profile</span>

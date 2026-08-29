@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, Plus, Sparkles, BookOpen, Layers } from 'lucide-react';
+import { Menu, Plus, Sparkles, BookOpen, Layers, Home } from 'lucide-react';
 import { PageRoute } from '../../types';
 import { CurrencySelector } from '../ui/CurrencySelector';
 import { UserMenu } from '../ui/UserMenu';
@@ -99,14 +99,25 @@ export const TopBar: React.FC<TopBarProps> = ({
         </div>
       </div>
 
-      {/* Right: Currency, New Book Button & User Avatar Menu */}
-      <div className="flex items-center gap-2.5 sm:gap-3">
+      {/* Right: Currency, Homepage, New Book Button & User Avatar Menu */}
+      <div className="flex items-center gap-2 sm:gap-2.5">
+        <button
+          id="topbar-home-btn"
+          type="button"
+          onClick={() => onNavigate('home')}
+          className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-purple-700 text-xs font-semibold transition-all cursor-pointer"
+          title="Return to Public Homepage"
+        >
+          <Home size={14} className="text-purple-600" />
+          <span>Home</span>
+        </button>
+
         <CurrencySelector />
 
         <button
           id="topbar-new-book-btn"
           onClick={onNewBook}
-          className="hidden sm:inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] active:bg-[#5b21b6] text-white text-xs sm:text-sm font-semibold shadow-sm hover:shadow-md shadow-purple-500/20 transition-all duration-150 transform hover:-translate-y-0.5 active:translate-y-0"
+          className="hidden sm:inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] active:bg-[#5b21b6] text-white text-xs sm:text-sm font-semibold shadow-sm hover:shadow-md shadow-purple-500/20 transition-all duration-150 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
         >
           <Plus size={16} className="stroke-[2.5]" />
           <span>New Book</span>

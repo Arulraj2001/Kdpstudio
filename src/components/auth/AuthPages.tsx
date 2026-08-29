@@ -14,7 +14,9 @@ import {
   RefreshCw, 
   AlertCircle,
   Zap,
-  Check
+  Check,
+  ArrowLeft,
+  Home
 } from 'lucide-react';
 import { useAuthStore } from '../../lib/authStore';
 import { isFirebaseConfigured } from '../../lib/firebase';
@@ -98,6 +100,25 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
       else if (onNavigate) onNavigate('dashboard');
     } catch (err) {
       // Handled in store
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    clearError();
+    setSubmitting(true);
+    try {
+      await setDemoUser({
+        plan: 'pro',
+        displayName: 'Alexander Vance',
+        email: 'alexander.vance@kdpstudio.io',
+        emailVerified: true,
+      });
+      if (onSuccess) onSuccess();
+      else if (onNavigate) onNavigate('dashboard');
+    } catch (err) {
+      console.error('Demo login error:', err);
     } finally {
       setSubmitting(false);
     }
@@ -272,6 +293,23 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
         {/* Right Half: Dynamic Forms (7 cols) */}
         <div className="lg:col-span-7 p-8 sm:p-12 flex flex-col justify-center">
           
+          {/* Top Navigation: Back to Home */}
+          <div className="flex items-center justify-between mb-5">
+            <button
+              type="button"
+              onClick={() => onNavigate ? onNavigate('home') : (window.location.href = '/')}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-purple-700 transition-colors cursor-pointer group py-1 px-2.5 rounded-lg hover:bg-slate-100/80 -ml-2.5"
+            >
+              <ArrowLeft size={15} className="group-hover:-translate-x-1 transition-transform text-purple-600" />
+              <span>Back to Home</span>
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold text-purple-700 uppercase tracking-wider bg-purple-50 px-2.5 py-1 rounded-full border border-purple-200/80">
+                {view === 'login' ? 'Author Sign In' : view === 'signup' ? 'New Registration' : view === 'forgot-password' ? 'Password Reset' : 'Email Verification'}
+              </span>
+            </div>
+          </div>
+
           {/* Quick Notice / Error Alert */}
           {authError && (
             <div className="mb-5 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5 animate-in fade-in duration-200">
@@ -285,7 +323,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
 
           {/* ================= 1. LOGIN VIEW ================= */}
           {view === 'login' && (
-            <div className="space-y-6">
+            <div className="space-y-5">
               <div>
                 <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
                   Welcome back to KDP Studio
@@ -295,13 +333,44 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                 </p>
               </div>
 
+              {/* 🌟 Prominent One-Click Instant Demo Login (Pro Author) */}
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 rounded-2xl blur-[2px] opacity-75 group-hover:opacity-100 transition duration-300 animate-pulse" />
+                <button
+                  id="instant-demo-login-btn"
+                  type="button"
+                  onClick={handleDemoLogin}
+                  disabled={submitting || isLoading}
+                  className="relative w-full flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-900 border border-purple-400/40 text-white shadow-lg hover:shadow-purple-500/25 transition-all duration-200 cursor-pointer overflow-hidden text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-purple-500/30 border border-purple-400/40 flex items-center justify-center text-purple-300 shrink-0 shadow-inner">
+                      <Sparkles size={18} className="text-amber-300" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black tracking-tight text-white">One-Click Instant Demo Login</span>
+                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-xs">
+                          Pro Author
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-purple-200/80 mt-0.5">Explore full workspace with sample books & Pro features</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 text-purple-300 font-bold text-xs shrink-0 group-hover:translate-x-1 transition-transform pl-2">
+                    <span>Enter</span>
+                    <ArrowRight size={14} />
+                  </div>
+                </button>
+              </div>
+
               {/* 1. Google OAuth Button */}
               <button
                 id="google-signin-btn"
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={submitting || isLoading}
-                className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-xs hover:shadow transition-all duration-150 disabled:opacity-60"
+                className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-xs hover:shadow transition-all duration-150 disabled:opacity-60"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path
@@ -328,14 +397,14 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
               <div className="relative flex items-center justify-center">
                 <div className="border-t border-slate-200 w-full" />
                 <span className="bg-white px-3 text-[11px] uppercase tracking-wider text-slate-400 font-semibold absolute">
-                  or continue with email
+                  or sign in with email
                 </span>
               </div>
 
               {/* 3. Email & Password Form */}
-              <form onSubmit={handleEmailSignIn} className="space-y-4">
+              <form onSubmit={handleEmailSignIn} className="space-y-3.5">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
                     Email address
                   </label>
                   <div className="relative">
@@ -353,7 +422,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center justify-between mb-1">
                     <label className="block text-xs font-bold text-slate-700">
                       Password
                     </label>
@@ -391,7 +460,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   id="submit-signin-btn"
                   type="submit"
                   disabled={submitting || isLoading}
-                  className="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-99 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                  className="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-99 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
                 >
                   {submitting ? (
                     <>
@@ -400,39 +469,32 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                     </>
                   ) : (
                     <>
-                      <span>Sign In</span>
+                      <span>Sign In to Dashboard</span>
                       <ArrowRight size={14} />
                     </>
                   )}
                 </button>
               </form>
 
-              {/* Demo Quick Sign-in Button for Instant Preview testing */}
-              {!isFirebaseConfigured && (
-                <div className="p-3 bg-purple-50/70 border border-purple-200/80 rounded-xl text-center">
-                  <span className="text-[11px] text-purple-900 font-semibold block mb-1">
-                    🚀 Preview Mode Active
-                  </span>
+              {/* Bottom Switch to Sign up & Back to home */}
+              <div className="flex flex-col items-center gap-2 pt-1 text-xs text-slate-500">
+                <div>
+                  Don't have an account?{' '}
                   <button
                     type="button"
-                    onClick={() => setDemoUser({ plan: 'pro', displayName: 'Alexander Vance' })}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 hover:text-purple-900 underline"
+                    onClick={() => setView('signup')}
+                    className="font-bold text-purple-600 hover:text-purple-700 hover:underline cursor-pointer"
                   >
-                    <Sparkles size={12} />
-                    <span>One-Click Instant Demo Login (Pro Author)</span>
+                    Sign up
                   </button>
                 </div>
-              )}
-
-              {/* Bottom Switch to Sign up */}
-              <div className="text-center text-xs text-slate-500">
-                Don't have an account?{' '}
                 <button
                   type="button"
-                  onClick={() => setView('signup')}
-                  className="font-bold text-purple-600 hover:text-purple-700 hover:underline"
+                  onClick={() => onNavigate ? onNavigate('home') : (window.location.href = '/')}
+                  className="text-[11px] font-semibold text-slate-400 hover:text-slate-700 flex items-center gap-1 transition-colors cursor-pointer"
                 >
-                  Sign up
+                  <Home size={12} />
+                  <span>Return to Homepage</span>
                 </button>
               </div>
             </div>
@@ -440,7 +502,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
 
           {/* ================= 2. SIGNUP VIEW ================= */}
           {view === 'signup' && (
-            <div className="space-y-5">
+            <div className="space-y-4">
               <div>
                 <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
                   Create your KDP Studio account
@@ -450,13 +512,44 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                 </p>
               </div>
 
+              {/* 🌟 Prominent One-Click Instant Demo Login (Pro Author) in Signup Form */}
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 rounded-2xl blur-[2px] opacity-75 group-hover:opacity-100 transition duration-300 animate-pulse" />
+                <button
+                  id="signup-instant-demo-login-btn"
+                  type="button"
+                  onClick={handleDemoLogin}
+                  disabled={submitting || isLoading}
+                  className="relative w-full flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-900 border border-purple-400/40 text-white shadow-lg hover:shadow-purple-500/25 transition-all duration-200 cursor-pointer overflow-hidden text-left"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-purple-500/30 border border-purple-400/40 flex items-center justify-center text-purple-300 shrink-0 shadow-inner">
+                      <Sparkles size={16} className="text-amber-300" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black tracking-tight text-white">One-Click Instant Demo Login</span>
+                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-xs">
+                          Pro Author
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-purple-200/80">Skip registration & explore all features instantly</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 text-purple-300 font-bold text-xs shrink-0 group-hover:translate-x-1 transition-transform pl-2">
+                    <span>Enter</span>
+                    <ArrowRight size={14} />
+                  </div>
+                </button>
+              </div>
+
               {/* Google Button */}
               <button
                 id="signup-google-btn"
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={submitting || isLoading}
-                className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-xs transition-all disabled:opacity-60"
+                className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-xs transition-all disabled:opacity-60 cursor-pointer"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path
@@ -487,7 +580,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
               </div>
 
               {/* Form */}
-              <form onSubmit={handleEmailSignUp} className="space-y-3.5">
+              <form onSubmit={handleEmailSignUp} className="space-y-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
                     Full Name
@@ -607,7 +700,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   id="submit-signup-btn"
                   type="submit"
                   disabled={submitting || isLoading || !agreeTerms || (password !== confirmPassword && Boolean(confirmPassword))}
-                  className="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-99 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-99 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                 >
                   {submitting ? (
                     <>
@@ -623,14 +716,24 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                 </button>
               </form>
 
-              <div className="text-center text-xs text-slate-500">
-                Already have an account?{' '}
+              <div className="flex flex-col items-center gap-2 pt-1 text-xs text-slate-500">
+                <div>
+                  Already have an account?{' '}
+                  <button
+                    type="button"
+                    onClick={() => setView('login')}
+                    className="font-bold text-purple-600 hover:text-purple-700 hover:underline cursor-pointer"
+                  >
+                    Sign in
+                  </button>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setView('login')}
-                  className="font-bold text-purple-600 hover:text-purple-700 hover:underline"
+                  onClick={() => onNavigate ? onNavigate('home') : (window.location.href = '/')}
+                  className="text-[11px] font-semibold text-slate-400 hover:text-slate-700 flex items-center gap-1 transition-colors cursor-pointer"
                 >
-                  Sign in
+                  <Home size={12} />
+                  <span>Return to Homepage</span>
                 </button>
               </div>
             </div>

@@ -514,11 +514,14 @@ export const useAuthStore = create<AuthState>((set, get) => {
         mockUser?.emailVerified ?? true
       );
 
-      // If requested plan is pro/starter
-      if (mockUser?.plan && mockUser.plan !== userDoc.plan) {
-        await updateUserDocument(demoUid, { plan: mockUser.plan });
-        userDoc.plan = mockUser.plan;
-      }
+      // Ensure demo user is Pro author with onboarding complete
+      const desiredPlan = mockUser?.plan || 'pro';
+      await updateUserDocument(demoUid, { 
+        plan: desiredPlan,
+        onboardingComplete: true 
+      });
+      userDoc.plan = desiredPlan;
+      userDoc.onboardingComplete = true;
 
       const authUser: AuthUser = {
         uid: demoUid,
@@ -526,7 +529,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
         displayName: name,
         photoURL: mockUser?.photoURL || null,
         emailVerified: mockUser?.emailVerified ?? true,
-        plan: userDoc.plan,
+        plan: desiredPlan,
         currency,
         country,
       };
@@ -534,6 +537,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
       if (typeof window !== 'undefined') {
         localStorage.setItem('kdp_active_session_user', JSON.stringify(authUser));
       }
+      await notifyServerSession(undefined, false);
 
       set({
         user: authUser,
