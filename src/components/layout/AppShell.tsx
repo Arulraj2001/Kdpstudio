@@ -254,6 +254,26 @@ export const AppShell: React.FC = () => {
 
   const isAuthRoute = ['login', 'signup', 'forgot-password', 'verify-email'].includes(currentRoute);
   const isOnboardingRoute = currentRoute === 'onboarding';
+  const isAdminRoute = currentRoute === 'admin' || currentRoute.startsWith('admin-');
+
+  const getAdminPageTitle = (route: PageRoute): string => {
+    switch (route) {
+      case 'admin-revenue': return 'Revenue & MRR Analytics';
+      case 'admin-users': return 'All Users';
+      case 'admin-user-detail': return 'User Detail';
+      case 'admin-payments': return 'Payment Ledger';
+      case 'admin-payments-upi': return 'UPI Pending Verification';
+      case 'admin-payments-bmac': return 'Buy Me a Coffee Queue';
+      case 'admin-usage': return 'Feature Usage Analytics';
+      case 'admin-health': return 'System Health & Probes';
+      case 'admin-broadcast': return 'Broadcast Email System';
+      case 'admin-settings': return 'App Configuration & Feature Flags';
+      case 'admin-support': return 'Support Center';
+      case 'admin-content': return 'Content Moderation Review Queue';
+      case 'admin-content-audits': return 'Manuscript Audit Reports';
+      default: return 'Admin Overview';
+    }
+  };
 
   return (
     <AuthProvider>
@@ -290,9 +310,39 @@ export const AppShell: React.FC = () => {
             handleNavigate(freshDoc?.onboardingComplete === false ? 'onboarding' : 'dashboard');
           }}
         />
+      ) : isAdminRoute ? (
+        /* ─────────────────────────────────────────
+            4. Isolated Admin Console Command Center
+           ───────────────────────────────────────── */
+        <AdminGuard>
+          <AdminLayout
+            currentRoute={currentRoute}
+            onNavigate={handleNavigate}
+            pageTitle={getAdminPageTitle(currentRoute)}
+          >
+            {currentRoute === 'admin' && <AdminOverviewPage />}
+            {currentRoute === 'admin-users' && <AdminUsersPage />}
+            {currentRoute === 'admin-user-detail' && (
+              <UserDetailPage
+                uid={typeof window !== 'undefined' ? window.location.pathname.split('/').pop() || '' : ''}
+              />
+            )}
+            {currentRoute === 'admin-revenue' && <RevenuePage />}
+            {currentRoute === 'admin-payments' && <PaymentsPage />}
+            {currentRoute === 'admin-payments-upi' && <UpiQueuePage />}
+            {currentRoute === 'admin-payments-bmac' && <BmacQueuePage />}
+            {currentRoute === 'admin-usage' && <FeatureUsagePage />}
+            {currentRoute === 'admin-health' && <SystemHealthPage />}
+            {currentRoute === 'admin-broadcast' && <BroadcastEmailPage />}
+            {currentRoute === 'admin-settings' && <AppSettingsPage />}
+            {currentRoute === 'admin-support' && <SupportCenterPage />}
+            {currentRoute === 'admin-content' && <ContentModerationPage />}
+            {currentRoute === 'admin-content-audits' && <AuditReportsPage />}
+          </AdminLayout>
+        </AdminGuard>
       ) : (
         /* ─────────────────────────────────────────
-            4. Protected App Route Group
+            5. Standard User Protected App Route Group
            ───────────────────────────────────────── */
         <div id="app-shell" className="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col font-sans antialiased">
           {/* Persistent Left Sidebar */}
@@ -691,122 +741,6 @@ export const AppShell: React.FC = () => {
               {currentRoute === 'settings' && <SettingsView onNavigate={handleNavigate} />}
 
               {currentRoute === 'billing' && <BillingPageView onNavigate={handleNavigate} />}
-
-              {currentRoute === 'admin' && (
-                <AdminGuard>
-                  <AdminLayout pageTitle="Dashboard">
-                    <AdminOverviewPage />
-                  </AdminLayout>
-                </AdminGuard>
-              )}
-
-              {currentRoute === 'admin-users' && (
-                <AdminGuard>
-                  <AdminLayout pageTitle="All Users">
-                    <AdminUsersPage />
-                  </AdminLayout>
-                </AdminGuard>
-              )}
-
-              {currentRoute === 'admin-user-detail' && (
-                <AdminGuard>
-                  <AdminLayout pageTitle="User Detail">
-                    <UserDetailPage
-                      uid={typeof window !== 'undefined'
-                        ? window.location.pathname.split('/').pop() || ''
-                        : ''}
-                    />
-                  </AdminLayout>
-                </AdminGuard>
-              )}
-
-              {currentRoute === 'admin-revenue' && (
-                <AdminGuard>
-                  <AdminLayout pageTitle="Revenue & MRR Analytics">
-                    <RevenuePage />
-                  </AdminLayout>
-                </AdminGuard>
-              )}
-
-              {currentRoute === 'admin-payments' && (
-                <AdminGuard>
-                  <AdminLayout pageTitle="Payment History">
-                    <PaymentsPage />
-                  </AdminLayout>
-                </AdminGuard>
-              )}
-
-              {currentRoute === 'admin-payments-upi' && (
-                <AdminGuard>
-                  <AdminLayout pageTitle="UPI Pending Verification">
-                    <UpiQueuePage />
-                  </AdminLayout>
-                </AdminGuard>
-              )}
-
-              {currentRoute === 'admin-payments-bmac' && (
-                <AdminGuard>
-                  <AdminLayout pageTitle="Buy Me a Coffee Queue">
-                    <BmacQueuePage />
-                  </AdminLayout>
-                </AdminGuard>
-              )}
-
-              {currentRoute === 'admin-usage' && (
-                <AdminGuard>
-                  <AdminLayout pageTitle="Feature Usage Analytics">
-                    <FeatureUsagePage />
-                  </AdminLayout>
-                </AdminGuard>
-              )}
-
-              {currentRoute === 'admin-health' && (
-                <AdminGuard>
-                  <AdminLayout pageTitle="System Health & Probes">
-                    <SystemHealthPage />
-                  </AdminLayout>
-                </AdminGuard>
-              )}
-
-              {currentRoute === 'admin-broadcast' && (
-                <AdminGuard>
-                  <AdminLayout pageTitle="Broadcast Email System">
-                    <BroadcastEmailPage />
-                  </AdminLayout>
-                </AdminGuard>
-              )}
-
-              {currentRoute === 'admin-settings' && (
-                <AdminGuard>
-                  <AdminLayout pageTitle="App Configuration & Feature Flags">
-                    <AppSettingsPage />
-                  </AdminLayout>
-                </AdminGuard>
-              )}
-
-              {currentRoute === 'admin-support' && (
-                <AdminGuard>
-                  <AdminLayout pageTitle="Support Center">
-                    <SupportCenterPage />
-                  </AdminLayout>
-                </AdminGuard>
-              )}
-
-              {currentRoute === 'admin-content' && (
-                <AdminGuard>
-                  <AdminLayout pageTitle="Content Moderation Review Queue">
-                    <ContentModerationPage />
-                  </AdminLayout>
-                </AdminGuard>
-              )}
-
-              {currentRoute === 'admin-content-audits' && (
-                <AdminGuard>
-                  <AdminLayout pageTitle="Manuscript Audit Reports">
-                    <AuditReportsPage />
-                  </AdminLayout>
-                </AdminGuard>
-              )}
 
               {currentRoute === 'geo-test' && <GeoTestView />}
             </main>

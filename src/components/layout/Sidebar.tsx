@@ -15,9 +15,11 @@ import {
   CreditCard,
   Puzzle,
   Palette,
-  BarChart3
+  BarChart3,
+  ShieldAlert
 } from 'lucide-react';
 import { PageRoute } from '../../types';
+import { useAuthStore } from '../../lib/authStore';
 
 interface SidebarProps {
   currentRoute: PageRoute;
@@ -97,6 +99,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isCollapsed,
   onToggleCollapse,
 }) => {
+  const { user } = useAuthStore();
+  const adminEmail = (import.meta as any).env?.VITE_ADMIN_EMAIL || 'arulraj8637@gmail.com';
+  const isAdmin = user?.email?.toLowerCase() === adminEmail.toLowerCase();
+
+  const navList: NavItem[] = [...NAV_ITEMS];
+  if (isAdmin) {
+    navList.push({ id: 'admin', label: 'Admin Console', icon: ShieldAlert, badge: 'Admin' });
+  }
+
   const handleNavClick = (route: PageRoute) => {
     onRouteChange(route);
     onCloseMobile();
@@ -157,7 +168,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {isCollapsed && !isOpenMobile ? '•' : 'Main Menu'}
           </div>
 
-          {NAV_ITEMS.map((item) => {
+          {navList.map((item) => {
             const Icon = item.icon;
             const isActive = currentRoute === item.id;
 

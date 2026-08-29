@@ -3,11 +3,33 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../lib/authStore';
 import { auth } from '../../lib/firebase';
+import { PageRoute } from '../../types';
+import {
+  LayoutDashboard,
+  TrendingUp,
+  Users,
+  CreditCard,
+  Clock,
+  Coffee,
+  Flag,
+  FileCheck,
+  LifeBuoy,
+  Activity,
+  HeartPulse,
+  Send,
+  Sliders,
+  ArrowLeft,
+  RefreshCw,
+  Menu,
+  X,
+  ShieldCheck,
+} from 'lucide-react';
 
 interface NavItem {
-  icon: string;
+  id: PageRoute;
   label: string;
   href: string;
+  icon: React.ComponentType<{ className?: string; size?: number }>;
   badge?: number;
   badgeColor?: string;
 }
@@ -20,6 +42,8 @@ interface NavSection {
 interface AdminLayoutProps {
   children: React.ReactNode;
   pageTitle?: string;
+  currentRoute?: PageRoute;
+  onNavigate?: (route: PageRoute) => void;
   pendingCounts?: {
     upi: number;
     bmac: number;
@@ -29,13 +53,21 @@ interface AdminLayoutProps {
 }
 
 /**
- * AdminLayout — wraps all admin pages with its own dark sidebar
- * and top bar. Completely separate from the main app sidebar.
+ * AdminLayout — Isolated, full-viewport command center for KDP Studio administration.
+ * Features standalone sidebar, header, pending badges, and seamless SPA navigation.
  */
-export function AdminLayout({ children, pageTitle = 'Dashboard', pendingCounts: explicitPending }: AdminLayoutProps) {
+export function AdminLayout({
+  children,
+  pageTitle = 'Admin Dashboard',
+  currentRoute = 'admin',
+  onNavigate,
+  pendingCounts: explicitPending,
+}: AdminLayoutProps) {
   const { user } = useAuthStore();
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
   const [timeAgo, setTimeAgo] = useState('just now');
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [autoPending, setAutoPending] = useState<{
     upi: number;
     bmac: number;
@@ -43,15 +75,14 @@ export function AdminLayout({ children, pageTitle = 'Dashboard', pendingCounts: 
     flagged: number;
   }>({ upi: 0, bmac: 0, support: 0, flagged: 0 });
 
-  useEffect(() => {
-    const fetchPending = async () => {
-      try {
-        const token = await auth?.currentUser?.getIdToken();
-        if (!token) return;
-        const res = await fetch('/api/admin/overview', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) return;
+  const fetchPending = async () => {
+    try {
+      const token = await auth?.currentUser?.getIdToken();
+      if (!token) return;
+      const res = await fetch('/api/admin/overview', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
         const data = await res.json();
         if (data?.stats?.pending) {
           setAutoPending({
@@ -61,17 +92,17 @@ export function AdminLayout({ children, pageTitle = 'Dashboard', pendingCounts: 
             flagged: data.stats.pending.flaggedCount || 0,
           });
         }
-      } catch {
-        // ignore
       }
-    };
+    } catch {
+      // safe fallback
+    }
+  };
 
+  useEffect(() => {
     if (!explicitPending) {
       fetchPending();
     }
   }, [explicitPending]);
-
-  const pendingCounts = explicitPending || autoPending;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -83,191 +114,257 @@ export function AdminLayout({ children, pageTitle = 'Dashboard', pendingCounts: 
     return () => clearInterval(interval);
   }, [lastRefreshed]);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
     setLastRefreshed(new Date());
     setTimeAgo('just now');
-    window.location.reload();
+    await fetchPending();
+    setTimeout(() => setIsRefreshing(false), 500);
   };
 
-  const currentPath =
-    typeof window !== 'undefined' ? window.location.pathname : '/admin';
+  const pendingCounts = explicitPending || autoPending;
 
   const navSections: NavSection[] = [
     {
       title: 'OVERVIEW',
       items: [
-        { icon: '📊', label: 'Dashboard', href: '/admin' },
-        { icon: '📈', label: 'Revenue', href: '/admin/revenue' },
+        { id: 'admin', label: 'Overview', href: '/admin', icon: LayoutDashboard },
+        { id: 'admin-revenue', label: 'Revenue & MRR', href: '/admin/revenue', icon: TrendingUp },
       ],
     },
     {
-      title: 'USERS',
+      title: 'USERS & ACCESS',
       items: [
-        { icon: '👥', label: 'All Users', href: '/admin/users' },
-        { icon: '🚫', label: 'Banned Users', href: '/admin/users/banned' },
+        { id: 'admin-users', label: 'All Users', href: '/admin/users', icon: Users },
       ],
     },
     {
-      title: 'PAYMENTS',
+      title: 'PAYMENT OPERATIONS',
       items: [
-        { icon: '💳', label: 'All Payments', href: '/admin/payments' },
+        { id: 'admin-payments', label: 'Payment Ledger', href: '/admin/payments', icon: CreditCard },
         {
-          icon: '🕐',
+          id: 'admin-payments-upi',
           label: 'UPI Pending',
           href: '/admin/payments/upi',
+          icon: Clock,
           badge: pendingCounts?.upi,
-          badgeColor: 'bg-red-500',
+          badgeColor: 'bg-red-500 text-white',
         },
         {
-          icon: '☕',
-          label: 'BMaC Unmatched',
+          id: 'admin-payments-bmac',
+          label: 'BMaC Queue',
           href: '/admin/payments/bmac',
+          icon: Coffee,
           badge: pendingCounts?.bmac,
-          badgeColor: 'bg-amber-500',
+          badgeColor: 'bg-amber-500 text-slate-900 font-bold',
         },
       ],
     },
     {
-      title: 'CONTENT',
+      title: 'CONTENT & QUALITY',
       items: [
         {
-          icon: '🚩',
-          label: 'Flagged Content',
+          id: 'admin-content',
+          label: 'Moderation Queue',
           href: '/admin/content',
+          icon: Flag,
           badge: pendingCounts?.flagged,
-          badgeColor: 'bg-red-500',
+          badgeColor: 'bg-red-500 text-white',
         },
-        { icon: '📋', label: 'Audit Reports', href: '/admin/content/audits' },
+        {
+          id: 'admin-content-audits',
+          label: 'Audit Reports',
+          href: '/admin/content/audits',
+          icon: FileCheck,
+        },
       ],
     },
     {
       title: 'SUPPORT',
       items: [
         {
-          icon: '📬',
-          label: 'Contact Forms',
+          id: 'admin-support',
+          label: 'Support Center',
           href: '/admin/support',
+          icon: LifeBuoy,
           badge: pendingCounts?.support,
-          badgeColor: 'bg-blue-500',
+          badgeColor: 'bg-blue-500 text-white',
         },
-        { icon: '📧', label: 'Email Logs', href: '/admin/support/emails' },
       ],
     },
     {
-      title: 'SYSTEM',
+      title: 'SYSTEM & CONTROL',
       items: [
-        { icon: '⚡', label: 'Feature Usage', href: '/admin/system/usage' },
-        { icon: '🔧', label: 'System Health', href: '/admin/system/health' },
-        { icon: '📢', label: 'Broadcast Email', href: '/admin/system/broadcast' },
-        { icon: '⚙️', label: 'App Settings', href: '/admin/system/settings' },
+        { id: 'admin-usage', label: 'Feature Analytics', href: '/admin/system/usage', icon: Activity },
+        { id: 'admin-health', label: 'System Health', href: '/admin/system/health', icon: HeartPulse },
+        { id: 'admin-broadcast', label: 'Broadcast Email', href: '/admin/system/broadcast', icon: Send },
+        { id: 'admin-settings', label: 'App Settings', href: '/admin/system/settings', icon: Sliders },
       ],
     },
   ];
 
-  const isActive = (href: string) => {
-    if (href === '/admin') return currentPath === '/admin';
-    return currentPath.startsWith(href);
+  const handleNavClick = (item: NavItem, e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    setIsMobileOpen(false);
+    if (onNavigate) {
+      onNavigate(item.id);
+    } else if (typeof window !== 'undefined') {
+      window.location.href = item.href;
+    }
+  };
+
+  const handleBackToApp = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onNavigate) {
+      onNavigate('dashboard');
+    } else if (typeof window !== 'undefined') {
+      window.location.href = '/dashboard';
+    }
   };
 
   return (
-    <div className="flex min-h-screen bg-[#0f0f1a] text-white">
-      {/* Sidebar */}
+    <div className="min-h-screen bg-[#090a14] text-slate-100 flex flex-col md:flex-row antialiased">
+      {/* Mobile Drawer Overlay */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/70 backdrop-blur-xs z-40 md:hidden transition-opacity"
+          onClick={() => setIsMobileOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Admin Sidebar */}
       <aside
-        id="admin-sidebar"
-        className="w-60 flex-shrink-0 bg-[#0f0f1a] border-r border-white/10 flex flex-col fixed top-0 left-0 h-full z-40 overflow-y-auto"
+        className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-[#0d0e1c] border-r border-slate-800/80 flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 ${
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
       >
-        {/* Branding */}
-        <div className="px-5 py-5 border-b border-white/10">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-xs font-bold">
-              K
+        {/* Branding & Header */}
+        <div className="h-16 px-5 border-b border-slate-800/80 flex items-center justify-between bg-gradient-to-r from-purple-950/40 via-transparent to-transparent">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-cyan-400 flex items-center justify-center text-white shadow-md shadow-purple-900/40 shrink-0">
+              <ShieldCheck size={20} className="stroke-[2.2]" />
             </div>
-            <div>
-              <p className="text-sm font-bold text-white leading-tight">KDP Studio Admin</p>
-              <p className="text-[10px] text-slate-500">v1.0 · Admin Panel</p>
+            <div className="flex flex-col">
+              <span className="font-bold text-sm text-white tracking-tight leading-tight">
+                KDP Studio Admin
+              </span>
+              <span className="text-[10px] text-purple-400 font-semibold tracking-wider uppercase">
+                Command Center
+              </span>
             </div>
           </div>
+
+          <button
+            onClick={() => setIsMobileOpen(false)}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 md:hidden"
+            aria-label="Close sidebar"
+          >
+            <X size={18} />
+          </button>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-5">
-          {navSections.map(section => (
-            <div key={section.title}>
-              <p className="text-[10px] font-semibold text-slate-600 uppercase tracking-widest mb-1.5 px-2">
+        {/* Navigation Sections */}
+        <div className="flex-1 py-4 px-3 overflow-y-auto space-y-5 scrollbar-thin scrollbar-thumb-slate-800">
+          {navSections.map((section) => (
+            <div key={section.title} className="space-y-1">
+              <div className="px-3 pb-1 text-[10px] font-bold tracking-widest text-slate-500 uppercase">
                 {section.title}
-              </p>
+              </div>
               <div className="space-y-0.5">
-                {section.items.map(item => {
-                  const active = isActive(item.href);
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = currentRoute === item.id;
+
                   return (
-                    <a
-                      key={item.href}
-                      href={item.href}
-                      className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-all group ${
-                        active
-                          ? 'bg-purple-600/20 text-purple-300'
-                          : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    <button
+                      key={item.id}
+                      onClick={(e) => handleNavClick(item, e)}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer text-left ${
+                        isActive
+                          ? 'bg-purple-600/25 text-purple-200 border border-purple-500/40 shadow-sm shadow-purple-900/30'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                       }`}
                     >
-                      <span className="text-base leading-none">{item.icon}</span>
-                      <span className="flex-1 font-medium">{item.label}</span>
+                      <Icon
+                        size={17}
+                        className={`shrink-0 ${
+                          isActive ? 'text-purple-400' : 'text-slate-500 group-hover:text-slate-300'
+                        }`}
+                      />
+                      <span className="truncate flex-1">{item.label}</span>
                       {item.badge != null && item.badge > 0 && (
                         <span
-                          className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white ${
-                            item.badgeColor || 'bg-purple-500'
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            item.badgeColor || 'bg-purple-600 text-white'
                           }`}
                         >
                           {item.badge}
                         </span>
                       )}
-                    </a>
+                    </button>
                   );
                 })}
               </div>
             </div>
           ))}
-        </nav>
+        </div>
 
-        {/* Back to App */}
-        <div className="px-3 py-4 border-t border-white/10">
-          <a
-            href="/dashboard"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+        {/* Return to App Button */}
+        <div className="p-3 border-t border-slate-800/80 bg-[#090a14]">
+          <button
+            onClick={handleBackToApp}
+            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 transition-all cursor-pointer shadow-sm"
           >
-            <span>←</span>
-            <span>Back to App</span>
-          </a>
+            <ArrowLeft size={15} className="text-purple-400" />
+            <span>← Back to User App</span>
+          </button>
         </div>
       </aside>
 
-      {/* Main content */}
-      <div className="flex-1 ml-60 flex flex-col min-h-screen">
-        {/* Top bar */}
-        <header className="h-14 bg-[#12121f] border-b border-white/10 flex items-center justify-between px-6 sticky top-0 z-30">
-          <h1 className="text-base font-semibold text-white">{pageTitle}</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-xs text-slate-500">
-              Last refreshed: {timeAgo}
-            </span>
+      {/* Main Admin Viewport */}
+      <div className="flex-1 md:ml-64 flex flex-col min-w-0 min-h-screen bg-[#090a14]">
+        {/* Sticky Admin Topbar */}
+        <header className="h-16 bg-[#0d0e1c]/90 backdrop-blur-md border-b border-slate-800/80 flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-30">
+          <div className="flex items-center gap-3">
             <button
-              id="admin-refresh-btn"
-              onClick={handleRefresh}
-              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/5"
+              onClick={() => setIsMobileOpen(true)}
+              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 md:hidden"
+              aria-label="Open sidebar"
             >
-              <span>🔄</span>
-              <span>Refresh</span>
+              <Menu size={20} />
             </button>
-            <div className="flex items-center gap-2 bg-purple-900/30 border border-purple-500/20 rounded-full px-3 py-1">
-              <span className="text-purple-400 text-xs">👤 Admin:</span>
-              <span className="text-purple-300 text-xs font-medium">
-                {user?.email || '—'}
+            <h1 className="text-sm sm:text-base font-bold text-white tracking-tight">
+              {pageTitle}
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-4">
+            <span className="hidden sm:inline text-xs text-slate-400">
+              Last synced: <span className="text-slate-300 font-medium">{timeAgo}</span>
+            </span>
+
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 transition-all cursor-pointer disabled:opacity-50"
+              title="Refresh real-time data"
+            >
+              <RefreshCw size={13} className={isRefreshing ? 'animate-spin text-purple-400' : ''} />
+              <span className="hidden sm:inline">Refresh</span>
+            </button>
+
+            <div className="flex items-center gap-2 bg-purple-950/60 border border-purple-800/60 rounded-full px-3 py-1 text-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-purple-300 font-medium truncate max-w-[160px] sm:max-w-[220px]">
+                {user?.email || 'arulraj8637@gmail.com'}
               </span>
             </div>
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 overflow-auto bg-[#0d0d1a]">
+        {/* Dynamic Page Content */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
           {children}
         </main>
       </div>

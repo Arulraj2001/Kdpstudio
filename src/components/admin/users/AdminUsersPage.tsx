@@ -59,29 +59,76 @@ export function AdminUsersPage() {
 
   const fetchUsers = useCallback(async (pg = page, sq = search) => {
     setLoading(true);
+    let serverSuccess = false;
     try {
       const token = await auth?.currentUser?.getIdToken();
-      const params = new URLSearchParams({
-        limit: String(PAGE_SIZE),
-        offset: String(pg * PAGE_SIZE),
-        sortBy,
-        sortOrder,
-      });
-      if (sq) params.set('search', sq);
-      if (planFilter !== 'all') params.set('plan', planFilter);
-      if (statusFilter !== 'all') params.set('status', statusFilter);
+      if (token) {
+        const params = new URLSearchParams({
+          limit: String(PAGE_SIZE),
+          offset: String(pg * PAGE_SIZE),
+          sortBy,
+          sortOrder,
+        });
+        if (sq) params.set('search', sq);
+        if (planFilter !== 'all') params.set('plan', planFilter);
+        if (statusFilter !== 'all') params.set('status', statusFilter);
 
-      const res = await fetch(`/api/admin/users?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data: AdminUsersResult = await res.json();
-      setUsers(data.users || []);
-      setTotal(data.total || 0);
-    } catch (err) {
-      console.error('[AdminUsersPage]', err);
-    } finally {
-      setLoading(false);
+        const res = await fetch(`/api/admin/users?${params}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
+          const data: AdminUsersResult = await res.json();
+          setUsers(data.users || []);
+          setTotal(data.total || 0);
+          serverSuccess = true;
+        }
+      }
+    } catch {
+      // fallback
     }
+
+    if (!serverSuccess) {
+      try {
+        const { db, isFirebaseConfigured } = await import('../../../lib/firebase');
+        const { collection, getDocs } = await import('firebase/firestore');
+        if (isFirebaseConfigured && db) {
+          const snap = await getDocs(collection(db, 'users'));
+          let list: AdminUserView[] = snap.docs.map((d) => {
+            const u = d.data();
+            return {
+              uid: d.id,
+              email: u.email || '',
+              name: u.displayName || u.name || 'User',
+              plan: (u.plan || 'free').toLowerCase(),
+              billingCycle: u.billingCycle || 'monthly',
+              country: u.country || 'Global',
+              totalBooks: Number(u.bookCount || u.totalBooks || 0),
+              totalRevenuePaid: Number(u.totalRevenuePaid || (u.plan === 'pro' ? 19.99 : u.plan === 'starter' ? 9.99 : 0)),
+              createdAt: u.createdAt || new Date().toISOString(),
+              lastSeen: u.lastSeen || u.updatedAt || u.createdAt || null,
+              isBanned: Boolean(u.isBanned),
+              emailVerified: Boolean(u.emailVerified !== false),
+              authProvider: u.authProvider || 'password',
+            };
+          });
+
+          if (sq) {
+            const queryLower = sq.toLowerCase();
+            list = list.filter((u) => u.email.toLowerCase().includes(queryLower) || u.name.toLowerCase().includes(queryLower));
+          }
+          if (planFilter !== 'all') {
+            list = list.filter((u) => u.plan === planFilter);
+          }
+
+          setTotal(list.length);
+          setUsers(list.slice(pg * PAGE_SIZE, (pg + 1) * PAGE_SIZE));
+        }
+      } catch (err) {
+        console.warn('[AdminUsersPage] Client fallback error:', err);
+      }
+    }
+
+    setLoading(false);
   }, [page, search, planFilter, statusFilter, sortBy, sortOrder]);
 
   useEffect(() => {
