@@ -57,9 +57,14 @@ import { FeatureUsagePage } from '../admin/system/FeatureUsagePage';
 import { SystemHealthPage } from '../admin/system/SystemHealthPage';
 import { BroadcastEmailPage } from '../admin/system/BroadcastEmailPage';
 import { AppSettingsPage } from '../admin/system/AppSettingsPage';
-import { SupportCenterPage } from '../admin/support/SupportCenterPage';
 import { InstallPrompt } from '../pwa/InstallPrompt';
 import { UpdatePrompt } from '../pwa/UpdatePrompt';
+import { MobileBottomNav } from '../pwa/MobileBottomNav';
+import { NotificationPermission } from '../pwa/NotificationPermission';
+import { OfflineView } from '../pwa/OfflineView';
+import { onForegroundMessage } from '../../lib/messaging';
+import { trackPwaEvent } from '../../lib/pwaTracker';
+import { toastStore } from '../../lib/toastStore';
 import { ContentModerationPage } from '../admin/content/ContentModerationPage';
 import { AuditReportsPage } from '../admin/content/AuditReportsPage';
 import { GeoTestView } from '../geo/GeoTestView';
@@ -302,6 +307,49 @@ export const AppShell: React.FC = () => {
     }
   }, []);
 
+  const [isOffline, setIsOffline] = useState<boolean>(() => {
+    return typeof navigator !== 'undefined' ? !navigator.onLine : false;
+  });
+
+  // PWA Offline status & Foreground push message handlers
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => {
+      setIsOffline(true);
+      trackPwaEvent(user?.uid, 'pwa_offline_page_shown');
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Track standalone launch
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      trackPwaEvent(user?.uid, 'pwa_launched_standalone');
+    }
+
+    // Subscribe to Foreground FCM Messages
+    let unsubscribeFCM: (() => void) | null = null;
+    onForegroundMessage((payload) => {
+      const { title, body } = payload.notification || {};
+      toastStore.addToast({
+        title: title || 'KDP Studio',
+        message: body || 'New update available.',
+        type: 'info',
+        duration: 5000,
+      });
+    }).then((unsub) => {
+      if (unsub) unsubscribeFCM = unsub;
+    });
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      if (unsubscribeFCM) unsubscribeFCM();
+    };
+  }, [user?.uid]);
+
   // Automatic onboarding redirection logic + guard auth routes for authenticated users
   useEffect(() => {
     if (!isInitialized) return;
@@ -533,19 +581,25 @@ export const AppShell: React.FC = () => {
               isSidebarCollapsed={isSidebarCollapsed}
             />
 
-            {/* Pending Payment & Usage Warning Banners */}
+            {/* PWA Notification Permission & System Banners */}
             <div className={`transition-all duration-300 ${isSidebarCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
+              <NotificationPermission />
               <PendingPaymentBanner onContactSupport={() => handleNavigate('contact')} />
               <UsageBanner onNavigateToPricing={() => handleNavigate('pricing')} />
             </div>
 
-            {/* Page Content Viewport */}
-            <main
-              id="main-content"
-              className={`flex-1 transition-all duration-300 p-4 sm:p-6 lg:p-8
-                ${isSidebarCollapsed ? 'md:ml-20' : 'md:ml-64'}
-              `}
-            >
+            {/* Offline View or Standard Viewport */}
+            {isOffline ? (
+              <div className={`flex-1 transition-all duration-300 ${isSidebarCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
+                <OfflineView onRetry={() => setIsOffline(!navigator.onLine)} />
+              </div>
+            ) : (
+              <main
+                id="main-content"
+                className={`flex-1 transition-all duration-300 p-4 sm:p-6 lg:p-8 pb-24 md:pb-8
+                  ${isSidebarCollapsed ? 'md:ml-20' : 'md:ml-64'}
+                `}
+              >
               {currentRoute === 'dashboard' && (
                 <DashboardView
                   onNavigate={handleNavigate}
@@ -911,7 +965,14 @@ export const AppShell: React.FC = () => {
 
               {currentRoute === 'geo-test' && <GeoTestView />}
             </main>
+            )}
           </div>
+
+          {/* Mobile Bottom Navigation (Mobile & Installed PWA) */}
+          <MobileBottomNav
+            currentRoute={currentRoute}
+            onNavigate={handleNavigate}
+          />
 
           {/* New Book Modal */}
           <NewBookModal

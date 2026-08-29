@@ -268,3 +268,36 @@
   border-radius: 0.5rem;
   border: 1px solid #e2e8f0;
 }
+
+/* ==========================================================================
+   Mobile PWA & Touch UX Optimizations (Phase 20B)
+   ========================================================================== */
+
+/* Disable default blue tap highlight on mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth Scrolling & Overscroll Containment */
+html {
+  scroll-behavior: smooth;
+  overscroll-behavior-y: contain;
+}
+
+/* Mobile input zoom prevention (iOS Safari auto-zooms on inputs < 16px) */
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  /* Interactive minimum touch targets */
+  button,
+  a[role="button"],
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+

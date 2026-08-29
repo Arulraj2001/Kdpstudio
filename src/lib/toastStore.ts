@@ -53,3 +53,10 @@ export const useToastStore = create<ToastStore>((set) => ({
     set({ toasts: [] });
   },
 }));
+
+export const toastStore = {
+  addToast: (toast: Omit<ToastItem, 'id'>) => useToastStore.getState().addToast(toast),
+  removeToast: (id: string) => useToastStore.getState().removeToast(id),
+  clearToasts: () => useToastStore.getState().clearToasts(),
+};
+

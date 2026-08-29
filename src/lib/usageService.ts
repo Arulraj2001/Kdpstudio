@@ -255,6 +255,21 @@ export async function checkAndIncrementUsage(
             upgradeUrl: `${APP_URL}/pricing`,
           }).catch(console.error);
 
+          // Push Notification (Phase 20B)
+          if (typeof fetch !== 'undefined') {
+            fetch('/api/notifications/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                uid,
+                type: 'quota_warning',
+                title: '⚠️ Almost at your limit',
+                body: `${Math.max(0, dailyLimit - newDailyVal)} ${FEATURE_LABELS[action] || action} remaining today.`,
+                data: { clickUrl: '/pricing' },
+              }),
+            }).catch(() => {});
+          }
+
           updateUserDocument(uid, { lastUsageWarningDate: today }).catch(console.error);
         } else if (percentage >= 100 && userDoc.lastQuotaExceededDate !== today) {
           sendQuotaExceededEmail({
@@ -266,6 +281,21 @@ export async function checkAndIncrementUsage(
             upgradeUrl: `${APP_URL}/pricing`,
             currentPlan: normalizedPlan,
           }).catch(console.error);
+
+          // Push Notification (Phase 20B)
+          if (typeof fetch !== 'undefined') {
+            fetch('/api/notifications/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                uid,
+                type: 'quota_exceeded',
+                title: '🛑 Daily limit reached',
+                body: `You've used all ${FEATURE_LABELS[action] || action} for today. Resets at midnight UTC.`,
+                data: { clickUrl: '/pricing' },
+              }),
+            }).catch(() => {});
+          }
 
           updateUserDocument(uid, { lastQuotaExceededDate: today }).catch(console.error);
         }

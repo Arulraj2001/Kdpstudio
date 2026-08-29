@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
 import { createExpressUsageMiddleware } from './src/lib/withUsageCheck';
 import { getUserUsageSummary } from './src/lib/usageService';
+import { sendPushNotification } from './src/lib/notificationService';
 
 dotenv.config();
 
@@ -278,6 +279,30 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     res.setHeader('Content-Type', 'image/svg+xml');
     res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400');
     res.send(svg);
+  });
+
+  // Push Notification Dispatch Endpoint (Phase 20B)
+  app.post('/api/notifications/send', async (req, res) => {
+    try {
+      const { uid, type, title, body, data, imageUrl } = req.body || {};
+      if (!uid || !title || !body) {
+        return res.status(400).json({ error: 'Missing required fields (uid, title, body)' });
+      }
+
+      const result = await sendPushNotification({
+        uid,
+        type: type || 'general',
+        title,
+        body,
+        data: data || {},
+        imageUrl,
+      });
+
+      return res.json({ success: true, ...result });
+    } catch (err: any) {
+      console.error('[API /api/notifications/send] Error:', err);
+      return res.status(500).json({ error: err?.message || 'Failed to send push notification' });
+    }
   });
 
   // Auth Session Management (Step 5)

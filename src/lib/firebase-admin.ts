@@ -1,10 +1,12 @@
 import { getApps, initializeApp, cert, App } from 'firebase-admin/app';
 import { getAuth, Auth, DecodedIdToken } from 'firebase-admin/auth';
 import { getFirestore, Firestore } from 'firebase-admin/firestore';
+import { getMessaging, Messaging } from 'firebase-admin/messaging';
 
 let adminApp: App | null = null;
 let adminAuthInstance: Auth | null = null;
 let adminDbInstance: Firestore | null = null;
+let adminMessagingInstance: Messaging | null = null;
 
 export function getFirebaseAdminApp(): App | null {
   if (adminApp) return adminApp;
@@ -102,4 +104,14 @@ export const adminAuth = {
   },
 };
 
+export function getAdminMessaging(): Messaging | null {
+  if (adminMessagingInstance) return adminMessagingInstance;
+  const app = getFirebaseAdminApp();
+  if (app) {
+    adminMessagingInstance = getMessaging(app);
+  }
+  return adminMessagingInstance;
+}
+
 export const adminDb = getAdminDb();
+export const adminMessaging = getAdminMessaging();
