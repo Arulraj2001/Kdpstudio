@@ -1,0 +1,38 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d946ef"/>
+      <stop offset="50%" stop-color="#9333ea"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </linearGradient>
+    <linearGradient id="goldRing" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fde047"/>
+      <stop offset="50%" stop-color="#ca8a04"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="256" height="256" rx="48" fill="#0f0826"/>
+  <rect x="2" y="2" width="252" height="252" rx="46" stroke="rgba(192, 132, 252, 0.3)" stroke-width="2"/>
+
+  <!-- Outer Ring Accent -->
+  <circle cx="128" cy="128" r="92" stroke="url(#goldRing)" stroke-width="4" stroke-linecap="round" opacity="0.95"/>
+  <circle cx="128" cy="128" r="82" stroke="#9333ea" stroke-width="2" stroke-dasharray="8 4" opacity="0.6"/>
+
+  <!-- Open Book Spread -->
+  <g transform="translate(128, 142)">
+    <path d="M-52 24 C-26 12 -6 16 0 26 C6 16 26 12 52 24 L46 -18 C22 -26 6 -22 0 -14 C-6 -22 -22 -26 -46 -18 Z" fill="#1e103a" stroke="#c084fc" stroke-width="3.5" stroke-linejoin="round"/>
+    <path d="M-44 14 C-22 5 -6 9 0 17 C6 9 22 5 44 14" stroke="url(#goldRing)" stroke-width="2.5" fill="none"/>
+  </g>
+
+  <!-- Glowing Feather Quill & Center Star -->
+  <g transform="translate(128, 120)">
+    <!-- Star -->
+    <path d="M0 28 L3 37 L12 40 L3 43 L0 52 L-3 43 L-12 40 L-3 37 Z" fill="#fde047"/>
+    <!-- Quill Feather -->
+    <path d="M0 -58 C26 -40 28 -12 0 10 C-4 -8 -10 -30 0 -58 Z" fill="url(#brandGrad)"/>
+    <path d="M0 10 L-5 24 L5 21 Z" fill="#fbbf24"/>
+    <circle cx="0" cy="10" r="3.5" fill="#ffffff"/>
+  </g>
+</svg>
