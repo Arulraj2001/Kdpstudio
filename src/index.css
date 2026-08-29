@@ -45,4 +45,226 @@
   animation: pulse-slow 8s ease-in-out infinite;
 }
 
+/* ==========================================================================
+   Editorial Blog Typography & Article Reader Styling (.prose-custom)
+   ========================================================================== */
 
+.prose-custom {
+  font-size: 1.125rem; /* 18px */
+  line-height: 1.8;
+  color: #334155; /* slate-700 */
+}
+
+.prose-custom p {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 1.125rem;
+  line-height: 1.85;
+  color: #334155;
+}
+
+.prose-custom strong {
+  font-weight: 700;
+  color: #0f172a; /* slate-900 */
+}
+
+.prose-custom h2 {
+  font-size: 1.875rem; /* 30px */
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+  margin-top: 3rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.prose-custom h3 {
+  font-size: 1.35rem; /* 22px */
+  font-weight: 750;
+  color: #1e293b;
+  letter-spacing: -0.015em;
+  line-height: 1.35;
+  margin-top: 2.25rem;
+  margin-bottom: 0.875rem;
+}
+
+.prose-custom h4 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.prose-custom ul {
+  list-style-type: none;
+  margin-top: 1.25rem;
+  margin-bottom: 1.5rem;
+  padding-left: 0;
+}
+
+.prose-custom ul > li {
+  position: relative;
+  padding-left: 1.75rem;
+  margin-top: 0.625rem;
+  margin-bottom: 0.625rem;
+  line-height: 1.75;
+}
+
+.prose-custom ul > li::before {
+  content: "";
+  position: absolute;
+  left: 0.35rem;
+  top: 0.65rem;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 9999px;
+  background-color: #7c3aed; /* purple-600 */
+}
+
+.prose-custom ol {
+  list-style-type: decimal;
+  margin-top: 1.25rem;
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+}
+
+.prose-custom ol > li {
+  margin-top: 0.625rem;
+  margin-bottom: 0.625rem;
+  padding-left: 0.5rem;
+  line-height: 1.75;
+}
+
+.prose-custom blockquote {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  padding: 1.25rem 1.5rem;
+  background-color: #faf5ff; /* purple-50/50 */
+  border-left: 4px solid #9333ea; /* purple-600 */
+  border-radius: 0.75rem;
+  font-style: italic;
+  color: #4c1d95;
+}
+
+.prose-custom blockquote p {
+  margin: 0;
+  font-size: 1.0625rem;
+  color: #4c1d95;
+}
+
+.prose-custom code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875em;
+  font-weight: 600;
+  color: #7c3aed;
+  background-color: #f1f5f9;
+  padding: 0.2em 0.45em;
+  border-radius: 0.375rem;
+  border: 1px solid #e2e8f0;
+}
+
+.prose-custom hr {
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+  border: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #cbd5e1, transparent);
+}
+
+.prose-custom a {
+  color: #7c3aed;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s ease;
+}
+
+.prose-custom a:hover {
+  color: #6d28d9;
+}
+
+/* Niche Card Visual Breakdowns */
+.niche-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1.25rem;
+  padding: 1.5rem 1.75rem;
+  margin-top: 1.75rem;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.niche-card:hover {
+  border-color: #c084fc;
+  box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.08);
+}
+
+.niche-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.niche-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.metric-chip {
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+}
+
+.metric-chip-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.05em;
+}
+
+.metric-chip-value {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-top: 0.2rem;
+}
+
+.keyword-pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.keyword-pill {
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+}
