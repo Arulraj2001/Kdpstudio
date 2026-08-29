@@ -100,7 +100,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
           >
             <div className="w-10 h-10 rounded-xl bg-slate-900 border border-purple-500/40 p-1 flex items-center justify-center shadow-md shadow-purple-500/20 group-hover:scale-105 transition-transform shrink-0 overflow-hidden">
               <img
-                src="/brand-icon.png"
+                src="/brand-icon.png?v=20260830"
                 alt="KDP Studio Logo"
                 className="w-full h-full object-cover rounded-lg"
               />
@@ -200,7 +200,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-slate-900 border border-purple-500/40 p-1 flex items-center justify-center shadow-md overflow-hidden">
                 <img
-                  src="/brand-icon.png"
+                  src="/brand-icon.png?v=20260830"
                   alt="KDP Studio Logo"
                   className="w-full h-full object-cover rounded-lg"
                 />

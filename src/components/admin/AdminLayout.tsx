@@ -244,7 +244,7 @@ export function AdminLayout({
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-slate-900 border border-purple-500/40 p-1 flex items-center justify-center shadow-md shadow-violet-900/50 shrink-0 overflow-hidden">
               <img
-                src="/brand-icon.png"
+                src="/brand-icon.png?v=20260830"
                 alt="KDP Studio Admin"
                 className="w-full h-full object-cover rounded-lg"
               />

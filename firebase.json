@@ -16,11 +16,20 @@
       ],
       "headers": [
         {
-          "source": "**/*.@(jpg|jpeg|gif|png|svg|webp|js|css|eot|otf|ttf|ttc|woff|woff2|font.css)",
+          "source": "assets/**",
           "headers": [
             {
               "key": "Cache-Control",
-              "value": "max-age=31536000"
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
+        },
+        {
+          "source": "@(favicon.ico|brand-icon.png|brand-logo.svg|logo.png|apple-touch-icon.png|android-chrome-*.png|site.webmanifest|og-image.png|og-image.svg)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
             },
             {
               "key": "Access-Control-Allow-Origin",
@@ -46,11 +55,20 @@
       ],
       "headers": [
         {
-          "source": "**/*.@(jpg|jpeg|gif|png|svg|webp|js|css|eot|otf|ttf|ttc|woff|woff2|font.css)",
+          "source": "assets/**",
           "headers": [
             {
               "key": "Cache-Control",
-              "value": "max-age=31536000"
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
+        },
+        {
+          "source": "@(favicon.ico|brand-icon.png|brand-logo.svg|logo.png|apple-touch-icon.png|android-chrome-*.png|site.webmanifest|og-image.png|og-image.svg)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
             },
             {
               "key": "Access-Control-Allow-Origin",

@@ -251,7 +251,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
             <div className="flex items-center gap-3 mb-3">
               <div className="w-11 h-11 rounded-xl bg-slate-900 border border-purple-400/40 p-1 flex items-center justify-center shadow-lg shadow-purple-500/30 overflow-hidden">
                 <img
-                  src="/brand-icon.png"
+                  src="/brand-icon.png?v=20260830"
                   alt="KDP Studio"
                   className="w-full h-full object-cover rounded-lg"
                 />
