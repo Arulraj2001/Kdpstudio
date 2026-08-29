@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: kdpstudio-api
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm run build
+    startCommand: node dist/server.cjs
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: VITE_FIREBASE_API_KEY
+        value: AIzaSyCXrovDMZnlS9iZTbx5XTjdqP-kmafGaKM
+      - key: VITE_FIREBASE_AUTH_DOMAIN
+        value: kdpstudio-83edb.firebaseapp.com
+      - key: VITE_FIREBASE_PROJECT_ID
+        value: kdpstudio-83edb
+      - key: VITE_FIREBASE_STORAGE_BUCKET
+        value: kdpstudio-83edb.firebasestorage.app
+      - key: VITE_FIREBASE_MESSAGING_SENDER_ID
+        value: "948994960311"
+      - key: VITE_FIREBASE_APP_ID
+        value: "1:948994960311:web:cc6634e13a51ae7a427ef5"
+      - key: NEXT_PUBLIC_APP_URL
+        value: https://kdpstudioaio.web.app
+      - key: APP_URL
+        value: https://kdpstudioaio.web.app
