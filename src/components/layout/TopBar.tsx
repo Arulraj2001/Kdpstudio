@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, Plus, Sparkles, BookOpen, Layers, Home } from 'lucide-react';
+import { Menu, Plus, Sparkles, BookOpen, Layers, Home, ArrowLeft } from 'lucide-react';
 import { PageRoute } from '../../types';
 import { CurrencySelector } from '../ui/CurrencySelector';
 import { UserMenu } from '../ui/UserMenu';
@@ -98,8 +98,20 @@ export const TopBar: React.FC<TopBarProps> = ({
         ${isSidebarCollapsed ? 'md:ml-20' : 'md:ml-64'}
       `}
     >
-      {/* Left: Mobile hamburger & Page Title */}
-      <div className="flex items-center gap-3.5">
+      {/* Left: Mobile Back/hamburger & Page Title */}
+      <div className="flex items-center gap-2 sm:gap-3.5">
+        {currentRoute !== 'dashboard' && (
+          <button
+            id="mobile-back-btn"
+            onClick={() => onNavigate('dashboard')}
+            className="p-2 -ml-2 rounded-xl text-slate-600 hover:text-purple-600 hover:bg-purple-50 md:hidden transition-colors flex items-center justify-center"
+            aria-label="Back to dashboard"
+            title="Back to dashboard"
+          >
+            <ArrowLeft size={20} className="stroke-[2.5]" />
+          </button>
+        )}
+
         <button
           id="open-mobile-menu-btn"
           onClick={onOpenMobileMenu}
