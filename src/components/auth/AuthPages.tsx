@@ -109,14 +109,21 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
     clearError();
     setSubmitting(true);
     try {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('kdp_onboarding_progress');
+      }
       await setDemoUser({
         plan: 'pro',
         displayName: 'Alexander Vance',
         email: 'alexander.vance@kdpstudio.io',
         emailVerified: true,
+        onboardingComplete: false,
       });
-      if (onSuccess) onSuccess();
-      else if (onNavigate) onNavigate('dashboard');
+      if (onNavigate) {
+        onNavigate('onboarding');
+      } else if (onSuccess) {
+        onSuccess();
+      }
     } catch (err) {
       console.error('Demo login error:', err);
     } finally {

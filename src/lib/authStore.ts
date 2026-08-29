@@ -35,6 +35,7 @@ export interface AuthUser {
   plan: 'free' | 'starter' | 'pro' | 'agency' | 'lifetime';
   currency: string;
   country: string;
+  onboardingComplete?: boolean;
 }
 
 interface AuthState {
@@ -514,14 +515,15 @@ export const useAuthStore = create<AuthState>((set, get) => {
         mockUser?.emailVerified ?? true
       );
 
-      // Ensure demo user is Pro author with onboarding complete
+      // Ensure demo user is Pro author with fresh onboarding wizard flow
       const desiredPlan = mockUser?.plan || 'pro';
+      const isOnboardingComplete = mockUser?.onboardingComplete ?? false;
       await updateUserDocument(demoUid, { 
         plan: desiredPlan,
-        onboardingComplete: true 
+        onboardingComplete: isOnboardingComplete
       });
       userDoc.plan = desiredPlan;
-      userDoc.onboardingComplete = true;
+      userDoc.onboardingComplete = isOnboardingComplete;
 
       const authUser: AuthUser = {
         uid: demoUid,
@@ -532,6 +534,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
         plan: desiredPlan,
         currency,
         country,
+        onboardingComplete: isOnboardingComplete,
       };
 
       if (typeof window !== 'undefined') {
