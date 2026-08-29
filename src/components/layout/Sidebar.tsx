@@ -136,8 +136,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Brand Header */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800/80">
           <div className="flex items-center gap-3 overflow-hidden cursor-pointer" onClick={() => handleNavClick('dashboard')}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-950/40 shrink-0">
-              <BookMarked size={22} className="stroke-[2.2]" />
+            <div className="w-10 h-10 rounded-xl bg-slate-900 border border-purple-500/40 p-1 flex items-center justify-center shadow-md shadow-indigo-950/40 shrink-0 overflow-hidden">
+              <img
+                src="/brand-icon.png"
+                alt="KDP Studio"
+                className="w-full h-full object-cover rounded-lg"
+              />
             </div>
             {(!isCollapsed || isOpenMobile) && (
               <div className="flex flex-col min-w-0">

@@ -96,10 +96,14 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
           {/* Logo & Subtitle */}
           <div
             onClick={() => handleNav('home')}
-            className="flex items-center gap-2.5 cursor-pointer select-none group"
+            className="flex items-center gap-3 cursor-pointer select-none group"
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-purple-500/20 group-hover:scale-105 transition-transform shrink-0">
-              <span className="text-base">📚</span>
+            <div className="w-10 h-10 rounded-xl bg-slate-900 border border-purple-500/40 p-1 flex items-center justify-center shadow-md shadow-purple-500/20 group-hover:scale-105 transition-transform shrink-0 overflow-hidden">
+              <img
+                src="/brand-icon.png"
+                alt="KDP Studio Logo"
+                className="w-full h-full object-cover rounded-lg"
+              />
             </div>
             <div className="flex flex-col">
               <span className="text-lg font-black tracking-tight text-slate-900 leading-tight">
@@ -193,9 +197,13 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
         >
           {/* Top Bar inside Drawer */}
           <div className="flex items-center justify-between border-b border-slate-800 pb-5">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-md">
-                <span className="text-base">📚</span>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-slate-900 border border-purple-500/40 p-1 flex items-center justify-center shadow-md overflow-hidden">
+                <img
+                  src="/brand-icon.png"
+                  alt="KDP Studio Logo"
+                  className="w-full h-full object-cover rounded-lg"
+                />
               </div>
               <div className="flex flex-col">
                 <span className="text-lg font-black tracking-tight text-white leading-tight">

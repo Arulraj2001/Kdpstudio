@@ -246,10 +246,15 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
           <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
 
           {/* Brand Header */}
-          <div className="relative z-10">
-            <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-500 to-indigo-400 flex items-center justify-center shadow-lg shadow-purple-500/30">
-                <BookOpen size={22} className="text-white" />
+          <div className="relative">
+            {/* Logo */}
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-11 h-11 rounded-xl bg-slate-900 border border-purple-400/40 p-1 flex items-center justify-center shadow-lg shadow-purple-500/30 overflow-hidden">
+                <img
+                  src="/brand-icon.png"
+                  alt="KDP Studio"
+                  className="w-full h-full object-cover rounded-lg"
+                />
               </div>
               <div>
                 <span className="text-xl font-black tracking-tight text-white flex items-center gap-1.5">
