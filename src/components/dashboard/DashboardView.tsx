@@ -19,7 +19,9 @@ import {
   Lock,
   Flame,
   TrendingUp,
-  ArrowRight
+  ArrowRight,
+  BarChart3,
+  DollarSign,
 } from 'lucide-react';
 import { PageRoute, Book } from '../../types';
 import { useBookStore } from '../../lib/store';
@@ -27,6 +29,8 @@ import { useAuthStore } from '../../lib/authStore';
 import { useCheckoutStore } from '../../lib/checkoutStore';
 import { useUpgradeModal } from '../../lib/upgradeModalStore';
 import { UsageWidget } from './UsageWidget';
+import { getAnalyticsSummary, getUserStreak } from '../../lib/analyticsService';
+import { AnalyticsSummary, PublishingStreak } from '../../types/analytics';
 
 interface DashboardViewProps {
   onNavigate: (route: PageRoute, params?: Record<string, string>) => void;
@@ -45,6 +49,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
     { title: 'Keto Planners', badge: '📈' },
     { title: 'Dog Training', badge: '⭐' },
   ]);
+  const [analyticsSummary, setAnalyticsSummary] = useState<AnalyticsSummary | null>(null);
+  const [userStreak, setUserStreak] = useState<PublishingStreak | null>(null);
+
+  useEffect(() => {
+    const uid = userDoc?.uid || 'demo-user-123';
+    getAnalyticsSummary(uid, 'monthly').then(setAnalyticsSummary).catch(() => {});
+    getUserStreak(uid).then(setUserStreak).catch(() => {});
+  }, [userDoc?.uid]);
 
   useEffect(() => {
     // 6-hour cached fetch of trending niches
@@ -506,6 +518,52 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
                 </button>
               </div>
             )}
+          </div>
+
+          {/* Analytics & Royalties Widget */}
+          <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <BarChart3 size={16} className="text-purple-600" />
+                <span>Monthly Royalties</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold uppercase">
+                  {userStreak?.currentStreak ? `🔥 ${userStreak.currentStreak}d` : 'Live'}
+                </span>
+              </h3>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-baseline justify-between">
+                <div>
+                  <span className="text-2xl font-black text-slate-900 font-mono">
+                    ${analyticsSummary?.totalRoyalties || 0}
+                  </span>
+                  <span className="text-xs text-slate-500 font-medium ml-1">USD (this month)</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-bold text-slate-700 font-mono">
+                    {analyticsSummary?.totalUnitsSold || 0}
+                  </span>
+                  <span className="text-[11px] text-slate-500 block">units sold</span>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                <button
+                  onClick={() => onNavigate('analytics')}
+                  className="text-xs font-semibold text-purple-600 hover:text-purple-700 flex items-center gap-1 cursor-pointer"
+                >
+                  <span>View Full Analytics</span>
+                  <span>→</span>
+                </button>
+                <button
+                  onClick={() => onNavigate('analytics-calculator')}
+                  className="text-xs font-medium text-slate-500 hover:text-slate-700 cursor-pointer"
+                >
+                  Calculator
+                </button>
+              </div>
+            </div>
           </div>
 
           <UsageWidget onNavigateToPricing={() => onNavigate('pricing')} />

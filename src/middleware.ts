@@ -12,6 +12,8 @@ export const config = {
     '/research',
     '/bulk/:path*',
     '/bulk',
+    '/analytics/:path*',
+    '/analytics',
     '/series/:path*',
     '/series',
     '/brand-kit/:path*',

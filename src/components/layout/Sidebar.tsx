@@ -14,7 +14,8 @@ import {
   ShieldCheck,
   CreditCard,
   Puzzle,
-  Palette
+  Palette,
+  BarChart3
 } from 'lucide-react';
 import { PageRoute } from '../../types';
 
@@ -78,6 +79,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'kdp', label: 'KDP Assistant', icon: Tag },
   { id: 'research', label: 'Niche Research', icon: SearchChartIcon, badge: 'Pro' },
   { id: 'books', label: 'My Books', icon: BookOpen },
+  { id: 'analytics', label: 'Analytics', icon: BarChart3, badge: 'Pro' },
   { id: 'series', label: 'Series', icon: BookMarked },
   { id: 'puzzles', label: 'Puzzles', icon: Puzzle, badge: 'New' },
   { id: 'bulk', label: 'Bulk Generator', icon: BatchLayersIcon, badge: 'Agency' },

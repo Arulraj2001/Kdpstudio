@@ -33,6 +33,10 @@ export type PageRoute =
   | 'bulk-template-detail'
   | 'bulk-job-detail'
   | 'bulk-job-results'
+  | 'analytics'
+  | 'analytics-calculator'
+  | 'analytics-goals'
+  | 'analytics-books'
   | 'books'
   | 'series'
   | 'series-new'
@@ -226,5 +230,6 @@ export type { UserDocument, UserUsage, UserSettings as UserDocSettings } from '.
 export * from './payment';
 export * from './niche';
 export * from './bulk';
+export * from './analytics';
 
 

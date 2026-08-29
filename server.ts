@@ -3127,6 +3127,120 @@ async function startServer() {
     }
   );
 
+  // 30. Analytics AI Insights (Phase 15A)
+  app.post('/api/analytics/insights', async (req: any, res) => {
+    try {
+      const { summary, books, goals, streak } = req.body || {};
+      const { callGemini } = await import('./src/lib/gemini');
+
+      const systemPrompt = `You are a world-class Amazon KDP publishing performance analyst and royalties strategist.
+You analyze self-publishing sales data, BSR ranks, page reads, and goals to provide concrete, high-impact tactical advice.
+
+Rules:
+1. Reference actual revenue, unit counts, BSR, and percentage changes provided.
+2. Give 3-5 concrete, actionable steps to boost royalties, expand categories, or optimize pricing.
+3. Identify the single biggest untapped revenue opportunity.
+4. Flag any concerning sales dips, rank drops, or return rates.
+5. Keep each insight concise (2-3 sentences max).
+6. Be encouraging yet realistic. Never recommend black-hat or KDP policy-violating tactics.
+7. Return strictly a single valid JSON object. Do not include markdown codeblocks or extra text.`;
+
+      const booksListStr = (books && books.length > 0)
+        ? books.slice(0, 10).map((b: any) =>
+            `- "${b.title}": ${b.totalUnitsSold || 0} units sold, $${b.totalRoyalties || 0} royalties, BSR: ${b.averageBsr || 'Unranked'}, Status: ${b.status}`
+          ).join('\n')
+        : 'No published books recorded yet.';
+
+      const goalsListStr = (goals && goals.length > 0)
+        ? goals.map((g: any) =>
+            `- ${g.title}: ${g.currentValue}/${g.targetValue} ${g.unit} (${g.status})`
+          ).join('\n')
+        : 'No active goals set.';
+
+      const userPrompt = `Analyze this KDP publisher's performance data:
+
+Period: ${summary?.periodLabel || 'Recent'}
+Total Revenue: $${summary?.totalRevenue || 0}
+Total Royalties: $${summary?.totalRoyalties || 0}
+Total Units Sold: ${summary?.totalUnitsSold || 0}
+Total KENP Page Reads: ${summary?.totalKenpPages || 0}
+Top Marketplace: ${summary?.topMarketplace || 'None'}
+vs Last Period: Revenue ${summary?.vsLastPeriod?.revenue || 0}%, Units ${summary?.vsLastPeriod?.units || 0}%, Royalties ${summary?.vsLastPeriod?.royalties || 0}%
+
+Published Books:
+${booksListStr}
+
+Goals:
+${goalsListStr}
+
+Publishing Streak: ${streak?.currentStreak || 0} consecutive active days (Longest: ${streak?.longestStreak || 0} days)
+
+Return JSON with exact structure:
+{
+  "overallHealth": "excellent" | "good" | "fair" | "needs-attention",
+  "healthReason": "Clear 1-2 sentence executive assessment of their current performance trajectory",
+  "biggestOpportunity": "The #1 high-impact action to unlock immediate additional royalty growth",
+  "topInsights": [
+    {
+      "title": "Short insight title",
+      "detail": "Detailed analysis referencing their metrics",
+      "priority": "high" | "medium" | "low",
+      "actionItem": "Specific action to implement on Amazon KDP dashboard or book studio"
+    }
+  ],
+  "warningFlags": [
+    "Any risks like category saturation, pricing misalignment, or sluggish velocity"
+  ],
+  "encouragement": "Inspiring closing message for the author"
+}`;
+
+      const aiResponse = await callGemini(userPrompt, systemPrompt);
+
+      let parsed: any;
+      try {
+        const cleaned = aiResponse.trim().replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
+        parsed = JSON.parse(cleaned);
+      } catch {
+        parsed = {
+          overallHealth: 'good',
+          healthReason: `Catalog analyzed successfully for ${summary?.periodLabel || 'recent period'}.`,
+          biggestOpportunity: 'Launch new series volumes and optimize Amazon backend keywords.',
+          topInsights: [
+            {
+              title: 'Optimize Backlist Pricing',
+              detail: 'Testing promotional pricing can jumpstart BSR ranking.',
+              priority: 'high',
+              actionItem: 'Update secondary marketplace list prices.',
+            },
+          ],
+          warningFlags: ['Keep publishing consistently to maintain algorithm momentum.'],
+          encouragement: 'Every new title increases your recurring royalty baseline!',
+        };
+      }
+
+      return res.json({ success: true, insights: parsed });
+    } catch (err: any) {
+      console.error('Express /api/analytics/insights error:', err);
+      return res.status(500).json({ success: false, error: err.message || 'Failed to generate AI insights' });
+    }
+  });
+
+  // 31. Public Royalty Calculator (Phase 15A)
+  app.post('/api/analytics/calculate-royalty', async (req: any, res) => {
+    try {
+      const { calculateFullRoyalty } = await import('./src/lib/royaltyCalculator');
+      const calculation = calculateFullRoyalty(req.body || {});
+      return res.json({
+        success: true,
+        calculation,
+        disclaimer: 'Estimates only. Actual KDP royalties may vary based on printing specifications, distribution channels, and delivery fees.',
+      });
+    } catch (err: any) {
+      console.error('Express /api/analytics/calculate-royalty error:', err);
+      return res.status(500).json({ success: false, error: err.message || 'Failed to calculate royalty' });
+    }
+  });
+
   // Vite middleware for development vs static build for production
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

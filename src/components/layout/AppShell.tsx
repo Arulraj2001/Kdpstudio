@@ -34,6 +34,10 @@ import { BulkTemplateDetailView } from '../bulk/BulkTemplateDetailView';
 import { BulkJobProgressView } from '../bulk/BulkJobProgressView';
 import { BulkJobResultsView } from '../bulk/BulkJobResultsView';
 import { BulkBookType } from '../../types/bulk';
+import { AnalyticsOverviewView } from '../analytics/AnalyticsOverviewView';
+import { BookDetailAnalyticsView } from '../analytics/BookDetailAnalyticsView';
+import { RoyaltyCalculatorView } from '../analytics/RoyaltyCalculatorView';
+import { PublishingGoalsView } from '../analytics/PublishingGoalsView';
 import { PublishChecklistView } from '../publish/PublishChecklistView';
 import { BrandKitView } from '../brand/BrandKitView';
 import { SettingsView } from '../settings/SettingsView';
@@ -122,6 +126,7 @@ export const AppShell: React.FC = () => {
   const [activeBulkJobId, setActiveBulkJobId] = useState<string>('');
   const [activeBulkTemplateId, setActiveBulkTemplateId] = useState<string>('');
   const [activeBulkBookType, setActiveBulkBookType] = useState<BulkBookType | undefined>(undefined);
+  const [activeAnalyticsBookId, setActiveAnalyticsBookId] = useState<string>('');
   const [activePuzzleBookId, setActivePuzzleBookId] = useState<string>('');
   const [selectedNiche, setSelectedNiche] = useState<NicheResult | null>(null);
   const [selectedSavedNicheId, setSelectedSavedNicheId] = useState<string | undefined>(undefined);
@@ -585,6 +590,37 @@ export const AppShell: React.FC = () => {
                 <BulkJobResultsView
                   jobId={activeBulkJobId || 'bjob_demo'}
                   onBack={() => handleNavigate('bulk-job-detail')}
+                  onNavigate={handleNavigate}
+                />
+              )}
+
+              {currentRoute === 'analytics' && (
+                <AnalyticsOverviewView
+                  onNavigate={handleNavigate}
+                  onSelectBook={(bookId) => {
+                    setActiveAnalyticsBookId(bookId);
+                    handleNavigate('analytics-books');
+                  }}
+                />
+              )}
+
+              {currentRoute === 'analytics-books' && (
+                <BookDetailAnalyticsView
+                  bookId={activeAnalyticsBookId}
+                  onBack={() => handleNavigate('analytics')}
+                  onNavigate={handleNavigate}
+                />
+              )}
+
+              {currentRoute === 'analytics-calculator' && (
+                <RoyaltyCalculatorView
+                  onNavigate={handleNavigate}
+                />
+              )}
+
+              {currentRoute === 'analytics-goals' && (
+                <PublishingGoalsView
+                  onBack={() => handleNavigate('analytics')}
                   onNavigate={handleNavigate}
                 />
               )}
