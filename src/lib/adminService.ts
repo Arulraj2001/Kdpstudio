@@ -1726,6 +1726,38 @@ export async function processRefund(params: {
     timestamp: now,
   });
 
+  // 5. Send Refund Confirmation Email to User
+  const targetEmail = payment.email || payment.userEmail;
+  if (targetEmail) {
+    try {
+      const { sendEmail } = await import('./resend');
+      const formattedAmount = currency === 'INR' ? `₹${refundAmount}` : `$${refundAmount}`;
+      await sendEmail({
+        to: targetEmail,
+        subject: `Refund Processed — ${formattedAmount} [KDP Studio]`,
+        html: `<div style="font-family: sans-serif; line-height: 1.6; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 24px;">
+          <h2 style="color: #0f172a; margin-bottom: 8px;">Refund Processed</h2>
+          <p>Hi ${payment.userName || payment.name || 'Author'},</p>
+          <p>A refund has been processed for your KDP Studio payment.</p>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin: 20px 0;">
+            <p style="margin: 4px 0; font-size: 14px;"><strong>Refund Amount:</strong> ${formattedAmount} ${currency}</p>
+            <p style="margin: 4px 0; font-size: 14px;"><strong>Payment Gateway:</strong> ${gateway.toUpperCase()}</p>
+            <p style="margin: 4px 0; font-size: 14px;"><strong>Refund Reference:</strong> <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">${refundId}</code></p>
+            ${reason ? `<p style="margin: 4px 0; font-size: 14px;"><strong>Reason:</strong> ${reason}</p>` : ''}
+          </div>
+          <p style="font-size: 13px; color: #64748b;">
+            Depending on your bank or payment provider, refunds typically appear in your account within 3–7 business days.
+          </p>
+          <p style="font-size: 13px; color: #64748b; margin-top: 24px;">
+            — KDP Studio Billing Team
+          </p>
+        </div>`,
+      }).catch(console.warn);
+    } catch {
+      // safe fallback
+    }
+  }
+
   return { success: true, refundId, gatewayRefundId };
 }
 
