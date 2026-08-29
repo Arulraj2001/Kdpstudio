@@ -1,11 +1,9 @@
 services:
   - type: web
     name: kdpstudio-api
-    runtime: node
+    runtime: docker
     plan: free
     region: oregon
-    buildCommand: npm run build
-    startCommand: node dist/server.cjs
     envVars:
       - key: NODE_ENV
         value: production
