@@ -8,29 +8,19 @@ import { getFirestore, Firestore } from 'firebase/firestore';
  * Note: To enable Google Sign-In, ensure your hosting domain is added to 
  * Authorized Domains in Firebase Console > Authentication > Settings.
  */
-const getEnvVar = (viteKey: string, nextKey: string, fallback = ''): string => {
-  // Vite client-side
-  const meta = typeof import.meta !== 'undefined' ? (import.meta as any) : undefined;
-  if (meta?.env) {
-    if (meta.env[viteKey]) return meta.env[viteKey];
-    if (meta.env[nextKey]) return meta.env[nextKey];
-  }
-  // Node / Server environment
-  if (typeof process !== 'undefined' && process.env) {
-    if (process.env[viteKey]) return process.env[viteKey];
-    if (process.env[nextKey]) return process.env[nextKey];
-  }
+// Helper to get client environment variable with static literal access for Vite build inlining
+const getClientEnv = (val: any, fallback: string): string => {
+  if (typeof val === 'string' && val.length > 0) return val;
   return fallback;
 };
 
-
 export const firebaseConfig = {
-  apiKey: getEnvVar('VITE_FIREBASE_API_KEY', 'NEXT_PUBLIC_FIREBASE_API_KEY'),
-  authDomain: getEnvVar('VITE_FIREBASE_AUTH_DOMAIN', 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN'),
-  projectId: getEnvVar('VITE_FIREBASE_PROJECT_ID', 'NEXT_PUBLIC_FIREBASE_PROJECT_ID'),
-  storageBucket: getEnvVar('VITE_FIREBASE_STORAGE_BUCKET', 'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET'),
-  messagingSenderId: getEnvVar('VITE_FIREBASE_MESSAGING_SENDER_ID', 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID'),
-  appId: getEnvVar('VITE_FIREBASE_APP_ID', 'NEXT_PUBLIC_FIREBASE_APP_ID'),
+  apiKey: getClientEnv(import.meta.env.VITE_FIREBASE_API_KEY || import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY, 'AIzaSyCXrovDMZnlS9iZTbx5XTjdqP-kmafGaKM'),
+  authDomain: getClientEnv(import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || import.meta.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN, 'kdpstudio-83edb.firebaseapp.com'),
+  projectId: getClientEnv(import.meta.env.VITE_FIREBASE_PROJECT_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID, 'kdpstudio-83edb'),
+  storageBucket: getClientEnv(import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || import.meta.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET, 'kdpstudio-83edb.firebasestorage.app'),
+  messagingSenderId: getClientEnv(import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID, '948994960311'),
+  appId: getClientEnv(import.meta.env.VITE_FIREBASE_APP_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID, '1:948994960311:web:cc6634e13a51ae7a427ef5'),
 };
 
 export const isFirebaseConfigured = Boolean(
