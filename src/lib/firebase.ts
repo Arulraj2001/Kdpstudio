@@ -14,9 +14,24 @@ const getClientEnv = (val: any, fallback: string): string => {
   return fallback;
 };
 
+// Dynamic auth domain calculation to ensure same-origin OAuth handshake
+const getDynamicAuthDomain = (): string => {
+  if (typeof window !== 'undefined' && window.location?.hostname) {
+    const host = window.location.hostname;
+    if (host.includes('kdpstudioaio')) {
+      return 'kdpstudioaio.firebaseapp.com';
+    }
+    if (host.includes('kdpstudio-83edb')) {
+      return 'kdpstudio-83edb.firebaseapp.com';
+    }
+    return host;
+  }
+  return 'kdpstudio-83edb.firebaseapp.com';
+};
+
 export const firebaseConfig = {
   apiKey: getClientEnv(import.meta.env.VITE_FIREBASE_API_KEY || import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY, 'AIzaSyCXrovDMZnlS9iZTbx5XTjdqP-kmafGaKM'),
-  authDomain: getClientEnv(import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || import.meta.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN, 'kdpstudio-83edb.firebaseapp.com'),
+  authDomain: getDynamicAuthDomain(),
   projectId: getClientEnv(import.meta.env.VITE_FIREBASE_PROJECT_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID, 'kdpstudio-83edb'),
   storageBucket: getClientEnv(import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || import.meta.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET, 'kdpstudio-83edb.firebasestorage.app'),
   messagingSenderId: getClientEnv(import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID, '948994960311'),
