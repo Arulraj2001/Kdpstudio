@@ -27,6 +27,7 @@ import {
 import { useSettingsStore, useBookStore } from '../../lib/store';
 import { useAuthStore } from '../../lib/authStore';
 import { FormatterFontFamily, PaperType, TrimSize, PageRoute } from '../../types';
+import { VersionSettingsSection } from '../versions/VersionSettingsSection';
 
 interface SettingsViewProps {
   onNavigate?: (route: PageRoute) => void;
@@ -555,6 +556,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onNavigate }) => {
               </div>
             </div>
           </div>
+
+          {/* Version History & Auto-Backups Settings */}
+          <VersionSettingsSection />
         </div>
 
         {/* Right Column (1 span) */}

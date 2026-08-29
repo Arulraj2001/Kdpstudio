@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/refresh-trending-niches",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/daily-snapshots",
+      "schedule": "0 2 * * *"
     }
   ]
 }

@@ -16,8 +16,11 @@ import {
   Maximize2,
   Play,
   RotateCw,
+  History,
+  Search,
 } from 'lucide-react';
 import { Book, Chapter, FrontMatter, BackMatter } from '../../types/index';
+import { ContentAuditReport } from '../../types/audit';
 import { useBookStore } from '../../lib/store';
 import { ChapterList } from './ChapterList';
 import { TiptapToolbar } from './TiptapToolbar';
@@ -25,6 +28,10 @@ import { FrontMatterModal } from './FrontMatterModal';
 import { BackMatterModal } from './BackMatterModal';
 import { AiWriteModal } from './AiWriteModal';
 import { AiImproveBubble } from './AiImproveBubble';
+import { VersionHistoryDrawer } from '../versions/VersionHistoryDrawer';
+import { AuditPanel } from '../audit/AuditPanel';
+import { FullAuditReportView } from '../audit/FullAuditReportView';
+import { useStudioDrawerStore } from '../../lib/studioDrawerStore';
 import { callGemini } from '../../lib/gemini';
 
 interface ChapterStudioProps {
@@ -58,6 +65,8 @@ export const ChapterStudio: React.FC<ChapterStudioProps> = ({
   const [isFrontMatterOpen, setIsFrontMatterOpen] = useState(false);
   const [isBackMatterOpen, setIsBackMatterOpen] = useState(false);
   const [isAiWriteOpen, setIsAiWriteOpen] = useState(false);
+  const [activeAuditReport, setActiveAuditReport] = useState<ContentAuditReport | null>(null);
+  const { activeDrawer, openDrawer, closeDrawer, toggleDrawer } = useStudioDrawerStore();
 
   // Save states
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
@@ -330,6 +339,38 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
             <span className="hidden sm:inline">Back Matter</span>
           </button>
 
+          {/* Version History Button */}
+          <button
+            type="button"
+            id="btn-open-version-history"
+            onClick={() => toggleDrawer('history')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+              activeDrawer === 'history'
+                ? 'bg-purple-100 dark:bg-purple-950/80 border-purple-400 text-purple-700 dark:text-purple-300'
+                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-[#131320] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+            }`}
+            title="View Version History & Snapshots"
+          >
+            <History className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+            <span className="hidden sm:inline">History</span>
+          </button>
+
+          {/* Content Audit Button */}
+          <button
+            type="button"
+            id="btn-open-content-audit"
+            onClick={() => toggleDrawer('audit')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+              activeDrawer === 'audit'
+                ? 'bg-purple-100 dark:bg-purple-950/80 border-purple-400 text-purple-700 dark:text-purple-300'
+                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-[#131320] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+            }`}
+            title="Content Quality & KDP Policy Audit"
+          >
+            <Search className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+            <span className="hidden sm:inline">Audit</span>
+          </button>
+
           {/* AI Write Button */}
           <button
             type="button"
@@ -498,6 +539,47 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
         chapterTitle={activeChapter?.title || 'New Chapter'}
         onAcceptContent={handleAcceptAiChapter}
       />
+
+      {/* Version History Drawer */}
+      <VersionHistoryDrawer
+        book={currentBook}
+        isOpen={activeDrawer === 'history'}
+        onClose={closeDrawer}
+        onRestored={() => {
+          if (currentBook?.chapters?.[0]) {
+            setSelectedChapterId(currentBook.chapters[0].id);
+            if (editor) {
+              editor.commands.setContent(currentBook.chapters[0].content || '');
+            }
+          }
+        }}
+      />
+
+      {/* Content Audit Drawer */}
+      <AuditPanel
+        book={currentBook}
+        isOpen={activeDrawer === 'audit'}
+        onClose={closeDrawer}
+        onViewFullReport={(rep) => {
+          closeDrawer();
+          setActiveAuditReport(rep);
+        }}
+      />
+
+      {/* Full Page Audit Report Overlay */}
+      {activeAuditReport && (
+        <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md overflow-y-auto p-4 sm:p-8 animate-fade-in">
+          <FullAuditReportView
+            report={activeAuditReport}
+            book={currentBook}
+            onBack={() => setActiveAuditReport(null)}
+            onRerunAudit={() => {
+              setActiveAuditReport(null);
+              openDrawer('audit');
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

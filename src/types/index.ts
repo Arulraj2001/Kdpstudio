@@ -231,5 +231,7 @@ export * from './payment';
 export * from './niche';
 export * from './bulk';
 export * from './analytics';
+export * from './versions';
+export * from './audit';
 
 

@@ -20,10 +20,13 @@ import {
   ExternalLink,
   ChevronRight,
   ShieldCheck,
-  BookMarked
+  BookMarked,
+  Camera,
+  History,
 } from 'lucide-react';
 import { useBookStore } from '../../lib/store';
 import { Book, BookStatus, PageRoute } from '../../types';
+import { VersionHistoryDrawer } from '../versions/VersionHistoryDrawer';
 
 interface MyBooksViewProps {
   onNewBook: () => void;
@@ -42,6 +45,7 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'updated' | 'created' | 'title' | 'words'>('updated');
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null);
+  const [activeHistoryBook, setActiveHistoryBook] = useState<Book | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -456,15 +460,29 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({
                       </button>
                     </div>
 
-                    {/* Duplicate & Delete Row */}
+                    {/* Duplicate, History & Delete Row */}
                     <div className="flex items-center justify-between pt-1 text-slate-500">
-                      <button
-                        onClick={(e) => handleDuplicate(book, e)}
-                        className="text-[11px] text-slate-500 hover:text-purple-600 flex items-center gap-1 font-medium transition-colors"
-                      >
-                        <Copy size={12} />
-                        <span>Duplicate</span>
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={(e) => handleDuplicate(book, e)}
+                          className="text-[11px] text-slate-500 hover:text-purple-600 flex items-center gap-1 font-medium transition-colors"
+                        >
+                          <Copy size={12} />
+                          <span>Duplicate</span>
+                        </button>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveHistoryBook(book);
+                          }}
+                          className="text-[11px] text-slate-500 hover:text-purple-600 flex items-center gap-1 font-medium transition-colors"
+                          title="Version History & Snapshots"
+                        >
+                          <Camera size={12} />
+                          <span>History</span>
+                        </button>
+                      </div>
 
                       <button
                         onClick={(e) => {
@@ -548,6 +566,18 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Version History Drawer */}
+      {activeHistoryBook && (
+        <VersionHistoryDrawer
+          book={activeHistoryBook}
+          isOpen={Boolean(activeHistoryBook)}
+          onClose={() => setActiveHistoryBook(null)}
+          onRestored={() => {
+            showToast('Manuscript restored successfully from snapshot!');
+          }}
+        />
       )}
     </div>
   );

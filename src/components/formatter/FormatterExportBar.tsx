@@ -8,11 +8,19 @@ import {
   AlertCircle,
   ExternalLink,
   BookCheck,
+  Search,
+  ShieldCheck,
+  AlertTriangle,
+  CheckCircle2,
+  Sparkles,
 } from 'lucide-react';
 import { Book, FormatterSettings, Margins, TrimDimensions } from '../../types/index';
+import { ContentAuditReport } from '../../types/audit';
 import { exportBookAsPdf } from '../../lib/pdfClientExport';
 import { generateDocx } from '../../lib/docxExport';
 import { generateBookHtml } from '../../lib/bookHtmlGenerator';
+import { AuditPanel } from '../audit/AuditPanel';
+import { FullAuditReportView } from '../audit/FullAuditReportView';
 
 interface FormatterExportBarProps {
   book: Book | null;
@@ -38,6 +46,11 @@ export const FormatterExportBar: React.FC<FormatterExportBarProps> = ({
     type: string;
   } | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
+
+  // Pre-Export Audit States
+  const [isAuditOpen, setIsAuditOpen] = useState(false);
+  const [auditReport, setAuditReport] = useState<ContentAuditReport | null>(null);
+  const [isFullReportOpen, setIsFullReportOpen] = useState(false);
 
   const handleExportPdf = async () => {
     if (!book) return;
@@ -98,7 +111,7 @@ export const FormatterExportBar: React.FC<FormatterExportBarProps> = ({
       });
     } catch (err: any) {
       console.error('DOCX export error:', err);
-      setExportError(err.message || 'Failed to export DOCX');
+      setExportError(err.message || 'Failed to generate Word document');
     } finally {
       setIsDocxExporting(false);
     }
@@ -106,28 +119,26 @@ export const FormatterExportBar: React.FC<FormatterExportBarProps> = ({
 
   const handleOpenPrintPreview = () => {
     if (!book) return;
-    const fullHtml = generateBookHtml(book, settings, margins, trimDimensions);
-    const win = window.open('', '_blank');
+    const htmlContent = generateBookHtml(book, settings, margins, trimDimensions);
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url, '_blank');
     if (win) {
-      win.document.open();
-      win.document.write(fullHtml);
-      win.document.close();
+      win.focus();
     }
   };
 
   return (
     <div className="space-y-3">
-      {/* Success Notification Banner */}
+      {/* Success Notification */}
       {exportSuccessInfo && (
-        <div className="p-3 bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 rounded-xl flex items-center justify-between text-xs text-green-900 dark:text-green-200 animate-in fade-in slide-in-from-bottom-2">
+        <div className="p-3 bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 rounded-xl flex items-center justify-between text-xs text-green-800 dark:text-green-300 animate-fade-in">
           <div className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" />
-            <div>
-              <span className="font-bold">{exportSuccessInfo.type} generated successfully!</span>
-              <span className="text-green-700 dark:text-green-300 ml-2">
-                ({exportSuccessInfo.filename} — {exportSuccessInfo.sizeFormatted}, ~{estimatedPages} pages)
-              </span>
-            </div>
+            <CheckCircle className="w-4 h-4 text-green-600 shrink-0" />
+            <span>
+              <strong>{exportSuccessInfo.type}</strong> generated successfully! (
+              {exportSuccessInfo.filename} — {exportSuccessInfo.sizeFormatted})
+            </span>
           </div>
           <button
             type="button"
@@ -145,6 +156,61 @@ export const FormatterExportBar: React.FC<FormatterExportBarProps> = ({
           <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
           <span>{exportError}</span>
         </div>
+      )}
+
+      {/* Pre-Export Audit Prompt Section */}
+      {book && (
+        <>
+          {!auditReport ? (
+            <div className="p-3.5 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/60 rounded-xl flex items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2.5 text-blue-800 dark:text-blue-200">
+                <Search className="w-4 h-4 text-blue-500 shrink-0" />
+                <span>
+                  💡 <b>Pre-Export Quality Check:</b> Run a content audit before exporting to catch
+                  potential KDP policy flags &amp; formatting gaps.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAuditOpen(true)}
+                className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] shrink-0 transition-colors cursor-pointer"
+              >
+                Run Quick Audit
+              </button>
+            </div>
+          ) : (
+            <div className="p-3.5 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2.5">
+                {auditReport.overallScore >= 80 ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                ) : (
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                )}
+                <span className="text-white font-semibold">
+                  {auditReport.overallScore >= 80
+                    ? `✅ Last audit passed (${auditReport.overallScore}/100) — ready for KDP export`
+                    : `⚠️ Issues found in last audit (${auditReport.overallScore}/100)`}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsFullReportOpen(true)}
+                  className="text-purple-400 hover:text-purple-300 font-bold text-[11px] cursor-pointer"
+                >
+                  View Audit Report
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsAuditOpen(true)}
+                  className="text-slate-400 hover:text-white font-semibold text-[11px] ml-2 cursor-pointer"
+                >
+                  Re-Run
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Main Bottom Bar */}
@@ -221,6 +287,35 @@ export const FormatterExportBar: React.FC<FormatterExportBarProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Audit Panel Drawer */}
+      {book && (
+        <AuditPanel
+          book={book}
+          isOpen={isAuditOpen}
+          onClose={() => setIsAuditOpen(false)}
+          onViewFullReport={(rep) => {
+            setAuditReport(rep);
+            setIsAuditOpen(false);
+            setIsFullReportOpen(true);
+          }}
+        />
+      )}
+
+      {/* Full Page Audit Report Modal */}
+      {book && auditReport && isFullReportOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md overflow-y-auto p-4 sm:p-8 animate-fade-in">
+          <FullAuditReportView
+            report={auditReport}
+            book={book}
+            onBack={() => setIsFullReportOpen(false)}
+            onRerunAudit={() => {
+              setIsFullReportOpen(false);
+              setIsAuditOpen(true);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };
