@@ -17,6 +17,15 @@ import type {
   AdminUsersQuery,
   AdminUsersResult,
   AdminSignupTrend,
+  RevenueSummary,
+  DailyRevenueItem,
+  AdminPaymentRow,
+  AdminPaymentsQuery,
+  AdminPaymentsResult,
+  UpiQueueItem,
+  UpiQueueStats,
+  BmacQueueItem,
+  RefundRecord,
 } from '../types/admin';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -798,3 +807,904 @@ export async function exportUsersCSV(options: Partial<AdminUsersQuery> = {}): Pr
     .join('\n');
   return csv;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase 17B: Revenue & Payment Calculations
+// ─────────────────────────────────────────────────────────────────────────────
+
+const ADMIN_EXCHANGE_RATES: Record<string, number> = {
+  USD: 1.0,
+  INR: 83.5,
+  GBP: 0.79,
+  EUR: 0.92,
+  CAD: 1.36,
+  AUD: 1.53,
+  JPY: 149.5,
+  BRL: 5.1,
+  MXN: 17.2,
+};
+
+export function normalizePaymentAmount(amount: number, currency = 'USD'): number {
+  if (!amount || isNaN(amount)) return 0;
+  if (currency.toUpperCase() === 'INR' && amount >= 10000) {
+    return amount / 100;
+  }
+  if (['USD', 'EUR', 'GBP', 'CAD', 'AUD'].includes(currency.toUpperCase()) && amount >= 1000) {
+    return amount / 100;
+  }
+  return amount;
+}
+
+export function convertAmountToUSD(amount: number, currency = 'USD'): number {
+  const norm = normalizePaymentAmount(amount, currency);
+  const rate = ADMIN_EXCHANGE_RATES[currency.toUpperCase()] || 1.0;
+  return Number((norm / rate).toFixed(2));
+}
+
+/**
+ * Calculates Monthly Recurring Revenue (MRR) from active subscriptions.
+ */
+export async function calculateMRR(): Promise<number> {
+  const db = getAdminDb();
+  if (!db) return 0;
+
+  try {
+    const subSnap = await db
+      .collection('subscriptions')
+      .where('status', '==', 'active')
+      .get();
+
+    let mrr = 0;
+    subSnap.docs.forEach(d => {
+      const s = d.data();
+      const plan = (s.plan || '').toLowerCase();
+      const cycle = (s.billingCycle || 'monthly').toLowerCase();
+      const amount = s.amount || 0;
+      const currency = s.currency || 'USD';
+
+      if (plan === 'lifetime') return; // Not recurring
+
+      let usdAmount = 0;
+      if (amount > 0) {
+        usdAmount = convertAmountToUSD(amount, currency);
+      } else {
+        // Fallback standard plan pricing in USD
+        if (plan === 'starter') usdAmount = 9;
+        else if (plan === 'pro') usdAmount = 29;
+        else if (plan === 'agency') usdAmount = 79;
+      }
+
+      if (cycle === 'annual') {
+        mrr += usdAmount / 12;
+      } else {
+        mrr += usdAmount;
+      }
+    });
+
+    // Fallback if no subscriptions collection populated yet: calculate from active paid users
+    if (mrr === 0) {
+      const userSnap = await db
+        .collection('users')
+        .where('plan', 'in', ['starter', 'pro', 'agency'])
+        .get();
+
+      userSnap.docs.forEach(d => {
+        const u = d.data();
+        if (u.isBanned) return;
+        const plan = (u.plan || '').toLowerCase();
+        const cycle = (u.billingCycle || 'monthly').toLowerCase();
+        let planMonthly = plan === 'starter' ? 9 : plan === 'pro' ? 29 : plan === 'agency' ? 79 : 0;
+        if (cycle === 'annual') planMonthly = (planMonthly * 10) / 12; // typical 2 months free
+        mrr += planMonthly;
+      });
+    }
+
+    return Number(mrr.toFixed(2));
+  } catch (err) {
+    console.warn('[adminService.calculateMRR] Error:', err);
+    return 0;
+  }
+}
+
+/**
+ * Calculates Churn Rate for a given month (YYYY-MM).
+ */
+export async function calculateChurnRate(month?: string): Promise<number> {
+  const db = getAdminDb();
+  if (!db) return 0;
+
+  try {
+    const targetMonth = month || new Date().toISOString().substring(0, 7);
+    const startOfMonth = `${targetMonth}-01T00:00:00.000Z`;
+    const endOfMonth = `${targetMonth}-31T23:59:59.999Z`;
+
+    // 1. Cancelled subscriptions in this month
+    const cancelledSnap = await db
+      .collection('subscriptions')
+      .where('status', '==', 'cancelled')
+      .where('updatedAt', '>=', startOfMonth)
+      .where('updatedAt', '<=', endOfMonth)
+      .get();
+
+    const cancelledCount = cancelledSnap.size;
+
+    // 2. Active subscriptions
+    const activeSnap = await db
+      .collection('subscriptions')
+      .where('status', '==', 'active')
+      .get();
+
+    const activeCount = activeSnap.size;
+    const denominator = Math.max(activeCount + cancelledCount, 1);
+
+    return Number(((cancelledCount / denominator) * 100).toFixed(1));
+  } catch (err) {
+    console.warn('[adminService.calculateChurnRate] Error:', err);
+    return 0;
+  }
+}
+
+/**
+ * Retrieves daily revenue history for charts.
+ */
+export async function getDailyRevenue(days = 90): Promise<DailyRevenueItem[]> {
+  const db = getAdminDb();
+  if (!db) return [];
+
+  try {
+    const now = new Date();
+    const startDate = new Date(now.getTime() - days * 86400000);
+    const startIso = startDate.toISOString();
+
+    const snap = await db
+      .collection('payments')
+      .where('status', '==', 'completed')
+      .where('createdAt', '>=', startIso)
+      .get();
+
+    const revenueByDate: Record<string, { total: number; byPlan: Record<string, number> }> = {};
+
+    // Initialize all dates in range
+    for (let i = 0; i < days; i++) {
+      const d = new Date(startDate.getTime() + i * 86400000);
+      const dateStr = d.toISOString().split('T')[0];
+      revenueByDate[dateStr] = { total: 0, byPlan: {} };
+    }
+
+    snap.docs.forEach(doc => {
+      const p = doc.data();
+      const dt = toTimestamp(p.createdAt);
+      if (!dt) return;
+      const dateStr = dt.split('T')[0];
+      if (!revenueByDate[dateStr]) {
+        revenueByDate[dateStr] = { total: 0, byPlan: {} };
+      }
+
+      const usd = convertAmountToUSD(p.amount, p.currency);
+      const plan = (p.plan || 'pro').toLowerCase();
+
+      revenueByDate[dateStr].total += usd;
+      revenueByDate[dateStr].byPlan[plan] = (revenueByDate[dateStr].byPlan[plan] || 0) + usd;
+    });
+
+    const dates = Object.keys(revenueByDate).sort();
+    const items: DailyRevenueItem[] = dates.map(date => ({
+      date,
+      revenue: Number(revenueByDate[date].total.toFixed(2)),
+      byPlan: revenueByDate[date].byPlan,
+    }));
+
+    // Calculate 7-day moving average
+    for (let i = 0; i < items.length; i++) {
+      const windowStart = Math.max(0, i - 6);
+      const windowItems = items.slice(windowStart, i + 1);
+      const sum = windowItems.reduce((acc, it) => acc + it.revenue, 0);
+      items[i].movingAvg7 = Number((sum / windowItems.length).toFixed(2));
+    }
+
+    return items;
+  } catch (err) {
+    console.warn('[adminService.getDailyRevenue] Error:', err);
+    return [];
+  }
+}
+
+/**
+ * Returns comprehensive revenue summary for a given period.
+ */
+export async function getRevenueSummary(
+  period: 'today' | 'week' | 'month' | 'year' | 'all' = 'month'
+): Promise<RevenueSummary> {
+  const db = getAdminDb();
+  if (!db) {
+    return {
+      totalRevenue: 0,
+      totalTransactions: 0,
+      mrr: 0,
+      arr: 0,
+      activePaidUsers: 0,
+      paidUsersByPlan: {},
+      revenueByPlan: [],
+      revenueByGateway: [],
+      revenueByCurrency: [],
+      revenueGrowth: 0,
+      userGrowth: 0,
+      churnedUsers: 0,
+      churnRate: 0,
+      cancelledSubscriptions: [],
+      cancellationReasons: [],
+      averageRevenuePerUser: 0,
+      lifetimeValue: 0,
+    };
+  }
+
+  try {
+    const now = new Date();
+    let periodMs = 30 * 86400000;
+    if (period === 'today') periodMs = 86400000;
+    else if (period === 'week') periodMs = 7 * 86400000;
+    else if (period === 'year') periodMs = 365 * 86400000;
+    else if (period === 'all') periodMs = 3650 * 86400000;
+
+    const currentStart = new Date(now.getTime() - periodMs).toISOString();
+    const previousStart = new Date(now.getTime() - periodMs * 2).toISOString();
+
+    // Fetch payments in current + previous period
+    const paymentsSnap = await db
+      .collection('payments')
+      .where('status', '==', 'completed')
+      .get();
+
+    let totalRevenue = 0;
+    let totalTransactions = 0;
+    let previousRevenue = 0;
+
+    const planRevenueMap: Record<string, { revenue: number; uids: Set<string> }> = {
+      starter: { revenue: 0, uids: new Set() },
+      pro: { revenue: 0, uids: new Set() },
+      agency: { revenue: 0, uids: new Set() },
+      lifetime: { revenue: 0, uids: new Set() },
+    };
+
+    const gatewayRevenueMap: Record<string, { revenue: number; count: number }> = {
+      razorpay: { revenue: 0, count: 0 },
+      paypal: { revenue: 0, count: 0 },
+      upi: { revenue: 0, count: 0 },
+      bmac: { revenue: 0, count: 0 },
+    };
+
+    const currencyMap: Record<string, { amount: number; amountUSD: number }> = {};
+
+    paymentsSnap.docs.forEach(d => {
+      const p = d.data();
+      const dt = toTimestamp(p.createdAt);
+      if (!dt) return;
+
+      const usd = convertAmountToUSD(p.amount, p.currency);
+      const normAmt = normalizePaymentAmount(p.amount, p.currency);
+      const plan = (p.plan || 'pro').toLowerCase();
+      const gateway = (p.gateway || 'other').toLowerCase();
+      const currency = (p.currency || 'USD').toUpperCase();
+
+      if (dt >= currentStart) {
+        totalRevenue += usd;
+        totalTransactions++;
+
+        if (planRevenueMap[plan]) {
+          planRevenueMap[plan].revenue += usd;
+          if (p.uid) planRevenueMap[plan].uids.add(p.uid);
+        }
+
+        if (gatewayRevenueMap[gateway]) {
+          gatewayRevenueMap[gateway].revenue += usd;
+          gatewayRevenueMap[gateway].count++;
+        } else {
+          gatewayRevenueMap[gateway] = { revenue: usd, count: 1 };
+        }
+
+        if (!currencyMap[currency]) {
+          currencyMap[currency] = { amount: 0, amountUSD: 0 };
+        }
+        currencyMap[currency].amount += normAmt;
+        currencyMap[currency].amountUSD += usd;
+      } else if (dt >= previousStart && dt < currentStart) {
+        previousRevenue += usd;
+      }
+    });
+
+    // Calculate MRR and ARR
+    const mrr = await calculateMRR();
+    const arr = Number((mrr * 12).toFixed(2));
+
+    // Active paid users
+    const usersSnap = await db.collection('users').get();
+    let activePaidUsers = 0;
+    let previousPaidUsers = 0;
+    const paidUsersByPlan: Record<string, number> = {
+      starter: 0,
+      pro: 0,
+      agency: 0,
+      lifetime: 0,
+    };
+
+    usersSnap.docs.forEach(d => {
+      const u = d.data();
+      const plan = (u.plan || 'free').toLowerCase();
+      const createdAt = toTimestamp(u.createdAt) || '';
+
+      if (['starter', 'pro', 'agency', 'lifetime'].includes(plan) && !u.isBanned) {
+        activePaidUsers++;
+        paidUsersByPlan[plan] = (paidUsersByPlan[plan] || 0) + 1;
+        if (createdAt < currentStart) {
+          previousPaidUsers++;
+        }
+      }
+    });
+
+    // Growth rates
+    const revenueGrowth = previousRevenue > 0
+      ? Number((((totalRevenue - previousRevenue) / previousRevenue) * 100).toFixed(1))
+      : totalRevenue > 0 ? 100 : 0;
+
+    const userGrowth = previousPaidUsers > 0
+      ? Number((((activePaidUsers - previousPaidUsers) / previousPaidUsers) * 100).toFixed(1))
+      : activePaidUsers > 0 ? 100 : 0;
+
+    // Churn calculation & cancellations
+    const cancelledSubscriptions: CancelledSubscriptionItem[] = [];
+    const reasonCounts: Record<string, number> = {
+      'Too expensive': 0,
+      'Not using enough': 0,
+      'Missing features': 0,
+      'Other': 0,
+    };
+
+    try {
+      const cancelSnap = await db
+        .collection('subscriptions')
+        .where('status', '==', 'cancelled')
+        .where('updatedAt', '>=', currentStart)
+        .get();
+
+      cancelSnap.docs.forEach(d => {
+        const s = d.data();
+        const reason = s.cancellationReason || s.reason || 'Other';
+        reasonCounts[reason] = (reasonCounts[reason] || 0) + 1;
+
+        cancelledSubscriptions.push({
+          id: d.id,
+          uid: s.uid || '',
+          userName: s.userName || s.email || 'Author',
+          userEmail: s.email || '',
+          plan: s.plan || 'pro',
+          amount: convertAmountToUSD(s.amount || 0, s.currency || 'USD'),
+          currency: s.currency || 'USD',
+          reason,
+          date: toTimestamp(s.updatedAt) || nowIso(),
+        });
+      });
+    } catch {
+      // Subscriptions collection optional
+    }
+
+    const churnedUsers = cancelledSubscriptions.length;
+    const churnDenom = Math.max(activePaidUsers + churnedUsers, 1);
+    const churnRate = Number(((churnedUsers / churnDenom) * 100).toFixed(1));
+
+    const totalReasons = Object.values(reasonCounts).reduce((a, b) => a + b, 0) || 1;
+    const cancellationReasons = Object.entries(reasonCounts).map(([reason, count]) => ({
+      reason,
+      count,
+      percentage: Number(((count / totalReasons) * 100).toFixed(0)),
+    }));
+
+    // ARPU & LTV
+    const averageRevenuePerUser = activePaidUsers > 0
+      ? Number((totalRevenue / activePaidUsers).toFixed(2))
+      : 0;
+
+    const ltv = churnRate > 0
+      ? Number((averageRevenuePerUser / (churnRate / 100)).toFixed(2))
+      : Number((averageRevenuePerUser * 12).toFixed(2));
+
+    const revenueByPlan = Object.entries(planRevenueMap).map(([plan, data]) => ({
+      plan: plan.charAt(0).toUpperCase() + plan.slice(1),
+      revenue: Number(data.revenue.toFixed(2)),
+      userCount: paidUsersByPlan[plan] || data.uids.size,
+    }));
+
+    const revenueByGateway = Object.entries(gatewayRevenueMap).map(([gateway, data]) => ({
+      gateway: gateway.toUpperCase(),
+      revenue: Number(data.revenue.toFixed(2)),
+      transactionCount: data.count,
+    }));
+
+    const revenueByCurrency = Object.entries(currencyMap).map(([currency, data]) => ({
+      currency,
+      amount: Number(data.amount.toFixed(2)),
+      amountUSD: Number(data.amountUSD.toFixed(2)),
+    }));
+
+    return {
+      totalRevenue: Number(totalRevenue.toFixed(2)),
+      totalTransactions,
+      mrr,
+      arr,
+      activePaidUsers,
+      paidUsersByPlan,
+      revenueByPlan,
+      revenueByGateway,
+      revenueByCurrency,
+      revenueGrowth,
+      userGrowth,
+      churnedUsers,
+      churnRate,
+      cancelledSubscriptions,
+      cancellationReasons,
+      averageRevenuePerUser,
+      lifetimeValue: ltv,
+    };
+  } catch (err) {
+    console.error('[adminService.getRevenueSummary] Error:', err);
+    throw err;
+  }
+}
+
+/**
+ * Returns paginated payments list with flexible filtering.
+ */
+export async function getAllPayments(query: AdminPaymentsQuery = {}): Promise<AdminPaymentsResult> {
+  const db = getAdminDb();
+  if (!db) return { payments: [], total: 0 };
+
+  const {
+    limit = 20,
+    offset = 0,
+    startDate,
+    endDate,
+    gateway,
+    plan,
+    status,
+    currency,
+    search,
+  } = query;
+
+  try {
+    let q: any = db.collection('payments');
+
+    if (gateway && gateway !== 'all') {
+      q = q.where('gateway', '==', gateway.toLowerCase());
+    }
+    if (plan && plan !== 'all') {
+      q = q.where('plan', '==', plan.toLowerCase());
+    }
+    if (status && status !== 'all') {
+      q = q.where('status', '==', status.toLowerCase());
+    }
+    if (currency && currency !== 'all') {
+      q = q.where('currency', '==', currency.toUpperCase());
+    }
+
+    const snap = await q.get();
+
+    // Map and enrich docs
+    let allRows: AdminPaymentRow[] = snap.docs.map((d: any) => {
+      const p = d.data();
+      const curr = (p.currency || 'USD').toUpperCase();
+      const origAmt = normalizePaymentAmount(p.amount, curr);
+      const usdAmt = convertAmountToUSD(p.amount, curr);
+
+      return {
+        id: d.id,
+        uid: p.uid || '',
+        userName: p.userName || p.name || '',
+        userEmail: p.email || p.userEmail || '',
+        plan: p.plan || 'pro',
+        billingCycle: p.billingCycle || 'monthly',
+        amount: origAmt,
+        currency: curr,
+        amountUSD: usdAmt,
+        gateway: p.gateway || 'razorpay',
+        status: p.status || 'completed',
+        gatewayPaymentId: p.gatewayPaymentId || d.id,
+        gatewaySubscriptionId: p.gatewaySubscriptionId || null,
+        gatewayCustomerId: p.gatewayCustomerId || null,
+        createdAt: toTimestamp(p.createdAt) || nowIso(),
+        updatedAt: toTimestamp(p.updatedAt) || nowIso(),
+        planStartDate: toTimestamp(p.planStartDate),
+        planEndDate: toTimestamp(p.planEndDate),
+        metadata: p.metadata || {},
+        refundId: p.refundId,
+        refundReason: p.refundReason,
+        refundedAt: toTimestamp(p.refundedAt) || undefined,
+        rawJson: JSON.stringify(p, null, 2),
+      };
+    });
+
+    // Date filters
+    if (startDate) {
+      allRows = allRows.filter(r => r.createdAt >= startDate);
+    }
+    if (endDate) {
+      allRows = allRows.filter(r => r.createdAt <= endDate + 'T23:59:59.999Z');
+    }
+
+    // Search filter (by email, name, payment ID, or UTR)
+    if (search && search.trim()) {
+      const s = search.toLowerCase().trim();
+      allRows = allRows.filter(
+        r =>
+          r.userEmail.toLowerCase().includes(s) ||
+          r.userName.toLowerCase().includes(s) ||
+          r.gatewayPaymentId.toLowerCase().includes(s) ||
+          r.id.toLowerCase().includes(s)
+      );
+    }
+
+    // Sort by createdAt desc
+    allRows.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    const total = allRows.length;
+    const paginated = allRows.slice(offset, offset + limit);
+
+    return { payments: paginated, total };
+  } catch (err) {
+    console.error('[adminService.getAllPayments] Error:', err);
+    throw err;
+  }
+}
+
+/**
+ * Export filtered payments as CSV.
+ */
+export async function exportPaymentsCSV(query: AdminPaymentsQuery = {}): Promise<string> {
+  const result = await getAllPayments({ ...query, limit: 5000, offset: 0 });
+  const headers = [
+    'Payment ID', 'Created At', 'User Email', 'User Name',
+    'Plan', 'Billing Cycle', 'Amount', 'Currency', 'Amount (USD)',
+    'Gateway', 'Status', 'Gateway Transaction ID', 'Gateway Subscription ID',
+  ];
+  const rows = result.payments.map(p => [
+    p.id, p.createdAt, p.userEmail, p.userName,
+    p.plan, p.billingCycle, p.amount, p.currency, p.amountUSD,
+    p.gateway, p.status, p.gatewayPaymentId, p.gatewaySubscriptionId || '',
+  ]);
+  const csv = [headers, ...rows]
+    .map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+  return csv;
+}
+
+/**
+ * Retrieves pending UPI payment requests with queue statistics.
+ */
+export async function getPendingUpiPayments(): Promise<{
+  stats: UpiQueueStats;
+  items: UpiQueueItem[];
+}> {
+  const db = getAdminDb();
+  if (!db) {
+    return {
+      stats: { pendingCount: 0, totalAmount: 0, oldestPending: null, avgVerificationHours: 2 },
+      items: [],
+    };
+  }
+
+  try {
+    const snap = await db
+      .collection('upiPending')
+      .where('status', '==', 'pending')
+      .get();
+
+    const items: UpiQueueItem[] = snap.docs.map(d => {
+      const data = d.data();
+      return {
+        id: d.id,
+        uid: data.uid || '',
+        email: data.email || '',
+        name: data.name || '',
+        plan: data.plan || 'pro',
+        billingCycle: data.billingCycle || 'monthly',
+        amount: data.amount || 0,
+        utrNumber: data.utrNumber || '',
+        screenshotUrl: data.screenshotUrl || null,
+        status: 'pending',
+        submittedAt: toTimestamp(data.submittedAt) || nowIso(),
+        reviewedAt: null,
+        reviewedBy: null,
+        notes: data.notes || null,
+      };
+    });
+
+    // Sort by submittedAt ASC (oldest first)
+    items.sort((a, b) => new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime());
+
+    const totalAmount = items.reduce((sum, it) => sum + it.amount, 0);
+    const oldestPending = items.length > 0 ? items[0].submittedAt : null;
+
+    // Calculate average verification time from last 30 reviewed docs
+    let avgVerificationHours = 2.4;
+    try {
+      const reviewedSnap = await db
+        .collection('upiPending')
+        .where('status', 'in', ['approved', 'rejected'])
+        .limit(30)
+        .get();
+
+      if (reviewedSnap.size > 0) {
+        let totalHours = 0;
+        let count = 0;
+        reviewedSnap.docs.forEach(d => {
+          const data = d.data();
+          const sub = toTimestamp(data.submittedAt);
+          const rev = toTimestamp(data.reviewedAt);
+          if (sub && rev) {
+            const diffHours = (new Date(rev).getTime() - new Date(sub).getTime()) / 3600000;
+            if (diffHours > 0 && diffHours < 168) {
+              totalHours += diffHours;
+              count++;
+            }
+          }
+        });
+        if (count > 0) {
+          avgVerificationHours = Number((totalHours / count).toFixed(1));
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    return {
+      stats: {
+        pendingCount: items.length,
+        totalAmount,
+        oldestPending,
+        avgVerificationHours,
+      },
+      items,
+    };
+  } catch (err) {
+    console.error('[adminService.getPendingUpiPayments] Error:', err);
+    throw err;
+  }
+}
+
+/**
+ * Retrieves recently reviewed UPI payments (approved or rejected).
+ */
+export async function getUpiRecentHistory(limit = 10): Promise<UpiQueueItem[]> {
+  const db = getAdminDb();
+  if (!db) return [];
+
+  try {
+    const snap = await db
+      .collection('upiPending')
+      .where('status', 'in', ['approved', 'rejected'])
+      .limit(limit * 2)
+      .get();
+
+    const items: UpiQueueItem[] = snap.docs.map(d => {
+      const data = d.data();
+      return {
+        id: d.id,
+        uid: data.uid || '',
+        email: data.email || '',
+        name: data.name || '',
+        plan: data.plan || 'pro',
+        billingCycle: data.billingCycle || 'monthly',
+        amount: data.amount || 0,
+        utrNumber: data.utrNumber || '',
+        screenshotUrl: data.screenshotUrl || null,
+        status: data.status,
+        submittedAt: toTimestamp(data.submittedAt) || nowIso(),
+        reviewedAt: toTimestamp(data.reviewedAt),
+        reviewedBy: data.reviewedBy || null,
+        notes: data.notes || null,
+      };
+    });
+
+    items.sort((a, b) => {
+      const bTime = b.reviewedAt ? new Date(b.reviewedAt).getTime() : 0;
+      const aTime = a.reviewedAt ? new Date(a.reviewedAt).getTime() : 0;
+      return bTime - aTime;
+    });
+
+    return items.slice(0, limit);
+  } catch (err) {
+    console.warn('[adminService.getUpiRecentHistory] Error:', err);
+    return [];
+  }
+}
+
+/**
+ * Retrieves unmatched Buy Me a Coffee payments.
+ */
+export async function getUnmatchedBmac(): Promise<BmacQueueItem[]> {
+  const db = getAdminDb();
+  if (!db) return [];
+
+  try {
+    const snap = await db
+      .collection('bmacUnmatched')
+      .where('status', '==', 'unmatched')
+      .get();
+
+    const items: BmacQueueItem[] = snap.docs.map(d => {
+      const data = d.data();
+      return {
+        id: d.id,
+        bmacPaymentId: data.bmacPaymentId || d.id,
+        amount: data.amount || 0,
+        supportCoffees: data.supportCoffees || 1,
+        supporterEmail: data.supporterEmail || '',
+        supporterName: data.supporterName || '',
+        supportNote: data.supportNote,
+        message: data.message || data.supportNote,
+        isSubscription: data.isSubscription || false,
+        status: 'unmatched',
+        resolvedUid: data.resolvedUid,
+        resolvedAt: toTimestamp(data.resolvedAt) || undefined,
+        resolvedBy: data.resolvedBy,
+        rewardGranted: data.rewardGranted,
+        createdAt: toTimestamp(data.createdAt) || nowIso(),
+      };
+    });
+
+    items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return items;
+  } catch (err) {
+    console.warn('[adminService.getUnmatchedBmac] Error:', err);
+    return [];
+  }
+}
+
+/**
+ * Processes a refund for a payment record across Razorpay, PayPal, or manual UPI/BMaC.
+ */
+export async function processRefund(params: {
+  paymentId: string;
+  amount?: number;
+  reason: string;
+  notes?: string;
+  adminEmail: string;
+}): Promise<{ success: boolean; refundId: string; gatewayRefundId?: string }> {
+  const db = getAdminDb();
+  if (!db) throw new Error('Database connection failed');
+
+  const { paymentId, amount: customAmount, reason, notes = '', adminEmail } = params;
+
+  // 1. Fetch Payment Document
+  const payRef = db.collection('payments').doc(paymentId);
+  const paySnap = await payRef.get();
+  if (!paySnap.exists) {
+    throw new Error(`Payment ${paymentId} not found`);
+  }
+
+  const payment = paySnap.data()!;
+  if (payment.status === 'refunded') {
+    throw new Error('Payment has already been refunded');
+  }
+
+  const gateway = (payment.gateway || 'other').toLowerCase();
+  const currency = (payment.currency || 'USD').toUpperCase();
+  const originalNorm = normalizePaymentAmount(payment.amount, currency);
+  const refundAmount = customAmount !== undefined && customAmount > 0 ? customAmount : originalNorm;
+
+  if (refundAmount > originalNorm) {
+    throw new Error(`Refund amount cannot exceed original payment amount (${currency} ${originalNorm})`);
+  }
+
+  // Check 180 day expiry for gateway APIs
+  const createdAt = toTimestamp(payment.createdAt);
+  if (createdAt) {
+    const ageDays = (Date.now() - new Date(createdAt).getTime()) / 86400000;
+    if (ageDays > 180 && ['razorpay', 'paypal'].includes(gateway)) {
+      throw new Error(`Payment is older than 180 days (${Math.floor(ageDays)} days). Gateway API refunds are expired. Process manual refund instead.`);
+    }
+  }
+
+  const refundId = makeId('ref');
+  let gatewayRefundId: string | undefined;
+  let status: 'completed' | 'manual_pending' | 'failed' = 'completed';
+
+  // 2. Gateway API Integration
+  if (gateway === 'razorpay') {
+    try {
+      const { getRazorpayClient } = await import('./razorpay');
+      const rzp = getRazorpayClient();
+      const rzpPayId = payment.gatewayPaymentId || paymentId;
+
+      // In paise for INR
+      const refundAmountPaise = currency === 'INR' ? Math.round(refundAmount * 100) : refundAmount;
+
+      const rzpRefund: any = await (rzp.payments as any).refund(rzpPayId, {
+        amount: refundAmountPaise,
+        notes: {
+          reason,
+          refundId,
+          processedBy: adminEmail,
+        },
+      });
+      gatewayRefundId = rzpRefund.id;
+      status = 'completed';
+    } catch (rzpErr: any) {
+      console.error('[adminService.processRefund] Razorpay refund error:', rzpErr);
+      throw new Error(`Razorpay refund failed: ${rzpErr.message || 'Unknown error'}`);
+    }
+  } else if (gateway === 'paypal') {
+    try {
+      const { paypalRequest } = await import('./paypal');
+      const captureId = payment.gatewayPaymentId || paymentId;
+
+      const ppRefund = await paypalRequest('POST', `/v2/payments/captures/${captureId}/refund`, {
+        amount: {
+          value: refundAmount.toFixed(2),
+          currency_code: currency,
+        },
+        note_to_payer: reason,
+      });
+      gatewayRefundId = ppRefund.id;
+      status = 'completed';
+    } catch (ppErr: any) {
+      console.error('[adminService.processRefund] PayPal refund error:', ppErr);
+      throw new Error(`PayPal refund failed: ${ppErr.message || 'Unknown error'}`);
+    }
+  } else {
+    // UPI or BMaC manual refund
+    status = 'manual_pending';
+  }
+
+  const now = nowIso();
+  const amountUSD = convertAmountToUSD(refundAmount, currency);
+
+  const refundRecord: RefundRecord = {
+    id: refundId,
+    paymentId,
+    uid: payment.uid || '',
+    userEmail: payment.email || payment.userEmail || '',
+    userName: payment.userName || payment.name || 'Kindle Author',
+    amount: refundAmount,
+    currency,
+    amountUSD,
+    gateway,
+    reason,
+    notes,
+    status,
+    gatewayRefundId,
+    processedBy: adminEmail,
+    createdAt: now,
+  };
+
+  // 3. Update Firestore Records
+  await db.collection('refunds').doc(refundId).set(refundRecord);
+
+  await payRef.update({
+    status: 'refunded',
+    refundId,
+    refundReason: reason,
+    refundAmount,
+    refundedAt: now,
+    updatedAt: now,
+  });
+
+  // 4. Log Admin Action
+  await logAdminAction({
+    adminEmail,
+    action: 'process_refund',
+    targetUid: payment.uid,
+    targetEmail: payment.email || payment.userEmail,
+    details: {
+      paymentId,
+      refundId,
+      amount: refundAmount,
+      currency,
+      gateway,
+      reason,
+      gatewayRefundId,
+    },
+    timestamp: now,
+  });
+
+  return { success: true, refundId, gatewayRefundId };
+}
+

@@ -49,6 +49,10 @@ import { AdminLayout } from '../admin/AdminLayout';
 import { AdminOverviewPage } from '../admin/overview/AdminOverviewPage';
 import { AdminUsersPage } from '../admin/users/AdminUsersPage';
 import { UserDetailPage } from '../admin/users/UserDetailPage';
+import { RevenuePage } from '../admin/revenue/RevenuePage';
+import { PaymentsPage } from '../admin/payments/PaymentsPage';
+import { UpiQueuePage } from '../admin/payments/UpiQueuePage';
+import { BmacQueuePage } from '../admin/payments/BmacQueuePage';
 import { GeoTestView } from '../geo/GeoTestView';
 import { NewBookModal } from '../modals/NewBookModal';
 import { AuthPages } from '../auth/AuthPages';
@@ -118,6 +122,10 @@ export const AppShell: React.FC = () => {
       if (path === 'settings') return 'settings';
       if (path === 'billing') return 'billing';
       if (path === 'admin') return 'admin';
+      if (path === 'admin/revenue') return 'admin-revenue';
+      if (path === 'admin/payments/upi' || path === 'admin/upi') return 'admin-payments-upi';
+      if (path === 'admin/payments/bmac' || path === 'admin/bmac') return 'admin-payments-bmac';
+      if (path === 'admin/payments') return 'admin-payments';
       if (path.startsWith('admin/users/') && path.split('/').length >= 3) return 'admin-user-detail';
       if (path === 'admin/users') return 'admin-users';
       if (path === 'geo-test') return 'geo-test';
@@ -690,6 +698,38 @@ export const AppShell: React.FC = () => {
                         ? window.location.pathname.split('/').pop() || ''
                         : ''}
                     />
+                  </AdminLayout>
+                </AdminGuard>
+              )}
+
+              {currentRoute === 'admin-revenue' && (
+                <AdminGuard>
+                  <AdminLayout pageTitle="Revenue & MRR Analytics">
+                    <RevenuePage />
+                  </AdminLayout>
+                </AdminGuard>
+              )}
+
+              {currentRoute === 'admin-payments' && (
+                <AdminGuard>
+                  <AdminLayout pageTitle="Payment History">
+                    <PaymentsPage />
+                  </AdminLayout>
+                </AdminGuard>
+              )}
+
+              {currentRoute === 'admin-payments-upi' && (
+                <AdminGuard>
+                  <AdminLayout pageTitle="UPI Pending Verification">
+                    <UpiQueuePage />
+                  </AdminLayout>
+                </AdminGuard>
+              )}
+
+              {currentRoute === 'admin-payments-bmac' && (
+                <AdminGuard>
+                  <AdminLayout pageTitle="Buy Me a Coffee Queue">
+                    <BmacQueuePage />
                   </AdminLayout>
                 </AdminGuard>
               )}

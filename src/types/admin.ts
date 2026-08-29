@@ -181,3 +181,178 @@ export interface AdminUsersResult {
   users: AdminUserView[];
   total: number;
 }
+
+// ────────────────────────────────────────────────
+// Phase 17B: Revenue Dashboard & Payment Types
+// ────────────────────────────────────────────────
+
+export interface RevenueByPlan {
+  plan: string;
+  revenue: number;
+  userCount: number;
+}
+
+export interface RevenueByGateway {
+  gateway: string;
+  revenue: number;
+  transactionCount: number;
+}
+
+export interface RevenueByCurrency {
+  currency: string;
+  amount: number;
+  amountUSD: number;
+}
+
+export interface CancelledSubscriptionItem {
+  id: string;
+  uid: string;
+  userName: string;
+  userEmail: string;
+  plan: string;
+  amount: number;
+  currency: string;
+  reason: string;
+  date: string;
+}
+
+export interface RevenueSummary {
+  totalRevenue: number; // USD
+  totalTransactions: number;
+
+  // Recurring
+  mrr: number;
+  arr: number;
+  activePaidUsers: number;
+  paidUsersByPlan: Record<string, number>;
+
+  // Breakdowns
+  revenueByPlan: RevenueByPlan[];
+  revenueByGateway: RevenueByGateway[];
+  revenueByCurrency: RevenueByCurrency[];
+
+  // Growth
+  revenueGrowth: number; // % vs previous period
+  userGrowth: number;
+
+  // Churn
+  churnedUsers: number;
+  churnRate: number; // %
+  cancelledSubscriptions: CancelledSubscriptionItem[];
+  cancellationReasons: { reason: string; count: number; percentage: number }[];
+
+  // Averages
+  averageRevenuePerUser: number; // ARPU
+  lifetimeValue: number; // estimated LTV
+}
+
+export interface DailyRevenueItem {
+  date: string; // YYYY-MM-DD
+  revenue: number; // USD
+  movingAvg7?: number;
+  byPlan?: Record<string, number>;
+}
+
+export interface AdminPaymentRow {
+  id: string;
+  uid: string;
+  userName: string;
+  userEmail: string;
+  plan: string;
+  billingCycle: string;
+  amount: number;
+  currency: string;
+  amountUSD: number;
+  gateway: string;
+  status: string;
+  gatewayPaymentId: string;
+  gatewaySubscriptionId: string | null;
+  gatewayCustomerId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  planStartDate: string | null;
+  planEndDate: string | null;
+  metadata?: Record<string, any>;
+  refundId?: string;
+  refundReason?: string;
+  refundedAt?: string;
+  rawJson?: string;
+}
+
+export interface AdminPaymentsQuery {
+  limit?: number;
+  offset?: number;
+  startDate?: string;
+  endDate?: string;
+  gateway?: string;
+  plan?: string;
+  status?: string;
+  currency?: string;
+  search?: string;
+}
+
+export interface AdminPaymentsResult {
+  payments: AdminPaymentRow[];
+  total: number;
+}
+
+export interface UpiQueueItem {
+  id: string;
+  uid: string;
+  email: string;
+  name: string;
+  plan: string;
+  billingCycle: string;
+  amount: number;
+  utrNumber: string;
+  screenshotUrl: string | null;
+  status: 'pending' | 'approved' | 'rejected';
+  submittedAt: string;
+  reviewedAt: string | null;
+  reviewedBy: string | null;
+  notes: string | null;
+}
+
+export interface UpiQueueStats {
+  pendingCount: number;
+  totalAmount: number;
+  oldestPending: string | null;
+  avgVerificationHours: number;
+}
+
+export interface BmacQueueItem {
+  id: string;
+  bmacPaymentId: number | string;
+  amount: number;
+  supportCoffees: number;
+  supporterEmail: string;
+  supporterName: string;
+  supportNote?: string;
+  message?: string;
+  isSubscription?: boolean;
+  status: 'unmatched' | 'resolved' | 'ignored';
+  resolvedUid?: string;
+  resolvedAt?: string;
+  resolvedBy?: string;
+  rewardGranted?: string;
+  createdAt: string;
+}
+
+export interface RefundRecord {
+  id: string;
+  paymentId: string;
+  uid: string;
+  userEmail: string;
+  userName: string;
+  amount: number;
+  currency: string;
+  amountUSD: number;
+  gateway: string;
+  reason: string;
+  notes?: string;
+  status: 'completed' | 'manual_pending' | 'failed';
+  gatewayRefundId?: string;
+  processedBy: string;
+  createdAt: string;
+}
+

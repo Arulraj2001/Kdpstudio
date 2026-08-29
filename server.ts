@@ -3634,6 +3634,130 @@ Return valid JSON with: readingLevel (grade, fleschScore, averageSentenceLength,
     }
   });
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Phase 17B: Revenue & Payment Operations Express Endpoints
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // GET /api/admin/revenue — summary + daily revenue
+  app.get('/api/admin/revenue', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { getRevenueSummary, getDailyRevenue } = await import('./src/lib/adminService');
+      const period = (req.query.period as any) || 'month';
+      const days = parseInt(String(req.query.days || '90'), 10);
+      const [summary, dailyRevenue] = await Promise.all([
+        getRevenueSummary(period),
+        getDailyRevenue(days),
+      ]);
+      return res.json({ summary, dailyRevenue });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/admin/payments/export — CSV export
+  app.get('/api/admin/payments/export', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { exportPaymentsCSV } = await import('./src/lib/adminService');
+      const csv = await exportPaymentsCSV({
+        startDate: (req.query.startDate as string) || undefined,
+        endDate: (req.query.endDate as string) || undefined,
+        gateway: (req.query.gateway as string) || undefined,
+        plan: (req.query.plan as string) || undefined,
+        status: (req.query.status as string) || undefined,
+        currency: (req.query.currency as string) || undefined,
+        search: (req.query.search as string) || undefined,
+      });
+      const filename = `kdpstudio-payments-${new Date().toISOString().split('T')[0]}.csv`;
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      return res.send(csv);
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/admin/payments — paginated list
+  app.get('/api/admin/payments', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { getAllPayments } = await import('./src/lib/adminService');
+      const limit = parseInt(String(req.query.limit || '20'), 10);
+      const offset = parseInt(String(req.query.offset || '0'), 10);
+      const result = await getAllPayments({
+        limit,
+        offset,
+        startDate: (req.query.startDate as string) || undefined,
+        endDate: (req.query.endDate as string) || undefined,
+        gateway: (req.query.gateway as string) || undefined,
+        plan: (req.query.plan as string) || undefined,
+        status: (req.query.status as string) || undefined,
+        currency: (req.query.currency as string) || undefined,
+        search: (req.query.search as string) || undefined,
+      });
+      return res.json(result);
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/admin/payments/refund — process refund
+  app.post('/api/admin/payments/refund', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    const { paymentId, amount, reason, notes } = req.body || {};
+    if (!paymentId || !reason?.trim()) {
+      return res.status(400).json({ error: 'paymentId and reason are required' });
+    }
+    try {
+      const { processRefund } = await import('./src/lib/adminService');
+      const result = await processRefund({
+        paymentId,
+        amount: amount !== undefined ? Number(amount) : undefined,
+        reason,
+        notes,
+        adminEmail,
+      });
+      return res.json(result);
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/admin/payments/upi — UPI pending queue + history
+  app.get('/api/admin/payments/upi', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { getPendingUpiPayments, getUpiRecentHistory } = await import('./src/lib/adminService');
+      const [pendingData, history] = await Promise.all([
+        getPendingUpiPayments(),
+        getUpiRecentHistory(10),
+      ]);
+      return res.json({ stats: pendingData.stats, items: pendingData.items, history });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/admin/payments/bmac — BMaC unmatched queue
+  app.get('/api/admin/payments/bmac', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { getUnmatchedBmac } = await import('./src/lib/adminService');
+      const items = await getUnmatchedBmac();
+      return res.json({ items });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+
   // Vite middleware for development vs static build for production
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

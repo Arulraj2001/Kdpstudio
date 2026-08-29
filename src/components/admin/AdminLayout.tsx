@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../lib/authStore';
+import { auth } from '../../lib/firebase';
 
 interface NavItem {
   icon: string;
@@ -31,10 +32,46 @@ interface AdminLayoutProps {
  * AdminLayout — wraps all admin pages with its own dark sidebar
  * and top bar. Completely separate from the main app sidebar.
  */
-export function AdminLayout({ children, pageTitle = 'Dashboard', pendingCounts }: AdminLayoutProps) {
+export function AdminLayout({ children, pageTitle = 'Dashboard', pendingCounts: explicitPending }: AdminLayoutProps) {
   const { user } = useAuthStore();
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
   const [timeAgo, setTimeAgo] = useState('just now');
+  const [autoPending, setAutoPending] = useState<{
+    upi: number;
+    bmac: number;
+    support: number;
+    flagged: number;
+  }>({ upi: 0, bmac: 0, support: 0, flagged: 0 });
+
+  useEffect(() => {
+    const fetchPending = async () => {
+      try {
+        const token = await auth?.currentUser?.getIdToken();
+        if (!token) return;
+        const res = await fetch('/api/admin/overview', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.stats?.pending) {
+          setAutoPending({
+            upi: data.stats.pending.upiCount || 0,
+            bmac: data.stats.pending.bmacCount || 0,
+            support: data.stats.pending.supportCount || 0,
+            flagged: data.stats.pending.flaggedCount || 0,
+          });
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    if (!explicitPending) {
+      fetchPending();
+    }
+  }, [explicitPending]);
+
+  const pendingCounts = explicitPending || autoPending;
 
   useEffect(() => {
     const interval = setInterval(() => {
