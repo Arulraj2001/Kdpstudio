@@ -19,6 +19,10 @@ async function main() {
 
   const page = await browser.newPage();
 
+  // We will render the image inside a canvas in the browser,
+  // find the tight bounding box of the glowing quill and book spread (excluding bottom text),
+  // and export tightly-cropped, centered, high-contrast icons for all sizes!
+
   const sizes = [
     { name: 'favicon-16x16.png', size: 16 },
     { name: 'favicon-32x32.png', size: 32 },
@@ -33,8 +37,10 @@ async function main() {
   for (const item of sizes) {
     await page.setViewport({ width: item.size, height: item.size, deviceScaleFactor: 1 });
     
-    // For smaller icons (<= 180px), focus on the glowing quill & book spread icon artwork
-    const isIconOnly = item.size <= 180;
+    // In the 1024x1024 source image:
+    // The glowing quill & book spread is located from sx: 180, sy: 260, sw: 664, sh: 400
+    // By drawing only this region and fitting it with slight padding into the canvas,
+    // the icon symbol fills the entire square container boldly and crisply!
     
     const html = `
       <!DOCTYPE html>
@@ -42,30 +48,61 @@ async function main() {
         <head>
           <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body, html { width: ${item.size}px; height: ${item.size}px; overflow: hidden; background: #0b0b14; display: flex; align-items: center; justify-content: center; }
-            img {
-              width: ${isIconOnly ? '135%' : '100%'};
-              height: ${isIconOnly ? '135%' : '100%'};
-              object-fit: cover;
-              object-position: ${isIconOnly ? 'center 38%' : 'center center'};
-              border-radius: ${item.size > 100 ? '16px' : '0px'};
-            }
+            body, html { width: ${item.size}px; height: ${item.size}px; overflow: hidden; background: #0a0a14; }
+            canvas { width: ${item.size}px; height: ${item.size}px; display: block; }
           </style>
         </head>
         <body>
-          <img src="${imgSrc}" />
+          <canvas id="c" width="${item.size}" height="${item.size}"></canvas>
+          <script>
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.getElementById('c');
+              const ctx = canvas.getContext('2d');
+              
+              // Dark modern gradient background
+              const bgGrad = ctx.createRadialGradient(
+                canvas.width / 2, canvas.height / 2, 0,
+                canvas.width / 2, canvas.height / 2, canvas.width * 0.7
+              );
+              bgGrad.addColorStop(0, '#15122c');
+              bgGrad.addColorStop(1, '#080811');
+              ctx.fillStyle = bgGrad;
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+              // Source crop coordinates for the glowing quill & book spread icon artwork
+              // Source image is 1024x1024:
+              const sx = 190;
+              const sy = 275;
+              const sw = 644;
+              const sh = 385;
+
+              // Fit tightly into canvas with 6% margin so it looks bold and full
+              const pad = canvas.width * 0.06;
+              const dw = canvas.width - (pad * 2);
+              const dh = dw * (sh / sw);
+              const dx = pad;
+              const dy = (canvas.height - dh) / 2;
+
+              ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+            };
+            img.src = '${imgSrc}';
+          </script>
         </body>
       </html>
     `;
 
     await page.setContent(html, { waitUntil: 'load' });
+    // Wait slightly for canvas draw
+    await new Promise(r => setTimeout(r, 100));
+
     const targetPath = path.join(process.cwd(), 'public', item.name);
     await page.screenshot({ path: targetPath, type: 'png' });
-    console.log(`✓ Generated: public/${item.name} (${item.size}x${item.size})`);
+    console.log(`✓ Generated tightly cropped: public/${item.name} (${item.size}x${item.size})`);
   }
 
   await browser.close();
-  console.log('All favicon & logo brand assets generated successfully!');
+  console.log('All tightly-cropped favicons and brand icons generated successfully!');
 }
 
 main().catch(console.error);
