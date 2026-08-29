@@ -26,13 +26,14 @@ const getDynamicAuthDomain = (): string => {
   return 'kdpstudioaio-3bf53.firebaseapp.com';
 };
 
+const metaEnv = (import.meta as any)?.env || {};
 export const firebaseConfig = {
-  apiKey: getClientEnv(import.meta.env.VITE_FIREBASE_API_KEY || import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY, 'AIzaSyC3gnC1NdRYEHm4zR8Kfe0BJeGR_Ae1xLk'),
+  apiKey: getClientEnv(metaEnv.VITE_FIREBASE_API_KEY || metaEnv.NEXT_PUBLIC_FIREBASE_API_KEY, 'AIzaSyC3gnC1NdRYEHm4zR8Kfe0BJeGR_Ae1xLk'),
   authDomain: getDynamicAuthDomain(),
-  projectId: getClientEnv(import.meta.env.VITE_FIREBASE_PROJECT_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID, 'kdpstudioaio-3bf53'),
-  storageBucket: getClientEnv(import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || import.meta.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET, 'kdpstudioaio-3bf53.firebasestorage.app'),
-  messagingSenderId: getClientEnv(import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID, '494698350011'),
-  appId: getClientEnv(import.meta.env.VITE_FIREBASE_APP_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID, '1:494698350011:web:ad96b775d58d49a874309e'),
+  projectId: getClientEnv(metaEnv.VITE_FIREBASE_PROJECT_ID || metaEnv.NEXT_PUBLIC_FIREBASE_PROJECT_ID, 'kdpstudioaio-3bf53'),
+  storageBucket: getClientEnv(metaEnv.VITE_FIREBASE_STORAGE_BUCKET || metaEnv.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET, 'kdpstudioaio-3bf53.firebasestorage.app'),
+  messagingSenderId: getClientEnv(metaEnv.VITE_FIREBASE_MESSAGING_SENDER_ID || metaEnv.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID, '494698350011'),
+  appId: getClientEnv(metaEnv.VITE_FIREBASE_APP_ID || metaEnv.NEXT_PUBLIC_FIREBASE_APP_ID, '1:494698350011:web:ad96b775d58d49a874309e'),
 };
 
 export const isFirebaseConfigured = Boolean(

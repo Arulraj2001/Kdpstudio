@@ -34,15 +34,53 @@ interface NavItem {
   badge?: string;
 }
 
+const SearchChartIcon: React.FC<{ className?: string; size?: number }> = ({ className, size = 18 }) => (
+  <svg 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <circle cx="11" cy="11" r="8" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    <polyline points="8 12 10 10 12 12 14 8" />
+  </svg>
+);
+
+const BatchLayersIcon: React.FC<{ className?: string; size?: number }> = ({ className, size = 18 }) => (
+  <svg 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <polygon points="12 2 2 7 12 12 22 7 12 2" />
+    <polyline points="2 17 12 22 22 17" />
+    <polyline points="2 12 12 17 22 12" />
+  </svg>
+);
+
 const NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: Home },
   { id: 'studio', label: 'Book Studio', icon: Pencil },
   { id: 'formatter', label: 'Interior Formatter', icon: Layout },
   { id: 'cover', label: 'Cover Builder', icon: ImageIcon },
+  { id: 'kdp', label: 'KDP Assistant', icon: Tag },
+  { id: 'research', label: 'Niche Research', icon: SearchChartIcon, badge: 'Pro' },
   { id: 'books', label: 'My Books', icon: BookOpen },
   { id: 'series', label: 'Series', icon: BookMarked },
   { id: 'puzzles', label: 'Puzzles', icon: Puzzle, badge: 'New' },
-  { id: 'kdp', label: 'KDP Assistant', icon: Tag },
+  { id: 'bulk', label: 'Bulk Generator', icon: BatchLayersIcon, badge: 'Agency' },
   { id: 'publish', label: 'Publish Checklist', icon: ShieldCheck },
   { id: 'brand-kit', label: 'Brand Kit', icon: Palette },
   { id: 'billing', label: 'Billing & Plan', icon: CreditCard },
@@ -127,7 +165,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 id={`nav-item-${item.id}`}
                 onClick={() => handleNavClick(item.id)}
                 title={isCollapsed ? item.label : undefined}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all duration-150 group relative
+                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all duration-150 group relative cursor-pointer
                   ${isActive 
                     ? 'bg-[#7c3aed] text-white font-semibold shadow-md shadow-purple-950/40 ring-1 ring-purple-400/30' 
                     : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
@@ -141,15 +179,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 />
                 
                 {(!isCollapsed || isOpenMobile) && (
-                  <span className="truncate flex-1 text-left">
-                    {item.label}
+                  <span className="truncate flex-1 text-left flex items-center justify-between">
+                    <span>{item.label}</span>
+                    {item.badge && (
+                      <span
+                        className={`text-[9px] font-bold px-1.5 py-0.2 rounded uppercase tracking-wider ${
+                          item.badge === 'Agency'
+                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                            : item.badge === 'Pro'
+                            ? 'bg-purple-900/60 text-purple-300 border border-purple-500/40'
+                            : 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/40'
+                        }`}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
                   </span>
                 )}
 
                 {/* Floating tooltip for collapsed desktop mode */}
                 {isCollapsed && !isOpenMobile && (
                   <div className="hidden group-hover:block absolute left-full ml-3 px-2.5 py-1 bg-slate-900 text-white text-xs font-medium rounded-md shadow-lg border border-slate-700 whitespace-nowrap z-50 pointer-events-none">
-                    {item.label}
+                    {item.label} {item.badge ? `(${item.badge})` : ''}
                   </div>
                 )}
               </button>

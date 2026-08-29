@@ -219,10 +219,17 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => onNavigateToRoute('bulk-template-new')}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 text-xs font-bold transition-all shadow-xs cursor-pointer"
+          >
+            <span>📦 Bulk Generate →</span>
+          </button>
+
           <button
             onClick={onNewBook}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-semibold shadow-xs transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
           >
             <Plus size={16} />
             <span>Create New Book</span>

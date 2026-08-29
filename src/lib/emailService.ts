@@ -24,6 +24,7 @@ import {
   AdminNewSignupData,
   AdminNewPaymentData,
   AdminUpiPendingData,
+  BulkJobCompleteEmailData,
 } from '../types/email';
 
 import {
@@ -368,6 +369,10 @@ export async function sendAdminNewSignupEmail(data: AdminNewSignupData): Promise
 
 export async function sendAdminNewPaymentEmail(data: AdminNewPaymentData): Promise<void> {
   sendEmail('admin-new-payment', data, ADMIN_EMAIL, `[Admin] New payment: ${data.amount} from ${data.userEmail}`).catch(console.error);
+}
+
+export async function sendBulkJobCompleteEmail(data: BulkJobCompleteEmailData): Promise<void> {
+  sendEmail('welcome', data, data.to, `Batch complete — ${data.completedCount} books ready 📦`).catch(console.error);
 }
 
 export async function sendAdminUpiPendingEmail(data: AdminUpiPendingData): Promise<void> {

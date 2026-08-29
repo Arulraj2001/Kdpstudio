@@ -24,6 +24,16 @@ import { MyBooksView } from '../books/MyBooksView';
 import { SeriesDashboardView } from '../series/SeriesDashboardView';
 import { SeriesCreateWizardView } from '../series/SeriesCreateWizardView';
 import { SeriesDetailView } from '../series/SeriesDetailView';
+import { NicheResearchView } from '../research/NicheResearchView';
+import { NicheDetailView } from '../research/NicheDetailView';
+import { SavedNichesView } from '../research/SavedNichesView';
+import { NicheResult, NicheCategory } from '../../types/niche';
+import { BulkGeneratorHubView } from '../bulk/BulkGeneratorHubView';
+import { BulkTemplateWizardView } from '../bulk/BulkTemplateWizardView';
+import { BulkTemplateDetailView } from '../bulk/BulkTemplateDetailView';
+import { BulkJobProgressView } from '../bulk/BulkJobProgressView';
+import { BulkJobResultsView } from '../bulk/BulkJobResultsView';
+import { BulkBookType } from '../../types/bulk';
 import { PublishChecklistView } from '../publish/PublishChecklistView';
 import { BrandKitView } from '../brand/BrandKitView';
 import { SettingsView } from '../settings/SettingsView';
@@ -82,6 +92,14 @@ export const AppShell: React.FC = () => {
       if (path === 'puzzles/coloring' || path === 'coloring') return 'coloring';
       if (path === 'puzzles/color-by-number' || path === 'color-by-number') return 'color-by-number';
       if (path === 'kdp') return 'kdp';
+      if (path === 'research') return 'research';
+      if (path === 'research/saved' || path === 'research-saved') return 'research-saved';
+      if (path.startsWith('research/niche/') || path === 'research-detail') return 'research-detail';
+      if (path === 'bulk') return 'bulk';
+      if (path === 'bulk/new' || path === 'bulk-template-new') return 'bulk-template-new';
+      if (path.startsWith('bulk/template/')) return 'bulk-template-detail';
+      if (path.startsWith('bulk/job/') && path.endsWith('/results')) return 'bulk-job-results';
+      if (path.startsWith('bulk/job/')) return 'bulk-job-detail';
       if (path === 'books') return 'books';
       if (path === 'series') return 'series';
       if (path === 'series/new') return 'series-new';
@@ -101,12 +119,27 @@ export const AppShell: React.FC = () => {
   const [isNewBookModalOpen, setIsNewBookModalOpen] = useState(false);
   const [selectedPublishBookId, setSelectedPublishBookId] = useState<string | undefined>(undefined);
   const [selectedSeriesId, setSelectedSeriesId] = useState<string>('');
+  const [activeBulkJobId, setActiveBulkJobId] = useState<string>('');
+  const [activeBulkTemplateId, setActiveBulkTemplateId] = useState<string>('');
+  const [activeBulkBookType, setActiveBulkBookType] = useState<BulkBookType | undefined>(undefined);
   const [activePuzzleBookId, setActivePuzzleBookId] = useState<string>('');
+  const [selectedNiche, setSelectedNiche] = useState<NicheResult | null>(null);
+  const [selectedSavedNicheId, setSelectedSavedNicheId] = useState<string | undefined>(undefined);
+  const [researchInitialQuery, setResearchInitialQuery] = useState<string>('');
+  const [researchInitialCategory, setResearchInitialCategory] = useState<NicheCategory | 'all'>('all');
   const { user, userDoc, isInitialized } = useAuthStore();
 
-  // Initialize IP Geolocation & Currency detection on app mount
+  // Initialize IP Geolocation & URL param queries on app mount
   useEffect(() => {
     useGeoStore.getState().initLocation();
+
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('q');
+      const cat = params.get('category');
+      if (q) setResearchInitialQuery(q);
+      if (cat) setResearchInitialCategory(cat as any);
+    }
   }, []);
 
   // Automatic onboarding redirection logic + guard auth routes for authenticated users
@@ -138,6 +171,12 @@ export const AppShell: React.FC = () => {
   const handleNavigate = (route: PageRoute, params?: Record<string, string>) => {
     if (params?.id && (route === 'series-detail' || route === 'series')) {
       setSelectedSeriesId(params.id);
+    }
+    if (params?.q) {
+      setResearchInitialQuery(params.q);
+    }
+    if (params?.category) {
+      setResearchInitialCategory(params.category as any);
     }
     setCurrentRoute(route);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -398,6 +437,157 @@ export const AppShell: React.FC = () => {
               )}
 
               {currentRoute === 'kdp' && <KdpAssistantView onNavigate={handleNavigate} />}
+
+              {currentRoute === 'research' && (
+                <NicheResearchView
+                  onNavigate={handleNavigate}
+                  initialQuery={researchInitialQuery}
+                  initialCategory={researchInitialCategory}
+                  onSelectNicheDetail={(niche, savedId) => {
+                    setSelectedNiche(niche);
+                    setSelectedSavedNicheId(savedId);
+                    handleNavigate('research-detail');
+                  }}
+                />
+              )}
+
+              {currentRoute === 'research-detail' && (
+                <NicheDetailView
+                  niche={
+                    selectedNiche || {
+                      id: 'niche_default',
+                      nicheTitle: 'Amazon KDP Market Report',
+                      category: 'self-help',
+                      subcategory: 'Publishing Analytics',
+                      description: 'In-depth market analysis and competitive positioning data for this niche.',
+                      opportunityScore: 84,
+                      demandScore: 82,
+                      competitionScore: 42,
+                      profitScore: 78,
+                      trendScore: 80,
+                      estimatedMonthlySales: 'Estimated: 500-1,500 units/month',
+                      averagePrice: '$11.99-$14.99',
+                      topBsrRange: 'BSR 3,000-45,000',
+                      estimatedMonthlyRevenue: '$3,500-$9,000',
+                      difficulty: 'easy',
+                      competitorCount: '120-250 books',
+                      topCompetitorStrength: 'Moderate',
+                      marketGap: 'High reader demand for modern structured worksheets and clear visual breakdowns.',
+                      trend: 'rising',
+                      trendReason: 'Consistent search expansion across self-publishing categories.',
+                      seasonality: null,
+                      recommendedBisacCategories: ['SELF-HELP / Personal Growth / General'],
+                      suggestedKeywords: ['guided journal', 'daily workbook', 'beginner handbook'],
+                      recommendedPrice: '$12.99',
+                      royaltyPlan: '70%',
+                      recommendedTrimSize: '6x9',
+                      pageCountRange: '120-160 pages',
+                      bookIdeas: [
+                        {
+                          title: 'The 30-Day Focus Blueprint',
+                          subtitle: 'Practical Exercises and Daily Journal',
+                          angle: 'Micro-prompts with accountability metrics',
+                          targetReader: 'Action-driven self-learners',
+                          estimatedPageCount: 140,
+                          suggestedPrice: '$12.99',
+                        },
+                      ],
+                      pros: ['Strong search intent from targeted buyers', 'Low initial production barrier'],
+                      cons: ['Requires eye-catching cover typography'],
+                      verdict: 'A viable and high-converting publishing opportunity on Amazon KDP.',
+                      timeToFirstSale: '2-4 weeks',
+                      generatedAt: new Date().toISOString(),
+                      searchQuery: 'Niche Report',
+                      dataSource: 'ai-analysis',
+                    }
+                  }
+                  savedNicheId={selectedSavedNicheId}
+                  onBack={() => handleNavigate('research')}
+                  onNavigate={handleNavigate}
+                />
+              )}
+
+              {currentRoute === 'research-saved' && (
+                <SavedNichesView
+                  onBack={() => handleNavigate('research')}
+                  onSelectNicheDetail={(niche, savedId) => {
+                    setSelectedNiche(niche);
+                    setSelectedSavedNicheId(savedId);
+                    handleNavigate('research-detail');
+                  }}
+                  onNavigate={handleNavigate}
+                />
+              )}
+
+              {currentRoute === 'bulk' && (
+                <BulkGeneratorHubView
+                  onNavigate={(route, params) => {
+                    if (params?.type) setActiveBulkBookType(params.type as BulkBookType);
+                    handleNavigate(route);
+                  }}
+                  onSelectJob={(jobId) => {
+                    setActiveBulkJobId(jobId);
+                    handleNavigate('bulk-job-detail');
+                  }}
+                  onSelectTemplate={(templateId) => {
+                    setActiveBulkTemplateId(templateId);
+                    handleNavigate('bulk-template-detail');
+                  }}
+                  onEditTemplate={(templateId) => {
+                    setActiveBulkTemplateId(templateId);
+                    handleNavigate('bulk-template-new');
+                  }}
+                />
+              )}
+
+              {currentRoute === 'bulk-template-new' && (
+                <BulkTemplateWizardView
+                  initialTemplateId={activeBulkTemplateId}
+                  initialBookType={activeBulkBookType}
+                  onBack={() => handleNavigate('bulk')}
+                  onNavigate={handleNavigate}
+                  onJobCreated={(jobId) => {
+                    setActiveBulkJobId(jobId);
+                    handleNavigate('bulk-job-detail');
+                  }}
+                />
+              )}
+
+              {currentRoute === 'bulk-template-detail' && (
+                <BulkTemplateDetailView
+                  templateId={activeBulkTemplateId || 'btpl_demo'}
+                  onBack={() => handleNavigate('bulk')}
+                  onNavigate={handleNavigate}
+                  onEditTemplate={(tplId) => {
+                    setActiveBulkTemplateId(tplId);
+                    handleNavigate('bulk-template-new');
+                  }}
+                  onJobCreated={(jobId) => {
+                    setActiveBulkJobId(jobId);
+                    handleNavigate('bulk-job-detail');
+                  }}
+                />
+              )}
+
+              {currentRoute === 'bulk-job-detail' && (
+                <BulkJobProgressView
+                  jobId={activeBulkJobId || 'bjob_demo'}
+                  onBack={() => handleNavigate('bulk')}
+                  onNavigate={handleNavigate}
+                  onViewResults={(jobId) => {
+                    setActiveBulkJobId(jobId);
+                    handleNavigate('bulk-job-results');
+                  }}
+                />
+              )}
+
+              {currentRoute === 'bulk-job-results' && (
+                <BulkJobResultsView
+                  jobId={activeBulkJobId || 'bjob_demo'}
+                  onBack={() => handleNavigate('bulk-job-detail')}
+                  onNavigate={handleNavigate}
+                />
+              )}
 
               {currentRoute === 'books' && (
                 <MyBooksView

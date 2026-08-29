@@ -25,6 +25,14 @@ export type PageRoute =
   | 'color-by-number-generating'
   | 'color-by-number-detail'
   | 'kdp'
+  | 'research'
+  | 'research-detail'
+  | 'research-saved'
+  | 'bulk'
+  | 'bulk-template-new'
+  | 'bulk-template-detail'
+  | 'bulk-job-detail'
+  | 'bulk-job-results'
   | 'books'
   | 'series'
   | 'series-new'
@@ -216,5 +224,7 @@ export type { Currency, PlanName, PaymentMethod, LocationData } from '../lib/geo
 export type { AuthUser } from '../lib/authStore';
 export type { UserDocument, UserUsage, UserSettings as UserDocSettings } from '../lib/userService';
 export * from './payment';
+export * from './niche';
+export * from './bulk';
 
 

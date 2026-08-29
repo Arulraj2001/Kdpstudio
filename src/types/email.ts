@@ -192,6 +192,16 @@ export interface AdminUpiPendingData {
   submittedAt?: string;
 }
 
+export interface BulkJobCompleteEmailData extends BaseEmailData {
+  templateName: string;
+  completedCount: number;
+  failedCount: number;
+  totalVariations: number;
+  timeTaken: string;
+  zipUrl: string | null;
+  jobUrl: string;
+}
+
 export interface EmailPreferences {
   weeklyDigest: boolean;
   usageWarnings: boolean;

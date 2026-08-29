@@ -7,7 +7,11 @@ export const config = {
   matcher: [
     '/dashboard/:path*',
     '/studio/:path*',
-    '/books/:path*',
+    '/kdp/:path*',
+    '/research/:path*',
+    '/research',
+    '/bulk/:path*',
+    '/bulk',
     '/series/:path*',
     '/series',
     '/brand-kit/:path*',

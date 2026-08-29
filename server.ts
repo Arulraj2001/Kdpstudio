@@ -2930,6 +2930,203 @@ async function startServer() {
     }
   );
 
+  // 21. Niche AI Market Analysis (Phase 13A)
+  app.post(
+    '/api/niche/analyze',
+    createExpressUsageMiddleware('aiGenerations'),
+    async (req: any, res) => {
+      try {
+        const { analyzeNichesHandler } = await import('./src/app/api/niche/analyze/route');
+        const userContext = req.auth || {
+          uid: (req.headers['x-user-id'] as string) || req.body?.uid || 'demo-user-123',
+          plan: 'pro',
+        };
+        const result = await analyzeNichesHandler(req.body, userContext);
+        return res.json({ success: true, ...result });
+      } catch (err: any) {
+        console.error('Express /api/niche/analyze error:', err);
+        const isRateLimit = err.message?.includes('HOURLY_RATE_LIMIT');
+        return res.status(isRateLimit ? 429 : 500).json({
+          success: false,
+          error: err.message || 'Niche analysis failed',
+          code: isRateLimit ? 'HOURLY_RATE_LIMIT' : 'ANALYSIS_FAILED',
+        });
+      }
+    }
+  );
+
+  // 22. Quick Niche Score (Phase 13A)
+  app.post(
+    '/api/niche/quick-score',
+    createExpressUsageMiddleware('aiGenerations'),
+    async (req, res) => {
+      try {
+        const { quickScoreHandler } = await import('./src/app/api/niche/quick-score/route');
+        const result = await quickScoreHandler(req.body);
+        return res.json({ success: true, ...result });
+      } catch (err: any) {
+        console.error('Express /api/niche/quick-score error:', err);
+        return res.status(500).json({ success: false, error: err.message || 'Quick score failed' });
+      }
+    }
+  );
+
+  // 23. Trending Niches (Phase 13A)
+  app.get('/api/niche/trending', async (req, res) => {
+    try {
+      const { getTrendingNichesHandler } = await import('./src/app/api/niche/trending/route');
+      const data = await getTrendingNichesHandler();
+      res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+      return res.json({ success: true, ...data });
+    } catch (err: any) {
+      console.error('Express /api/niche/trending error:', err);
+      return res.status(500).json({ success: false, error: err.message || 'Failed to fetch trending niches' });
+    }
+  });
+
+  // 24. Cron: Refresh Trending Niches (Phase 13A)
+  app.get('/api/cron/refresh-trending-niches', async (req, res) => {
+    try {
+      const authHeader = (req.headers.authorization as string) || '';
+      const cronSecret = process.env.CRON_SECRET;
+      if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+        return res.status(401).json({ error: 'Unauthorized: Invalid CRON_SECRET' });
+      }
+      const { generateTrendingNiches } = await import('./src/app/api/niche/trending/route');
+      const data = await generateTrendingNiches();
+      return res.json({
+        success: true,
+        count: data.niches.length,
+        updatedAt: data.updatedAt,
+        nextUpdate: data.nextUpdate,
+        executedAt: new Date().toISOString(),
+      });
+    } catch (err: any) {
+      console.error('Express /api/cron/refresh-trending-niches error:', err);
+      return res.status(500).json({ success: false, error: err.message || 'Internal cron error' });
+    }
+  });
+
+  // 25. Start Book from Niche (Phase 13B)
+  app.post(
+    '/api/niche/start-book',
+    createExpressUsageMiddleware('aiGenerations'),
+    async (req: any, res) => {
+      try {
+        const { startBookFromNicheHandler } = await import('./src/app/api/niche/start-book/route');
+        const userContext = req.auth || {
+          uid: (req.headers['x-user-id'] as string) || req.body?.uid || 'demo-user-123',
+          email: req.auth?.email || 'author@kdpstudio.com',
+        };
+        const result = await startBookFromNicheHandler(req.body, userContext);
+        return res.json({ success: true, ...result });
+      } catch (err: any) {
+        console.error('Express /api/niche/start-book error:', err);
+        return res.status(500).json({ success: false, error: err.message || 'Failed to start book from niche' });
+      }
+    }
+  );
+
+  // 26. Bulk Variables AI Resolver (Phase 14A)
+  app.post(
+    '/api/bulk/resolve-variables',
+    createExpressUsageMiddleware('aiGenerations'),
+    async (req: any, res) => {
+      try {
+        const { resolveVariablesHandler } = await import('./src/app/api/bulk/resolve-variables/route');
+        const userContext = req.auth || {
+          uid: (req.headers['x-user-id'] as string) || req.body?.uid || 'demo-user-123',
+          email: req.auth?.email || 'author@kdpstudio.com',
+        };
+        const result = await resolveVariablesHandler(req.body, userContext);
+        return res.json({ success: true, ...result });
+      } catch (err: any) {
+        console.error('Express /api/bulk/resolve-variables error:', err);
+        return res.status(500).json({ success: false, error: err.message || 'Failed to resolve variables' });
+      }
+    }
+  );
+
+  // 27. Bulk Job Processor with SSE Stream (Phase 14A)
+  app.post(
+    '/api/bulk/process/:jobId',
+    async (req: any, res) => {
+      const jobId = req.params.jobId;
+      const userContext = req.auth || {
+        uid: (req.headers['x-user-id'] as string) || req.body?.uid || 'demo-user-123',
+        email: req.auth?.email || 'author@kdpstudio.com',
+      };
+
+      const acceptsSSE = req.headers.accept?.includes('text/event-stream');
+
+      if (acceptsSSE) {
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        res.flushHeaders?.();
+
+        try {
+          const { processBulkJobHandler } = await import('./src/app/api/bulk/process/[jobId]/route');
+          await processBulkJobHandler(jobId, userContext, (event) => {
+            res.write(`data: ${JSON.stringify(event)}\n\n`);
+          });
+          res.end();
+        } catch (err: any) {
+          res.write(`data: ${JSON.stringify({ type: 'error', error: err.message })}\n\n`);
+          res.end();
+        }
+      } else {
+        try {
+          const { processBulkJobHandler } = await import('./src/app/api/bulk/process/[jobId]/route');
+          const result = await processBulkJobHandler(jobId, userContext);
+          return res.json({ success: true, ...result });
+        } catch (err: any) {
+          console.error('Express /api/bulk/process error:', err);
+          return res.status(500).json({ success: false, error: err.message || 'Failed to process bulk job' });
+        }
+      }
+    }
+  );
+
+  // 28. Bulk Export ZIP (Phase 14A)
+  app.post(
+    '/api/bulk/export-zip/:jobId',
+    async (req: any, res) => {
+      try {
+        const jobId = req.params.jobId;
+        const { exportZipHandler } = await import('./src/lib/bulk/zipService');
+        const userContext = req.auth || {
+          uid: (req.headers['x-user-id'] as string) || req.body?.uid || 'demo-user-123',
+          email: req.auth?.email || 'author@kdpstudio.com',
+        };
+        const result = await exportZipHandler(jobId, userContext);
+        return res.json({ success: true, ...result });
+      } catch (err: any) {
+        console.error('Express /api/bulk/export-zip error:', err);
+        return res.status(500).json({ success: false, error: err.message || 'Failed to export ZIP' });
+      }
+    }
+  );
+
+  // 29. Bulk Retry Variation (Phase 14B)
+  app.post(
+    '/api/bulk/retry-variation',
+    async (req: any, res) => {
+      try {
+        const { retryVariationHandler } = await import('./src/app/api/bulk/retry-variation/route');
+        const userContext = req.auth || {
+          uid: (req.headers['x-user-id'] as string) || req.body?.uid || 'demo-user-123',
+          email: req.auth?.email || 'author@kdpstudio.com',
+        };
+        const result = await retryVariationHandler(req.body, userContext);
+        return res.json({ success: true, ...result });
+      } catch (err: any) {
+        console.error('Express /api/bulk/retry-variation error:', err);
+        return res.status(500).json({ success: false, error: err.message || 'Failed to retry variation' });
+      }
+    }
+  );
+
   // Vite middleware for development vs static build for production
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

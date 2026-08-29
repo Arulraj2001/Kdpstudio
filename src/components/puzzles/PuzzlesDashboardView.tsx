@@ -28,7 +28,7 @@ import { generateWordFitGrid } from '../../lib/puzzles/wordFit';
 import { generatePuzzleBookHtml } from '../../lib/puzzles/puzzlePdfRenderer';
 
 interface PuzzlesDashboardViewProps {
-  onNavigate?: (route: any) => void;
+  onNavigate?: (route: any, params?: any) => void;
   onOpenGenerator?: (type: PuzzleBookType) => void;
   onOpenPuzzleBook?: (bookId: string, type?: PuzzleBookType) => void;
 }
@@ -278,14 +278,23 @@ export const PuzzlesDashboardView: React.FC<PuzzlesDashboardViewProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={() => handleCreateSampleBook('word-search')}
-            disabled={isFreePlan || quickGenerating}
-            className="mt-6 w-full py-3 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
-          >
-            <span>Create Word Search Book</span>
-            <ChevronRight size={15} />
-          </button>
+          <div className="mt-6 flex items-center gap-2">
+            <button
+              onClick={() => handleCreateSampleBook('word-search')}
+              disabled={isFreePlan || quickGenerating}
+              className="flex-1 py-3 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+            >
+              <span>Create Single</span>
+              <ChevronRight size={14} />
+            </button>
+            <button
+              onClick={() => onNavigate?.('bulk-template-new', { type: 'word-search' })}
+              className="py-3 px-3.5 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1 transition-all cursor-pointer shadow-xs"
+              title="Bulk Generate Word Search Batch"
+            >
+              <span>📦 Bulk →</span>
+            </button>
+          </div>
         </div>
 
         {/* Card 2: Word Fit */}
@@ -330,14 +339,23 @@ export const PuzzlesDashboardView: React.FC<PuzzlesDashboardViewProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={() => handleCreateSampleBook('word-fit')}
-            disabled={isFreePlan || quickGenerating}
-            className="mt-6 w-full py-3 rounded-2xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
-          >
-            <span>Create Word Fit Book</span>
-            <ChevronRight size={15} />
-          </button>
+          <div className="mt-6 flex items-center gap-2">
+            <button
+              onClick={() => handleCreateSampleBook('word-fit')}
+              disabled={isFreePlan || quickGenerating}
+              className="flex-1 py-3 rounded-2xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+            >
+              <span>Create Single</span>
+              <ChevronRight size={14} />
+            </button>
+            <button
+              onClick={() => onNavigate?.('bulk-template-new', { type: 'word-fit' })}
+              className="py-3 px-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-1 transition-all cursor-pointer shadow-xs"
+              title="Bulk Generate Word Fit Batch"
+            >
+              <span>📦 Bulk →</span>
+            </button>
+          </div>
         </div>
 
         {/* Card 3: Coloring Books */}
@@ -383,14 +401,23 @@ export const PuzzlesDashboardView: React.FC<PuzzlesDashboardViewProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={() => handleCreateSampleBook('coloring')}
-            disabled={isFreePlan || quickGenerating}
-            className="mt-6 w-full py-3 rounded-2xl bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
-          >
-            <span>Create Coloring Book</span>
-            <ChevronRight size={15} />
-          </button>
+          <div className="mt-6 flex items-center gap-2">
+            <button
+              onClick={() => handleCreateSampleBook('coloring')}
+              disabled={isFreePlan || quickGenerating}
+              className="flex-1 py-3 rounded-2xl bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+            >
+              <span>Create Single</span>
+              <ChevronRight size={14} />
+            </button>
+            <button
+              onClick={() => onNavigate?.('bulk-template-new', { type: 'coloring-book' })}
+              className="py-3 px-3.5 rounded-2xl bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs flex items-center gap-1 transition-all cursor-pointer shadow-xs"
+              title="Bulk Generate Coloring Batch"
+            >
+              <span>📦 Bulk →</span>
+            </button>
+          </div>
         </div>
 
         {/* Card 4: Color by Number */}
@@ -436,14 +463,23 @@ export const PuzzlesDashboardView: React.FC<PuzzlesDashboardViewProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={() => handleCreateSampleBook('color-by-number')}
-            disabled={isFreePlan || quickGenerating}
-            className="mt-6 w-full py-3 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
-          >
-            <span>Create Color by Number</span>
-            <ChevronRight size={15} />
-          </button>
+          <div className="mt-6 flex items-center gap-2">
+            <button
+              onClick={() => handleCreateSampleBook('color-by-number')}
+              disabled={isFreePlan || quickGenerating}
+              className="flex-1 py-3 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+            >
+              <span>Create Single</span>
+              <ChevronRight size={14} />
+            </button>
+            <button
+              onClick={() => onNavigate?.('bulk-template-new', { type: 'color-by-number' })}
+              className="py-3 px-3.5 rounded-2xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs flex items-center gap-1 transition-all cursor-pointer shadow-xs"
+              title="Bulk Generate Color by Number Batch"
+            >
+              <span>📦 Bulk →</span>
+            </button>
+          </div>
         </div>
       </div>
 

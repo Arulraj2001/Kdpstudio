@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   BookOpen, 
   BookCheck, 
@@ -14,19 +14,72 @@ import {
   Edit3, 
   FileText, 
   Image as ImageIcon,
-  Home
+  Home,
+  Search,
+  Lock,
+  Flame,
+  TrendingUp,
+  ArrowRight
 } from 'lucide-react';
 import { PageRoute, Book } from '../../types';
 import { useBookStore } from '../../lib/store';
+import { useAuthStore } from '../../lib/authStore';
+import { useCheckoutStore } from '../../lib/checkoutStore';
+import { useUpgradeModal } from '../../lib/upgradeModalStore';
 import { UsageWidget } from './UsageWidget';
 
 interface DashboardViewProps {
-  onNavigate: (route: PageRoute) => void;
+  onNavigate: (route: PageRoute, params?: Record<string, string>) => void;
   onNewBook: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewBook }) => {
   const { books, setCurrentBook } = useBookStore();
+  const { userDoc } = useAuthStore();
+  const plan = userDoc?.plan || 'free';
+  const isPro = ['pro', 'agency', 'lifetime'].includes(plan);
+
+  const [nicheSearch, setNicheSearch] = useState('');
+  const [trendingChips, setTrendingChips] = useState<Array<{ title: string; badge: string }>>([
+    { title: 'Anxiety Journals', badge: '🔥' },
+    { title: 'Keto Planners', badge: '📈' },
+    { title: 'Dog Training', badge: '⭐' },
+  ]);
+
+  useEffect(() => {
+    // 6-hour cached fetch of trending niches
+    const CACHE_KEY = 'kdp_dashboard_trending_niches';
+    const SIX_HOURS = 6 * 60 * 60 * 1000;
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Date.now() - parsed.timestamp < SIX_HOURS && parsed.chips?.length) {
+          setTrendingChips(parsed.chips);
+          return;
+        }
+      }
+    } catch {}
+
+    fetch('/api/niche/trending')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.niches)) {
+          const chips = data.niches.slice(0, 3).map((n: any) => ({
+            title: n.title,
+            badge: n.badgeText?.split(' ')[0] || '🔥',
+          }));
+          setTrendingChips(chips);
+          try {
+            localStorage.setItem(
+              CACHE_KEY,
+              JSON.stringify({ chips, timestamp: Date.now() })
+            );
+          } catch {}
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const totalBooks = books.length;
   const publishedBooks = books.filter(b => b.status === 'published').length;
@@ -363,8 +416,98 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
           )}
         </section>
 
-        {/* Daily Quota & Usage Widget */}
-        <div className="space-y-4">
+        {/* Right Sidebar Widgets: Niche Research & Usage */}
+        <div className="space-y-6">
+          {/* Niche Research Widget */}
+          <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Search size={16} className="text-purple-600" />
+                <span>Niche Research</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 font-bold uppercase">
+                  Pro
+                </span>
+              </h3>
+            </div>
+
+            {isPro ? (
+              <div className="space-y-3">
+                <p className="text-xs text-slate-600">
+                  Search profitable Amazon KDP niches with live AI web data.
+                </p>
+
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (nicheSearch.trim()) {
+                      onNavigate('research', { q: nicheSearch.trim() });
+                    }
+                  }}
+                  className="flex items-center gap-1.5"
+                >
+                  <input
+                    type="text"
+                    value={nicheSearch}
+                    onChange={(e) => setNicheSearch(e.target.value)}
+                    placeholder="Search niche... e.g. 'gratitude journal'"
+                    className="flex-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:border-purple-500 text-slate-900 placeholder-slate-400"
+                  />
+                  <button
+                    type="submit"
+                    className="p-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white transition-colors cursor-pointer"
+                  >
+                    <ArrowRight size={14} />
+                  </button>
+                </form>
+
+                <div className="space-y-1.5 pt-1">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block">
+                    Trending Right Now:
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {trendingChips.map((chip, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => onNavigate('research', { q: chip.title })}
+                        className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-purple-50 hover:text-purple-700 text-slate-700 text-[11px] font-medium transition-colors text-left cursor-pointer"
+                      >
+                        {chip.badge} {chip.title}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100">
+                  <button
+                    onClick={() => onNavigate('research')}
+                    className="text-xs font-semibold text-purple-600 hover:text-purple-700 flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>Open Full Research Tool</span>
+                    <span>→</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-center space-y-2.5">
+                <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center mx-auto">
+                  <Lock size={15} />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">Unlock Niche Research with Pro</h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Analyze Amazon demand, calculate opportunity scores, and uncover competitor gaps.
+                  </p>
+                </div>
+                <button
+                  onClick={() => useCheckoutStore.getState().open('pro', 'annual')}
+                  className="w-full py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                >
+                  Upgrade to Pro
+                </button>
+              </div>
+            )}
+          </div>
+
           <UsageWidget onNavigateToPricing={() => onNavigate('pricing')} />
         </div>
       </div>
