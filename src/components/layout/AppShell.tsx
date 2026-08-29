@@ -53,6 +53,13 @@ import { RevenuePage } from '../admin/revenue/RevenuePage';
 import { PaymentsPage } from '../admin/payments/PaymentsPage';
 import { UpiQueuePage } from '../admin/payments/UpiQueuePage';
 import { BmacQueuePage } from '../admin/payments/BmacQueuePage';
+import { FeatureUsagePage } from '../admin/system/FeatureUsagePage';
+import { SystemHealthPage } from '../admin/system/SystemHealthPage';
+import { BroadcastEmailPage } from '../admin/system/BroadcastEmailPage';
+import { AppSettingsPage } from '../admin/system/AppSettingsPage';
+import { SupportCenterPage } from '../admin/support/SupportCenterPage';
+import { ContentModerationPage } from '../admin/content/ContentModerationPage';
+import { AuditReportsPage } from '../admin/content/AuditReportsPage';
 import { GeoTestView } from '../geo/GeoTestView';
 import { NewBookModal } from '../modals/NewBookModal';
 import { AuthPages } from '../auth/AuthPages';
@@ -77,6 +84,7 @@ import { useGeoStore } from '../../lib/geoStore';
 import { useAuthStore } from '../../lib/authStore';
 import { useBookStore } from '../../lib/store';
 import { useSeriesStore } from '../../lib/seriesStore';
+import { trackFeatureUse } from '../../lib/featureTracker';
 
 export const AppShell: React.FC = () => {
   // Determine initial route based on URL pathname/hash if present
@@ -121,13 +129,20 @@ export const AppShell: React.FC = () => {
       if (path === 'brand-kit' || path === 'brand' || path === 'settings/brand') return 'brand-kit';
       if (path === 'settings') return 'settings';
       if (path === 'billing') return 'billing';
-      if (path === 'admin') return 'admin';
+      if (path === 'admin/system/usage' || path === 'admin/usage') return 'admin-usage';
+      if (path === 'admin/system/health' || path === 'admin/health') return 'admin-health';
+      if (path === 'admin/system/broadcast' || path === 'admin/broadcast') return 'admin-broadcast';
+      if (path === 'admin/system/settings' || path === 'admin/settings') return 'admin-settings';
+      if (path === 'admin/support') return 'admin-support';
+      if (path === 'admin/content/audits') return 'admin-content-audits';
+      if (path === 'admin/content') return 'admin-content';
       if (path === 'admin/revenue') return 'admin-revenue';
       if (path === 'admin/payments/upi' || path === 'admin/upi') return 'admin-payments-upi';
       if (path === 'admin/payments/bmac' || path === 'admin/bmac') return 'admin-payments-bmac';
       if (path === 'admin/payments') return 'admin-payments';
       if (path.startsWith('admin/users/') && path.split('/').length >= 3) return 'admin-user-detail';
       if (path === 'admin/users') return 'admin-users';
+      if (path === 'admin') return 'admin';
       if (path === 'geo-test') return 'geo-test';
     }
     return 'home';
@@ -221,6 +236,9 @@ export const AppShell: React.FC = () => {
       useSeriesStore.getState().addBookToSeries(bookData.seriesId, newBook.id, bookData.volumeNumber || 1);
     }
     useBookStore.getState().setCurrentBook(newBook.id);
+    if (user?.uid) {
+      trackFeatureUse(user.uid, 'book_created', { bookId: newBook.id, genre: bookData.genre }).catch(console.error);
+    }
     setCurrentRoute('studio');
   };
 
@@ -730,6 +748,62 @@ export const AppShell: React.FC = () => {
                 <AdminGuard>
                   <AdminLayout pageTitle="Buy Me a Coffee Queue">
                     <BmacQueuePage />
+                  </AdminLayout>
+                </AdminGuard>
+              )}
+
+              {currentRoute === 'admin-usage' && (
+                <AdminGuard>
+                  <AdminLayout pageTitle="Feature Usage Analytics">
+                    <FeatureUsagePage />
+                  </AdminLayout>
+                </AdminGuard>
+              )}
+
+              {currentRoute === 'admin-health' && (
+                <AdminGuard>
+                  <AdminLayout pageTitle="System Health & Probes">
+                    <SystemHealthPage />
+                  </AdminLayout>
+                </AdminGuard>
+              )}
+
+              {currentRoute === 'admin-broadcast' && (
+                <AdminGuard>
+                  <AdminLayout pageTitle="Broadcast Email System">
+                    <BroadcastEmailPage />
+                  </AdminLayout>
+                </AdminGuard>
+              )}
+
+              {currentRoute === 'admin-settings' && (
+                <AdminGuard>
+                  <AdminLayout pageTitle="App Configuration & Feature Flags">
+                    <AppSettingsPage />
+                  </AdminLayout>
+                </AdminGuard>
+              )}
+
+              {currentRoute === 'admin-support' && (
+                <AdminGuard>
+                  <AdminLayout pageTitle="Support Center">
+                    <SupportCenterPage />
+                  </AdminLayout>
+                </AdminGuard>
+              )}
+
+              {currentRoute === 'admin-content' && (
+                <AdminGuard>
+                  <AdminLayout pageTitle="Content Moderation Review Queue">
+                    <ContentModerationPage />
+                  </AdminLayout>
+                </AdminGuard>
+              )}
+
+              {currentRoute === 'admin-content-audits' && (
+                <AdminGuard>
+                  <AdminLayout pageTitle="Manuscript Audit Reports">
+                    <AuditReportsPage />
                   </AdminLayout>
                 </AdminGuard>
               )}

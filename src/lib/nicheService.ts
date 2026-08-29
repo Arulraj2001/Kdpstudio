@@ -19,6 +19,7 @@ import {
 } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from './firebase';
 import { NicheResult, NicheSearchHistory, SavedNiche, NicheCategory } from '../types/niche';
+import { trackFeatureUse } from './featureTracker';
 
 // Local storage and in-memory caches for preview / offline demo mode
 const SEARCH_HISTORY_CACHE_PREFIX = 'kdp_niche_searches_';
@@ -188,6 +189,8 @@ export async function saveSearchHistory(
       console.warn('Firebase saveSearchHistory warning, cached locally:', err);
     }
   }
+
+  trackFeatureUse(uid, 'niche_research_run', { query: queryText, count: results.length }).catch(console.error);
 
   return searchId;
 }

@@ -356,3 +356,245 @@ export interface RefundRecord {
   createdAt: string;
 }
 
+// ────────────────────────────────────────────────
+// Phase 17C: Feature Usage, Health, Support, Broadcast, Moderation
+// ────────────────────────────────────────────────
+
+export interface FeatureEvent {
+  id?: string;
+  uid: string;
+  feature: string;
+  metadata?: Record<string, any>;
+  timestamp: string;
+}
+
+export interface FeatureStats {
+  feature: string;
+  count: number;
+  label: string;
+  category: 'writing' | 'export' | 'puzzle' | 'research' | 'analytics' | 'brand' | 'other';
+  percentageOfUsers?: number;
+}
+
+export interface FeaturePlanUsage {
+  feature: string;
+  label: string;
+  free: number;
+  starter: number;
+  pro: number;
+  agency: number;
+}
+
+export interface FeatureFunnelStep {
+  name: string;
+  count: number;
+  percentage: number;
+  dropoffPercentage: number;
+}
+
+export interface UserActivityBucket {
+  bucket: string;
+  count: number;
+  percentage: number;
+}
+
+export interface EngagementMetrics {
+  dau: number;
+  wau: number;
+  mau: number;
+  stickinessRatio: number; // (DAU / MAU) * 100
+}
+
+export interface FeatureAnalyticsReport {
+  period: '7d' | '30d' | '90d';
+  topFeatures: FeatureStats[];
+  planUsage: FeaturePlanUsage[];
+  funnel: FeatureFunnelStep[];
+  distribution: UserActivityBucket[];
+  engagement: EngagementMetrics;
+}
+
+// ── System Health ──
+
+export type HealthStatusLevel = 'operational' | 'degraded' | 'error' | 'unknown';
+
+export interface ServiceCheckResult {
+  name: string;
+  status: HealthStatusLevel;
+  latencyMs?: number;
+  lastChecked?: string;
+  details?: string;
+}
+
+export interface CronJobLog {
+  jobName: string;
+  schedule: string;
+  lastRun: string;
+  status: 'success' | 'failed' | 'running';
+  durationMs?: number;
+  resultCount?: number;
+  nextRun?: string;
+  error?: string;
+}
+
+export interface SystemErrorLog {
+  id: string;
+  type: 'pdf_export' | 'ai_generation' | 'imagen' | 'payment_webhook' | 'email_send' | 'cron' | 'other';
+  message: string;
+  context?: Record<string, any>;
+  timestamp: string;
+  resolved: boolean;
+  resolvedAt?: string;
+  resolvedBy?: string;
+}
+
+export interface ApiResponseMetric {
+  route: string;
+  avgLatencyMs: number;
+  p95LatencyMs: number;
+  requestCount: number;
+}
+
+export interface SystemHealthReport {
+  overallStatus: 'operational' | 'degraded' | 'critical';
+  services: ServiceCheckResult[];
+  cronJobs: CronJobLog[];
+  recentErrors: SystemErrorLog[];
+  apiPerformance: ApiResponseMetric[];
+  lastUpdated: string;
+}
+
+// ── Support Center ──
+
+export interface SupportTicket {
+  id: string;
+  uid?: string;
+  fromName: string;
+  fromEmail: string;
+  subject: string;
+  category: 'General' | 'Billing' | 'Technical' | 'Feature';
+  message: string;
+  status: 'open' | 'responded' | 'closed';
+  createdAt: string;
+  updatedAt: string;
+  adminNotes?: string;
+  replyText?: string;
+  repliedAt?: string;
+  repliedBy?: string;
+}
+
+export interface SupportStats {
+  total: number;
+  open: number;
+  responded: number;
+  closed: number;
+  avgResponseHours: number;
+}
+
+// ── Broadcast Email ──
+
+export interface BroadcastAudienceFilter {
+  type: 'all' | 'free' | 'starter' | 'pro' | 'agency' | 'paid' | 'country' | 'specific_emails';
+  country?: string;
+  specificEmails?: string[];
+  excludeUnsubscribed?: boolean;
+  excludeBanned?: boolean;
+}
+
+export interface BroadcastJob {
+  id: string;
+  subject: string;
+  preheader?: string;
+  bodyMarkdown: string;
+  audience: BroadcastAudienceFilter;
+  targetCount: number;
+  sentCount: number;
+  failedCount: number;
+  status: 'draft' | 'scheduled' | 'sending' | 'completed' | 'cancelled';
+  scheduledFor?: string;
+  sentAt?: string;
+  createdAt: string;
+  createdBy: string;
+  openRate?: number;
+  clickRate?: number;
+}
+
+// ── App Settings ──
+
+export interface FeatureFlagsConfig {
+  puzzleGenerators: boolean;
+  nicheResearch: boolean;
+  bulkGenerator: boolean;
+  contentAudit: boolean;
+  analytics: boolean;
+  versionHistory: boolean;
+  aiWriting: boolean;
+}
+
+export interface MaintenanceConfig {
+  enabled: boolean;
+  message: string;
+  expectedBack?: string;
+}
+
+export interface ApiKeysStatus {
+  gemini: boolean;
+  imagen: boolean;
+  razorpay: boolean;
+  paypal: boolean;
+  resend: boolean;
+  firebaseAdmin: boolean;
+}
+
+export interface PlanPricingConfig {
+  starterMonthly: number;
+  starterAnnual: number;
+  proMonthly: number;
+  proAnnual: number;
+  agencyMonthly: number;
+  agencyAnnual: number;
+  lifetime: number;
+}
+
+export interface AppConfigData {
+  features: FeatureFlagsConfig;
+  maintenance: MaintenanceConfig;
+  apiKeys: ApiKeysStatus;
+  pricing: PlanPricingConfig;
+}
+
+// ── Content Moderation ──
+
+export interface FlaggedContentItem {
+  id: string;
+  uid: string;
+  userEmail?: string;
+  userName?: string;
+  bookId: string;
+  bookTitle: string;
+  flagType: 'kdp_policy' | 'plagiarism' | 'offensive' | 'copyright' | 'ai_repetition';
+  flaggedText: string;
+  severity: 'high' | 'medium' | 'low';
+  createdAt: string;
+  reviewed: boolean;
+  verdict?: 'false_positive' | 'minor_concern' | 'policy_violation' | 'serious_violation';
+  noteToUser?: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+}
+
+export interface AuditReportSummary {
+  id: string;
+  uid: string;
+  userName: string;
+  userEmail: string;
+  bookId: string;
+  bookTitle: string;
+  score: number;
+  auditType: 'basic' | 'full';
+  issuesCount: number;
+  kdpRisk: 'low' | 'moderate' | 'high';
+  createdAt: string;
+}
+
+

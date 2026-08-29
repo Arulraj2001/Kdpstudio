@@ -12,6 +12,7 @@ import {
 } from '../types/versions';
 import { Book } from '../types';
 import { db, app } from './firebase';
+import { trackFeatureUse } from './featureTracker';
 import {
   collection,
   doc,
@@ -282,6 +283,8 @@ export async function createSnapshot(
   localList.unshift(fullSnapshot);
   saveLocalSnapshots(localList.slice(0, 50));
 
+  trackFeatureUse(uid, 'snapshot_created', { bookId, trigger, label: generatedLabel }).catch(console.error);
+
   return snapshotId;
 }
 
@@ -488,6 +491,8 @@ export async function restoreSnapshot(
     s.id === snapshotId ? { ...s, restoredAt: nowStr } : s
   );
   saveLocalSnapshots(localList);
+
+  trackFeatureUse(uid, 'snapshot_restored', { snapshotId, bookId: snapshot.bookId }).catch(console.error);
 }
 
 /**

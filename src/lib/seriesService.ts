@@ -17,6 +17,7 @@ import {
 } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from './firebase';
 import { getUserDocument } from './userService';
+import { trackFeatureUse } from './featureTracker';
 import { 
   BookSeries, 
   SeriesVolume, 
@@ -144,6 +145,8 @@ export async function createSeries(
   const updatedList = [newSeries, ...existingSeries.filter((s) => s.id !== seriesId)];
   setLocalUserSeries(uid, updatedList);
   inMemorySeries.set(seriesId, newSeries);
+
+  trackFeatureUse(uid, 'series_created', { seriesId, title: newSeries.title }).catch(console.error);
 
   return seriesId;
 }

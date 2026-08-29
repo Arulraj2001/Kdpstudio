@@ -9,6 +9,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, isFirebaseConfigured } from './firebase';
 import { BrandKit, DEFAULT_BRAND_KIT } from '../types/brand';
 import { Book } from '../types';
+import { trackFeatureUse } from './featureTracker';
 
 const BRAND_CACHE_PREFIX = 'kdp_brand_kit_';
 const inMemoryBrandKits = new Map<string, BrandKit>();
@@ -92,6 +93,7 @@ export async function saveBrandKit(uid: string, data: Partial<BrandKit>): Promis
   }
 
   setLocalBrandKit(uid, updated);
+  trackFeatureUse(uid, 'brand_kit_saved').catch(console.error);
 }
 
 /**

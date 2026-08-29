@@ -3757,6 +3757,209 @@ Return valid JSON with: readingLevel (grade, fleschScore, averageSentenceLength,
     }
   });
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Phase 17C: Usage, Health, Support, Broadcast, Settings, Moderation Endpoints
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // GET /api/admin/system/usage
+  app.get('/api/admin/system/usage', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { getFeatureAnalyticsReport } = await import('./src/lib/adminService');
+      const period = (req.query.period as any) || '30d';
+      const report = await getFeatureAnalyticsReport(period);
+      return res.json(report);
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/admin/system/health
+  app.get('/api/admin/system/health', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { getSystemHealthReport } = await import('./src/lib/adminService');
+      const report = await getSystemHealthReport();
+      return res.json(report);
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // PATCH /api/admin/system/health — resolve error
+  app.patch('/api/admin/system/health', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { resolveSystemError } = await import('./src/lib/adminService');
+      await resolveSystemError(req.body.errorId, adminEmail);
+      return res.json({ success: true });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/admin/support
+  app.get('/api/admin/support', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { getSupportTickets, getSupportStats } = await import('./src/lib/adminService');
+      const [tickets, stats] = await Promise.all([
+        getSupportTickets(req.query.status as string, req.query.search as string),
+        getSupportStats(),
+      ]);
+      return res.json({ tickets, stats });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/admin/support/reply
+  app.post('/api/admin/support/reply', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { replySupportTicket } = await import('./src/lib/adminService');
+      await replySupportTicket(req.body.ticketId, req.body.replyText, adminEmail);
+      return res.json({ success: true });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/admin/broadcast
+  app.get('/api/admin/broadcast', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { getBroadcastHistory } = await import('./src/lib/adminService');
+      const history = await getBroadcastHistory();
+      return res.json({ history });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/admin/broadcast/audience-count
+  app.post('/api/admin/broadcast/audience-count', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { getBroadcastAudienceCount } = await import('./src/lib/adminService');
+      const count = await getBroadcastAudienceCount(req.body.audience || { type: 'all' });
+      return res.json({ count });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/admin/broadcast/send
+  app.post('/api/admin/broadcast/send', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { sendBroadcastEmail } = await import('./src/lib/adminService');
+      const result = await sendBroadcastEmail({
+        ...req.body,
+        adminEmail,
+      });
+      return res.json(result);
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/admin/broadcast/cancel
+  app.post('/api/admin/broadcast/cancel', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { cancelBroadcastJob } = await import('./src/lib/adminService');
+      await cancelBroadcastJob(req.body.jobId, adminEmail);
+      return res.json({ success: true });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/admin/system/settings
+  app.get('/api/admin/system/settings', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { getAppConfig } = await import('./src/lib/adminService');
+      const config = await getAppConfig();
+      return res.json(config);
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/admin/system/settings
+  app.post('/api/admin/system/settings', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const adminSvc = await import('./src/lib/adminService');
+      const { action, features, maintenance, pricing } = req.body || {};
+      if (action === 'update_features') {
+        await adminSvc.updateFeatureFlags(features, adminEmail);
+      } else if (action === 'update_maintenance') {
+        await adminSvc.updateMaintenanceConfig(maintenance, adminEmail);
+      } else if (action === 'update_pricing') {
+        await adminSvc.updatePricingOverrides(pricing, adminEmail);
+      }
+      const updated = await adminSvc.getAppConfig();
+      return res.json({ success: true, config: updated });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/admin/content
+  app.get('/api/admin/content', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { getFlaggedContent } = await import('./src/lib/adminService');
+      const reviewed = req.query.reviewed !== undefined ? req.query.reviewed === 'true' : undefined;
+      const items = await getFlaggedContent(reviewed);
+      return res.json({ items });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/admin/content
+  app.post('/api/admin/content', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { reviewFlaggedContent } = await import('./src/lib/adminService');
+      await reviewFlaggedContent(req.body.flagId, req.body.verdict, req.body.noteToUser || '', adminEmail);
+      return res.json({ success: true });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/admin/content/audits
+  app.get('/api/admin/content/audits', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { getAuditReportsList } = await import('./src/lib/adminService');
+      const reports = await getAuditReportsList();
+      return res.json({ reports });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+
 
   // Vite middleware for development vs static build for production
   if (process.env.NODE_ENV !== 'production') {

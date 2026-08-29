@@ -33,6 +33,7 @@ import { useAuthStore } from '../../lib/authStore';
 import { useCheckoutStore } from '../../lib/checkoutStore';
 import { useToastStore } from '../../lib/toastStore';
 import { NewGoalModal } from './NewGoalModal';
+import { trackFeatureUse } from '../../lib/featureTracker';
 
 interface PublishingGoalsViewProps {
   onBack?: () => void;
@@ -89,6 +90,9 @@ export const PublishingGoalsView: React.FC<PublishingGoalsViewProps> = ({
       currentValue: goal.targetValue,
     });
     setCelebratedGoal(goal);
+    if (user?.uid) {
+      trackFeatureUse(user.uid, 'goal_achieved', { goalId: goal.id, title: goal.title }).catch(console.error);
+    }
     useToastStore.getState().addToast({ message: 'Goal marked as achieved! 🏆', type: 'success' });
     loadGoalsData();
   };
