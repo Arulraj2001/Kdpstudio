@@ -18,24 +18,21 @@ const getClientEnv = (val: any, fallback: string): string => {
 const getDynamicAuthDomain = (): string => {
   if (typeof window !== 'undefined' && window.location?.hostname) {
     const host = window.location.hostname;
-    if (host.includes('kdpstudioaio')) {
-      return 'kdpstudioaio.firebaseapp.com';
-    }
-    if (host.includes('kdpstudio-83edb')) {
-      return 'kdpstudio-83edb.firebaseapp.com';
+    if (host.includes('kdpstudioaio-3bf53')) {
+      return 'kdpstudioaio-3bf53.firebaseapp.com';
     }
     return host;
   }
-  return 'kdpstudio-83edb.firebaseapp.com';
+  return 'kdpstudioaio-3bf53.firebaseapp.com';
 };
 
 export const firebaseConfig = {
-  apiKey: getClientEnv(import.meta.env.VITE_FIREBASE_API_KEY || import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY, 'AIzaSyCXrovDMZnlS9iZTbx5XTjdqP-kmafGaKM'),
+  apiKey: getClientEnv(import.meta.env.VITE_FIREBASE_API_KEY || import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY, 'AIzaSyC3gnC1NdRYEHm4zR8Kfe0BJeGR_Ae1xLk'),
   authDomain: getDynamicAuthDomain(),
-  projectId: getClientEnv(import.meta.env.VITE_FIREBASE_PROJECT_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID, 'kdpstudio-83edb'),
-  storageBucket: getClientEnv(import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || import.meta.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET, 'kdpstudio-83edb.firebasestorage.app'),
-  messagingSenderId: getClientEnv(import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID, '948994960311'),
-  appId: getClientEnv(import.meta.env.VITE_FIREBASE_APP_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID, '1:948994960311:web:cc6634e13a51ae7a427ef5'),
+  projectId: getClientEnv(import.meta.env.VITE_FIREBASE_PROJECT_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID, 'kdpstudioaio-3bf53'),
+  storageBucket: getClientEnv(import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || import.meta.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET, 'kdpstudioaio-3bf53.firebasestorage.app'),
+  messagingSenderId: getClientEnv(import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID, '494698350011'),
+  appId: getClientEnv(import.meta.env.VITE_FIREBASE_APP_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID, '1:494698350011:web:ad96b775d58d49a874309e'),
 };
 
 export const isFirebaseConfigured = Boolean(
