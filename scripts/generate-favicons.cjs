@@ -3,7 +3,7 @@ const path = require('path');
 const puppeteer = require('puppeteer');
 
 async function main() {
-  const sourceImage = path.resolve('C:/Users/samue/.gemini/antigravity-ide/brain/756abeb4-97dd-47e6-83b3-5909db5a8a89/kdp_logo_option_3_1788025233684.jpg');
+  const sourceImage = path.resolve('C:/Users/samue/.gemini/antigravity-ide/brain/756abeb4-97dd-47e6-83b3-5909db5a8a89/kdp_logo_option_c_fullscreen_1788026105674.jpg');
   if (!fs.existsSync(sourceImage)) {
     console.error('Source logo file not found:', sourceImage);
     process.exit(1);
@@ -18,10 +18,6 @@ async function main() {
   });
 
   const page = await browser.newPage();
-
-  // We will render the image inside a canvas in the browser,
-  // find the tight bounding box of the glowing quill and book spread (excluding bottom text),
-  // and export tightly-cropped, centered, high-contrast icons for all sizes!
 
   const sizes = [
     { name: 'favicon-16x16.png', size: 16 },
@@ -38,9 +34,8 @@ async function main() {
     await page.setViewport({ width: item.size, height: item.size, deviceScaleFactor: 1 });
     
     // In the 1024x1024 source image:
-    // The glowing quill & book spread is located from sx: 180, sy: 260, sw: 664, sh: 400
-    // By drawing only this region and fitting it with slight padding into the canvas,
-    // the icon symbol fills the entire square container boldly and crisply!
+    // The circular gold crest is centered from x: 120 to 904 (width: 784), y: 120 to 904 (height: 784).
+    // By drawing the circular emblem so it fills 96% of the canvas, there are ZERO wasted margins!
     
     const html = `
       <!DOCTYPE html>
@@ -48,7 +43,7 @@ async function main() {
         <head>
           <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body, html { width: ${item.size}px; height: ${item.size}px; overflow: hidden; background: #0a0a14; }
+            body, html { width: ${item.size}px; height: ${item.size}px; overflow: hidden; background: #0f0826; }
             canvas { width: ${item.size}px; height: ${item.size}px; display: block; }
           </style>
         </head>
@@ -59,32 +54,23 @@ async function main() {
             img.onload = () => {
               const canvas = document.getElementById('c');
               const ctx = canvas.getContext('2d');
-              
-              // Dark modern gradient background
-              const bgGrad = ctx.createRadialGradient(
-                canvas.width / 2, canvas.height / 2, 0,
-                canvas.width / 2, canvas.height / 2, canvas.width * 0.7
-              );
-              bgGrad.addColorStop(0, '#15122c');
-              bgGrad.addColorStop(1, '#080811');
-              ctx.fillStyle = bgGrad;
+
+              // Deep indigo/violet background fill
+              ctx.fillStyle = '#100a28';
               ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-              // Source crop coordinates for the glowing quill & book spread icon artwork
-              // Source image is 1024x1024:
-              const sx = 190;
-              const sy = 275;
-              const sw = 644;
-              const sh = 385;
+              // Source crop coordinates: tightly center on the gold ring & quill crest
+              const sx = 115;
+              const sy = 115;
+              const sw = 794;
+              const sh = 794;
 
-              // Fit tightly into canvas with 6% margin so it looks bold and full
-              const pad = canvas.width * 0.06;
+              // Fill 96% of canvas
+              const pad = canvas.width * 0.02;
               const dw = canvas.width - (pad * 2);
-              const dh = dw * (sh / sw);
-              const dx = pad;
-              const dy = (canvas.height - dh) / 2;
+              const dh = canvas.height - (pad * 2);
 
-              ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+              ctx.drawImage(img, sx, sy, sw, sh, pad, pad, dw, dh);
             };
             img.src = '${imgSrc}';
           </script>
@@ -93,16 +79,15 @@ async function main() {
     `;
 
     await page.setContent(html, { waitUntil: 'load' });
-    // Wait slightly for canvas draw
-    await new Promise(r => setTimeout(r, 100));
+    await new Promise(r => setTimeout(r, 120));
 
     const targetPath = path.join(process.cwd(), 'public', item.name);
     await page.screenshot({ path: targetPath, type: 'png' });
-    console.log(`✓ Generated tightly cropped: public/${item.name} (${item.size}x${item.size})`);
+    console.log(`✓ Generated full-bleed logo: public/${item.name} (${item.size}x${item.size})`);
   }
 
   await browser.close();
-  console.log('All tightly-cropped favicons and brand icons generated successfully!');
+  console.log('All full-bleed favicons and brand icons generated successfully!');
 }
 
 main().catch(console.error);
