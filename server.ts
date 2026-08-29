@@ -9,8 +9,9 @@ import { getUserUsageSummary } from './src/lib/usageService';
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const isCJS = typeof __filename !== 'undefined' && typeof __dirname !== 'undefined';
+const currentFilename = isCJS ? __filename : (typeof import.meta !== 'undefined' && import.meta.url ? fileURLToPath(import.meta.url) : '');
+const currentDirname = isCJS ? __dirname : (currentFilename ? path.dirname(currentFilename) : process.cwd());
 
 // Initialize Google GenAI lazily
 let aiClient: GoogleGenAI | null = null;
