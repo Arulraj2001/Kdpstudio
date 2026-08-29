@@ -1,0 +1,13 @@
+node_modules/
+.git/
+.gitignore
+.firebase/
+dist/
+*.md
+README*
+.env
+.env.*
+.vscode/
+.agents/
+scratch/
+*.log

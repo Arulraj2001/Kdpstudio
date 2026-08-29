@@ -1,0 +1,28 @@
+# Ignore files not needed for Cloud Run deployment
+.git/
+.gitignore
+*.md
+README*
+
+# Dev tooling
+.vscode/
+.agents/
+scratch/
+*.log
+
+# Local env (env vars are set via gcloud --set-env-vars)
+.env
+.env.*
+
+# Frontend source — only dist/server.cjs is needed on Cloud Run
+# (The React SPA is served by Firebase Hosting, not Cloud Run)
+src/
+public/
+index.html
+vite.config.*
+tailwind.config.*
+postcss.config.*
+tsconfig*.json
+
+# Node modules (Cloud Run installs them fresh from package.json)
+node_modules/
