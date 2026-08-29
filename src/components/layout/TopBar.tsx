@@ -60,6 +60,8 @@ const ROUTE_TITLES: Record<PageRoute, { title: string; subtitle: string }> = {
   settings: { title: 'Settings', subtitle: 'Preferences, API keys & export options' },
   billing: { title: 'Billing & Subscriptions', subtitle: 'Manage your subscription and invoices' },
   admin: { title: 'Admin Console', subtitle: 'User management and system analytics' },
+  'admin-users': { title: 'All Users', subtitle: 'Search, filter and manage user accounts' },
+  'admin-user-detail': { title: 'User Detail', subtitle: 'Full user profile, history, and actions' },
   'geo-test': { title: 'Geo & Currency Test', subtitle: 'Diagnostics & test suite for IP detection and currency' },
   login: { title: 'Sign In', subtitle: 'Access your account and manuscripts' },
   signup: { title: 'Create Account', subtitle: 'Join KDP Studio author platform' },

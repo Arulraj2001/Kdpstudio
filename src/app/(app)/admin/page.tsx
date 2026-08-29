@@ -1,12 +1,16 @@
 'use client';
 
 import React from 'react';
-import { AdminPageView } from '../../../components/admin/AdminPageView';
+import { AdminGuard } from '../../../components/admin/AdminGuard';
+import { AdminLayout } from '../../../components/admin/AdminLayout';
+import { AdminOverviewPage } from '../../../components/admin/overview/AdminOverviewPage';
 
 export default function AdminPage() {
-  const handleNavigate = (route: string) => {
-    window.location.href = `/${route}`;
-  };
-
-  return <AdminPageView onNavigate={handleNavigate as any} />;
+  return (
+    <AdminGuard>
+      <AdminLayout pageTitle="Dashboard">
+        <AdminOverviewPage />
+      </AdminLayout>
+    </AdminGuard>
+  );
 }

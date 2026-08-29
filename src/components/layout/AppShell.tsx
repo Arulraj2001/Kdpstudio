@@ -43,6 +43,12 @@ import { BrandKitView } from '../brand/BrandKitView';
 import { SettingsView } from '../settings/SettingsView';
 import { BillingPageView } from '../settings/BillingPageView';
 import { AdminPageView } from '../admin/AdminPageView';
+import { ImpersonationBanner } from '../admin/ImpersonationBanner';
+import { AdminGuard } from '../admin/AdminGuard';
+import { AdminLayout } from '../admin/AdminLayout';
+import { AdminOverviewPage } from '../admin/overview/AdminOverviewPage';
+import { AdminUsersPage } from '../admin/users/AdminUsersPage';
+import { UserDetailPage } from '../admin/users/UserDetailPage';
 import { GeoTestView } from '../geo/GeoTestView';
 import { NewBookModal } from '../modals/NewBookModal';
 import { AuthPages } from '../auth/AuthPages';
@@ -112,6 +118,8 @@ export const AppShell: React.FC = () => {
       if (path === 'settings') return 'settings';
       if (path === 'billing') return 'billing';
       if (path === 'admin') return 'admin';
+      if (path.startsWith('admin/users/') && path.split('/').length >= 3) return 'admin-user-detail';
+      if (path === 'admin/users') return 'admin-users';
       if (path === 'geo-test') return 'geo-test';
     }
     return 'home';
@@ -658,7 +666,33 @@ export const AppShell: React.FC = () => {
 
               {currentRoute === 'billing' && <BillingPageView onNavigate={handleNavigate} />}
 
-              {currentRoute === 'admin' && <AdminPageView onNavigate={handleNavigate} />}
+              {currentRoute === 'admin' && (
+                <AdminGuard>
+                  <AdminLayout pageTitle="Dashboard">
+                    <AdminOverviewPage />
+                  </AdminLayout>
+                </AdminGuard>
+              )}
+
+              {currentRoute === 'admin-users' && (
+                <AdminGuard>
+                  <AdminLayout pageTitle="All Users">
+                    <AdminUsersPage />
+                  </AdminLayout>
+                </AdminGuard>
+              )}
+
+              {currentRoute === 'admin-user-detail' && (
+                <AdminGuard>
+                  <AdminLayout pageTitle="User Detail">
+                    <UserDetailPage
+                      uid={typeof window !== 'undefined'
+                        ? window.location.pathname.split('/').pop() || ''
+                        : ''}
+                    />
+                  </AdminLayout>
+                </AdminGuard>
+              )}
 
               {currentRoute === 'geo-test' && <GeoTestView />}
             </main>
@@ -678,6 +712,9 @@ export const AppShell: React.FC = () => {
 
       {/* Global Unified Checkout Modal */}
       <CheckoutModal onNavigate={handleNavigate} />
+
+      {/* Global Impersonation Banner — shown on ALL pages when admin is impersonating */}
+      <ImpersonationBanner />
 
       {/* Global Notifications */}
       <ToastContainer />

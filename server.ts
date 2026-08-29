@@ -3485,6 +3485,155 @@ Return valid JSON with: readingLevel (grade, fleschScore, averageSentenceLength,
     }
   });
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Phase 17A: Admin Dashboard API Routes
+  // All routes verify admin email from Firebase token before responding.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  async function verifyAdminToken(req: any): Promise<string | null> {
+    const authHeader = (req.headers.authorization as string) || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : '';
+    if (!token) return null;
+    try {
+      const { adminAuth } = await import('./src/lib/firebase-admin');
+      const decoded = await adminAuth.verifyIdToken(token);
+      const email = decoded.email || '';
+      const adminEmail = process.env.ADMIN_EMAIL || '';
+      if (!adminEmail || email.toLowerCase() !== adminEmail.toLowerCase()) return null;
+      return email;
+    } catch {
+      return null;
+    }
+  }
+
+  // GET /api/admin/overview — stats + activity feed
+  app.get('/api/admin/overview', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { getAdminOverviewStats, getActivityFeed } = await import('./src/lib/adminService');
+      const [stats, activity] = await Promise.all([getAdminOverviewStats(), getActivityFeed(20)]);
+      return res.json({ stats, activity });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/admin/users/export — CSV download
+  app.get('/api/admin/users/export', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { exportUsersCSV } = await import('./src/lib/adminService');
+      const plan = (req.query.plan as string) || undefined;
+      const csv = await exportUsersCSV({ planFilter: plan });
+      const filename = `kdpstudio-users-${new Date().toISOString().split('T')[0]}.csv`;
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      return res.send(csv);
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/admin/users — paginated user list
+  app.get('/api/admin/users', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { getAllUsers } = await import('./src/lib/adminService');
+      const limit = parseInt(String(req.query.limit || '20'), 10);
+      const offset = parseInt(String(req.query.offset || '0'), 10);
+      const result = await getAllUsers({
+        limit,
+        offset,
+        searchQuery: (req.query.search as string) || undefined,
+        planFilter: (req.query.plan as string) || undefined,
+        statusFilter: (req.query.status as string) || undefined,
+        countryFilter: (req.query.country as string) || undefined,
+        sortBy: (req.query.sortBy as string) || 'createdAt',
+        sortOrder: ((req.query.sortOrder as string) || 'desc') as 'asc' | 'desc',
+      });
+      return res.json(result);
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/admin/users/:uid — user detail
+  app.get('/api/admin/users/:uid', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { getUserDetails } = await import('./src/lib/adminService');
+      const detail = await getUserDetails(req.params.uid);
+      if (!detail) return res.status(404).json({ error: 'User not found' });
+      return res.json(detail);
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // PATCH /api/admin/users/:uid — ban, unban, delete, update_plan, update_notes
+  app.patch('/api/admin/users/:uid', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    const uid = req.params.uid;
+    const { action, plan, billingCycle, reason, notes } = req.body || {};
+    try {
+      const adminSvc = await import('./src/lib/adminService');
+      if (action === 'update_plan') {
+        if (!plan || !billingCycle || !reason?.trim())
+          return res.status(400).json({ error: 'plan, billingCycle, reason required' });
+        await adminSvc.adminUpdateUserPlan(uid, plan, billingCycle, adminEmail, reason);
+      } else if (action === 'ban') {
+        if (!reason?.trim()) return res.status(400).json({ error: 'reason required' });
+        await adminSvc.banUser(uid, adminEmail, reason);
+      } else if (action === 'unban') {
+        await adminSvc.unbanUser(uid, adminEmail);
+      } else if (action === 'delete') {
+        if (!reason?.trim()) return res.status(400).json({ error: 'reason required' });
+        await adminSvc.deleteUserAccount(uid, adminEmail, reason);
+      } else if (action === 'update_notes') {
+        await adminSvc.updateAdminNotes(uid, notes || '', adminEmail);
+      } else {
+        return res.status(400).json({ error: `Unknown action: ${action}` });
+      }
+      return res.json({ success: true });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/admin/users/:uid/impersonate — create custom token
+  app.post('/api/admin/users/:uid/impersonate', async (req, res) => {
+    const adminEmail = await verifyAdminToken(req);
+    if (!adminEmail) return res.status(403).json({ error: 'Forbidden' });
+    try {
+      const { getAdminAuth } = await import('./src/lib/firebase-admin');
+      const auth = getAdminAuth();
+      if (!auth) {
+        return res.status(503).json({
+          error: 'Impersonation requires full Firebase Admin credentials (FIREBASE_ADMIN_CLIENT_EMAIL + FIREBASE_ADMIN_PRIVATE_KEY).',
+        });
+      }
+      const customToken = await auth.createCustomToken(req.params.uid, {
+        impersonatedBy: adminEmail,
+      });
+      const { logAdminAction } = await import('./src/lib/adminService');
+      await logAdminAction({
+        adminEmail,
+        action: 'impersonate_user',
+        targetUid: req.params.uid,
+        details: { note: 'Custom token issued' },
+        timestamp: new Date().toISOString(),
+      });
+      return res.json({ customToken });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
   // Vite middleware for development vs static build for production
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

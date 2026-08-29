@@ -46,6 +46,8 @@ export type PageRoute =
   | 'settings'
   | 'billing'
   | 'admin'
+  | 'admin-users'
+  | 'admin-user-detail'
   | 'geo-test'
   | 'login'
   | 'signup'
