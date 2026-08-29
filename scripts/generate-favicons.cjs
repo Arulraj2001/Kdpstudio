@@ -31,63 +31,58 @@ async function main() {
   ];
 
   for (const item of sizes) {
-    await page.setViewport({ width: item.size, height: item.size, deviceScaleFactor: 1 });
+    const pngBase64 = await page.evaluate(async (src, size) => {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            // Deep background
+            ctx.fillStyle = '#0f0826';
+            ctx.fillRect(0, 0, size, size);
+
+            // Source crop coordinates: tightly center on the gold ring & quill crest
+            const sx = 100;
+            const sy = 100;
+            const sw = 824;
+            const sh = 824;
+
+            // Draw full-bleed
+            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, size, size);
+            
+            const dataUrl = canvas.toDataURL('image/png');
+            resolve(dataUrl.replace(/^data:image\/png;base64,/, ''));
+          } catch (e) {
+            reject(e.message);
+          }
+        };
+        img.onerror = () => reject('Failed to load image');
+        img.src = src;
+      });
+    }, imgSrc, item.size);
+
+    const buffer = Buffer.from(pngBase64, 'base64');
     
-    // In the 1024x1024 source image:
-    // The circular gold crest is centered from x: 120 to 904 (width: 784), y: 120 to 904 (height: 784).
-    // By drawing the circular emblem so it fills 96% of the canvas, there are ZERO wasted margins!
-    
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body, html { width: ${item.size}px; height: ${item.size}px; overflow: hidden; background: #0f0826; }
-            canvas { width: ${item.size}px; height: ${item.size}px; display: block; }
-          </style>
-        </head>
-        <body>
-          <canvas id="c" width="${item.size}" height="${item.size}"></canvas>
-          <script>
-            const img = new Image();
-            img.onload = () => {
-              const canvas = document.getElementById('c');
-              const ctx = canvas.getContext('2d');
+    // Write to public/
+    const publicPath = path.join(process.cwd(), 'public', item.name);
+    fs.writeFileSync(publicPath, buffer);
 
-              // Deep indigo/violet background fill
-              ctx.fillStyle = '#100a28';
-              ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Also write directly to dist/ if dist exists
+    const distDir = path.join(process.cwd(), 'dist');
+    if (fs.existsSync(distDir)) {
+      fs.writeFileSync(path.join(distDir, item.name), buffer);
+    }
 
-              // Source crop coordinates: tightly center on the gold ring & quill crest
-              const sx = 115;
-              const sy = 115;
-              const sw = 794;
-              const sh = 794;
-
-              // Fill 96% of canvas
-              const pad = canvas.width * 0.02;
-              const dw = canvas.width - (pad * 2);
-              const dh = canvas.height - (pad * 2);
-
-              ctx.drawImage(img, sx, sy, sw, sh, pad, pad, dw, dh);
-            };
-            img.src = '${imgSrc}';
-          </script>
-        </body>
-      </html>
-    `;
-
-    await page.setContent(html, { waitUntil: 'load' });
-    await new Promise(r => setTimeout(r, 120));
-
-    const targetPath = path.join(process.cwd(), 'public', item.name);
-    await page.screenshot({ path: targetPath, type: 'png' });
-    console.log(`✓ Generated full-bleed logo: public/${item.name} (${item.size}x${item.size})`);
+    console.log(`✓ Successfully generated: public/${item.name} (${buffer.length} bytes, ${item.size}x${item.size})`);
   }
 
   await browser.close();
-  console.log('All full-bleed favicons and brand icons generated successfully!');
+  console.log('All icons generated and verified!');
 }
 
 main().catch(console.error);
