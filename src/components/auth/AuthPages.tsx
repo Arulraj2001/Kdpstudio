@@ -19,7 +19,7 @@ import {
   Home
 } from 'lucide-react';
 import { useAuthStore } from '../../lib/authStore';
-import { isFirebaseConfigured } from '../../lib/firebase';
+import { isFirebaseConfigured, auth } from '../../lib/firebase';
 import { PageRoute } from '../../types';
 
 interface AuthPagesProps {
@@ -58,6 +58,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
   const [resetSent, setResetSent] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [verifyError, setVerifyError] = useState('');
 
   // Sync initial view if prop changes
   useEffect(() => {
@@ -96,8 +97,14 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
     setSubmitting(true);
     try {
       await signInWithGoogle();
+      // Let AppShell decide the route (onboarding vs dashboard) via onSuccess
       if (onSuccess) onSuccess();
-      else if (onNavigate) onNavigate('dashboard');
+      // Fallback: read fresh store state to decide route
+      else if (onNavigate) {
+        const { useAuthStore: _store } = await import('../../lib/authStore');
+        const freshDoc = _store.getState().userDoc;
+        onNavigate(freshDoc?.onboardingComplete === false ? 'onboarding' : 'dashboard');
+      }
     } catch (err) {
       // Handled in store
     } finally {
@@ -138,8 +145,13 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
     setSubmitting(true);
     try {
       await signInWithEmail(email, password);
+      // Let AppShell decide the route via onSuccess (reads fresh userDoc from store)
       if (onSuccess) onSuccess();
-      else if (onNavigate) onNavigate('dashboard');
+      else if (onNavigate) {
+        const { useAuthStore: _store } = await import('../../lib/authStore');
+        const freshDoc = _store.getState().userDoc;
+        onNavigate(freshDoc?.onboardingComplete === false ? 'onboarding' : 'dashboard');
+      }
     } catch (err) {
       // Handled in store
     } finally {
@@ -197,16 +209,26 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
   };
 
   const handleCheckVerified = async () => {
+    setVerifyError('');
     setSubmitting(true);
     try {
+      // Force reload Firebase token to get the latest emailVerified status
+      if (auth.currentUser) {
+        await auth.currentUser.reload();
+      }
       await refreshUserData();
-      if (user?.emailVerified) {
+      const isVerified = auth.currentUser?.emailVerified ?? user?.emailVerified ?? false;
+      if (isVerified) {
+        // Verified — go to onboarding for new users
         if (onSuccess) onSuccess();
-        else if (onNavigate) onNavigate('dashboard');
+        else if (onNavigate) onNavigate('onboarding');
+      } else if (!isFirebaseConfigured) {
+        // Preview/demo mode — allow bypass
+        if (onSuccess) onSuccess();
+        else if (onNavigate) onNavigate('onboarding');
       } else {
-        // In preview or demo mode
-        if (onSuccess) onSuccess();
-        else if (onNavigate) onNavigate('dashboard');
+        // Not yet verified — show inline error, do NOT route away
+        setVerifyError('Your email has not been verified yet. Please click the link in the email we sent you.');
       }
     } finally {
       setSubmitting(false);
@@ -850,15 +872,32 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
               </div>
 
               <div className="space-y-2.5 pt-2">
+                {/* Inline verification error */}
+                {verifyError && (
+                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-start gap-2 animate-in fade-in duration-200">
+                    <AlertCircle size={15} className="text-amber-600 shrink-0 mt-0.5" />
+                    <span>{verifyError}</span>
+                  </div>
+                )}
+
                 <button
                   id="verified-continue-btn"
                   type="button"
                   onClick={handleCheckVerified}
                   disabled={submitting}
-                  className="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
                 >
-                  <CheckCircle2 size={15} />
-                  <span>I've verified my email</span>
+                  {submitting ? (
+                    <>
+                      <RefreshCw size={14} className="animate-spin" />
+                      <span>Checking...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 size={15} />
+                      <span>I've verified my email</span>
+                    </>
+                  )}
                 </button>
 
                 <button

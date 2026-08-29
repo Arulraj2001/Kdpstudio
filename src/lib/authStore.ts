@@ -223,13 +223,14 @@ export const useAuthStore = create<AuthState>((set, get) => {
       set({ isLoading: true, authError: null });
       try {
         if (!isFirebaseConfigured) {
-          // Preview fallback: simulate Google login smoothly
+          // Preview fallback: simulate Google login smoothly (existing user → straight to dashboard)
           await get().setDemoUser({
             displayName: 'Sarah Jenkins',
             email: 'sarah.jenkins@example.com',
             photoURL: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
             emailVerified: true,
             plan: 'pro',
+            onboardingComplete: true,
           });
           return;
         }

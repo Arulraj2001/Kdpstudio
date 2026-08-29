@@ -109,7 +109,7 @@ export const AppShell: React.FC = () => {
     useGeoStore.getState().initLocation();
   }, []);
 
-  // Automatic onboarding redirection logic
+  // Automatic onboarding redirection logic + guard auth routes for authenticated users
   useEffect(() => {
     if (!isInitialized) return;
 
@@ -120,6 +120,13 @@ export const AppShell: React.FC = () => {
     const isAuth = ['login', 'signup', 'forgot-password', 'verify-email'].includes(currentRoute);
 
     if (user && userDoc) {
+      // BUG 1 & 7: Redirect authenticated users away from auth routes immediately
+      if (isAuth) {
+        setCurrentRoute(userDoc.onboardingComplete === false ? 'onboarding' : 'dashboard');
+        return;
+      }
+
+      // Onboarding guard for protected routes
       if (userDoc.onboardingComplete === false && !isAuth && currentRoute !== 'onboarding' && !isPublicMarketingRoute) {
         setCurrentRoute('onboarding');
       } else if (userDoc.onboardingComplete === true && currentRoute === 'onboarding') {
@@ -199,7 +206,11 @@ export const AppShell: React.FC = () => {
         <AuthPages
           initialView={currentRoute as any}
           onNavigate={handleNavigate}
-          onSuccess={() => handleNavigate(userDoc?.onboardingComplete === false ? 'onboarding' : 'dashboard')}
+          onSuccess={() => {
+            // BUG 5: Read fresh userDoc from store at call-time, not stale closure
+            const freshDoc = useAuthStore.getState().userDoc;
+            handleNavigate(freshDoc?.onboardingComplete === false ? 'onboarding' : 'dashboard');
+          }}
         />
       ) : (
         /* ─────────────────────────────────────────
