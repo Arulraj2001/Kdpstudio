@@ -1,3 +1,5 @@
+import { SEED_BLOG_POSTS } from '../src/lib/blog';
+
 export default async function sitemap() {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://kdpstudio-aio.web.app';
 
@@ -32,6 +34,12 @@ export default async function sitemap() {
       changeFrequency: 'weekly',
       priority: 0.8 
     },
+    ...SEED_BLOG_POSTS.map((post) => ({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: new Date(post.date),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    })),
     { 
       url: `${baseUrl}/changelog`, 
       lastModified: new Date(),
