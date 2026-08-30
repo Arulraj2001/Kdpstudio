@@ -76,11 +76,7 @@ export const metadata: Metadata = {
   manifest: '/site.webmanifest',
 
   verification: {
-    google: process.env.GOOGLE_SITE_VERIFICATION || '',
-  },
-
-  verification: {
-    google: 'sPW6LL__14mD8l3h3gOvq6HUN41q563eo3Ry32buN1U',
+    google: 'pkEqWFra12m6ieukyc8_NtdZvfWqSE-jwRVgintHuK8',
   },
 
   alternates: {
@@ -103,7 +99,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta name="google-site-verification" content="sPW6LL__14mD8l3h3gOvq6HUN41q563eo3Ry32buN1U" />
+        <meta name="google-site-verification" content="pkEqWFra12m6ieukyc8_NtdZvfWqSE-jwRVgintHuK8" />
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-2CJ2BHJ8BK"></script>
         <script
           dangerouslySetInnerHTML={{
