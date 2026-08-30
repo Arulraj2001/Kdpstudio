@@ -298,23 +298,23 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="space-y-6 max-w-7xl mx-auto pb-12 text-slate-900">
       {/* ─────────────────────────────────────────────────────────────────── */}
       {/* TOP HEADER & TIME PERIOD SELECTOR */}
       {/* ─────────────────────────────────────────────────────────────────── */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white border border-slate-200/90 rounded-3xl p-6 md:p-8 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-purple-400 bg-purple-950/80 px-2.5 py-0.5 rounded-full border border-purple-800/60 flex items-center gap-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200 flex items-center gap-1">
               <BarChart3 size={12} />
               <span>Royalties &amp; BSR Tracker</span>
             </span>
-            <span className="text-xs text-slate-400">· {books.length} Published Titles</span>
+            <span className="text-xs text-slate-500">· {books.length} Published Titles</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
             KDP Publishing Analytics
           </h1>
-          <p className="text-xs text-slate-400 mt-1 max-w-xl">
+          <p className="text-xs text-slate-500 mt-1 max-w-xl">
             Track daily sales, Amazon Best Seller Rank (BSR) velocity, and forecast recurring royalty streams across all 12 marketplaces.
           </p>
         </div>
@@ -323,7 +323,7 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setIsAddBookOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
           >
             <Plus size={15} />
             <span>Add Book</span>
@@ -331,34 +331,34 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
 
           <button
             onClick={() => setIsCsvImportOpen(true)}
-            className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
           >
-            <FileSpreadsheet size={14} className="text-emerald-400" />
+            <FileSpreadsheet size={14} className="text-emerald-600" />
             <span>Import CSV</span>
           </button>
 
           <button
             onClick={() => onNavigate?.('analytics-calculator')}
-            className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
           >
-            <Calculator size={14} className="text-amber-400" />
+            <Calculator size={14} className="text-amber-600" />
             <span>Calculator</span>
           </button>
 
           <button
             onClick={() => onNavigate?.('analytics-goals')}
-            className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
           >
-            <Target size={14} className="text-blue-400" />
+            <Target size={14} className="text-blue-600" />
             <span>Goals</span>
           </button>
         </div>
       </div>
 
       {/* Manual Data Disclaimer Banner */}
-      <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+      <div className="p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex items-center justify-between text-xs text-slate-500">
         <div className="flex items-center gap-2">
-          <Info size={15} className="text-purple-400 shrink-0" />
+          <Info size={15} className="text-purple-600 shrink-0" />
           <span>
             ℹ️ Data is manually entered or CSV imported. KDP Studio does not connect directly to your Amazon KDP account. All exchange rates &amp; rankings are estimates.
           </span>
@@ -372,7 +372,7 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
               className={`px-3 py-1 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${
                 period === p
                   ? 'bg-purple-600 text-white shadow-xs'
-                  : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                  : 'bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200'
               }`}
             >
               {p}
@@ -417,26 +417,26 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
       {/* ─────────────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Total Royalties */}
-        <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-lg space-y-2">
+        <div className="p-5 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Total Royalties
             </span>
-            <div className="w-8 h-8 rounded-xl bg-purple-950 border border-purple-800/60 text-purple-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center">
               <DollarSign size={16} />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-white font-mono">
-            ${summary?.totalRoyalties || 0} <span className="text-xs text-slate-400 font-sans font-normal">USD</span>
+          <div className="text-2xl font-extrabold text-slate-900 font-mono">
+            ${summary?.totalRoyalties || 0} <span className="text-xs text-slate-500 font-sans font-normal">USD</span>
           </div>
           <div className="flex items-center gap-1.5 text-xs">
             {(summary?.vsLastPeriod?.royalties || 0) >= 0 ? (
-              <span className="text-emerald-400 flex items-center gap-0.5 font-bold">
+              <span className="text-emerald-600 flex items-center gap-0.5 font-bold">
                 <ArrowUpRight size={14} />
                 +{summary?.vsLastPeriod?.royalties || 0}%
               </span>
             ) : (
-              <span className="text-rose-400 flex items-center gap-0.5 font-bold">
+              <span className="text-rose-600 flex items-center gap-0.5 font-bold">
                 <ArrowDownRight size={14} />
                 {summary?.vsLastPeriod?.royalties || 0}%
               </span>
@@ -446,26 +446,26 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
         </div>
 
         {/* Card 2: Units Sold */}
-        <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-lg space-y-2">
+        <div className="p-5 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Units Sold
             </span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-950 border border-emerald-800/60 text-emerald-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center">
               <Package size={16} />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-white font-mono">
-            {summary?.totalUnitsSold || 0} <span className="text-xs text-slate-400 font-sans font-normal">books</span>
+          <div className="text-2xl font-extrabold text-slate-900 font-mono">
+            {summary?.totalUnitsSold || 0} <span className="text-xs text-slate-500 font-sans font-normal">books</span>
           </div>
           <div className="flex items-center gap-1.5 text-xs">
             {(summary?.vsLastPeriod?.units || 0) >= 0 ? (
-              <span className="text-emerald-400 flex items-center gap-0.5 font-bold">
+              <span className="text-emerald-600 flex items-center gap-0.5 font-bold">
                 <ArrowUpRight size={14} />
                 +{summary?.vsLastPeriod?.units || 0}%
               </span>
             ) : (
-              <span className="text-rose-400 flex items-center gap-0.5 font-bold">
+              <span className="text-rose-600 flex items-center gap-0.5 font-bold">
                 <ArrowDownRight size={14} />
                 {summary?.vsLastPeriod?.units || 0}%
               </span>
@@ -475,17 +475,17 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
         </div>
 
         {/* Card 3: Books Tracked */}
-        <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-lg space-y-2">
+        <div className="p-5 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Books Tracked
             </span>
-            <div className="w-8 h-8 rounded-xl bg-blue-950 border border-blue-800/60 text-blue-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center">
               <BookOpen size={16} />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-white font-mono">
-            {books.length} <span className="text-xs text-slate-400 font-sans font-normal">titles</span>
+          <div className="text-2xl font-extrabold text-slate-900 font-mono">
+            {books.length} <span className="text-xs text-slate-500 font-sans font-normal">titles</span>
           </div>
           <div className="text-xs text-slate-500">
             Across {new Set(books.map((b) => b.marketplace)).size || 1} Amazon marketplace(s)
@@ -493,16 +493,16 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
         </div>
 
         {/* Card 4: Best BSR Rank */}
-        <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-lg space-y-2">
+        <div className="p-5 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Best BSR Peak
             </span>
-            <div className="w-8 h-8 rounded-xl bg-amber-950 border border-amber-800/60 text-amber-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center">
               <Trophy size={16} />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-amber-400 font-mono">
+          <div className="text-2xl font-extrabold text-amber-600 font-mono">
             {bestBsrOverall ? `#${bestBsrOverall.bsr.toLocaleString()}` : 'Unranked'}
           </div>
           <div className="text-xs text-slate-500 line-clamp-1">
@@ -514,21 +514,21 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
       {/* ─────────────────────────────────────────────────────────────────── */}
       {/* STREAK WIDGET */}
       {/* ─────────────────────────────────────────────────────────────────── */}
-      <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-5 rounded-3xl bg-white border border-slate-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-orange-950 border border-orange-800/60 text-orange-400 flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-200 text-orange-600 flex items-center justify-center shrink-0">
             <Flame size={24} className="animate-pulse" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-extrabold text-white">
+              <h3 className="text-base font-extrabold text-slate-900">
                 🔥 {streak?.currentStreak || 1} Day Publishing Streak!
               </h3>
-              <span className="text-[10px] text-orange-300 font-bold bg-orange-950 px-2 py-0.5 rounded-full border border-orange-800">
+              <span className="text-[10px] text-orange-800 font-bold bg-orange-100 px-2 py-0.5 rounded-full border border-orange-300">
                 Active
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Add data or publish books daily to maintain momentum. Broken streaks cannot be restored.
             </p>
           </div>
@@ -537,7 +537,7 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
         {/* Milestone Progress Meter */}
         <div className="flex items-center gap-4 shrink-0">
           <div className="text-right">
-            <span className="text-xs font-bold text-slate-300 block">
+            <span className="text-xs font-bold text-slate-700 block">
               {streakMilestoneProgress.current} / {streakMilestoneProgress.nextTarget} Days
             </span>
             <span className="text-[10px] text-slate-500">
@@ -545,15 +545,15 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
             </span>
           </div>
 
-          <div className="w-32 h-2.5 rounded-full bg-slate-950 border border-slate-800 overflow-hidden">
+          <div className="w-32 h-2.5 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-orange-500 to-amber-400 rounded-full transition-all duration-500"
+              className="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full transition-all duration-500"
               style={{ width: `${streakMilestoneProgress.pct}%` }}
             />
           </div>
 
           {/* Badges strip */}
-          <div className="flex items-center gap-1.5 pl-2 border-l border-slate-800">
+          <div className="flex items-center gap-1.5 pl-2 border-l border-slate-200">
             <span title="7-Day Streak" className={`text-base ${streakMilestoneProgress.current >= 7 ? 'opacity-100' : 'opacity-30 grayscale'}`}>
               🥉
             </span>
@@ -577,19 +577,19 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
         {/* Left Column: Revenue Over Time Chart (2 Cols) */}
         <div className="lg:col-span-2 space-y-6">
           {/* Revenue Line Chart Card */}
-          <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
+          <div className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-white">Revenue Over Time</h3>
-                <p className="text-xs text-slate-400">
+                <h3 className="text-base font-bold text-slate-900">Revenue Over Time</h3>
+                <p className="text-xs text-slate-500">
                   Daily &amp; periodic royalties aggregated across your active catalog
                 </p>
               </div>
 
               {chartData.length > 0 && (
                 <div className="text-right">
-                  <span className="text-xs text-slate-400 uppercase font-semibold">Total Period</span>
-                  <span className="text-sm font-extrabold text-purple-400 block font-mono">
+                  <span className="text-xs text-slate-500 uppercase font-semibold">Total Period</span>
+                  <span className="text-sm font-extrabold text-purple-700 block font-mono">
                     ${summary?.totalRoyalties || 0}
                   </span>
                 </div>
@@ -602,16 +602,17 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
                 <div className="h-72 w-full pt-2">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                      <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 11 }} />
-                      <YAxis stroke="#64748b" tick={{ fontSize: 11 }} tickFormatter={(val) => `$${val}`} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                      <XAxis dataKey="date" stroke="#94a3b8" tick={{ fontSize: 11 }} />
+                      <YAxis stroke="#94a3b8" tick={{ fontSize: 11 }} tickFormatter={(val) => `$${val}`} />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: '#0f172a',
-                          borderColor: '#334155',
+                          backgroundColor: '#ffffff',
+                          borderColor: '#e2e8f0',
                           borderRadius: '1rem',
-                          color: '#fff',
+                          color: '#0f172a',
                           fontSize: '12px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
                         }}
                       />
                       <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
@@ -680,18 +681,18 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
           {/* ───────────────────────────────────────────────────────────────── */}
           {/* BOOKS PERFORMANCE TABLE */}
           {/* ───────────────────────────────────────────────────────────────── */}
-          <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
+          <div className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-white">Book Catalog Performance</h3>
-                <p className="text-xs text-slate-400">
+                <h3 className="text-base font-bold text-slate-900">Book Catalog Performance</h3>
+                <p className="text-xs text-slate-500">
                   Click any book to inspect lifetime stats, royalty breakdowns, and BSR history
                 </p>
               </div>
 
               <button
                 onClick={() => setIsAddBookOpen(true)}
-                className="text-xs text-purple-400 hover:text-purple-300 font-bold flex items-center gap-1 cursor-pointer"
+                className="text-xs text-purple-700 hover:text-purple-900 font-bold flex items-center gap-1 cursor-pointer"
               >
                 <Plus size={14} />
                 <span>Add Book</span>
@@ -699,15 +700,15 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
             </div>
 
             {books.length === 0 ? (
-              <div className="p-8 text-center border border-dashed border-slate-800 rounded-2xl space-y-2">
-                <BookOpen size={28} className="text-slate-600 mx-auto" />
-                <h4 className="text-xs font-bold text-white">No Published Books Tracked</h4>
+              <div className="p-8 text-center border border-dashed border-slate-200 rounded-2xl space-y-2">
+                <BookOpen size={28} className="text-slate-400 mx-auto" />
+                <h4 className="text-xs font-bold text-slate-900">No Published Books Tracked</h4>
                 <p className="text-[11px] text-slate-500 max-w-md mx-auto">
                   Add your first published paperback, hardcover, or eBook to begin logging sales entries and tracking BSR trends.
                 </p>
                 <button
                   onClick={() => setIsAddBookOpen(true)}
-                  className="mt-2 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold cursor-pointer"
+                  className="mt-2 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold cursor-pointer shadow-xs"
                 >
                   Track First Book ➔
                 </button>
@@ -715,30 +716,30 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-950 text-slate-400 uppercase font-semibold text-[10px] border-b border-slate-800">
+                  <thead className="bg-slate-50 text-slate-600 uppercase font-bold text-[10px] border-b border-slate-200">
                     <tr>
                       <th
                         onClick={() => handleSortToggle('title')}
-                        className="p-3.5 cursor-pointer hover:text-white"
+                        className="p-3.5 cursor-pointer hover:text-slate-900"
                       >
                         Book Details
                       </th>
                       <th className="p-3.5">Marketplace</th>
                       <th
                         onClick={() => handleSortToggle('units')}
-                        className="p-3.5 cursor-pointer hover:text-white text-right"
+                        className="p-3.5 cursor-pointer hover:text-slate-900 text-right"
                       >
                         Units
                       </th>
                       <th
                         onClick={() => handleSortToggle('royalties')}
-                        className="p-3.5 cursor-pointer hover:text-white text-right"
+                        className="p-3.5 cursor-pointer hover:text-slate-900 text-right"
                       >
                         Royalties
                       </th>
                       <th
                         onClick={() => handleSortToggle('bsr')}
-                        className="p-3.5 cursor-pointer hover:text-white text-center"
+                        className="p-3.5 cursor-pointer hover:text-slate-900 text-center"
                       >
                         Avg BSR
                       </th>
@@ -746,7 +747,7 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
                       <th className="p-3.5 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/80">
+                  <tbody className="divide-y divide-slate-100">
                     {sortedBooks.map((b) => {
                       const sparkline = getBookSparkline(b.id);
 
@@ -853,15 +854,15 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
         {/* Right Column: AI Insights Panel (1 Col) */}
         <div className="space-y-6">
           {/* AI Insights Card */}
-          <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
+          <div className="p-6 rounded-3xl bg-white border border-purple-200/90 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-purple-950 border border-purple-800/60 text-purple-400 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center">
                   <Sparkles size={16} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">🤖 AI Insights</h3>
-                  <span className="text-[10px] text-slate-400">Gemini 2.0 Performance Strategist</span>
+                  <h3 className="text-sm font-bold text-slate-900">🤖 AI Insights</h3>
+                  <span className="text-[10px] text-slate-500">Gemini 2.0 Performance Strategist</span>
                 </div>
               </div>
 
@@ -869,7 +870,7 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
                 <button
                   onClick={() => fetchAIInsights(true)}
                   disabled={isLoadingInsights}
-                  className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
                   title="Refresh AI Insights"
                 >
                   <RefreshCw size={13} className={isLoadingInsights ? 'animate-spin' : ''} />
@@ -880,27 +881,27 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
             {isPro ? (
               isLoadingInsights ? (
                 <div className="space-y-3 py-4 animate-pulse">
-                  <div className="h-10 bg-slate-950 rounded-2xl" />
-                  <div className="h-20 bg-slate-950 rounded-2xl" />
-                  <div className="h-16 bg-slate-950 rounded-2xl" />
+                  <div className="h-10 bg-slate-100 rounded-2xl" />
+                  <div className="h-20 bg-slate-100 rounded-2xl" />
+                  <div className="h-16 bg-slate-100 rounded-2xl" />
                 </div>
               ) : insights ? (
                 <div className="space-y-4 text-xs">
                   {/* Health Score Indicator */}
-                  <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-slate-400">Catalog Health</span>
-                      <p className="text-xs text-slate-300 mt-0.5">{insights.healthReason}</p>
+                      <span className="text-[10px] uppercase font-bold text-slate-500">Catalog Health</span>
+                      <p className="text-xs text-slate-700 mt-0.5">{insights.healthReason}</p>
                     </div>
                     <span
                       className={`px-2.5 py-1 rounded-full font-bold uppercase text-[10px] shrink-0 border ${
                         insights.overallHealth === 'excellent'
-                          ? 'bg-emerald-950 text-emerald-400 border-emerald-800'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                           : insights.overallHealth === 'good'
-                          ? 'bg-blue-950 text-blue-400 border-blue-800'
+                          ? 'bg-blue-50 text-blue-700 border-blue-200'
                           : insights.overallHealth === 'fair'
-                          ? 'bg-amber-950 text-amber-400 border-amber-800'
-                          : 'bg-rose-950 text-rose-400 border-rose-800'
+                          ? 'bg-amber-50 text-amber-700 border-amber-200'
+                          : 'bg-rose-50 text-rose-700 border-rose-200'
                       }`}
                     >
                       {insights.overallHealth}
@@ -908,12 +909,12 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
                   </div>
 
                   {/* Biggest Opportunity Highlight Box */}
-                  <div className="p-3.5 rounded-2xl bg-purple-950/40 border border-purple-800/60 space-y-1">
-                    <div className="flex items-center gap-1.5 text-purple-300 font-bold">
-                      <Sparkles size={13} className="text-purple-400" />
+                  <div className="p-3.5 rounded-2xl bg-purple-50/70 border border-purple-200/80 space-y-1">
+                    <div className="flex items-center gap-1.5 text-purple-800 font-bold">
+                      <Sparkles size={13} className="text-purple-600" />
                       <span>Top Growth Opportunity</span>
                     </div>
-                    <p className="text-slate-200 leading-relaxed text-[11px]">
+                    <p className="text-slate-700 leading-relaxed text-[11px]">
                       {insights.biggestOpportunity}
                     </p>
                   </div>

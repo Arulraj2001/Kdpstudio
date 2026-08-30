@@ -440,25 +440,25 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
   }, [savedNiches, savedFilter]);
 
   const getScoreBadgeColor = (score: number) => {
-    if (score >= 70) return 'text-emerald-400 bg-emerald-950/80 border-emerald-600/60';
-    if (score >= 40) return 'text-amber-400 bg-amber-950/80 border-amber-600/60';
-    return 'text-rose-400 bg-rose-950/80 border-rose-600/60';
+    if (score >= 70) return 'text-emerald-700 bg-emerald-50 border-emerald-200';
+    if (score >= 40) return 'text-amber-700 bg-amber-50 border-amber-200';
+    return 'text-rose-700 bg-rose-50 border-rose-200';
   };
 
   const getDifficultyColor = (diff: string) => {
     switch (diff) {
       case 'very-easy':
       case 'easy':
-        return 'text-emerald-400 bg-emerald-950/50 border-emerald-700/50';
+        return 'text-emerald-700 bg-emerald-50 border-emerald-200';
       case 'medium':
-        return 'text-amber-400 bg-amber-950/50 border-amber-700/50';
+        return 'text-amber-700 bg-amber-50 border-amber-200';
       default:
-        return 'text-rose-400 bg-rose-950/50 border-rose-700/50';
+        return 'text-rose-700 bg-rose-50 border-rose-200';
     }
   };
 
   return (
-    <div className="min-h-screen pb-16 text-slate-100">
+    <div className="min-h-screen pb-16 text-slate-900">
       {/* PLAN GATE BANNER */}
       {!isPro && (
         <div className="mb-8 rounded-2xl bg-gradient-to-r from-purple-900/90 via-indigo-900/90 to-purple-950/90 border border-purple-500/40 p-6 md:p-8 shadow-2xl relative overflow-hidden">
@@ -518,17 +518,17 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-900/40">
+            <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-900/30">
               <Search size={22} className="stroke-[2.5]" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
                 AI Niche Research
-                <span className="text-xs px-2 py-0.5 rounded-full bg-purple-900/60 border border-purple-500/40 text-purple-300 font-semibold uppercase">
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-purple-700 font-bold uppercase">
                   Pro Engine
                 </span>
               </h1>
-              <p className="text-xs md:text-sm text-slate-400">
+              <p className="text-xs md:text-sm text-slate-500">
                 Discover high-demand, low-competition Amazon KDP book niches with real-time web grounding.
               </p>
             </div>
@@ -538,9 +538,9 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
         <div className="flex items-center gap-2 self-start md:self-auto">
           <button
             onClick={() => onNavigate('research-saved')}
-            className="px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/80 text-slate-200 text-xs font-semibold transition-colors flex items-center gap-2 cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer"
           >
-            <Star size={14} className="text-amber-400 fill-amber-400/20" />
+            <Star size={15} className="text-amber-500 fill-amber-500" />
             <span>Manage Saved Niches ({savedNiches.length})</span>
           </button>
         </div>
@@ -553,8 +553,8 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
         <div className="lg:col-span-8 space-y-6">
           
           {/* SECTION 1: SEARCH BAR CARD */}
-          <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 md:p-6 shadow-xl backdrop-blur-md">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-purple-300 mb-2">
+          <div className="rounded-3xl bg-white border border-slate-200/90 p-5 md:p-6 shadow-xs">
+            <label className="block text-xs font-bold uppercase tracking-wider text-purple-700 mb-2">
               Market Intelligence Search
             </label>
 
@@ -566,18 +566,18 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
                 onChange={(e) => setQueryText(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
                 placeholder="Search any niche... e.g. 'anxiety journals', 'keto recipes', 'kids mindfulness'"
-                className="w-full pl-12 pr-4 py-3.5 bg-slate-950/80 border border-slate-700/90 rounded-xl text-white placeholder-slate-500 focus:outline-hidden focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 text-sm md:text-base font-medium shadow-inner transition-all"
+                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-purple-500 focus:bg-white focus:ring-2 focus:ring-purple-500/20 text-sm md:text-base font-medium shadow-xs transition-all"
               />
             </div>
 
             {/* Filters Row */}
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-[11px] font-medium text-slate-400 mb-1">Category Filter</label>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Category Filter</label>
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value as any)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 focus:outline-hidden focus:border-purple-500"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-hidden focus:border-purple-500 focus:bg-white"
                 >
                   <option value="all">All Categories</option>
                   {NICHE_CATEGORIES.map((c) => (
@@ -589,11 +589,11 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium text-slate-400 mb-1">Amazon Marketplace</label>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Amazon Marketplace</label>
                 <select
                   value={targetMarket}
                   onChange={(e) => setTargetMarket(e.target.value as any)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 focus:outline-hidden focus:border-purple-500"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-hidden focus:border-purple-500 focus:bg-white"
                 >
                   {MARKETPLACES.map((m) => (
                     <option key={m.id} value={m.id}>
@@ -604,17 +604,17 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium text-slate-400 mb-1">Depth & Speed</label>
-                <div className="flex items-center gap-1.5 p-1 bg-slate-950 border border-slate-800 rounded-lg">
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Depth & Speed</label>
+                <div className="flex items-center gap-1.5 p-1 bg-slate-100 border border-slate-200 rounded-xl">
                   {[3, 5, 10].map((num) => (
                     <button
                       key={num}
                       type="button"
                       onClick={() => setResultCount(num)}
-                      className={`flex-1 py-1 rounded text-[11px] font-semibold transition-all cursor-pointer ${
+                      className={`flex-1 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                         resultCount === num
                           ? 'bg-purple-600 text-white shadow-xs'
-                          : 'text-slate-400 hover:text-slate-200'
+                          : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
                       {num} {num === 3 ? '(fast)' : ''}
@@ -646,9 +646,9 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
             </div>
 
             {/* Quick Score Section */}
-            <div className="mt-5 pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-xs text-amber-300 font-medium shrink-0">
-                <Zap size={15} className="text-amber-400 fill-amber-400" />
+            <div className="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-xs text-amber-800 font-bold shrink-0">
+                <Zap size={15} className="text-amber-500 fill-amber-500" />
                 <span>Instant Quick Score:</span>
               </div>
               <div className="flex items-center gap-2 flex-1 max-w-md">
@@ -658,12 +658,12 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
                   onChange={(e) => setQuickInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleQuickScore()}
                   placeholder="Type specific niche... e.g. 'nursing pharmacology flashcards'"
-                  className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 placeholder-slate-600 focus:outline-hidden focus:border-amber-500"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-amber-500 focus:bg-white"
                 />
                 <button
                   onClick={handleQuickScore}
                   disabled={isQuickLoading || !quickInput.trim()}
-                  className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-xs font-semibold shrink-0 transition-colors disabled:opacity-40 cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shrink-0 transition-colors disabled:opacity-40 cursor-pointer shadow-xs"
                 >
                   {isQuickLoading ? 'Scoring...' : 'Score'}
                 </button>
@@ -672,46 +672,46 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
 
             {/* Inline Quick Score Card Result */}
             {quickResult && (
-              <div className="mt-4 p-4 rounded-xl bg-slate-950 border border-amber-500/40 shadow-md">
+              <div className="mt-4 p-4 rounded-2xl bg-amber-50/70 border border-amber-200 shadow-xs">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold uppercase">
+                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-200/80 text-amber-900 font-bold uppercase">
                         Quick Evaluation
                       </span>
-                      <h4 className="text-sm font-bold text-white">{quickResult.nicheTitle}</h4>
+                      <h4 className="text-sm font-bold text-slate-900">{quickResult.nicheTitle}</h4>
                     </div>
-                    <p className="mt-1 text-xs text-slate-300">{quickResult.verdict}</p>
+                    <p className="mt-1 text-xs text-slate-600">{quickResult.verdict}</p>
                   </div>
-                  <div className={`px-3 py-1.5 rounded-xl border text-center font-bold ${getScoreBadgeColor(quickResult.opportunityScore)}`}>
+                  <div className={`px-3 py-1.5 rounded-2xl border text-center font-bold ${getScoreBadgeColor(quickResult.opportunityScore)}`}>
                     <div className="text-base leading-none">{quickResult.opportunityScore}</div>
-                    <div className="text-[9px] uppercase tracking-wider text-slate-400">/ 100</div>
+                    <div className="text-[9px] uppercase tracking-wider text-slate-500">/ 100</div>
                   </div>
                 </div>
 
                 <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-                  <div className="p-2 rounded bg-slate-900/80 border border-slate-800 text-slate-300">
-                    <span className="text-slate-500 block">Demand:</span>
-                    <span className="font-semibold text-slate-200">{quickResult.demandScore}/100</span>
+                  <div className="p-2.5 rounded-xl bg-white border border-amber-200/60 text-slate-800">
+                    <span className="text-slate-500 block text-[10px]">Demand:</span>
+                    <span className="font-bold text-slate-900">{quickResult.demandScore}/100</span>
                   </div>
-                  <div className="p-2 rounded bg-slate-900/80 border border-slate-800 text-slate-300">
-                    <span className="text-slate-500 block">Competition:</span>
-                    <span className="font-semibold text-slate-200">{quickResult.competitionScore}/100</span>
+                  <div className="p-2.5 rounded-xl bg-white border border-amber-200/60 text-slate-800">
+                    <span className="text-slate-500 block text-[10px]">Competition:</span>
+                    <span className="font-bold text-slate-900">{quickResult.competitionScore}/100</span>
                   </div>
-                  <div className="p-2 rounded bg-slate-900/80 border border-slate-800 text-slate-300">
-                    <span className="text-slate-500 block">Difficulty:</span>
-                    <span className="font-semibold capitalize text-slate-200">{quickResult.difficulty}</span>
+                  <div className="p-2.5 rounded-xl bg-white border border-amber-200/60 text-slate-800">
+                    <span className="text-slate-500 block text-[10px]">Difficulty:</span>
+                    <span className="font-bold capitalize text-slate-900">{quickResult.difficulty}</span>
                   </div>
-                  <div className="p-2 rounded bg-slate-900/80 border border-slate-800 text-slate-300">
-                    <span className="text-slate-500 block">Est. Sales:</span>
-                    <span className="font-semibold text-slate-200">{quickResult.estimatedMonthlySales}</span>
+                  <div className="p-2.5 rounded-xl bg-white border border-amber-200/60 text-slate-800">
+                    <span className="text-slate-500 block text-[10px]">Est. Sales:</span>
+                    <span className="font-bold text-slate-900">{quickResult.estimatedMonthlySales}</span>
                   </div>
                 </div>
 
                 <div className="mt-3 flex items-center justify-end gap-2">
                   <button
                     onClick={() => handleSaveNiche(quickResult)}
-                    className="px-3 py-1 text-xs font-semibold rounded bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer"
+                    className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 transition-colors cursor-pointer"
                   >
                     ⭐ Save
                   </button>
@@ -721,7 +721,7 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
                         setSelectedIdeaModal({ niche: quickResult, idea: quickResult.bookIdeas[0] });
                       }
                     }}
-                    className="px-3 py-1 text-xs font-semibold rounded bg-purple-600 hover:bg-purple-500 text-white transition-colors cursor-pointer"
+                    className="px-3.5 py-1.5 text-xs font-bold rounded-xl bg-purple-600 hover:bg-purple-700 text-white shadow-xs transition-colors cursor-pointer"
                   >
                     🚀 Start Book
                   </button>
@@ -732,18 +732,18 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
 
           {/* SECTION 2: TRENDING NICHES */}
           {!results.length && !isLoading && trendingNiches.length > 0 && (
-            <div className="rounded-2xl bg-slate-900/80 border border-slate-800 p-5 md:p-6 shadow-xl backdrop-blur-md">
+            <div className="rounded-3xl bg-white border border-slate-200/90 p-5 md:p-6 shadow-xs">
               <div className="flex items-center justify-between gap-2 mb-3">
                 <div>
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
-                    <Flame size={18} className="text-orange-400 fill-orange-400/30" />
+                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <Flame size={18} className="text-orange-500 fill-orange-500/30" />
                     Trending Right Now on Amazon KDP
                   </h3>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-500">
                     Updated daily · Based on Amazon bestseller algorithms and buyer search trends
                   </p>
                 </div>
-                <span className="text-[11px] text-slate-500 hidden sm:inline">
+                <span className="text-[11px] text-slate-400 hidden sm:inline">
                   {trendingUpdatedAt ? `Updated ${new Date(trendingUpdatedAt).toLocaleDateString()}` : 'Live cache'}
                 </span>
               </div>
@@ -753,11 +753,11 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
                   const isRising = chip.trendDirection === 'rising';
                   const isHigh = chip.opportunityScore >= 85;
 
-                  let badgeColor = 'bg-slate-950 border-slate-800 text-slate-300 hover:border-purple-500';
+                  let badgeColor = 'bg-slate-50 border-slate-200 text-slate-800 hover:border-purple-300 hover:bg-purple-50/50';
                   if (chip.badgeText?.includes('Hot') || isHigh) {
-                    badgeColor = 'bg-orange-950/40 border-orange-700/60 text-orange-200 hover:bg-orange-900/60';
+                    badgeColor = 'bg-orange-50 border-orange-200 text-orange-900 hover:bg-orange-100';
                   } else if (isRising) {
-                    badgeColor = 'bg-emerald-950/40 border-emerald-700/60 text-emerald-200 hover:bg-emerald-900/60';
+                    badgeColor = 'bg-emerald-50 border-emerald-200 text-emerald-900 hover:bg-emerald-100';
                   }
 
                   return (
@@ -768,11 +768,11 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
                         setSelectedCategory(chip.category || 'all');
                         handleAnalyze(chip.title, chip.category);
                       }}
-                      className={`px-3 py-2 rounded-xl border text-xs font-medium transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-2 text-left group shadow-xs cursor-pointer ${badgeColor}`}
+                      className={`px-3 py-2 rounded-xl border text-xs font-semibold transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-2 text-left group shadow-2xs cursor-pointer ${badgeColor}`}
                     >
                       <span className="font-bold">{chip.badgeText || (isRising ? '📈' : '🔥')}</span>
-                      <span className="font-semibold">{chip.title}</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/40 font-mono text-slate-300">
+                      <span className="font-bold">{chip.title}</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white border border-slate-200 font-mono text-slate-700">
                         {chip.opportunityScore}/100
                       </span>
                     </button>
@@ -785,12 +785,12 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
           {/* SECTION 3: LOADING STATE */}
           {isLoading && (
             <div className="space-y-4">
-              <div className="p-8 rounded-2xl bg-slate-900/90 border border-purple-500/30 text-center shadow-xl backdrop-blur-md">
-                <div className="w-12 h-12 border-3 border-purple-500/30 border-t-purple-400 rounded-full animate-spin mx-auto mb-4" />
-                <h3 className="text-base font-bold text-white tracking-wide">
+              <div className="p-8 rounded-3xl bg-white border border-purple-200 text-center shadow-xs">
+                <div className="w-12 h-12 border-3 border-purple-500/30 border-t-purple-600 rounded-full animate-spin mx-auto mb-4" />
+                <h3 className="text-base font-bold text-slate-900 tracking-wide">
                   Grounding Market Intelligence
                 </h3>
-                <p className="text-sm text-purple-300 font-medium mt-1 animate-pulse">
+                <p className="text-sm text-purple-700 font-semibold mt-1 animate-pulse">
                   {LOADING_STEPS[loadingStepIndex]}
                 </p>
                 <p className="text-xs text-slate-500 mt-3 max-w-md mx-auto">
@@ -799,14 +799,14 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
               </div>
 
               {[1, 2, 3].map((i) => (
-                <div key={i} className="p-6 rounded-2xl bg-slate-900/40 border border-slate-800 animate-pulse space-y-4">
-                  <div className="h-5 bg-slate-800 rounded w-1/3" />
-                  <div className="h-4 bg-slate-800/60 rounded w-3/4" />
+                <div key={i} className="p-6 rounded-3xl bg-white border border-slate-200 animate-pulse space-y-4 shadow-xs">
+                  <div className="h-5 bg-slate-200 rounded w-1/3" />
+                  <div className="h-4 bg-slate-100 rounded w-3/4" />
                   <div className="grid grid-cols-4 gap-2 pt-2">
-                    <div className="h-8 bg-slate-800/40 rounded" />
-                    <div className="h-8 bg-slate-800/40 rounded" />
-                    <div className="h-8 bg-slate-800/40 rounded" />
-                    <div className="h-8 bg-slate-800/40 rounded" />
+                    <div className="h-8 bg-slate-100 rounded" />
+                    <div className="h-8 bg-slate-100 rounded" />
+                    <div className="h-8 bg-slate-100 rounded" />
+                    <div className="h-8 bg-slate-100 rounded" />
                   </div>
                 </div>
               ))}
@@ -816,25 +816,25 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
           {/* SECTION 4: RESULTS DISPLAY */}
           {!isLoading && results.length > 0 && (
             <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
                 <div>
-                  <h3 className="text-sm font-bold text-white">
+                  <h3 className="text-sm font-bold text-slate-900">
                     {results.length} niches analyzed for "{activeQuery}"
                   </h3>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-500">
                     Calculated using Google Search market grounding on {targetMarket.toUpperCase()}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-slate-400 font-medium hidden md:inline">Sort by:</span>
-                  <div className="flex items-center gap-1 p-1 bg-slate-950 rounded-lg border border-slate-800 text-xs">
+                  <span className="text-[11px] text-slate-500 font-semibold hidden md:inline">Sort by:</span>
+                  <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs">
                     {(['opportunity', 'demand', 'competition', 'profit'] as const).map((tab) => (
                       <button
                         key={tab}
                         onClick={() => setSortBy(tab)}
-                        className={`px-2.5 py-1 rounded text-[11px] font-semibold capitalize transition-all cursor-pointer ${
-                          sortBy === tab ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold capitalize transition-all cursor-pointer ${
+                          sortBy === tab ? 'bg-white text-purple-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
                         }`}
                       >
                         {tab === 'competition' ? 'Low Comp' : tab}
@@ -844,7 +844,7 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
 
                   <button
                     onClick={handleSaveAllResults}
-                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors shrink-0 cursor-pointer"
+                    className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition-colors shrink-0 cursor-pointer"
                   >
                     Save All
                   </button>
@@ -858,58 +858,58 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
                 return (
                   <div
                     key={niche.id}
-                    className="rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-slate-700/80 p-5 md:p-6 shadow-xl transition-all relative overflow-hidden group"
+                    className="rounded-3xl bg-white border border-slate-200/90 hover:border-purple-300 p-5 md:p-6 shadow-xs hover:shadow-md transition-all relative overflow-hidden group"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                          <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-purple-950/80 border border-purple-700/60 text-purple-300 capitalize">
+                          <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-purple-700 capitalize">
                             {niche.category?.replace('-', ' ')}
                           </span>
-                          <span className="text-[11px] text-slate-400">
+                          <span className="text-[11px] text-slate-500 font-medium">
                             • {niche.subcategory}
                           </span>
-                          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded border capitalize ${getDifficultyColor(niche.difficulty)}`}>
+                          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md border capitalize ${getDifficultyColor(niche.difficulty)}`}>
                             {niche.difficulty} to rank
                           </span>
                         </div>
 
                         <h3
                           onClick={() => onSelectNicheDetail && onSelectNicheDetail(niche)}
-                          className="text-lg md:text-xl font-extrabold text-white tracking-tight hover:text-purple-300 transition-colors cursor-pointer"
+                          className="text-lg md:text-xl font-extrabold text-slate-900 tracking-tight hover:text-purple-700 transition-colors cursor-pointer"
                         >
                           {niche.nicheTitle}
                         </h3>
 
-                        <p className="mt-2 text-xs md:text-sm text-slate-300 leading-relaxed">
+                        <p className="mt-2 text-xs md:text-sm text-slate-600 leading-relaxed">
                           {niche.description}
                         </p>
                       </div>
 
-                      <div className={`px-4 py-2.5 rounded-2xl border text-center shrink-0 shadow-lg ${getScoreBadgeColor(niche.opportunityScore)}`}>
-                        <div className="text-xs uppercase font-bold tracking-wider text-slate-400">Score</div>
+                      <div className={`px-4 py-2.5 rounded-2xl border text-center shrink-0 shadow-xs ${getScoreBadgeColor(niche.opportunityScore)}`}>
+                        <div className="text-xs uppercase font-bold tracking-wider opacity-70">Score</div>
                         <div className="text-2xl md:text-3xl font-extrabold leading-tight">{niche.opportunityScore}</div>
-                        <div className="text-[10px] text-slate-400 font-mono">/100</div>
+                        <div className="text-[10px] opacity-70 font-mono">/100</div>
                       </div>
                     </div>
 
-                    <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl bg-slate-950/80 border border-slate-800/80">
+                    <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
                       <div>
-                        <div className="flex items-center justify-between text-[11px] font-medium text-slate-400 mb-1">
+                        <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600 mb-1">
                           <span>Demand</span>
-                          <span className="text-slate-200 font-bold">{niche.demandScore}</span>
+                          <span className="text-slate-900 font-bold">{niche.demandScore}</span>
                         </div>
-                        <div className="h-1.5 rounded-full bg-slate-800 overflow-hidden">
-                          <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${niche.demandScore}%` }} />
+                        <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
+                          <div className="h-full bg-indigo-600 rounded-full" style={{ width: `${niche.demandScore}%` }} />
                         </div>
                       </div>
 
                       <div>
-                        <div className="flex items-center justify-between text-[11px] font-medium text-slate-400 mb-1">
+                        <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600 mb-1">
                           <span>Competition</span>
-                          <span className="text-slate-200 font-bold">{niche.competitionScore}</span>
+                          <span className="text-slate-900 font-bold">{niche.competitionScore}</span>
                         </div>
-                        <div className="h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                        <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
                           <div
                             className={`h-full rounded-full ${niche.competitionScore > 60 ? 'bg-rose-500' : 'bg-emerald-500'}`}
                             style={{ width: `${niche.competitionScore}%` }}
@@ -918,50 +918,50 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
                       </div>
 
                       <div>
-                        <div className="flex items-center justify-between text-[11px] font-medium text-slate-400 mb-1">
+                        <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600 mb-1">
                           <span>Profit Potential</span>
-                          <span className="text-slate-200 font-bold">{niche.profitScore}</span>
+                          <span className="text-slate-900 font-bold">{niche.profitScore}</span>
                         </div>
-                        <div className="h-1.5 rounded-full bg-slate-800 overflow-hidden">
-                          <div className="h-full bg-purple-500 rounded-full" style={{ width: `${niche.profitScore}%` }} />
+                        <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
+                          <div className="h-full bg-purple-600 rounded-full" style={{ width: `${niche.profitScore}%` }} />
                         </div>
                       </div>
 
                       <div>
-                        <div className="flex items-center justify-between text-[11px] font-medium text-slate-400 mb-1">
+                        <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600 mb-1">
                           <span>Trend Velocity</span>
-                          <span className="text-slate-200 font-bold">{niche.trendScore}</span>
+                          <span className="text-slate-900 font-bold">{niche.trendScore}</span>
                         </div>
-                        <div className="h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                        <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
                           <div className="h-full bg-amber-500 rounded-full" style={{ width: `${niche.trendScore}%` }} />
                         </div>
                       </div>
                     </div>
 
                     <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-                      <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
-                        <span className="text-slate-500 block text-[10px] uppercase font-semibold">📦 Est. Monthly Sales</span>
-                        <span className="font-bold text-slate-200 mt-0.5 block truncate">{niche.estimatedMonthlySales}</span>
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <span className="text-slate-500 block text-[10px] uppercase font-bold">📦 Est. Monthly Sales</span>
+                        <span className="font-bold text-slate-900 mt-0.5 block truncate">{niche.estimatedMonthlySales}</span>
                       </div>
-                      <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
-                        <span className="text-slate-500 block text-[10px] uppercase font-semibold">💰 Avg. Price</span>
-                        <span className="font-bold text-slate-200 mt-0.5 block">{niche.averagePrice}</span>
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <span className="text-slate-500 block text-[10px] uppercase font-bold">💰 Avg. Price</span>
+                        <span className="font-bold text-slate-900 mt-0.5 block">{niche.averagePrice}</span>
                       </div>
-                      <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
-                        <span className="text-slate-500 block text-[10px] uppercase font-semibold">📚 Competition</span>
-                        <span className="font-bold text-slate-200 mt-0.5 block truncate">{niche.topCompetitorStrength} ({niche.competitorCount})</span>
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <span className="text-slate-500 block text-[10px] uppercase font-bold">📚 Competition</span>
+                        <span className="font-bold text-slate-900 mt-0.5 block truncate">{niche.topCompetitorStrength} ({niche.competitorCount})</span>
                       </div>
-                      <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
-                        <span className="text-slate-500 block text-[10px] uppercase font-semibold">📈 Trend</span>
-                        <span className="font-bold text-emerald-400 mt-0.5 block capitalize truncate">
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <span className="text-slate-500 block text-[10px] uppercase font-bold">📈 Trend</span>
+                        <span className="font-bold text-emerald-600 mt-0.5 block capitalize truncate">
                           {niche.trend} ↗
                         </span>
                       </div>
                     </div>
 
                     {niche.marketGap && (
-                      <div className="mt-3.5 p-3 rounded-xl bg-blue-950/30 border border-blue-800/40 text-xs text-blue-200 flex items-start gap-2">
-                        <span className="text-blue-400 font-bold shrink-0">🎯 Market Gap:</span>
+                      <div className="mt-3.5 p-3 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-900 flex items-start gap-2">
+                        <span className="text-blue-700 font-bold shrink-0">🎯 Market Gap:</span>
                         <span>{niche.marketGap}</span>
                       </div>
                     )}
@@ -969,16 +969,16 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
                     <div className="mt-3.5 grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
                       <div className="space-y-1">
                         {niche.pros?.slice(0, 2).map((pro, pIdx) => (
-                          <div key={pIdx} className="flex items-center gap-1.5 text-emerald-300">
-                            <CheckCircle2 size={13} className="shrink-0 text-emerald-400" />
+                          <div key={pIdx} className="flex items-center gap-1.5 text-emerald-700 font-medium">
+                            <CheckCircle2 size={13} className="shrink-0 text-emerald-600" />
                             <span>{pro}</span>
                           </div>
                         ))}
                       </div>
                       <div className="space-y-1">
                         {niche.cons?.slice(0, 1).map((con, cIdx) => (
-                          <div key={cIdx} className="flex items-center gap-1.5 text-amber-300">
-                            <AlertTriangle size={13} className="shrink-0 text-amber-400" />
+                          <div key={cIdx} className="flex items-center gap-1.5 text-amber-700 font-medium">
+                            <AlertTriangle size={13} className="shrink-0 text-amber-600" />
                             <span>{con}</span>
                           </div>
                         ))}
@@ -986,21 +986,21 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
                     </div>
 
                     {niche.verdict && (
-                      <div className="mt-4 p-3 rounded-xl bg-purple-950/20 border-l-4 border-purple-500 text-xs text-purple-200 italic">
+                      <div className="mt-4 p-3 rounded-xl bg-purple-50 border-l-4 border-purple-500 text-xs text-purple-900 italic font-medium">
                         "{niche.verdict}"
                       </div>
                     )}
 
-                    <div className="mt-3 text-[10px] text-slate-500 italic">
+                    <div className="mt-3 text-[10px] text-slate-400 italic">
                       * Estimates based on AI analysis of market patterns. Not guaranteed sales data.
                     </div>
 
-                    <div className="mt-4 pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+                    <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
                       <button
                         onClick={() =>
                           setExpandedIdeas((prev) => ({ ...prev, [niche.id]: !prev[niche.id] }))
                         }
-                        className="text-xs text-purple-400 hover:text-purple-300 font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                        className="text-xs text-purple-700 hover:text-purple-900 font-bold flex items-center gap-1 transition-colors cursor-pointer"
                       >
                         {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                         <span>{isExpanded ? 'Hide Book Ideas' : `See ${niche.bookIdeas?.length || 3} Book Ideas`}</span>
@@ -1010,7 +1010,7 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
                         {onSelectNicheDetail && (
                           <button
                             onClick={() => onSelectNicheDetail(niche)}
-                            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
+                            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
                           >
                             <span>Full Report</span>
                             <ExternalLink size={12} />
@@ -1019,13 +1019,13 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
 
                         <button
                           onClick={() => handleSaveNiche(niche)}
-                          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer ${
+                          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer ${
                             isSaved
-                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                              : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
+                              ? 'bg-amber-50 text-amber-800 border border-amber-300'
+                              : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-2xs'
                           }`}
                         >
-                          <Star size={13} className={isSaved ? 'fill-amber-400 text-amber-400' : ''} />
+                          <Star size={13} className={isSaved ? 'fill-amber-500 text-amber-500' : ''} />
                           <span>{isSaved ? 'Saved ⭐' : 'Save'}</span>
                         </button>
 
@@ -1035,7 +1035,7 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
                               setSelectedIdeaModal({ niche, idea: niche.bookIdeas[0] });
                             }
                           }}
-                          className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold shadow-md shadow-purple-950/40 transition-all flex items-center gap-1.5 cursor-pointer"
+                          className="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                         >
                           <span>🚀 Start Book</span>
                         </button>
@@ -1097,27 +1097,27 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
         <div className="lg:col-span-4 space-y-6">
           
           {/* SAVED NICHES CARD */}
-          <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 shadow-xl backdrop-blur-md">
+          <div className="rounded-3xl bg-white border border-slate-200/90 p-5 shadow-xs">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Star size={16} className="text-amber-400 fill-amber-400" />
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Star size={16} className="text-amber-500 fill-amber-500" />
                 Saved Niches ({savedNiches.length})
               </h3>
               <button
                 onClick={() => onNavigate('research-saved')}
-                className="text-[11px] text-purple-400 hover:text-purple-300 font-semibold cursor-pointer"
+                className="text-[11px] text-purple-700 hover:text-purple-900 font-bold cursor-pointer"
               >
                 View All →
               </button>
             </div>
 
-            <div className="flex items-center gap-1 p-1 bg-slate-950 rounded-lg border border-slate-800 text-[10px] mb-3 overflow-x-auto">
+            <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 text-[10px] mb-3 overflow-x-auto">
               {(['all', 'considering', 'writing', 'published'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setSavedFilter(tab)}
-                  className={`px-2 py-1 rounded font-semibold capitalize whitespace-nowrap transition-all cursor-pointer ${
-                    savedFilter === tab ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                  className={`px-2.5 py-1 rounded-lg font-bold capitalize whitespace-nowrap transition-all cursor-pointer ${
+                    savedFilter === tab ? 'bg-white text-purple-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   {tab}
@@ -1126,9 +1126,9 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
             </div>
 
             {filteredSavedNiches.length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-500">
-                <Star size={24} className="mx-auto mb-2 opacity-30" />
-                <p>No saved niches in this category.</p>
+              <div className="py-8 text-center text-xs text-slate-400">
+                <Star size={24} className="mx-auto mb-2 opacity-30 text-slate-400" />
+                <p className="font-medium text-slate-600">No saved niches in this category.</p>
                 <p className="mt-1 text-[11px]">Star any result card to save it here.</p>
               </div>
             ) : (
@@ -1137,28 +1137,28 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
                   <div
                     key={item.id}
                     onClick={() => onSelectNicheDetail && onSelectNicheDetail(item.nicheResult, item.id)}
-                    className="p-3 rounded-xl bg-slate-950/90 border border-slate-800/90 hover:border-purple-500/40 transition-all cursor-pointer group"
+                    className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-purple-300 hover:bg-purple-50/20 transition-all cursor-pointer group shadow-2xs"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <h5 className="text-xs font-bold text-white group-hover:text-purple-300 truncate">
+                        <h5 className="text-xs font-bold text-slate-900 group-hover:text-purple-700 truncate">
                           {item.nicheResult?.nicheTitle}
                         </h5>
-                        <p className="text-[10px] text-slate-400 capitalize">
+                        <p className="text-[10px] text-slate-500 capitalize">
                           {item.nicheResult?.category?.replace('-', ' ')}
                         </p>
                       </div>
 
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${getScoreBadgeColor(item.nicheResult?.opportunityScore || 70)}`}>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border shrink-0 ${getScoreBadgeColor(item.nicheResult?.opportunityScore || 70)}`}>
                         {item.nicheResult?.opportunityScore}
                       </span>
                     </div>
 
-                    <div className="mt-2 flex items-center justify-between gap-2 pt-2 border-t border-slate-900">
+                    <div className="mt-2.5 flex items-center justify-between gap-2 pt-2 border-t border-slate-200/70">
                       <select
                         value={item.status}
                         onChange={(e) => handleUpdateStatus(item.id, e.target.value, e)}
-                        className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300 focus:outline-hidden"
+                        className="text-[10px] font-bold px-2 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 focus:outline-hidden"
                       >
                         <option value="considering">Considering</option>
                         <option value="researching">Researching</option>
@@ -1170,7 +1170,7 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
                       <div className="flex items-center gap-1">
                         <button
                           onClick={(e) => handleDeleteSavedNiche(item.id, e)}
-                          className="p-1 text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
+                          className="p-1 text-slate-400 hover:text-rose-500 transition-colors cursor-pointer"
                           title="Delete"
                         >
                           <Trash2 size={13} />
@@ -1184,16 +1184,16 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
           </div>
 
           {/* RECENT SEARCHES CARD */}
-          <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 shadow-xl backdrop-blur-md">
+          <div className="rounded-3xl bg-white border border-slate-200/90 p-5 shadow-xs">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <RotateCcw size={15} className="text-purple-400" />
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <RotateCcw size={15} className="text-purple-600" />
                 Recent Searches
               </h3>
             </div>
 
             {searchHistory.length === 0 ? (
-              <p className="text-xs text-slate-500 py-4 text-center">No recent searches yet.</p>
+              <p className="text-xs text-slate-400 py-4 text-center">No recent searches yet.</p>
             ) : (
               <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
                 {searchHistory.slice(0, 10).map((h) => (
@@ -1204,17 +1204,17 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
                       setSelectedCategory(h.category || 'all');
                       handleAnalyze(h.query, h.category);
                     }}
-                    className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-850 hover:border-purple-500/40 flex items-center justify-between gap-2 transition-colors cursor-pointer group"
+                    className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-purple-300 hover:bg-purple-50/20 flex items-center justify-between gap-2 transition-all cursor-pointer group"
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-slate-200 group-hover:text-purple-300 truncate">
+                      <p className="text-xs font-bold text-slate-800 group-hover:text-purple-700 truncate">
                         {h.query}
                       </p>
                       <p className="text-[10px] text-slate-500">
                         {h.results?.length || 0} niches found • {new Date(h.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <span className="text-[10px] font-semibold text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-[10px] font-bold text-purple-700 opacity-0 group-hover:opacity-100 transition-opacity">
                       Repeat →
                     </span>
                   </div>

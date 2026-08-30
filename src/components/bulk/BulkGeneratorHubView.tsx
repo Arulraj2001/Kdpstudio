@@ -136,16 +136,16 @@ export const BulkGeneratorHubView: React.FC<BulkGeneratorHubViewProps> = ({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'complete':
-        return 'bg-emerald-950/80 text-emerald-300 border-emerald-700/60';
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'running':
-        return 'bg-blue-950/80 text-blue-300 border-blue-700/60 animate-pulse';
+        return 'bg-blue-50 text-blue-700 border-blue-200 animate-pulse';
       case 'failed':
-        return 'bg-rose-950/80 text-rose-300 border-rose-700/60';
+        return 'bg-rose-50 text-rose-700 border-rose-200';
       case 'cancelled':
-        return 'bg-slate-900 text-slate-500 border-slate-800';
+        return 'bg-slate-100 text-slate-500 border-slate-200';
       case 'queued':
       default:
-        return 'bg-amber-950/80 text-amber-300 border-amber-700/60';
+        return 'bg-amber-50 text-amber-700 border-amber-200';
     }
   };
 
@@ -167,7 +167,7 @@ export const BulkGeneratorHubView: React.FC<BulkGeneratorHubViewProps> = ({
   };
 
   return (
-    <div className="max-w-6xl mx-auto pb-20 text-slate-100 space-y-8">
+    <div className="max-w-6xl mx-auto pb-20 text-slate-900 space-y-8">
       {/* ─────────────────────────────────────────────────────────────────── */}
       {/* PLAN GATE BANNER (FOR NON-AGENCY USERS) */}
       {/* ─────────────────────────────────────────────────────────────────── */}
@@ -232,17 +232,17 @@ export const BulkGeneratorHubView: React.FC<BulkGeneratorHubViewProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-gradient-to-tr from-amber-500 to-indigo-600 text-white shadow-md shadow-amber-900/30">
+            <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-amber-500 to-indigo-600 text-white shadow-md shadow-amber-900/30">
               <Layers size={22} className="stroke-[2.5]" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
                 Bulk Book Generator
-                <span className="text-xs px-2 py-0.5 rounded-full bg-amber-950/80 border border-amber-600/50 text-amber-300 font-semibold uppercase">
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 font-bold uppercase">
                   Agency
                 </span>
               </h1>
-              <p className="text-xs md:text-sm text-slate-400">
+              <p className="text-xs md:text-sm text-slate-500">
                 Automate multi-book catalog production from reusable variable templates.
               </p>
             </div>
@@ -263,24 +263,24 @@ export const BulkGeneratorHubView: React.FC<BulkGeneratorHubViewProps> = ({
       {/* ─────────────────────────────────────────────────────────────────── */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold text-white flex items-center gap-2">
+          <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
             <span>📋 My Templates</span>
-            <span className="text-xs text-slate-400 font-normal">({templates.length})</span>
+            <span className="text-xs text-slate-500 font-normal">({templates.length})</span>
           </h2>
         </div>
 
         {templates.length === 0 ? (
-          <div className="p-10 rounded-2xl bg-slate-900/50 border border-slate-800 text-center space-y-3">
-            <div className="w-14 h-14 rounded-2xl bg-slate-800/80 flex items-center justify-center mx-auto text-purple-400">
+          <div className="p-10 rounded-3xl bg-white border border-slate-200 text-center space-y-3 shadow-xs">
+            <div className="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center mx-auto text-purple-600">
               <Layers size={28} />
             </div>
-            <h3 className="text-base font-bold text-white">No bulk templates yet</h3>
-            <p className="text-xs text-slate-400 max-w-md mx-auto">
+            <h3 className="text-base font-bold text-slate-900">No bulk templates yet</h3>
+            <p className="text-xs text-slate-500 max-w-md mx-auto">
               A template defines the book structure (trim size, page layout). Dynamic variables define what changes between book variations (themes, titles, colors).
             </p>
             <button
               onClick={() => onNavigate('bulk-template-new')}
-              className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer inline-flex items-center gap-1.5"
+              className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer inline-flex items-center gap-1.5"
             >
               <Plus size={14} />
               <span>Create Your First Template</span>
@@ -298,30 +298,30 @@ export const BulkGeneratorHubView: React.FC<BulkGeneratorHubViewProps> = ({
                 <div
                   key={tpl.id}
                   onClick={() => onSelectTemplate(tpl.id)}
-                  className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-purple-500/50 transition-all flex flex-col justify-between cursor-pointer group shadow-lg"
+                  className="p-5 rounded-3xl bg-white border border-slate-200/90 hover:border-purple-300 transition-all flex flex-col justify-between cursor-pointer group shadow-xs hover:shadow-md"
                 >
                   <div>
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-lg bg-slate-950 border border-slate-800">
+                        <div className="p-2 rounded-xl bg-slate-50 border border-slate-200">
                           {getBookTypeIcon(tpl.bookType)}
                         </div>
-                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-purple-950/80 border border-purple-700/60 text-purple-300 capitalize">
+                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-purple-700 capitalize">
                           {meta.label}
                         </span>
                       </div>
 
-                      <span className="text-xs px-2.5 py-0.5 rounded-lg bg-slate-950 border border-slate-800 font-bold text-slate-200">
+                      <span className="text-xs px-2.5 py-0.5 rounded-lg bg-slate-100 border border-slate-200 font-bold text-slate-800">
                         {tpl.variationCount} variations
                       </span>
                     </div>
 
-                    <h3 className="text-base font-bold text-white group-hover:text-purple-300 transition-colors mt-2">
+                    <h3 className="text-base font-bold text-slate-900 group-hover:text-purple-700 transition-colors mt-2">
                       {tpl.name}
                     </h3>
 
                     {tpl.description && (
-                      <p className="text-xs text-slate-400 mt-1 line-clamp-2">{tpl.description}</p>
+                      <p className="text-xs text-slate-500 mt-1 line-clamp-2">{tpl.description}</p>
                     )}
 
                     {/* Variable Chips */}
@@ -330,7 +330,7 @@ export const BulkGeneratorHubView: React.FC<BulkGeneratorHubViewProps> = ({
                       {tpl.variables?.map((v) => (
                         <span
                           key={v.id}
-                          className="px-2 py-0.5 rounded bg-slate-950 border border-slate-850 text-[10px] text-slate-300 font-mono"
+                          className="px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200 text-[10px] text-slate-700 font-mono font-semibold"
                         >
                           {v.type === 'color' ? '🎨' : v.type === 'ai-generate' ? '🤖' : '🔤'} {v.name}
                         </span>
@@ -338,15 +338,15 @@ export const BulkGeneratorHubView: React.FC<BulkGeneratorHubViewProps> = ({
                     </div>
                   </div>
 
-                  <div className="mt-5 pt-3 border-t border-slate-850 flex items-center justify-between gap-2">
-                    <span className="text-[10px] text-slate-500">
+                  <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <span className="text-[10px] text-slate-400">
                       Updated {new Date(tpl.updatedAt).toLocaleDateString()}
                     </span>
 
                     <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                       <button
                         onClick={() => onEditTemplate(tpl.id)}
-                        className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer"
                         title="Edit Template"
                       >
                         <Edit2 size={12} />
@@ -356,7 +356,7 @@ export const BulkGeneratorHubView: React.FC<BulkGeneratorHubViewProps> = ({
                       <button
                         onClick={() => handleRunBatch(tpl)}
                         disabled={runningBatchId === tpl.id}
-                        className="px-3 py-1 rounded bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1 cursor-pointer"
+                        className="px-3 py-1 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer"
                       >
                         <Play size={12} className="fill-white" />
                         <span>{runningBatchId === tpl.id ? 'Queuing...' : 'Run Batch'}</span>
@@ -364,7 +364,7 @@ export const BulkGeneratorHubView: React.FC<BulkGeneratorHubViewProps> = ({
 
                       <button
                         onClick={(e) => handleDeleteTemplate(tpl.id, e)}
-                        className="p-1 rounded text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-slate-100 transition-colors cursor-pointer"
                         title="Delete Template"
                       >
                         <Trash2 size={14} />
@@ -383,21 +383,21 @@ export const BulkGeneratorHubView: React.FC<BulkGeneratorHubViewProps> = ({
       {/* ─────────────────────────────────────────────────────────────────── */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold text-white flex items-center gap-2">
+          <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
             <span>⚡ Recent Batch Runs</span>
-            <span className="text-xs text-slate-400 font-normal">({jobs.length})</span>
+            <span className="text-xs text-slate-500 font-normal">({jobs.length})</span>
           </h2>
         </div>
 
         {jobs.length === 0 ? (
-          <div className="p-8 rounded-2xl bg-slate-900/40 border border-slate-800 text-center text-xs text-slate-500">
+          <div className="p-8 rounded-3xl bg-white border border-slate-200 text-center text-xs text-slate-500 shadow-xs">
             No batch jobs executed yet. Pick a template and click "Run Batch" to start!
           </div>
         ) : (
-          <div className="rounded-2xl bg-slate-900/90 border border-slate-800 overflow-hidden shadow-xl">
+          <div className="rounded-3xl bg-white border border-slate-200 overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950 text-slate-400 uppercase font-semibold text-[10px] border-b border-slate-800">
+                <thead className="bg-slate-50 text-slate-600 uppercase font-bold text-[10px] border-b border-slate-200">
                   <tr>
                     <th className="p-3.5">Template Name</th>
                     <th className="p-3.5">Book Type</th>
@@ -407,26 +407,26 @@ export const BulkGeneratorHubView: React.FC<BulkGeneratorHubViewProps> = ({
                     <th className="p-3.5 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/80">
+                <tbody className="divide-y divide-slate-100">
                   {jobs.slice(0, 10).map((job) => (
                     <tr
                       key={job.id}
                       onClick={() => onSelectJob(job.id)}
-                      className="hover:bg-slate-850/60 transition-colors cursor-pointer"
+                      className="hover:bg-slate-50 transition-colors cursor-pointer"
                     >
-                      <td className="p-3.5 font-bold text-white">{job.templateName}</td>
-                      <td className="p-3.5 text-slate-300 capitalize">
+                      <td className="p-3.5 font-bold text-slate-900">{job.templateName}</td>
+                      <td className="p-3.5 text-slate-600 capitalize font-medium">
                         {job.bookType.replace('-', ' ')}
                       </td>
-                      <td className="p-3.5 font-mono text-slate-200">
+                      <td className="p-3.5 font-mono font-semibold text-slate-800">
                         {job.completedCount} / {job.totalVariations}
                       </td>
                       <td className="p-3.5">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${getStatusBadge(job.status)}`}>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${getStatusBadge(job.status)}`}>
                           {job.status}
                         </span>
                       </td>
-                      <td className="p-3.5 text-slate-400">
+                      <td className="p-3.5 text-slate-500">
                         {job.startedAt
                           ? new Date(job.startedAt).toLocaleDateString()
                           : new Date(job.createdAt).toLocaleDateString()}

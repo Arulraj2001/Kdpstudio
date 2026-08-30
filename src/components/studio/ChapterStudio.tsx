@@ -81,6 +81,7 @@ export const ChapterStudio: React.FC<ChapterStudioProps> = ({
 
   // Editable chapter title in editor
   const [chapterTitleInput, setChapterTitleInput] = useState(activeChapter?.title || '');
+  const [mobileActiveView, setMobileActiveView] = useState<'chapters' | 'editor'>('editor');
 
   // Keep title input in sync when switching chapters
   useEffect(() => {
@@ -186,9 +187,13 @@ export const ChapterStudio: React.FC<ChapterStudioProps> = ({
   };
 
   const handleSelectChapter = (id: string) => {
-    if (id === selectedChapterId) return;
+    if (id === selectedChapterId) {
+      setMobileActiveView('editor');
+      return;
+    }
     handleSave();
     setSelectedChapterId(id);
+    setMobileActiveView('editor');
   };
 
   const handleRenameChapter = (id: string, newTitle: string) => {
@@ -428,10 +433,38 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
         </div>
       </header>
 
+      {/* Mobile Switcher (Chapters vs Editor) */}
+      <div className="md:hidden flex items-center justify-center p-2 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shrink-0">
+        <div className="flex rounded-xl bg-slate-200 dark:bg-slate-900 p-0.5 text-xs font-semibold w-full max-w-xs shadow-inner">
+          <button
+            type="button"
+            onClick={() => setMobileActiveView('chapters')}
+            className={`flex-1 py-2 rounded-lg transition-all text-center ${
+              mobileActiveView === 'chapters'
+                ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 font-bold shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+            }`}
+          >
+            Chapters ({currentBook.chapters.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileActiveView('editor')}
+            className={`flex-1 py-2 rounded-lg transition-all text-center ${
+              mobileActiveView === 'editor'
+                ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 font-bold shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+            }`}
+          >
+            Writing Editor
+          </button>
+        </div>
+      </div>
+
       {/* Main Studio Body: Left Panel 30% + Right Panel 70% */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Panel (30% width) - Chapter List */}
-        <aside className="w-72 sm:w-80 lg:w-[30%] shrink-0 h-full">
+        <aside className={`w-full md:w-72 sm:md:w-80 lg:w-[30%] shrink-0 h-full ${mobileActiveView === 'chapters' ? 'block' : 'hidden md:block'}`}>
           <ChapterList
             chapters={currentBook.chapters}
             currentChapterId={selectedChapterId}
@@ -445,7 +478,7 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
         </aside>
 
         {/* Right Panel (70% width) - Editor Surface */}
-        <main className="flex-1 flex flex-col h-full bg-gray-50/40 dark:bg-[#0f0f17] overflow-hidden">
+        <main className={`flex-1 flex flex-col h-full bg-gray-50/40 dark:bg-[#0f0f17] overflow-hidden ${mobileActiveView === 'editor' ? 'flex' : 'hidden md:flex'}`}>
           {/* Tiptap Toolbar */}
           <TiptapToolbar editor={editor} />
 

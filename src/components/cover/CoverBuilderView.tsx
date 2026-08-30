@@ -55,6 +55,7 @@ export const CoverBuilderView: React.FC = () => {
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [selectedObject, setSelectedObject] = useState<any | null>(null);
   const [layers, setLayers] = useState<any[]>([]);
+  const [isMobilePropsOpen, setIsMobilePropsOpen] = useState<boolean>(false);
 
   // History for Undo/Redo (30 steps)
   const historyRef = useRef<string[]>([]);
@@ -1131,33 +1132,50 @@ export const CoverBuilderView: React.FC = () => {
           </div>
         </div>
 
-        {/* 3. Right Properties Panel (280px) */}
-        <CoverPropertiesPanel
-          selectedObject={selectedObject}
-          canvasBgColor={canvasBgColor}
-          onSetCanvasBgColor={handleSetCanvasBgColor}
-          onUpdateObject={handleUpdateObject}
-          onDeleteSelected={handleDeleteSelected}
-          onDuplicateSelected={handleDuplicateSelected}
-          onReorderObject={handleReorderObject}
-          onRotateSpine={handleRotateSpine}
-          layers={layers}
-          onSelectLayer={handleSelectLayer}
-          onToggleLayerVisibility={handleToggleLayerVisibility}
-          onDeleteLayer={handleDeleteLayer}
-          coverDimensions={{
-            totalWidth: coverDims.totalWidth,
-            totalHeight: coverDims.totalHeight,
-            spineWidth: coverDims.spineWidth,
-            trimSize,
-            pageCount,
-            paperType,
-          }}
-          onQuickAdd={(type) => {
-            if (type === 'barcode') handleAddShape('barcode_placeholder');
-            else handleAddText(type);
-          }}
-        />
+        {/* 3. Right Properties Panel (280px) — responsive drawer on mobile */}
+        {isMobilePropsOpen && (
+          <div
+            className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-xs"
+            onClick={() => setIsMobilePropsOpen(false)}
+          />
+        )}
+        <div className={`fixed inset-y-0 right-0 z-50 lg:static lg:block ${isMobilePropsOpen ? 'block' : 'hidden lg:block'}`}>
+          <div className="h-full relative flex flex-col">
+            <button
+              onClick={() => setIsMobilePropsOpen(false)}
+              className="lg:hidden absolute top-3 right-3 z-50 p-1.5 rounded-full bg-slate-800 text-slate-300 hover:text-white"
+              aria-label="Close properties"
+            >
+              ✕
+            </button>
+            <CoverPropertiesPanel
+              selectedObject={selectedObject}
+              canvasBgColor={canvasBgColor}
+              onSetCanvasBgColor={handleSetCanvasBgColor}
+              onUpdateObject={handleUpdateObject}
+              onDeleteSelected={handleDeleteSelected}
+              onDuplicateSelected={handleDuplicateSelected}
+              onReorderObject={handleReorderObject}
+              onRotateSpine={handleRotateSpine}
+              layers={layers}
+              onSelectLayer={handleSelectLayer}
+              onToggleLayerVisibility={handleToggleLayerVisibility}
+              onDeleteLayer={handleDeleteLayer}
+              coverDimensions={{
+                totalWidth: coverDims.totalWidth,
+                totalHeight: coverDims.totalHeight,
+                spineWidth: coverDims.spineWidth,
+                trimSize,
+                pageCount,
+                paperType,
+              }}
+              onQuickAdd={(type) => {
+                if (type === 'barcode') handleAddShape('barcode_placeholder');
+                else handleAddText(type);
+              }}
+            />
+          </div>
+        </div>
       </div>
 
       {/* 4. Bottom Control Bar */}
@@ -1234,13 +1252,22 @@ export const CoverBuilderView: React.FC = () => {
           </button>
         </div>
 
-        {/* Right: Save & Export Buttons */}
-        <div className="flex items-center gap-3">
+        {/* Right: Save & Export Buttons & Mobile Props Toggle */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button
+            type="button"
+            onClick={() => setIsMobilePropsOpen(!isMobilePropsOpen)}
+            className="lg:hidden px-3 py-2 rounded-xl bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 font-bold text-xs border border-purple-300 dark:border-purple-700 flex items-center gap-1.5"
+          >
+            <Sliders className="w-3.5 h-3.5" />
+            <span>Properties</span>
+          </button>
+
           <button
             type="button"
             id="btn-save-cover-state"
             onClick={handleSaveToStore}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
               isSaved
                 ? 'bg-emerald-600 text-white'
                 : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700'
@@ -1249,12 +1276,12 @@ export const CoverBuilderView: React.FC = () => {
             {isSaved ? (
               <>
                 <Check className="w-3.5 h-3.5" />
-                <span>Saved to Project</span>
+                <span className="hidden sm:inline">Saved</span>
               </>
             ) : (
               <>
                 <Save className="w-3.5 h-3.5" />
-                <span>Save Cover</span>
+                <span>Save</span>
               </>
             )}
           </button>
@@ -1263,10 +1290,11 @@ export const CoverBuilderView: React.FC = () => {
             type="button"
             id="btn-open-cover-export"
             onClick={() => setIsExportModalOpen(true)}
-            className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md shadow-purple-600/20 transition-all flex items-center gap-1.5"
+            className="px-3 sm:px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md shadow-purple-600/20 transition-all flex items-center gap-1.5 shrink-0"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Export 300 DPI Cover</span>
+            <span className="hidden sm:inline">Export 300 DPI Cover</span>
+            <span className="sm:hidden">Export</span>
           </button>
         </div>
       </footer>

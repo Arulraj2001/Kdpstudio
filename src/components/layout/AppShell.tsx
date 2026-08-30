@@ -57,6 +57,7 @@ import { FeatureUsagePage } from '../admin/system/FeatureUsagePage';
 import { SystemHealthPage } from '../admin/system/SystemHealthPage';
 import { BroadcastEmailPage } from '../admin/system/BroadcastEmailPage';
 import { AppSettingsPage } from '../admin/system/AppSettingsPage';
+import { SupportCenterPage } from '../admin/support/SupportCenterPage';
 import { InstallPrompt } from '../pwa/InstallPrompt';
 import { UpdatePrompt } from '../pwa/UpdatePrompt';
 import { MobileBottomNav } from '../pwa/MobileBottomNav';
@@ -178,6 +179,8 @@ export const ROUTE_PATH_MAP: Record<PageRoute, string> = {
   'admin-blog-import': '/admin/blog/import',
   'admin-blog-ads': '/admin/blog/ads',
   'admin-blog-analytics': '/admin/blog/analytics',
+  'admin-blog-seo': '/admin/blog/seo',
+  'admin-blog-newsletter': '/admin/blog/newsletter',
   'geo-test': '/geo-test',
   'payment-success': '/payment-success',
 };
@@ -246,6 +249,8 @@ export function parsePathToRoute(pathname: string): PageRoute | null {
   if (clean === 'admin/blog/import') return 'admin-blog-import';
   if (clean === 'admin/blog/ads') return 'admin-blog-ads';
   if (clean === 'admin/blog/analytics') return 'admin-blog-analytics';
+  if (clean === 'admin/blog/seo') return 'admin-blog-seo';
+  if (clean === 'admin/blog/newsletter') return 'admin-blog-newsletter';
   if (clean === 'admin/blog') return 'admin-blog';
   if (clean === 'admin/system/usage' || clean === 'admin/usage') return 'admin-usage';
   if (clean === 'admin/system/health' || clean === 'admin/health') return 'admin-health';
@@ -294,6 +299,9 @@ export const AppShell: React.FC = () => {
   const [activeAnalyticsBookId, setActiveAnalyticsBookId] = useState<string>('');
   const [activePuzzleBookId, setActivePuzzleBookId] = useState<string>('');
   const [selectedNiche, setSelectedNiche] = useState<NicheResult | null>(null);
+  const [researchInitialQuery, setResearchInitialQuery] = useState<string>('');
+  const [researchInitialCategory, setResearchInitialCategory] = useState<NicheCategory | 'all'>('all');
+  const [selectedSavedNicheId, setSelectedSavedNicheId] = useState<string | undefined>(undefined);
   const [selectedBlogId, setSelectedBlogId] = useState<string>('');
   const [activeBlogSlug, setActiveBlogSlug] = useState<string>(() => {
     if (typeof window !== 'undefined' && window.location.pathname.startsWith('/blog/')) {
