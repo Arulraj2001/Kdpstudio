@@ -59,6 +59,13 @@ export type PageRoute =
   | 'admin-support'
   | 'admin-content'
   | 'admin-content-audits'
+  | 'admin-blog'
+  | 'admin-blog-new'
+  | 'admin-blog-edit'
+  | 'admin-blog-authors'
+  | 'admin-blog-import'
+  | 'admin-blog-ads'
+  | 'admin-blog-analytics'
   | 'geo-test'
   | 'login'
   | 'signup'
@@ -68,6 +75,8 @@ export type PageRoute =
   | 'payment-success'
   | 'blog-detail'
   | 'launch';
+
+export * from './blog';
 
 export type BookStatus = 'draft' | 'formatting' | 'ready' | 'published';
 

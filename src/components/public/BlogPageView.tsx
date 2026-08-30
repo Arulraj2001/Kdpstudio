@@ -15,21 +15,37 @@ export const BlogPageView: React.FC<BlogPageViewProps> = ({ onNavigate, onSelect
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [email, setEmail] = useState<string>('');
-  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [posts, setPosts] = useState<any[]>(() => getAllBlogPosts());
   const postsPerPage = 9;
 
-  const allPosts = getAllBlogPosts();
+  React.useEffect(() => {
+    let isMounted = true;
+    fetch('/api/blog/posts')
+      .then((res) => res.json())
+      .then((data) => {
+        if (isMounted && Array.isArray(data?.posts) && data.posts.length > 0) {
+          setPosts(data.posts);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const allPosts = posts;
   const categories = getAllCategories();
-  const featuredPost = allPosts.find((p) => p.featured);
+  const featuredPost = allPosts.find((p) => p.featured) || allPosts[0];
 
   // Filter posts
   const filteredPosts = allPosts.filter((post) => {
-    const matchesCategory = selectedCategory === 'All' || post.category.toLowerCase() === selectedCategory.toLowerCase();
+    const matchesCategory = selectedCategory === 'All' || post.category?.toLowerCase() === selectedCategory.toLowerCase();
     const matchesSearch =
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
+      (post.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (post.description || post.excerpt || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (post.tags || []).some((t: string) => t.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
   });
 

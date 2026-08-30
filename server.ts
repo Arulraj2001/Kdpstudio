@@ -7,6 +7,24 @@ import { createServer as createViteServer } from 'vite';
 import { createExpressUsageMiddleware } from './src/lib/withUsageCheck';
 import { getUserUsageSummary } from './src/lib/usageService';
 import { sendPushNotification } from './src/lib/notificationService';
+import {
+  getPublishedPosts,
+  getBlogPostBySlug,
+  getBlogPost,
+  getAllSlugs,
+  createBlogPost,
+  updateBlogPost,
+  deleteBlogPost,
+  getAllAdminPosts,
+  getAllAuthors,
+  getAuthor,
+  createAuthor,
+  updateAuthor,
+  getAdConfig,
+  saveAdConfig,
+  incrementViewCount,
+} from './src/lib/blogService';
+import { validateBulkImport } from './src/lib/bulkImportValidator';
 
 dotenv.config();
 
@@ -302,6 +320,250 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     } catch (err: any) {
       console.error('[API /api/notifications/send] Error:', err);
       return res.status(500).json({ error: err?.message || 'Failed to send push notification' });
+    }
+  });
+
+  // ─────────────────────────────────────────
+  // Blog CMS API Endpoints (Phase 21 Prompt 1)
+  // ─────────────────────────────────────────
+
+  // Public: Get published blog posts
+  app.get('/api/blog/posts', async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string, 10) || 12;
+      const category = req.query.category as string;
+      const tag = req.query.tag as string;
+      const authorId = req.query.authorId as string;
+      const cursor = req.query.cursor as string;
+
+      const result = await getPublishedPosts({
+        limit,
+        category,
+        tag,
+        authorId,
+        cursor,
+      });
+
+      return res.json(result);
+    } catch (err: any) {
+      console.error('[API /api/blog/posts] Error:', err);
+      return res.status(500).json({ error: err?.message || 'Failed to fetch posts' });
+    }
+  });
+
+  // Public: Get single blog post by slug
+  app.get('/api/blog/posts/:slug', async (req, res) => {
+    try {
+      const post = await getBlogPostBySlug(req.params.slug);
+      if (!post) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+      return res.json({ post });
+    } catch (err: any) {
+      console.error('[API /api/blog/posts/:slug] Error:', err);
+      return res.status(500).json({ error: err?.message || 'Failed to fetch post' });
+    }
+  });
+
+  // Public: Get blog authors
+  app.get('/api/blog/authors', async (req, res) => {
+    try {
+      const authors = await getAllAuthors();
+      return res.json({ authors });
+    } catch (err: any) {
+      console.error('[API /api/blog/authors] Error:', err);
+      return res.status(500).json({ error: err?.message || 'Failed to fetch authors' });
+    }
+  });
+
+  // Public: Get ad config
+  app.get('/api/blog/ads', async (req, res) => {
+    try {
+      const adConfig = await getAdConfig();
+      return res.json({ adConfig });
+    } catch (err: any) {
+      console.error('[API /api/blog/ads] Error:', err);
+      return res.status(500).json({ error: err?.message || 'Failed to fetch ad config' });
+    }
+  });
+
+  // Public: Record view with hourly IP rate-limiting
+  app.post('/api/blog/view', async (req, res) => {
+    try {
+      const { postId } = req.body || {};
+      if (!postId) {
+        return res.status(400).json({ error: 'Missing postId' });
+      }
+
+      const clientIp =
+        (req.headers['x-forwarded-for'] as string)?.split(',')[0].trim() ||
+        req.socket.remoteAddress ||
+        'unknown';
+
+      const counted = await incrementViewCount(postId, clientIp);
+      return res.json({ success: true, counted, postId });
+    } catch (err: any) {
+      console.error('[API /api/blog/view] Error:', err);
+      return res.status(500).json({ error: err?.message || 'Failed to record view' });
+    }
+  });
+
+  // ISR Revalidation Endpoint (Protected by REVALIDATE_SECRET)
+  app.post('/api/blog/revalidate', async (req, res) => {
+    try {
+      const authHeader = (req.headers.authorization as string) || '';
+      const secret = authHeader.replace(/^Bearer\s+/i, '').trim();
+      const expectedSecret = process.env.REVALIDATE_SECRET || 'kdp-studio-revalidate-2026';
+
+      if (!secret || secret !== expectedSecret) {
+        return res.status(401).json({ error: 'Unauthorized: Invalid revalidation token' });
+      }
+
+      const { slug, revalidateAll } = req.body || {};
+      return res.json({
+        revalidated: true,
+        slug: slug || null,
+        revalidateAll: Boolean(revalidateAll),
+        timestamp: new Date().toISOString(),
+      });
+    } catch (err: any) {
+      console.error('[API /api/blog/revalidate] Error:', err);
+      return res.status(500).json({ error: err?.message || 'Failed to revalidate' });
+    }
+  });
+
+  // Admin: Get all posts (drafts, published, archived)
+  app.get('/api/admin/blog/posts', async (req, res) => {
+    try {
+      const status = req.query.status as any;
+      const category = req.query.category as string;
+      const search = req.query.search as string;
+
+      const posts = await getAllAdminPosts({ status, category, search });
+      return res.json({ posts });
+    } catch (err: any) {
+      console.error('[API /api/admin/blog/posts] Error:', err);
+      return res.status(500).json({ error: err?.message || 'Failed to fetch admin posts' });
+    }
+  });
+
+  // Admin: Create new blog post
+  app.post('/api/admin/blog/posts', async (req, res) => {
+    try {
+      const adminEmail = (req.headers['x-admin-email'] as string) || 'admin@kdpstudio.com';
+      const postData = req.body;
+
+      if (!postData.title || !postData.content || !postData.category) {
+        return res.status(400).json({ error: 'Missing required fields (title, content, category)' });
+      }
+
+      const postId = await createBlogPost(postData, adminEmail);
+      return res.json({ success: true, id: postId });
+    } catch (err: any) {
+      console.error('[API POST /api/admin/blog/posts] Error:', err);
+      return res.status(500).json({ error: err?.message || 'Failed to create blog post' });
+    }
+  });
+
+  // Admin: Update blog post
+  app.put('/api/admin/blog/posts/:id', async (req, res) => {
+    try {
+      const adminEmail = (req.headers['x-admin-email'] as string) || 'admin@kdpstudio.com';
+      await updateBlogPost(req.params.id, req.body, adminEmail);
+      return res.json({ success: true });
+    } catch (err: any) {
+      console.error('[API PUT /api/admin/blog/posts/:id] Error:', err);
+      return res.status(500).json({ error: err?.message || 'Failed to update blog post' });
+    }
+  });
+
+  // Admin: Soft delete blog post
+  app.delete('/api/admin/blog/posts/:id', async (req, res) => {
+    try {
+      await deleteBlogPost(req.params.id);
+      return res.json({ success: true });
+    } catch (err: any) {
+      console.error('[API DELETE /api/admin/blog/posts/:id] Error:', err);
+      return res.status(500).json({ error: err?.message || 'Failed to delete blog post' });
+    }
+  });
+
+  // Admin: Create author
+  app.post('/api/admin/blog/authors', async (req, res) => {
+    try {
+      const authorId = await createAuthor(req.body);
+      return res.json({ success: true, id: authorId });
+    } catch (err: any) {
+      console.error('[API POST /api/admin/blog/authors] Error:', err);
+      return res.status(500).json({ error: err?.message || 'Failed to create author' });
+    }
+  });
+
+  // Admin: Update author
+  app.put('/api/admin/blog/authors/:id', async (req, res) => {
+    try {
+      await updateAuthor(req.params.id, req.body);
+      return res.json({ success: true });
+    } catch (err: any) {
+      console.error('[API PUT /api/admin/blog/authors/:id] Error:', err);
+      return res.status(500).json({ error: err?.message || 'Failed to update author' });
+    }
+  });
+
+  // Admin: Save ad config
+  app.post('/api/admin/blog/ads', async (req, res) => {
+    try {
+      const adminEmail = (req.headers['x-admin-email'] as string) || 'admin@kdpstudio.com';
+      await saveAdConfig(req.body, adminEmail);
+      return res.json({ success: true });
+    } catch (err: any) {
+      console.error('[API POST /api/admin/blog/ads] Error:', err);
+      return res.status(500).json({ error: err?.message || 'Failed to save ad config' });
+    }
+  });
+
+  // Admin: Bulk import validation
+  app.post('/api/admin/blog/import/validate', async (req, res) => {
+    try {
+      const { posts } = req.body || {};
+      const existingSlugs = await getAllSlugs();
+      const result = validateBulkImport(posts, existingSlugs);
+      return res.json(result);
+    } catch (err: any) {
+      console.error('[API /api/admin/blog/import/validate] Error:', err);
+      return res.status(500).json({ error: err?.message || 'Failed to validate bulk import' });
+    }
+  });
+
+  // Admin: Bulk import execution
+  app.post('/api/admin/blog/import/execute', async (req, res) => {
+    try {
+      const adminEmail = (req.headers['x-admin-email'] as string) || 'admin@kdpstudio.com';
+      const { posts } = req.body || {};
+      const existingSlugs = await getAllSlugs();
+      const validation = validateBulkImport(posts, existingSlugs);
+
+      if (validation.invalid > 0) {
+        return res.status(400).json({
+          error: 'Bulk import contains invalid posts. Please resolve all validation errors before importing.',
+          validation,
+        });
+      }
+
+      const importedIds: string[] = [];
+      for (const post of posts) {
+        const id = await createBlogPost(post, adminEmail);
+        importedIds.push(id);
+      }
+
+      return res.json({
+        success: true,
+        totalImported: importedIds.length,
+        importedIds,
+      });
+    } catch (err: any) {
+      console.error('[API /api/admin/blog/import/execute] Error:', err);
+      return res.status(500).json({ error: err?.message || 'Failed to execute bulk import' });
     }
   });
 

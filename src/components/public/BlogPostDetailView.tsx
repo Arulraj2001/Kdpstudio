@@ -25,9 +25,31 @@ export const BlogPostDetailView: React.FC<BlogPostDetailViewProps> = ({ slug, on
   const [activeTocId, setActiveTocId] = useState<string>('');
 
   useEffect(() => {
-    const found = getBlogPost(slug) || getAllBlogPosts()[0];
-    setPost(found);
+    let isMounted = true;
+    const initial = getBlogPost(slug) || getAllBlogPosts()[0];
+    setPost(initial);
     window.scrollTo({ top: 0, behavior: 'instant' });
+
+    // Fetch from API to get Firestore updates
+    fetch(`/api/blog/posts/${slug}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (isMounted && data?.post) {
+          setPost(data.post);
+          if (data.post.id) {
+            fetch('/api/blog/view', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ postId: data.post.id }),
+            }).catch(() => {});
+          }
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
   }, [slug]);
 
   useEffect(() => {
