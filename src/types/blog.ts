@@ -206,11 +206,21 @@ export interface BulkImportError {
   value?: string;
 }
 
+export interface BulkImportDuplicate {
+  title: string;
+  slug: string;
+}
+
 export interface BulkImportResult {
   totalRows: number;
   valid: number;
   invalid: number;
   duplicateSlugs: number;
+  validCount?: number;
+  errorCount?: number;
+  duplicateCount?: number;
   errors: BulkImportError[];
   preview: BulkImportPost[];   // first 5 valid posts
+  validPosts?: BulkImportPost[]; // all valid posts for ingestion
+  duplicates?: BulkImportDuplicate[];
 }

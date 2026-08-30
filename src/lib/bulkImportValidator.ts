@@ -108,13 +108,30 @@ export function isMarkdownContent(content: string): boolean {
   return mdPatterns.some((pattern) => pattern.test(content));
 }
 
+export interface BulkImportOptions {
+  existingSlugs?: string[];
+  defaultStatus?: BlogStatus;
+  defaultCategory?: string;
+  convertMarkdown?: boolean;
+  generateSlugs?: boolean;
+  skipDuplicates?: boolean;
+}
+
 export function validateBulkImport(
   rawPosts: any[],
-  existingSlugs: string[] = []
+  existingSlugsOrOptions: string[] | BulkImportOptions = []
 ): BulkImportResult {
   const errors: BulkImportError[] = [];
   const preview: BulkImportPost[] = [];
-  const processedSlugs = new Set<string>(existingSlugs.map((s) => s.toLowerCase()));
+  const validPosts: BulkImportPost[] = [];
+  const duplicates: { title: string; slug: string }[] = [];
+
+  const options: BulkImportOptions = Array.isArray(existingSlugsOrOptions)
+    ? { existingSlugs: existingSlugsOrOptions }
+    : existingSlugsOrOptions || {};
+
+  const existingSlugsList = options.existingSlugs || [];
+  const processedSlugs = new Set<string>(existingSlugsList.map((s) => s.toLowerCase()));
   let validCount = 0;
   let invalidCount = 0;
   let duplicateSlugsCount = 0;
@@ -125,8 +142,13 @@ export function validateBulkImport(
       valid: 0,
       invalid: 0,
       duplicateSlugs: 0,
+      validCount: 0,
+      errorCount: 0,
+      duplicateCount: 0,
       errors: [{ row: 0, field: 'root', message: 'Input must be a JSON array of blog post objects' }],
       preview: [],
+      validPosts: [],
+      duplicates: [],
     };
   }
 
@@ -156,8 +178,9 @@ export function validateBulkImport(
       rowErrors.push({ row: rowNum, field: 'content', message: 'Content must be at least 100 characters long' });
     }
 
-    // 3. Required: Category (not empty)
-    if (!raw.category || typeof raw.category !== 'string' || !raw.category.trim()) {
+    // 3. Category
+    const category = raw.category ? String(raw.category).trim() : options.defaultCategory || 'Publishing Strategy';
+    if (!category) {
       rowErrors.push({ row: rowNum, field: 'category', message: 'Category is required', value: raw.category });
     }
 
@@ -168,13 +191,14 @@ export function validateBulkImport(
       if (!slugRegex.test(slug)) {
         rowErrors.push({ row: rowNum, field: 'slug', message: 'Slug can only contain lowercase letters, numbers, and hyphens', value: slug });
       }
-    } else if (raw.title) {
+    } else if (raw.title && options.generateSlugs !== false) {
       slug = generateSlug(raw.title);
     }
 
     if (slug) {
       if (processedSlugs.has(slug)) {
         duplicateSlugsCount++;
+        duplicates.push({ title: raw.title || 'Untitled', slug });
         rowErrors.push({ row: rowNum, field: 'slug', message: `Duplicate slug detected: "${slug}". A unique slug is required.`, value: slug });
       }
     }
@@ -198,43 +222,40 @@ export function validateBulkImport(
     }
 
     // 8. Optional Tags Validation
-    if (raw.tags && (!Array.isArray(raw.tags) || !raw.tags.every((t: any) => typeof t === 'string'))) {
-      rowErrors.push({ row: rowNum, field: 'tags', message: 'Tags must be an array of strings' });
+    if (raw.tags && !Array.isArray(raw.tags)) {
+      rowErrors.push({ row: rowNum, field: 'tags', message: 'tags must be an array of strings' });
     }
 
-    // 9. Optional FAQ Items Validation
-    if (raw.faqItems) {
-      if (!Array.isArray(raw.faqItems)) {
-        rowErrors.push({ row: rowNum, field: 'faqItems', message: 'faqItems must be an array of { question, answer } objects' });
-      } else {
-        raw.faqItems.forEach((faq: any, fIdx: number) => {
-          if (!faq.question || !faq.answer) {
-            rowErrors.push({ row: rowNum, field: `faqItems[${fIdx}]`, message: 'Each FAQ item must contain both question and answer strings' });
-          }
-        });
-      }
+    // 9. Optional Secondary Keywords Validation
+    if (raw.secondaryKeywords && !Array.isArray(raw.secondaryKeywords)) {
+      rowErrors.push({ row: rowNum, field: 'secondaryKeywords', message: 'secondaryKeywords must be an array of strings' });
     }
 
-    // 10. Optional Sources Validation
-    if (raw.sources) {
-      if (!Array.isArray(raw.sources)) {
-        rowErrors.push({ row: rowNum, field: 'sources', message: 'sources must be an array of { title, url } objects' });
-      } else {
-        raw.sources.forEach((src: any, sIdx: number) => {
-          if (!src.title || !src.url) {
-            rowErrors.push({ row: rowNum, field: `sources[${sIdx}]`, message: 'Each source must contain title and url strings' });
-          } else if (!isValidUrl(src.url)) {
-            rowErrors.push({ row: rowNum, field: `sources[${sIdx}].url`, message: `Invalid source URL "${src.url}"`, value: src.url });
-          }
-        });
-      }
+    // 10. Optional FAQ items validation
+    if (raw.faqItems && Array.isArray(raw.faqItems)) {
+      raw.faqItems.forEach((faq: any, faqIdx: number) => {
+        if (!faq.question || typeof faq.question !== 'string') {
+          rowErrors.push({ row: rowNum, field: `faqItems[${faqIdx}].question`, message: 'FAQ item question is required' });
+        }
+        if (!faq.answer || typeof faq.answer !== 'string') {
+          rowErrors.push({ row: rowNum, field: `faqItems[${faqIdx}].answer`, message: 'FAQ item answer is required' });
+        }
+      });
     }
 
-    // 11. Optional Featured Image URL Validation
-    if (raw.featuredImageUrl && !isValidUrl(raw.featuredImageUrl) && !raw.featuredImageUrl.startsWith('/')) {
-      rowErrors.push({ row: rowNum, field: 'featuredImageUrl', message: 'featuredImageUrl must be a valid URL or path', value: raw.featuredImageUrl });
+    // 11. Optional Sources validation
+    if (raw.sources && Array.isArray(raw.sources)) {
+      raw.sources.forEach((src: any, srcIdx: number) => {
+        if (!src.title || typeof src.title !== 'string') {
+          rowErrors.push({ row: rowNum, field: `sources[${srcIdx}].title`, message: 'Source title is required' });
+        }
+        if (src.url && !isValidUrl(src.url)) {
+          rowErrors.push({ row: rowNum, field: `sources[${srcIdx}].url`, message: 'Source URL must be a valid http/https URL', value: src.url });
+        }
+      });
     }
 
+    // Accumulate errors or valid post
     if (rowErrors.length > 0) {
       errors.push(...rowErrors);
       invalidCount++;
@@ -246,7 +267,7 @@ export function validateBulkImport(
 
       // Convert content if markdown
       let finalContent = raw.content;
-      if (isMarkdownContent(raw.content)) {
+      if (options.convertMarkdown !== false && isMarkdownContent(raw.content)) {
         finalContent = parseMarkdownToHtml(raw.content);
       }
 
@@ -255,11 +276,11 @@ export function validateBulkImport(
         slug,
         content: finalContent,
         excerpt: raw.excerpt ? String(raw.excerpt).trim() : undefined,
-        category: raw.category.trim(),
+        category,
         tags: Array.isArray(raw.tags) ? raw.tags.map((t: string) => String(t).trim()) : [],
         authorId: raw.authorId || undefined,
         authorName: raw.authorName || undefined,
-        status: raw.status || 'draft',
+        status: raw.status || options.defaultStatus || 'draft',
         publishedAt: raw.publishedAt || undefined,
         metaTitle: raw.metaTitle || undefined,
         metaDescription: raw.metaDescription || undefined,
@@ -275,6 +296,7 @@ export function validateBulkImport(
         reviewedBy: raw.reviewedBy || undefined,
       };
 
+      validPosts.push(cleanPost);
       if (preview.length < 5) {
         preview.push(cleanPost);
       }
@@ -286,7 +308,12 @@ export function validateBulkImport(
     valid: validCount,
     invalid: invalidCount,
     duplicateSlugs: duplicateSlugsCount,
+    validCount,
+    errorCount: invalidCount,
+    duplicateCount: duplicateSlugsCount,
     errors,
     preview,
+    validPosts,
+    duplicates,
   };
 }
