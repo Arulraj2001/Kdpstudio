@@ -4,26 +4,76 @@ services:
     runtime: docker
     plan: free
     region: oregon
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
       - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
         value: "true"
+      # ── Secrets (set these in the Render dashboard, NOT committed) ──────────
       - key: GEMINI_API_KEY
         sync: false
+      - key: FIREBASE_ADMIN_PRIVATE_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: BMAC_ACCESS_TOKEN
+        sync: false
+      - key: BMAC_WEBHOOK_SECRET
+        sync: false
+      - key: CRON_SECRET
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
+      # ── Public Firebase web app config (real project: kdpstudioaio-3bf53) ──
       - key: VITE_FIREBASE_API_KEY
-        value: AIzaSyCXrovDMZnlS9iZTbx5XTjdqP-kmafGaKM
+        value: AIzaSyC3gnC1NdRYEHm4zR8Kfe0BJeGR_Ae1xLk
       - key: VITE_FIREBASE_AUTH_DOMAIN
-        value: kdpstudio-83edb.firebaseapp.com
+        value: kdpstudioaio-3bf53.firebaseapp.com
       - key: VITE_FIREBASE_PROJECT_ID
-        value: kdpstudio-83edb
+        value: kdpstudioaio-3bf53
       - key: VITE_FIREBASE_STORAGE_BUCKET
-        value: kdpstudio-83edb.firebasestorage.app
+        value: kdpstudioaio-3bf53.firebasestorage.app
       - key: VITE_FIREBASE_MESSAGING_SENDER_ID
-        value: "948994960311"
+        value: "494698350011"
       - key: VITE_FIREBASE_APP_ID
-        value: "1:948994960311:web:cc6634e13a51ae7a427ef5"
+        value: "1:494698350011:web:ad96b775d58d49a874309e"
+      # ── Firebase Admin SDK (server-side privileged access) ─────────────────
+      - key: FIREBASE_ADMIN_PROJECT_ID
+        value: kdpstudioaio-3bf53
+      - key: FIREBASE_ADMIN_CLIENT_EMAIL
+        value: firebase-adminsdk-fbsvc@kdpstudioaio-3bf53.iam.gserviceaccount.com
+      # ── App / admin ──────────────────────────────────────────────────────────
       - key: NEXT_PUBLIC_APP_URL
         value: https://kdpstudioaio.web.app
       - key: APP_URL
         value: https://kdpstudioaio.web.app
+      - key: NEXT_PUBLIC_APP_NAME
+        value: KDP Studio
+      - key: ADMIN_EMAIL
+        value: arulraj8637@gmail.com
+      # ── Transactional email (Resend) ─────────────────────────────────────────
+      - key: EMAIL_FROM
+        value: "KDP Studio <noreply@kdpstudioaio.web.app>"
+      - key: EMAIL_REPLY_TO
+        value: arulraj8637@gmail.com
+      # ── Buy Me a Coffee (public URL + server-side webhook) ──────────────────
+      - key: NEXT_PUBLIC_BMAC_URL
+        value: https://buymeacoffee.com/x4kqsD0lkA
+      # ── UPI (public config baked into the SPA when Render serves the app) ───
+      - key: VITE_UPI_ID
+        value: vizhitn@ptaxis
+      - key: VITE_UPI_DISPLAY_NAME
+        value: KDP Studio
+      - key: VITE_UPI_QR_CODE_URL
+        value: https://usgenkubqxskurtmvxaz.supabase.co/storage/v1/object/public/media/1788012233531_Screenshot_2026-08-29_193340.png
