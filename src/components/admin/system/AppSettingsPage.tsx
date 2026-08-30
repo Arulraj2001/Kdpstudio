@@ -28,13 +28,20 @@ export function AppSettingsPage() {
   });
 
   const [pricing, setPricing] = useState<PlanPricingConfig>({
-    starterMonthly: 9,
-    starterAnnual: 79,
-    proMonthly: 29,
-    proAnnual: 249,
-    agencyMonthly: 79,
-    agencyAnnual: 699,
-    lifetime: 149,
+    starterMonthly: 6,
+    starterAnnual: 60,
+    proMonthly: 18,
+    proAnnual: 180,
+    agencyMonthly: 49,
+    agencyAnnual: 490,
+    lifetime: 129,
+    starterMonthlyInr: 499,
+    starterAnnualInr: 4990,
+    proMonthlyInr: 1499,
+    proAnnualInr: 14990,
+    agencyMonthlyInr: 3999,
+    agencyAnnualInr: 39990,
+    lifetimeInr: 9999,
   });
 
   const fetchConfig = useCallback(async () => {
@@ -49,7 +56,7 @@ export function AppSettingsPage() {
       setConfig(data);
       if (data.features) setFeatures(data.features);
       if (data.maintenance) setMaintenance(data.maintenance);
-      if (data.pricing) setPricing(data.pricing);
+      if (data.pricing) setPricing(prev => ({ ...prev, ...data.pricing }));
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -132,7 +139,7 @@ export function AppSettingsPage() {
           <button
             onClick={() => saveSettings('update_features', { features }, 'Feature flags')}
             disabled={savingSection === 'Feature flags'}
-            className="px-4 py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-lg transition-colors"
+            className="px-4 py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
           >
             {savingSection === 'Feature flags' ? 'Saving…' : 'Save Flags'}
           </button>
@@ -161,7 +168,7 @@ export function AppSettingsPage() {
                 <button
                   type="button"
                   onClick={() => setFeatures(prev => ({ ...prev, [item.key]: !isEnabled }))}
-                  className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors ${
+                  className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors cursor-pointer ${
                     isEnabled ? 'bg-purple-600' : 'bg-slate-700'
                   }`}
                 >
@@ -182,18 +189,18 @@ export function AppSettingsPage() {
         <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <div>
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-              2. Platform Maintenance Mode
+              2. Maintenance Mode & Downtime Banner
             </h2>
             <p className="text-xs text-slate-400">
-              Locks out non-admin users with a customized notice banner during major migrations
+              Temporarily show a friendly maintenance screen to non-admin visitors
             </p>
           </div>
           <button
-            onClick={() => saveSettings('update_maintenance', { maintenance }, 'Maintenance mode')}
-            disabled={savingSection === 'Maintenance mode'}
-            className="px-4 py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-lg transition-colors"
+            onClick={() => saveSettings('update_maintenance', { maintenance }, 'Maintenance settings')}
+            disabled={savingSection === 'Maintenance settings'}
+            className="px-4 py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
           >
-            {savingSection === 'Maintenance mode' ? 'Saving…' : 'Save Maintenance'}
+            {savingSection === 'Maintenance settings' ? 'Saving…' : 'Save Maintenance'}
           </button>
         </div>
 
@@ -206,7 +213,7 @@ export function AppSettingsPage() {
             <button
               type="button"
               onClick={() => setMaintenance(prev => ({ ...prev, enabled: !prev.enabled }))}
-              className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors ${
+              className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors cursor-pointer ${
                 maintenance.enabled ? 'bg-red-600' : 'bg-slate-700'
               }`}
             >
@@ -262,91 +269,168 @@ export function AppSettingsPage() {
       </section>
 
       {/* ── 4. Plan Pricing Overrides ── */}
-      <section className="bg-[#1a1a2e] border border-white/10 rounded-xl p-6 shadow-sm space-y-4">
+      <section className="bg-[#1a1a2e] border border-white/10 rounded-xl p-6 shadow-sm space-y-5">
         <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <div>
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-              4. Emergency Plan Pricing Override (USD)
+              4. Emergency Plan Pricing Override (USD & INR)
             </h2>
             <p className="text-xs text-slate-400">
-              Dynamically overrides hardcoded pricing for new checkouts without a rebuild
+              Dynamically overrides plan pricing in real-time across public pages and checkout without rebuilds
             </p>
           </div>
           <button
             onClick={() => saveSettings('update_pricing', { pricing }, 'Pricing table')}
             disabled={savingSection === 'Pricing table'}
-            className="px-4 py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-lg transition-colors"
+            className="px-4 py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
           >
             {savingSection === 'Pricing table' ? 'Saving…' : 'Save Pricing'}
           </button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs pt-1">
-          <div className="space-y-1">
-            <label className="text-slate-400">Starter Monthly ($)</label>
-            <input
-              type="number"
-              value={pricing.starterMonthly}
-              onChange={e => setPricing(prev => ({ ...prev, starterMonthly: Number(e.target.value) }))}
-              className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-slate-400">Starter Annual ($)</label>
-            <input
-              type="number"
-              value={pricing.starterAnnual}
-              onChange={e => setPricing(prev => ({ ...prev, starterAnnual: Number(e.target.value) }))}
-              className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
-            />
-          </div>
+        {/* USD Pricing Row */}
+        <div className="space-y-2">
+          <h3 className="text-xs font-bold text-purple-400 uppercase tracking-wider">USD ($) Pricing Overrides</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div className="space-y-1">
+              <label className="text-slate-400">Starter Monthly ($)</label>
+              <input
+                type="number"
+                value={pricing.starterMonthly || 6}
+                onChange={e => setPricing(prev => ({ ...prev, starterMonthly: Number(e.target.value) }))}
+                className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-slate-400">Starter Annual ($)</label>
+              <input
+                type="number"
+                value={pricing.starterAnnual || 60}
+                onChange={e => setPricing(prev => ({ ...prev, starterAnnual: Number(e.target.value) }))}
+                className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
+              />
+            </div>
 
-          <div className="space-y-1">
-            <label className="text-slate-400">Pro Monthly ($)</label>
-            <input
-              type="number"
-              value={pricing.proMonthly}
-              onChange={e => setPricing(prev => ({ ...prev, proMonthly: Number(e.target.value) }))}
-              className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-slate-400">Pro Annual ($)</label>
-            <input
-              type="number"
-              value={pricing.proAnnual}
-              onChange={e => setPricing(prev => ({ ...prev, proAnnual: Number(e.target.value) }))}
-              className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
-            />
-          </div>
+            <div className="space-y-1">
+              <label className="text-slate-400">Pro Monthly ($)</label>
+              <input
+                type="number"
+                value={pricing.proMonthly || 18}
+                onChange={e => setPricing(prev => ({ ...prev, proMonthly: Number(e.target.value) }))}
+                className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-slate-400">Pro Annual ($)</label>
+              <input
+                type="number"
+                value={pricing.proAnnual || 180}
+                onChange={e => setPricing(prev => ({ ...prev, proAnnual: Number(e.target.value) }))}
+                className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
+              />
+            </div>
 
-          <div className="space-y-1">
-            <label className="text-slate-400">Agency Monthly ($)</label>
-            <input
-              type="number"
-              value={pricing.agencyMonthly}
-              onChange={e => setPricing(prev => ({ ...prev, agencyMonthly: Number(e.target.value) }))}
-              className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-slate-400">Agency Annual ($)</label>
-            <input
-              type="number"
-              value={pricing.agencyAnnual}
-              onChange={e => setPricing(prev => ({ ...prev, agencyAnnual: Number(e.target.value) }))}
-              className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
-            />
-          </div>
+            <div className="space-y-1">
+              <label className="text-slate-400">Agency Monthly ($)</label>
+              <input
+                type="number"
+                value={pricing.agencyMonthly || 49}
+                onChange={e => setPricing(prev => ({ ...prev, agencyMonthly: Number(e.target.value) }))}
+                className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-slate-400">Agency Annual ($)</label>
+              <input
+                type="number"
+                value={pricing.agencyAnnual || 490}
+                onChange={e => setPricing(prev => ({ ...prev, agencyAnnual: Number(e.target.value) }))}
+                className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
+              />
+            </div>
 
-          <div className="space-y-1">
-            <label className="text-slate-400">Lifetime Deal ($)</label>
-            <input
-              type="number"
-              value={pricing.lifetime}
-              onChange={e => setPricing(prev => ({ ...prev, lifetime: Number(e.target.value) }))}
-              className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
-            />
+            <div className="space-y-1">
+              <label className="text-slate-400">Lifetime Deal ($)</label>
+              <input
+                type="number"
+                value={pricing.lifetime || 129}
+                onChange={e => setPricing(prev => ({ ...prev, lifetime: Number(e.target.value) }))}
+                className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* INR Pricing Row */}
+        <div className="space-y-2 pt-2 border-t border-white/10">
+          <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-wider">INR (₹) Pricing Overrides (UPI & Razorpay)</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div className="space-y-1">
+              <label className="text-slate-400">Starter Monthly (₹)</label>
+              <input
+                type="number"
+                value={pricing.starterMonthlyInr || 499}
+                onChange={e => setPricing(prev => ({ ...prev, starterMonthlyInr: Number(e.target.value) }))}
+                className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-slate-400">Starter Annual (₹)</label>
+              <input
+                type="number"
+                value={pricing.starterAnnualInr || 4990}
+                onChange={e => setPricing(prev => ({ ...prev, starterAnnualInr: Number(e.target.value) }))}
+                className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-slate-400">Pro Monthly (₹)</label>
+              <input
+                type="number"
+                value={pricing.proMonthlyInr || 1499}
+                onChange={e => setPricing(prev => ({ ...prev, proMonthlyInr: Number(e.target.value) }))}
+                className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-slate-400">Pro Annual (₹)</label>
+              <input
+                type="number"
+                value={pricing.proAnnualInr || 14990}
+                onChange={e => setPricing(prev => ({ ...prev, proAnnualInr: Number(e.target.value) }))}
+                className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-slate-400">Agency Monthly (₹)</label>
+              <input
+                type="number"
+                value={pricing.agencyMonthlyInr || 3999}
+                onChange={e => setPricing(prev => ({ ...prev, agencyMonthlyInr: Number(e.target.value) }))}
+                className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-slate-400">Agency Annual (₹)</label>
+              <input
+                type="number"
+                value={pricing.agencyAnnualInr || 39990}
+                onChange={e => setPricing(prev => ({ ...prev, agencyAnnualInr: Number(e.target.value) }))}
+                className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-slate-400">Lifetime Deal (₹)</label>
+              <input
+                type="number"
+                value={pricing.lifetimeInr || 9999}
+                onChange={e => setPricing(prev => ({ ...prev, lifetimeInr: Number(e.target.value) }))}
+                className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white font-mono"
+              />
+            </div>
           </div>
         </div>
       </section>

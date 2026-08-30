@@ -13,7 +13,6 @@ import {
 import { PageRoute } from '../../types';
 import { useAuthStore } from '../../lib/authStore';
 import { useGeoStore } from '../../lib/geoStore';
-import { PRICING_TABLE, formatPrice } from '../../lib/geo';
 import { SEOHead } from '../seo/SEOHead';
 import { JsonLd } from '../seo/JsonLd';
 

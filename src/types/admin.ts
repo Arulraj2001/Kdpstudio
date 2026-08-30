@@ -554,6 +554,13 @@ export interface PlanPricingConfig {
   agencyMonthly: number;
   agencyAnnual: number;
   lifetime: number;
+  starterMonthlyInr?: number;
+  starterAnnualInr?: number;
+  proMonthlyInr?: number;
+  proAnnualInr?: number;
+  agencyMonthlyInr?: number;
+  agencyAnnualInr?: number;
+  lifetimeInr?: number;
 }
 
 export interface AppConfigData {

@@ -92,7 +92,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const defaultBillingCycle = propDefaultBillingCycle || checkoutStore.defaultBillingCycle || 'monthly';
 
   const { user, userDoc, refreshUserData } = useAuthStore();
-  const { currency, pricingTable, pricingOverrides } = useGeoStore();
+  const { currency, pricingTable, pricingOverrides, fetchPricing, initPricingListener } = useGeoStore();
 
   const [selectedPlan, setSelectedPlan] = useState<'starter' | 'pro' | 'agency'>('pro');
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
@@ -119,6 +119,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   // Sync props/store when modal opens
   useEffect(() => {
     if (isOpen) {
+      fetchPricing?.();
+      initPricingListener?.();
+
       if (defaultPlan && (defaultPlan === 'starter' || defaultPlan === 'pro' || defaultPlan === 'agency')) {
         setSelectedPlan(defaultPlan);
       }
@@ -135,7 +138,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         setActivePaymentTab(availableTabs[0] || 'bmac');
       }
     }
-  }, [isOpen, defaultPlan, defaultBillingCycle, currency]);
+  }, [isOpen, defaultPlan, defaultBillingCycle, currency, fetchPricing, initPricingListener]);
 
   if (!isOpen) return null;
 
@@ -154,6 +157,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       annualRate = pricingOverrides.proAnnual;
     } else if (selectedPlan === 'agency' && pricingOverrides.agencyAnnual) {
       annualRate = pricingOverrides.agencyAnnual;
+    }
+  } else if (currency === 'INR' && pricingOverrides) {
+    if (selectedPlan === 'starter' && pricingOverrides.starterAnnualInr) {
+      annualRate = pricingOverrides.starterAnnualInr;
+    } else if (selectedPlan === 'pro' && pricingOverrides.proAnnualInr) {
+      annualRate = pricingOverrides.proAnnualInr;
+    } else if (selectedPlan === 'agency' && pricingOverrides.agencyAnnualInr) {
+      annualRate = pricingOverrides.agencyAnnualInr;
     }
   }
 

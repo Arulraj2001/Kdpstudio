@@ -42,11 +42,18 @@ export interface PlanPricingOverrides {
   agencyMonthly?: number;
   agencyAnnual?: number;
   lifetime?: number;
+  starterMonthlyInr?: number;
+  starterAnnualInr?: number;
+  proMonthlyInr?: number;
+  proAnnualInr?: number;
+  agencyMonthlyInr?: number;
+  agencyAnnualInr?: number;
+  lifetimeInr?: number;
 }
 
 /**
  * Computes dynamic pricing table with fallback to static PRICING_TABLE.
- * If USD price is overridden, applies proportional scaling to other supported currencies.
+ * Supports explicit INR overrides or automatic proportional conversion.
  */
 export function computeDynamicPricingTable(overrides?: PlanPricingOverrides | null): PricingTable {
   const base: PricingTable = {
@@ -65,12 +72,16 @@ export function computeDynamicPricingTable(overrides?: PlanPricingOverrides | nu
     const ratio = newUsd / PRICING_TABLE.starter.USD;
     base.starter = {
       USD: newUsd,
-      INR: Math.round(PRICING_TABLE.starter.INR * ratio),
+      INR: (typeof overrides.starterMonthlyInr === 'number' && overrides.starterMonthlyInr > 0)
+        ? overrides.starterMonthlyInr
+        : Math.round(PRICING_TABLE.starter.INR * ratio),
       GBP: Math.round(PRICING_TABLE.starter.GBP * ratio),
       EUR: Math.round(PRICING_TABLE.starter.EUR * ratio),
       CAD: Math.round(PRICING_TABLE.starter.CAD * ratio),
       AUD: Math.round(PRICING_TABLE.starter.AUD * ratio),
     };
+  } else if (typeof overrides.starterMonthlyInr === 'number' && overrides.starterMonthlyInr > 0) {
+    base.starter.INR = overrides.starterMonthlyInr;
   }
 
   // Pro override
@@ -79,12 +90,16 @@ export function computeDynamicPricingTable(overrides?: PlanPricingOverrides | nu
     const ratio = newUsd / PRICING_TABLE.pro.USD;
     base.pro = {
       USD: newUsd,
-      INR: Math.round(PRICING_TABLE.pro.INR * ratio),
+      INR: (typeof overrides.proMonthlyInr === 'number' && overrides.proMonthlyInr > 0)
+        ? overrides.proMonthlyInr
+        : Math.round(PRICING_TABLE.pro.INR * ratio),
       GBP: Math.round(PRICING_TABLE.pro.GBP * ratio),
       EUR: Math.round(PRICING_TABLE.pro.EUR * ratio),
       CAD: Math.round(PRICING_TABLE.pro.CAD * ratio),
       AUD: Math.round(PRICING_TABLE.pro.AUD * ratio),
     };
+  } else if (typeof overrides.proMonthlyInr === 'number' && overrides.proMonthlyInr > 0) {
+    base.pro.INR = overrides.proMonthlyInr;
   }
 
   // Agency override
@@ -93,12 +108,16 @@ export function computeDynamicPricingTable(overrides?: PlanPricingOverrides | nu
     const ratio = newUsd / PRICING_TABLE.agency.USD;
     base.agency = {
       USD: newUsd,
-      INR: Math.round(PRICING_TABLE.agency.INR * ratio),
+      INR: (typeof overrides.agencyMonthlyInr === 'number' && overrides.agencyMonthlyInr > 0)
+        ? overrides.agencyMonthlyInr
+        : Math.round(PRICING_TABLE.agency.INR * ratio),
       GBP: Math.round(PRICING_TABLE.agency.GBP * ratio),
       EUR: Math.round(PRICING_TABLE.agency.EUR * ratio),
       CAD: Math.round(PRICING_TABLE.agency.CAD * ratio),
       AUD: Math.round(PRICING_TABLE.agency.AUD * ratio),
     };
+  } else if (typeof overrides.agencyMonthlyInr === 'number' && overrides.agencyMonthlyInr > 0) {
+    base.agency.INR = overrides.agencyMonthlyInr;
   }
 
   // Lifetime override
@@ -107,12 +126,16 @@ export function computeDynamicPricingTable(overrides?: PlanPricingOverrides | nu
     const ratio = newUsd / PRICING_TABLE.lifetime.USD;
     base.lifetime = {
       USD: newUsd,
-      INR: Math.round(PRICING_TABLE.lifetime.INR * ratio),
+      INR: (typeof overrides.lifetimeInr === 'number' && overrides.lifetimeInr > 0)
+        ? overrides.lifetimeInr
+        : Math.round(PRICING_TABLE.lifetime.INR * ratio),
       GBP: Math.round(PRICING_TABLE.lifetime.GBP * ratio),
       EUR: Math.round(PRICING_TABLE.lifetime.EUR * ratio),
       CAD: Math.round(PRICING_TABLE.lifetime.CAD * ratio),
       AUD: Math.round(PRICING_TABLE.lifetime.AUD * ratio),
     };
+  } else if (typeof overrides.lifetimeInr === 'number' && overrides.lifetimeInr > 0) {
+    base.lifetime.INR = overrides.lifetimeInr;
   }
 
   return base;

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Coffee, Zap, Sparkles, ExternalLink, ShieldCheck } from 'lucide-react';
 import { useAuthStore } from '../../lib/authStore';
+import { useGeoStore } from '../../lib/geoStore';
 
 export type BmacButtonVariant = 'support' | 'credits' | 'lifetime';
 
@@ -20,6 +21,11 @@ export const BmacButton: React.FC<BmacButtonProps> = ({
   onClick,
 }) => {
   const { user } = useAuthStore();
+  const { pricingTable, pricingOverrides } = useGeoStore();
+
+  const lifetimeUsd = pricingOverrides?.lifetime || pricingTable?.lifetime?.USD || 129;
+  const lifetimeCoffees = Math.ceil(lifetimeUsd / 3) || 43;
+
   const rawBmacUrl = 
     (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_BMAC_URL) ||
     (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_BMAC_URL) ||
@@ -39,10 +45,10 @@ export const BmacButton: React.FC<BmacButtonProps> = ({
     badgeText = '$6 (1 Coffee)';
     Icon = Zap;
   } else if (variant === 'lifetime') {
-    targetCoffees = coffees || 43;
+    targetCoffees = coffees || lifetimeCoffees;
     title = 'Get Lifetime Pro Access';
     subtitle = 'One-time payment • Permanent unlimited access';
-    badgeText = '$129 (43 Coffees)';
+    badgeText = `$${lifetimeUsd} (${targetCoffees} Coffees)`;
     Icon = Sparkles;
   }
 

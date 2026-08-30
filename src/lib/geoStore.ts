@@ -38,14 +38,37 @@ interface GeoState {
   getFormattedPrice: (plan: PlanName, currencyOverride?: Currency) => string;
   resetToAutoDetection: () => Promise<void>;
   initPricingListener: () => void;
+  fetchPricing: () => Promise<void>;
 }
 
 export const useGeoStore = create<GeoState>()(
   persist(
     (set, get) => {
+      // Direct API fetch to guarantee immediate pricing data even if client snapshot is delayed
+      const fetchPricingFromApi = async () => {
+        try {
+          const res = await fetch('/api/config/pricing');
+          if (res.ok) {
+            const data = await res.json();
+            if (data.pricingTable) {
+              set({
+                pricingOverrides: data.pricing || null,
+                pricingTable: data.pricingTable,
+              });
+            }
+          }
+        } catch (e) {
+          console.debug('[GeoStore] API pricing fetch fallback error:', e);
+        }
+      };
+
       // Initialize real-time pricing listener from Firestore
       const setupPricingListener = () => {
         if (typeof window === 'undefined') return;
+        
+        // Immediately fetch via API as instant reliable fallback
+        fetchPricingFromApi();
+
         if (unsubscribePricingSnapshot) {
           unsubscribePricingSnapshot();
           unsubscribePricingSnapshot = null;
@@ -93,9 +116,11 @@ export const useGeoStore = create<GeoState>()(
         manualOverride: false,
         lastDetectedAt: null,
 
+        fetchPricing: fetchPricingFromApi,
         initPricingListener: setupPricingListener,
 
         initLocation: async (force = false) => {
+          setupPricingListener();
           const { location, manualOverride, lastDetectedAt, isDetecting } = get();
 
           // If currently detecting, prevent duplicate requests

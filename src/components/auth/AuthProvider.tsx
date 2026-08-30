@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { BookOpen } from 'lucide-react';
 import { useAuthStore } from '../../lib/authStore';
 import { useBrandStore } from '../../lib/brandStore';
+import { useGeoStore } from '../../lib/geoStore';
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -10,6 +11,12 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { user, isInitialized } = useAuthStore();
   const { loadBrandKit } = useBrandStore();
+  const { initPricingListener, fetchPricing } = useGeoStore();
+
+  useEffect(() => {
+    initPricingListener?.();
+    fetchPricing?.();
+  }, [initPricingListener, fetchPricing]);
 
   useEffect(() => {
     if (user?.uid) {

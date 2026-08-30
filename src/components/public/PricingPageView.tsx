@@ -76,13 +76,19 @@ const PRICING_SCHEMA = {
 };
 
 export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) => {
-  const { currency, location, pricingTable, pricingOverrides } = useGeoStore();
+  const { currency, location, pricingTable, pricingOverrides, initPricingListener, fetchPricing } = useGeoStore();
   const { user } = useAuthStore();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [selectedPlanForCheckout, setSelectedPlanForCheckout] = useState<{ plan: PlanName; amount: number; currency: Currency } | null>(null);
   const [activeGatewayTab, setActiveGatewayTab] = useState<'paypal' | 'razorpay' | 'upi'>('razorpay');
   const [paymentNotice, setPaymentNotice] = useState<{ type: 'success' | 'cancelled' | 'error'; message: string } | null>(null);
+
+  // Initialize and refresh real-time pricing on page mount
+  useEffect(() => {
+    initPricingListener?.();
+    fetchPricing?.();
+  }, [initPricingListener, fetchPricing]);
 
   const currKey = (['INR', 'USD', 'GBP', 'EUR', 'CAD', 'AUD'].includes(currency) ? currency : 'USD') as Currency;
   const isIndia = currKey === 'INR' || location?.country === 'IN' || location?.countryName === 'India';
@@ -125,15 +131,19 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
   const proMonthly = currentTable.pro?.[currKey] ?? PRICING_TABLE.pro[currKey];
   const agencyMonthly = currentTable.agency?.[currKey] ?? PRICING_TABLE.agency[currKey];
 
-  const starterAnnual = pricingOverrides?.starterAnnual && currKey === 'USD'
-    ? pricingOverrides.starterAnnual
-    : Math.round(starterMonthly * 10);
-  const proAnnual = pricingOverrides?.proAnnual && currKey === 'USD'
-    ? pricingOverrides.proAnnual
-    : Math.round(proMonthly * 10);
-  const agencyAnnual = pricingOverrides?.agencyAnnual && currKey === 'USD'
-    ? pricingOverrides.agencyAnnual
-    : Math.round(agencyMonthly * 10);
+  let starterAnnual = Math.round(starterMonthly * 10);
+  let proAnnual = Math.round(proMonthly * 10);
+  let agencyAnnual = Math.round(agencyMonthly * 10);
+
+  if (currKey === 'USD' && pricingOverrides) {
+    if (pricingOverrides.starterAnnual) starterAnnual = pricingOverrides.starterAnnual;
+    if (pricingOverrides.proAnnual) proAnnual = pricingOverrides.proAnnual;
+    if (pricingOverrides.agencyAnnual) agencyAnnual = pricingOverrides.agencyAnnual;
+  } else if (currKey === 'INR' && pricingOverrides) {
+    if (pricingOverrides.starterAnnualInr) starterAnnual = pricingOverrides.starterAnnualInr;
+    if (pricingOverrides.proAnnualInr) proAnnual = pricingOverrides.proAnnualInr;
+    if (pricingOverrides.agencyAnnualInr) agencyAnnual = pricingOverrides.agencyAnnualInr;
+  }
 
   const starterPrice = billingCycle === 'monthly' ? starterMonthly : starterAnnual;
   const proPrice = billingCycle === 'monthly' ? proMonthly : proAnnual;
@@ -785,8 +795,10 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
                     amount={selectedPlanForCheckout.currency === 'INR' 
                       ? selectedPlanForCheckout.amount 
                       : (selectedPlanForCheckout.plan === 'starter' 
-                          ? (billingCycle === 'annual' ? Math.round(PRICING_TABLE.starter.INR * 10) : PRICING_TABLE.starter.INR)
-                          : (billingCycle === 'annual' ? Math.round(PRICING_TABLE.pro.INR * 10) : PRICING_TABLE.pro.INR))}
+                          ? starterPrice
+                          : selectedPlanForCheckout.plan === 'agency'
+                          ? agencyPrice
+                          : proPrice)}
                     onSubmitted={() => {
                       setSelectedPlanForCheckout(null);
                       setPaymentNotice({
@@ -805,8 +817,10 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
                     amount={selectedPlanForCheckout.currency === 'INR' 
                       ? selectedPlanForCheckout.amount 
                       : (selectedPlanForCheckout.plan === 'starter' 
-                          ? (billingCycle === 'annual' ? Math.round(PRICING_TABLE.starter.INR * 10) : PRICING_TABLE.starter.INR)
-                          : (billingCycle === 'annual' ? Math.round(PRICING_TABLE.pro.INR * 10) : PRICING_TABLE.pro.INR))}
+                          ? starterPrice
+                          : selectedPlanForCheckout.plan === 'agency'
+                          ? agencyPrice
+                          : proPrice)}
                     onSuccess={() => {
                       setSelectedPlanForCheckout(null);
                       onNavigate('dashboard');
