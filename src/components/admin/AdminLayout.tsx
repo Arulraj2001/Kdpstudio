@@ -23,6 +23,7 @@ import {
   Menu,
   X,
   ShieldCheck,
+  Search,
 } from 'lucide-react';
 
 interface NavItem {
@@ -188,6 +189,7 @@ export function AdminLayout({
         { id: 'admin-blog-import', label: 'Bulk Import', href: '/admin/blog/import', icon: Sliders },
         { id: 'admin-blog-ads', label: 'Ad Settings', href: '/admin/blog/ads', icon: TrendingUp },
         { id: 'admin-blog-analytics', label: 'Post Analytics', href: '/admin/blog/analytics', icon: Activity },
+        { id: 'admin-blog-seo', label: 'SEO & Sitemaps', href: '/admin/blog/seo', icon: Search },
       ],
     },
     {

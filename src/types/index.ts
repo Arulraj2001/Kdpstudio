@@ -66,6 +66,7 @@ export type PageRoute =
   | 'admin-blog-import'
   | 'admin-blog-ads'
   | 'admin-blog-analytics'
+  | 'admin-blog-seo'
   | 'geo-test'
   | 'login'
   | 'signup'

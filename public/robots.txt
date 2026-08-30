@@ -16,4 +16,11 @@ Disallow: /admin
 Disallow: /onboarding
 Disallow: /api/
 
+User-agent: Googlebot-News
+Allow: /blog/
+
+Sitemap: https://kdpstudio-aio.web.app/sitemap-index.xml
 Sitemap: https://kdpstudio-aio.web.app/sitemap.xml
+Sitemap: https://kdpstudio-aio.web.app/news-sitemap.xml
+Sitemap: https://kdpstudio-aio.web.app/image-sitemap.xml
+Sitemap: https://kdpstudio-aio.web.app/feed.xml

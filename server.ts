@@ -81,6 +81,205 @@ async function startServer() {
     res.json({ status: 'ok', service: 'KDP Studio API' });
   });
 
+  // XML Sitemaps & Feeds
+  app.get('/sitemap-index.xml', (req, res) => {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://kdpstudio-aio.web.app';
+    const nowIso = new Date().toISOString();
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>${baseUrl}/sitemap.xml</loc>
+    <lastmod>${nowIso}</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>${baseUrl}/news-sitemap.xml</loc>
+    <lastmod>${nowIso}</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>${baseUrl}/image-sitemap.xml</loc>
+    <lastmod>${nowIso}</lastmod>
+  </sitemap>
+</sitemapindex>`.trim();
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    return res.send(xml);
+  });
+
+  app.get('/sitemap.xml', async (req, res) => {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://kdpstudio-aio.web.app';
+    try {
+      const { getAdminDb } = await import('./src/lib/firebase-admin');
+      const adminDb = getAdminDb();
+      let blogPages: string[] = [];
+      let categoryPages: string[] = [];
+
+      if (adminDb) {
+        const snap = await adminDb.collection('blogPosts').where('status', '==', 'published').get();
+        const publishedDocs = snap.docs.filter((d) => d.data().noIndex !== true);
+        blogPages = publishedDocs.map((d) => {
+          const data = d.data();
+          const lastMod = data.updatedAt?.toDate?.() || data.publishedAt?.toDate?.() || new Date();
+          return `  <url><loc>${baseUrl}/blog/${data.slug || d.id}</loc><lastmod>${lastMod.toISOString()}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>`;
+        });
+
+        const categories = [...new Set(publishedDocs.map((d) => d.data().category).filter(Boolean))];
+        categoryPages = categories.map((cat) => `  <url><loc>${baseUrl}/blog/category/${encodeURIComponent(String(cat).toLowerCase().replace(/\\s+/g, '-'))}</loc><lastmod>${new Date().toISOString()}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>`);
+      }
+
+      const staticPages = [
+        `  <url><loc>${baseUrl}</loc><lastmod>${new Date().toISOString()}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>`,
+        `  <url><loc>${baseUrl}/pricing</loc><lastmod>${new Date().toISOString()}</lastmod><changefreq>monthly</changefreq><priority>0.9</priority></url>`,
+        `  <url><loc>${baseUrl}/about</loc><lastmod>${new Date().toISOString()}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>`,
+        `  <url><loc>${baseUrl}/contact</loc><lastmod>${new Date().toISOString()}</lastmod><changefreq>yearly</changefreq><priority>0.5</priority></url>`,
+        `  <url><loc>${baseUrl}/blog</loc><lastmod>${new Date().toISOString()}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>`,
+        `  <url><loc>${baseUrl}/changelog</loc><lastmod>${new Date().toISOString()}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>`,
+      ];
+
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${[...staticPages, ...blogPages, ...categoryPages].join('\\n')}
+</urlset>`.trim();
+
+      res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      return res.send(xml);
+    } catch (e) {
+      return res.status(500).send('Error generating sitemap');
+    }
+  });
+
+  app.get('/news-sitemap.xml', async (req, res) => {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://kdpstudio-aio.web.app';
+    const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    try {
+      const { getAdminDb } = await import('./src/lib/firebase-admin');
+      const { escapeXml } = await import('./src/lib/xmlUtils');
+      const adminDb = getAdminDb();
+      let posts: any[] = [];
+      if (adminDb) {
+        const snap = await adminDb.collection('blogPosts').where('status', '==', 'published').get();
+        posts = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() } as any))
+          .filter((p) => {
+            if (p.noIndex === true) return false;
+            const pubDate = p.publishedAt?.toDate ? p.publishedAt.toDate() : new Date(p.publishedAt || 0);
+            return pubDate >= twoDaysAgo;
+          });
+      }
+
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${posts.map((p) => {
+  const pubDate = p.publishedAt?.toDate ? p.publishedAt.toDate() : new Date(p.publishedAt || Date.now());
+  const kw = [p.focusKeyword, ...(p.secondaryKeywords || [])].filter(Boolean).join(', ');
+  const imgUrl = p.featuredImage?.url || p.coverImage;
+  return `  <url>
+    <loc>${baseUrl}/blog/${p.slug || p.id}</loc>
+    <news:news>
+      <news:publication><news:name>KDP Studio Blog</news:name><news:language>en</news:language></news:publication>
+      <news:publication_date>${pubDate.toISOString()}</news:publication_date>
+      <news:title>${escapeXml(p.title)}</news:title>
+      <news:keywords>${escapeXml(kw)}</news:keywords>
+    </news:news>
+    ${imgUrl ? `<image:image><image:loc>${escapeXml(imgUrl)}</image:loc><image:caption>${escapeXml(p.featuredImage?.alt || p.title)}</image:caption></image:image>` : ''}
+  </url>`;
+}).join('\\n')}
+</urlset>`.trim();
+
+      res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=1800');
+      return res.send(xml);
+    } catch {
+      return res.status(500).send('Error generating news sitemap');
+    }
+  });
+
+  app.get('/image-sitemap.xml', async (req, res) => {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://kdpstudio-aio.web.app';
+    try {
+      const { getAdminDb } = await import('./src/lib/firebase-admin');
+      const { escapeXml } = await import('./src/lib/xmlUtils');
+      const adminDb = getAdminDb();
+      let posts: any[] = [];
+      if (adminDb) {
+        const snap = await adminDb.collection('blogPosts').where('status', '==', 'published').get();
+        posts = snap.docs.map((d) => ({ id: d.id, ...d.data() } as any)).filter((p) => p.noIndex !== true && Boolean(p.featuredImage?.url || p.coverImage));
+      }
+
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${posts.map((p) => `  <url>
+    <loc>${baseUrl}/blog/${p.slug || p.id}</loc>
+    <image:image>
+      <image:loc>${escapeXml(p.featuredImage?.url || p.coverImage)}</image:loc>
+      <image:caption>${escapeXml(p.featuredImage?.alt || p.title)}</image:caption>
+      <image:title>${escapeXml(p.title)}</image:title>
+    </image:image>
+  </url>`).join('\\n')}
+</urlset>`.trim();
+
+      res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      return res.send(xml);
+    } catch {
+      return res.status(500).send('Error generating image sitemap');
+    }
+  });
+
+  app.get('/feed.xml', async (req, res) => {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://kdpstudio-aio.web.app';
+    try {
+      const { getAdminDb } = await import('./src/lib/firebase-admin');
+      const { escapeXml, cdata } = await import('./src/lib/xmlUtils');
+      const adminDb = getAdminDb();
+      let posts: any[] = [];
+      if (adminDb) {
+        const snap = await adminDb.collection('blogPosts').where('status', '==', 'published').get();
+        posts = snap.docs.map((d) => ({ id: d.id, ...d.data() } as any)).filter((p) => p.noIndex !== true).slice(0, 20);
+      }
+
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:media="http://www.rssboard.org/media-rss">
+  <channel>
+    <title>KDP Studio Blog</title>
+    <link>${baseUrl}/blog</link>
+    <description>Publishing strategies, guides and tips for Amazon KDP self-publishers</description>
+    <language>en-US</language>
+    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+    <atom:link href="${baseUrl}/feed.xml" rel="self" type="application/rss+xml"/>
+    <image>
+      <url>${baseUrl}/icons/icon-512x512.png</url>
+      <title>KDP Studio Blog</title>
+      <link>${baseUrl}/blog</link>
+    </image>
+${posts.map((p) => {
+  const pubDate = p.publishedAt?.toDate ? p.publishedAt.toDate() : new Date(p.publishedAt || Date.now());
+  const imgUrl = p.featuredImage?.url || p.coverImage;
+  const tags = Array.isArray(p.tags) ? p.tags : [];
+  return `    <item>
+      <title>${cdata(p.title)}</title>
+      <link>${baseUrl}/blog/${p.slug || p.id}</link>
+      <guid isPermaLink="true">${baseUrl}/blog/${p.slug || p.id}</guid>
+      <pubDate>${pubDate.toUTCString()}</pubDate>
+      <dc:creator>${cdata(p.authorName || 'KDP Studio Team')}</dc:creator>
+      <category>${cdata(p.category || 'Publishing Strategy')}</category>
+      ${tags.map((t: string) => `<category>${cdata(t)}</category>`).join('')}
+      <description>${cdata(p.excerpt || p.metaDescription || '')}</description>
+      <content:encoded>${cdata(p.content || '')}</content:encoded>
+      ${imgUrl ? `<media:content url="${escapeXml(imgUrl)}" medium="image" width="1200" height="630"><media:alt>${escapeXml(p.featuredImage?.alt || p.title)}</media:alt></media:content>` : ''}
+    </item>`;
+}).join('\\n')}
+  </channel>
+</rss>`.trim();
+
+      res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      return res.send(xml);
+    } catch {
+      return res.status(500).send('Error generating RSS feed');
+    }
+  });
+
   // Blog API routes
   app.get('/api/blog', async (req, res) => {
     try {

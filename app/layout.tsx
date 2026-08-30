@@ -77,7 +77,18 @@ export const metadata: Metadata = {
 
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION || '',
-  }
+  },
+
+  alternates: {
+    types: {
+      'application/rss+xml': [
+        {
+          url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://kdpstudio-aio.web.app'}/feed.xml`,
+          title: 'KDP Studio Blog RSS Feed',
+        },
+      ],
+    },
+  },
 };
 
 export default function RootLayout({
