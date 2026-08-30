@@ -65,7 +65,7 @@ export function middleware(request: any) {
 
   // 1. If unauthenticated user attempts to access protected routes -> redirect to /login
   if (isProtectedRoute && !sessionCookie) {
-    return redirect(`/login?from=${encodeURIComponent(pathname)}`);
+    return redirect(`/login?redirect=${encodeURIComponent(pathname)}`);
   }
 
   // 2. If authenticated user attempts to access auth pages -> redirect to /dashboard

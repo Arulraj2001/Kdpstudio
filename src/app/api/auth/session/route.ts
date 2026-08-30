@@ -2,10 +2,11 @@ import { adminAuth } from '../../../../lib/firebase-admin';
 
 export async function POST(req: Request) {
   try {
-    const { idToken } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const idToken = body.idToken || body.token;
 
     if (!idToken) {
-      return new Response(JSON.stringify({ error: 'Missing ID token' }), {
+      return new Response(JSON.stringify({ success: false, error: 'Missing ID token' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -21,7 +22,7 @@ export async function POST(req: Request) {
       sessionCookie = `dev-session-${idToken.slice(0, 16)}`;
     }
 
-    return new Response(JSON.stringify({ status: 'success' }), {
+    return new Response(JSON.stringify({ success: true, status: 'success' }), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
       },
     });
   } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message || 'Session creation failed' }), {
+    return new Response(JSON.stringify({ success: false, error: error.message || 'Session creation failed' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE() {
-  return new Response(JSON.stringify({ status: 'success' }), {
+  return new Response(JSON.stringify({ success: true, status: 'success' }), {
     status: 200,
     headers: {
       'Content-Type': 'application/json',

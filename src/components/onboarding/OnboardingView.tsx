@@ -147,7 +147,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onNavigate }) =>
     // 2. Hydrate from localStorage for progressive saving
     if (typeof window !== 'undefined') {
       try {
-        const saved = localStorage.getItem(STORAGE_KEY);
+        const saved = localStorage.getItem('onboarding-progress') || localStorage.getItem(STORAGE_KEY);
         if (saved) {
           const parsed = JSON.parse(saved);
           if (parsed.step) setStep(parsed.step);
@@ -168,18 +168,17 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onNavigate }) =>
   useEffect(() => {
     if (typeof window !== 'undefined' && step < 5) {
       try {
-        localStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify({
-            step,
-            name,
-            selectedBookTypes,
-            publishingGoal,
-            defaultAuthorName,
-            defaultLanguage,
-            defaultTrimSize,
-          })
-        );
+        const payload = JSON.stringify({
+          step,
+          name,
+          selectedBookTypes,
+          publishingGoal,
+          defaultAuthorName,
+          defaultLanguage,
+          defaultTrimSize,
+        });
+        localStorage.setItem('onboarding-progress', payload);
+        localStorage.setItem(STORAGE_KEY, payload);
       } catch {}
     }
   }, [step, name, selectedBookTypes, publishingGoal, defaultAuthorName, defaultLanguage, defaultTrimSize]);
@@ -239,6 +238,10 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onNavigate }) =>
   const handleFinish = async (targetRoute: PageRoute = 'dashboard') => {
     setIsSubmitting(true);
     try {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('onboarding-progress');
+        localStorage.removeItem(STORAGE_KEY);
+      }
       await completeOnboarding({
         name: name || user?.displayName || 'Author',
         bookTypes: selectedBookTypes,

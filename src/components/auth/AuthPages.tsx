@@ -92,19 +92,36 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
 
   const strength = getPasswordStrength(password);
 
+  const navigatePostAuth = (freshDoc?: any) => {
+    if (onSuccess) {
+      onSuccess();
+      return;
+    }
+
+    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const redirectParam = searchParams?.get('redirect') || searchParams?.get('from');
+
+    const targetRoute: PageRoute = freshDoc?.onboardingComplete === false
+      ? 'onboarding'
+      : (redirectParam?.replace(/^\//, '') as PageRoute) || 'dashboard';
+
+    if (onNavigate) {
+      onNavigate(targetRoute);
+    } else if (typeof window !== 'undefined') {
+      window.location.href = freshDoc?.onboardingComplete === false
+        ? '/onboarding'
+        : (redirectParam || '/dashboard');
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     clearError();
     setSubmitting(true);
     try {
       await signInWithGoogle();
-      // Let AppShell decide the route (onboarding vs dashboard) via onSuccess
-      if (onSuccess) onSuccess();
-      // Fallback: read fresh store state to decide route
-      else if (onNavigate) {
-        const { useAuthStore: _store } = await import('../../lib/authStore');
-        const freshDoc = _store.getState().userDoc;
-        onNavigate(freshDoc?.onboardingComplete === false ? 'onboarding' : 'dashboard');
-      }
+      const { useAuthStore: _store } = await import('../../lib/authStore');
+      const freshDoc = _store.getState().userDoc;
+      navigatePostAuth(freshDoc);
     } catch (err) {
       // Handled in store
     } finally {
@@ -118,6 +135,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
     try {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('kdp_onboarding_progress');
+        localStorage.removeItem('onboarding-progress');
       }
       await setDemoUser({
         plan: 'pro',
@@ -126,11 +144,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
         emailVerified: true,
         onboardingComplete: false,
       });
-      if (onNavigate) {
-        onNavigate('onboarding');
-      } else if (onSuccess) {
-        onSuccess();
-      }
+      navigatePostAuth({ onboardingComplete: false });
     } catch (err) {
       console.error('Demo login error:', err);
     } finally {
@@ -145,13 +159,9 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
     setSubmitting(true);
     try {
       await signInWithEmail(email, password);
-      // Let AppShell decide the route via onSuccess (reads fresh userDoc from store)
-      if (onSuccess) onSuccess();
-      else if (onNavigate) {
-        const { useAuthStore: _store } = await import('../../lib/authStore');
-        const freshDoc = _store.getState().userDoc;
-        onNavigate(freshDoc?.onboardingComplete === false ? 'onboarding' : 'dashboard');
-      }
+      const { useAuthStore: _store } = await import('../../lib/authStore');
+      const freshDoc = _store.getState().userDoc;
+      navigatePostAuth(freshDoc);
     } catch (err) {
       // Handled in store
     } finally {

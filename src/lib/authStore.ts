@@ -71,38 +71,26 @@ interface AuthState {
 export function getFriendlyAuthErrorMessage(errorCodeOrMsg: string): string {
   if (!errorCodeOrMsg) return 'An unexpected error occurred. Please try again.';
 
-  if (errorCodeOrMsg.includes('auth/wrong-password') || errorCodeOrMsg.includes('auth/invalid-credential') || errorCodeOrMsg.includes('auth/invalid-login-credentials')) {
-    return 'Incorrect email or password. Please try again.';
-  }
-  if (errorCodeOrMsg.includes('auth/user-not-found')) {
-    return 'No account found with this email. Please sign up first.';
-  }
-  if (errorCodeOrMsg.includes('auth/email-already-in-use')) {
-    return 'An account with this email already exists. Try signing in instead.';
-  }
-  if (errorCodeOrMsg.includes('auth/weak-password')) {
-    return 'Password must be at least 6 characters long.';
-  }
-  if (errorCodeOrMsg.includes('auth/invalid-email')) {
-    return 'Please enter a valid email address.';
-  }
-  if (errorCodeOrMsg.includes('auth/network-request-failed')) {
-    return 'Connection error. Please check your internet connection.';
-  }
-  if (errorCodeOrMsg.includes('auth/popup-closed-by-user')) {
-    return 'Google sign-in was closed before completing.';
-  }
-  if (errorCodeOrMsg.includes('auth/popup-blocked')) {
-    return 'Sign-in popup was blocked by your browser. Please allow popups for this site.';
-  }
-  if (errorCodeOrMsg.includes('auth/unauthorized-domain')) {
-    return 'This domain is not authorized. Please add it to Authorized Domains in Firebase Console > Authentication > Settings.';
-  }
-  if (errorCodeOrMsg.includes('auth/operation-not-allowed')) {
-    return 'Authentication provider is not enabled in Firebase Console. Please enable Google or Email/Password in Firebase Auth settings.';
-  }
-  if (errorCodeOrMsg.includes('auth/too-many-requests')) {
-    return 'Too many failed attempts. Please wait a moment or reset your password.';
+  const ERROR_MESSAGES: Record<string, string> = {
+    'auth/wrong-password': 'Incorrect password. Try again.',
+    'auth/user-not-found': 'No account found with this email.',
+    'auth/email-already-in-use': 'An account with this email already exists.',
+    'auth/weak-password': 'Password must be at least 6 characters.',
+    'auth/network-request-failed': 'Connection error. Check your internet.',
+    'auth/invalid-credential': 'Invalid email or password.',
+    'auth/invalid-login-credentials': 'Invalid email or password.',
+    'auth/too-many-requests': 'Too many attempts. Try again later.',
+    'auth/invalid-email': 'Please enter a valid email address.',
+    'auth/popup-closed-by-user': 'Google sign-in was closed before completing.',
+    'auth/popup-blocked': 'Sign-in popup was blocked by your browser. Please allow popups for this site.',
+    'auth/unauthorized-domain': 'This domain is not authorized. Please add it to Authorized Domains in Firebase Console > Authentication > Settings.',
+    'auth/operation-not-allowed': 'Authentication provider is not enabled in Firebase Console.',
+  };
+
+  for (const [code, friendlyMsg] of Object.entries(ERROR_MESSAGES)) {
+    if (errorCodeOrMsg.includes(code)) {
+      return friendlyMsg;
+    }
   }
 
   return errorCodeOrMsg.replace(/^Firebase:\s*/, '').replace(/\s*\(auth\/.*\)\.?$/, '');
@@ -161,6 +149,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
             plan: userDoc?.plan || 'free',
             currency: userDoc?.currency || currency,
             country: userDoc?.country || country,
+            onboardingComplete: userDoc?.onboardingComplete ?? false,
           };
 
           // Inform server of active token
@@ -277,9 +266,10 @@ export const useAuthStore = create<AuthState>((set, get) => {
           displayName: fbUser.displayName || userDoc.name,
           photoURL: fbUser.photoURL || userDoc.photoURL,
           emailVerified: true,
-          plan: userDoc.plan,
+          plan: userDoc.plan || 'free',
           currency: userDoc.currency,
           country: userDoc.country,
+          onboardingComplete: userDoc.onboardingComplete ?? false,
         };
 
         const token = await fbUser.getIdToken();
@@ -306,6 +296,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
             displayName: email.split('@')[0] || 'Kindle Author',
             emailVerified: true,
             plan: 'free',
+            onboardingComplete: true,
           });
           return;
         }
@@ -323,6 +314,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
           plan: userDoc?.plan || 'free',
           currency: userDoc?.currency || 'USD',
           country: userDoc?.country || 'US',
+          onboardingComplete: userDoc?.onboardingComplete ?? false,
         };
 
         const token = await fbUser.getIdToken();
@@ -353,6 +345,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
             displayName: name || email.split('@')[0],
             emailVerified: false,
             plan: 'free',
+            onboardingComplete: false,
           });
           return;
         }
@@ -408,6 +401,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
           plan: 'free',
           currency,
           country,
+          onboardingComplete: false,
         };
 
         const token = await fbUser.getIdToken();
@@ -435,6 +429,8 @@ export const useAuthStore = create<AuthState>((set, get) => {
       } finally {
         if (typeof window !== 'undefined') {
           localStorage.removeItem('kdp_active_session_user');
+          localStorage.removeItem('kdp_onboarding_progress');
+          localStorage.removeItem('onboarding-progress');
         }
         await notifyServerSession(undefined, true);
         set({
