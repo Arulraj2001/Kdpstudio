@@ -29,10 +29,12 @@ import {
   AlertCircle,
   Check,
 } from 'lucide-react';
-import { BlogPost, BlogAuthor, BlogStatus, BlogSchemaType, BlogFaqItem, BlogHowToStep, BlogSource, AdPositionConfig } from '../../../types/blog';
+import { BlogPost, BlogAuthor, BlogStatus, BlogSchemaType, BlogFaqItem, BlogHowToStep, BlogSource, AdPositionConfig, BlogGenerationResult } from '../../../types/blog';
 import { PageRoute } from '../../../types';
 import { calculateSeoScore, SeoScoreResult } from '../../../lib/seoScorer';
 import { generateSlug } from '../../../lib/blogUtils';
+import { AiDraftGenerator } from './AiDraftGenerator';
+import { executeAiEditorAction } from '../../../lib/aiBlogGenerator';
 
 interface BlogPostEditorProps {
   postId?: string; // If provided -> edit mode, if undefined -> create mode
@@ -43,6 +45,9 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
   const [loading, setLoading] = useState<boolean>(Boolean(postId));
   const [saving, setSaving] = useState<boolean>(false);
   const [authors, setAuthors] = useState<BlogAuthor[]>([]);
+  const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false);
+  const [isAiDraft, setIsAiDraft] = useState<boolean>(false);
+  const [inlineAiLoading, setInlineAiLoading] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'seo' | 'social' | 'schema' | 'eeat' | 'settings'>('seo');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -514,6 +519,52 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
     }
   };
 
+  const handleApplyAiDraft = (result: BlogGenerationResult) => {
+    setTitle(result.title);
+    setSlug(result.slug);
+    setContent(result.content);
+    setMetaTitle(result.metaTitle || result.title);
+    setMetaDescription(result.metaDescription);
+    setExcerpt(result.excerpt);
+    setFocusKeyword(result.focusKeyword);
+    if (result.secondaryKeywords?.length) setSecondaryKeywords(result.secondaryKeywords);
+    if (result.tags?.length) setTags(result.tags);
+    if (result.faqItems?.length) setFaqItems(result.faqItems);
+    if (result.suggestedSources?.length) setSources(result.suggestedSources);
+    if (result.howToSteps?.length) setHowToSteps(result.howToSteps);
+    setIsAiDraft(true);
+    showToast('✨ AI draft applied! Review before publishing.');
+  };
+
+  const handleRunInlineAi = async (action: 'rewrite' | 'statistics' | 'shorten' | 'expand' | 'factcheck') => {
+    const textarea = document.querySelector('textarea') as HTMLTextAreaElement | null;
+    let selected = '';
+    if (textarea) {
+      selected = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+    }
+    if (!selected.trim()) {
+      showToast('ℹ️ Please highlight/select text in the article editor first');
+      return;
+    }
+
+    setInlineAiLoading(true);
+    showToast(`🤖 Running AI ${action}...`);
+    try {
+      const enhanced = await executeAiEditorAction(action, selected);
+      if (textarea && enhanced) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const newContent = textarea.value.substring(0, start) + enhanced + textarea.value.substring(end);
+        setContent(newContent);
+        showToast(`✨ Section updated with AI ${action}`);
+      }
+    } catch (err: any) {
+      showToast(`❌ Error: ${err.message}`);
+    } finally {
+      setInlineAiLoading(false);
+    }
+  };
+
   const handleTriggerPublish = () => {
     if (seoResult.score < 40) {
       setShowLowSeoModal(true);
@@ -668,6 +719,15 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
 
         <div className="flex items-center gap-2.5">
           <button
+            type="button"
+            onClick={() => setIsAiModalOpen(true)}
+            className="px-3.5 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
+          >
+            <Sparkles size={14} className="text-purple-600" />
+            <span>AI Generate</span>
+          </button>
+
+          <button
             onClick={() => window.open(`/blog/${slug}?preview=true`, '_blank')}
             className="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
           >
@@ -694,6 +754,22 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
           </button>
         </div>
       </div>
+
+      {/* ── AI Watermark Warning Banner ── */}
+      {isAiDraft && (
+        <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold flex items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-2">
+            <Sparkles size={16} className="text-amber-600 shrink-0" />
+            <span>✨ AI-Generated Draft — Review and customize content before publishing to live blog.</span>
+          </div>
+          <button
+            onClick={() => setIsAiDraft(false)}
+            className="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-amber-300 hover:bg-amber-100 cursor-pointer"
+          >
+            Dismiss Watermark
+          </button>
+        </div>
+      )}
 
       {/* ── 3-Column Studio Grid Layout (60% / 40%) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -794,6 +870,53 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
               >
                 <LinkIcon size={12} />
                 <span>Link</span>
+              </button>
+
+              {/* Inline AI Actions */}
+              <div className="h-4 w-px bg-slate-300 mx-1" />
+              <button
+                type="button"
+                onClick={() => handleRunInlineAi('rewrite')}
+                disabled={inlineAiLoading}
+                className="px-2 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-800 font-bold flex items-center gap-1 border border-purple-200 cursor-pointer disabled:opacity-50"
+                title="Select text and click to rewrite"
+              >
+                <Sparkles size={11} />
+                <span>Rewrite</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRunInlineAi('statistics')}
+                disabled={inlineAiLoading}
+                className="px-2 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-800 font-bold border border-purple-200 cursor-pointer disabled:opacity-50"
+                title="Select text and click to add statistics"
+              >
+                + Stats
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRunInlineAi('shorten')}
+                disabled={inlineAiLoading}
+                className="px-2 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-800 font-bold border border-purple-200 cursor-pointer disabled:opacity-50"
+              >
+                Shorten
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRunInlineAi('expand')}
+                disabled={inlineAiLoading}
+                className="px-2 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-800 font-bold border border-purple-200 cursor-pointer disabled:opacity-50"
+              >
+                Expand
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRunInlineAi('factcheck')}
+                disabled={inlineAiLoading}
+                className="px-2 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold border border-amber-200 cursor-pointer disabled:opacity-50"
+                title="Select text to fact-check against KDP policies"
+              >
+                Fact Check
               </button>
             </div>
 
@@ -1435,6 +1558,14 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
           </div>
         </div>
       </div>
+
+      {/* ── AI Blog Draft Generator Studio Modal ── */}
+      <AiDraftGenerator
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        onApply={handleApplyAiDraft}
+        initialKeyword={focusKeyword || title}
+      />
     </div>
   );
 };

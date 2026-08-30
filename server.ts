@@ -308,6 +308,94 @@ ${posts.map((p) => {
     }
   });
 
+  // AI Blog Draft Generator API
+  app.post('/api/admin/blog/generate', async (req, res) => {
+    try {
+      const {
+        generateKeywordSuggestions,
+        generateBlogOutline,
+        generateFullBlogPost,
+        executeAiEditorAction,
+      } = await import('./src/lib/aiBlogGenerator');
+
+      const body = req.body || {};
+      const action = body.action || 'generate';
+
+      if (action === 'keywords') {
+        const suggestions = await generateKeywordSuggestions(body.seed || 'kdp publishing');
+        return res.json({ success: true, suggestions });
+      }
+
+      if (action === 'outline') {
+        const { keyword, postType, targetWordCount, audience } = body;
+        if (!keyword) return res.status(400).json({ error: 'Focus keyword is required' });
+        const outline = await generateBlogOutline(
+          keyword,
+          postType || 'how-to-guide',
+          targetWordCount || 1800,
+          audience || 'Amazon KDP self-publishers'
+        );
+        return res.json({ success: true, outline });
+      }
+
+      if (action === 'inline-action') {
+        const { inlineType, selectedText } = body;
+        if (!selectedText) return res.status(400).json({ error: 'Selected text is required' });
+        const result = await executeAiEditorAction(inlineType || 'rewrite', selectedText);
+        return res.json({ success: true, result });
+      }
+
+      // Full Generation
+      const {
+        keyword,
+        secondaryKeywords = [],
+        postType = 'how-to-guide',
+        targetWordCount = 1800,
+        tone = 'authoritative',
+        audience = 'Amazon KDP self-publishers',
+        outline,
+      } = body;
+
+      if (!keyword) return res.status(400).json({ error: 'Focus keyword is required' });
+
+      let existingPosts: { title: string; slug: string }[] = [];
+      try {
+        const { getAdminDb } = await import('./src/lib/firebase-admin');
+        const adminDb = getAdminDb();
+        if (adminDb) {
+          const snap = await adminDb
+            .collection('blogPosts')
+            .where('status', '==', 'published')
+            .select('title', 'slug')
+            .limit(20)
+            .get();
+          existingPosts = snap.docs.map((d) => ({
+            title: d.data().title || '',
+            slug: d.data().slug || d.id,
+          }));
+        }
+      } catch {}
+
+      const result = await generateFullBlogPost(
+        {
+          keyword,
+          secondaryKeywords,
+          postType,
+          targetWordCount,
+          tone,
+          audience,
+          outline,
+        },
+        existingPosts
+      );
+
+      return res.json({ success: true, result });
+    } catch (err: any) {
+      console.error('[server.ts AI Generate API] Error:', err);
+      return res.status(500).json({ error: err.message || 'AI blog generation failed' });
+    }
+  });
+
   // Newsletter Email Signup
   app.post('/api/newsletter/subscribe', async (req, res) => {
     try {

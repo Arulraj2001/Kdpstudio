@@ -224,3 +224,64 @@ export interface BulkImportResult {
   validPosts?: BulkImportPost[]; // all valid posts for ingestion
   duplicates?: BulkImportDuplicate[];
 }
+
+// ── AI Blog Post Generation Types ──
+
+export type BlogGenerationType =
+  | 'how-to-guide'
+  | 'listicle'
+  | 'case-study'
+  | 'comparison'
+  | 'tutorial'
+  | 'news-analysis'
+  | 'ultimate-guide'
+  | 'quick-tips';
+
+export type BlogTone =
+  | 'authoritative'
+  | 'conversational'
+  | 'educational'
+  | 'motivational'
+  | 'analytical';
+
+export interface BlogOutlineItem {
+  level: 2 | 3;
+  heading: string;
+  summary: string;
+  estimatedWords?: number;
+}
+
+export interface BlogGenerationRequest {
+  keyword: string;
+  secondaryKeywords?: string[];
+  postType: BlogGenerationType;
+  targetWordCount: number;
+  tone: BlogTone;
+  audience?: string;
+  includeSchema?: BlogSchemaType;
+  includeFaq?: boolean;
+  includeHowTo?: boolean;
+  authorId?: string;
+  category?: string;
+  outline?: string;
+}
+
+export interface BlogGenerationResult {
+  title: string;
+  metaTitle: string;
+  metaDescription: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  outline: BlogOutlineItem[];
+  focusKeyword: string;
+  secondaryKeywords: string[];
+  tags: string[];
+  faqItems: BlogFaqItem[];
+  howToSteps: BlogHowToStep[];
+  suggestedSources: BlogSource[];
+  internalLinkSuggestions: string[];
+  estimatedReadingTime: number;
+  wordCount: number;
+  seoScore: number;
+}
