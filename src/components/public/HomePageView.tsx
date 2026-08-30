@@ -13,6 +13,7 @@ import {
 import { PageRoute } from '../../types';
 import { useAuthStore } from '../../lib/authStore';
 import { useGeoStore } from '../../lib/geoStore';
+import { formatPrice } from '../../lib/geo';
 import { SEOHead } from '../seo/SEOHead';
 import { JsonLd } from '../seo/JsonLd';
 
@@ -27,26 +28,16 @@ const SOFTWARE_SCHEMA = {
   "description": "AI-powered book publishing suite for Amazon KDP",
   "url": "https://kdpstudio-aio.web.app",
   "applicationCategory": "ProductivityApplication",
-  "operatingSystem": "Web Browser",
+  "operatingSystem": "Web",
   "offers": {
-    "@type": "AggregateOffer",
-    "lowPrice": "0",
-    "highPrice": "49",
-    "priceCurrency": "USD",
-    "offerCount": "4"
-  },
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.9",
-    "reviewCount": "200"
+    "@type": "Offer",
+    "price": "0.00",
+    "priceCurrency": "USD"
   },
   "featureList": [
-    "AI Book Writing",
-    "KDP Interior Formatting",
-    "Cover Builder",
-    "Puzzle Book Generator",
-    "Coloring Book Generator",
-    "EPUB Export",
+    "AI Book Writer",
+    "Interior Formatter",
+    "Cover Designer",
     "KDP Metadata Optimizer"
   ]
 };
@@ -101,9 +92,15 @@ const ORGANIZATION_SCHEMA = {
 
 export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
   const { user } = useAuthStore();
-  const { currency, getFormattedPrice } = useGeoStore();
+  const { currency, getFormattedPrice, initPricingListener, fetchPricing } = useGeoStore();
   const [activeBookTab, setActiveBookTab] = useState<'non-fiction' | 'childrens' | 'coloring' | 'puzzle'>('non-fiction');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+
+  // Initialize and refresh dynamic pricing on mount
+  useEffect(() => {
+    initPricingListener?.();
+    fetchPricing?.();
+  }, [initPricingListener, fetchPricing]);
 
   const handleStart = () => {
     if (user) {

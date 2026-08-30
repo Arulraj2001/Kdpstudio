@@ -45,8 +45,15 @@ const PLAN_FEATURES_MAP: Record<string, string[]> = {
 export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onNavigateToPricing }) => {
   const { isOpen, config, close } = useUpgradeModal();
   const { userDoc } = useAuthStore();
-  const { getFormattedPrice } = useGeoStore();
+  const { getFormattedPrice, fetchPricing, initPricingListener } = useGeoStore();
   const { open: openCheckout } = useCheckoutStore();
+
+  React.useEffect(() => {
+    if (isOpen) {
+      fetchPricing?.();
+      initPricingListener?.();
+    }
+  }, [isOpen, fetchPricing, initPricingListener]);
 
   if (!isOpen) return null;
 
