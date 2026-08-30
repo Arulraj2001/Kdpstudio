@@ -1,6 +1,6 @@
-const CACHE_NAME = 'kdp-studio-v1';
-const STATIC_CACHE_NAME = 'kdp-static-v1';
-const FONT_CACHE_NAME = 'kdp-fonts-v1';
+const CACHE_NAME = 'kdp-studio-v2';
+const STATIC_CACHE_NAME = 'kdp-static-v2';
+const FONT_CACHE_NAME = 'kdp-fonts-v2';
 
 const STATIC_ASSETS = [
   '/',
@@ -49,7 +49,7 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // 1. CRITICAL: NetworkOnly for all API routes, Auth, and external AI/Payments
+  // 1. CRITICAL: NetworkOnly for all API routes, Auth, and non-GET requests
   if (
     url.pathname.startsWith('/api/') ||
     url.pathname.includes('/login') ||
@@ -66,7 +66,10 @@ self.addEventListener('fetch', (event) => {
       caches.open(FONT_CACHE_NAME).then(async (cache) => {
         const cachedResponse = await cache.match(request);
         const fetchPromise = fetch(request).then((networkResponse) => {
-          if (networkResponse.ok) cache.put(request, networkResponse.clone());
+          if (networkResponse && networkResponse.ok) {
+            const clone = networkResponse.clone();
+            cache.put(request, clone).catch(() => {});
+          }
           return networkResponse;
         }).catch(() => cachedResponse);
         return cachedResponse || fetchPromise;
@@ -82,7 +85,10 @@ self.addEventListener('fetch', (event) => {
         if (cachedResponse) return cachedResponse;
         try {
           const networkResponse = await fetch(request);
-          if (networkResponse.ok) cache.put(request, networkResponse.clone());
+          if (networkResponse && networkResponse.ok) {
+            const clone = networkResponse.clone();
+            cache.put(request, clone).catch(() => {});
+          }
           return networkResponse;
         } catch {
           return new Response('', { status: 408 });
@@ -107,7 +113,10 @@ self.addEventListener('fetch', (event) => {
         if (cached) return cached;
         try {
           const response = await fetch(request);
-          if (response.ok) cache.put(request, response.clone());
+          if (response && response.ok) {
+            const clone = response.clone();
+            cache.put(request, clone).catch(() => {});
+          }
           return response;
         } catch {
           return cached || new Response('', { status: 404 });
@@ -122,9 +131,11 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then(async (networkResponse) => {
-          if (networkResponse.ok) {
-            const cache = await caches.open(CACHE_NAME);
-            cache.put(request, networkResponse.clone());
+          if (networkResponse && networkResponse.ok) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, clone).catch(() => {});
+            }).catch(() => {});
           }
           return networkResponse;
         })
@@ -143,8 +154,11 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(request).then((response) => {
       return response || fetch(request).then((networkResponse) => {
-        if (networkResponse.ok && url.origin === self.location.origin) {
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, networkResponse.clone()));
+        if (networkResponse && networkResponse.ok && url.origin === self.location.origin) {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, clone).catch(() => {});
+          }).catch(() => {});
         }
         return networkResponse;
       }).catch(() => response);
