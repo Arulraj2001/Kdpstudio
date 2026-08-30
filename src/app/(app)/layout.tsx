@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sidebar } from '../../components/layout/Sidebar';
 import { TopBar } from '../../components/layout/TopBar';
 import { PageRoute } from '../../types';
@@ -13,7 +13,14 @@ export default function AppLayout({
 }) {
   const [isOpenMobile, setIsOpenMobile] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const { user } = useAuthStore();
+  const { user, isInitialized } = useAuthStore();
+
+  useEffect(() => {
+    if (isInitialized && !user && typeof window !== 'undefined') {
+      const currentPath = window.location.pathname;
+      window.location.href = `/login?from=${encodeURIComponent(currentPath)}`;
+    }
+  }, [user, isInitialized]);
 
   const handleNavigate = (route: PageRoute) => {
     if (typeof window !== 'undefined') {
@@ -26,6 +33,14 @@ export default function AppLayout({
       window.location.href = '/studio';
     }
   };
+
+  if (isInitialized && !user) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-purple-600 border-t-transparent animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div id="app-group-layout" className="min-h-screen bg-slate-50 flex flex-col font-sans">

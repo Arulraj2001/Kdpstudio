@@ -1,29 +1,53 @@
+// =============================================================================
+// KDP STUDIO — FIRESTORE SECURITY RULES
+// =============================================================================
+// HOW TO DEPLOY THESE RULES:
+// 1. Firebase CLI: Run `firebase deploy --only firestore:rules` in terminal, OR
+// 2. Firebase Console: Go to Firebase Console -> Build -> Firestore Database -> Rules,
+//    paste the entire contents of this file, and click "Publish".
+// =============================================================================
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
     // Users can read/write their own document
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    match /users/{uid} {
+      allow read, write: if request.auth != null 
+        && request.auth.uid == uid;
     }
-    // Brand Kits
-    match /brandKits/{userId} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
-    }
-    // Book Series
-    match /bookSeries/{seriesId} {
-      allow read, write: if request.auth != null;
-    }
-    // Books & Puzzles
+    
+    // Books belong to their owner
     match /books/{bookId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if request.auth != null 
+        && resource.data.uid == request.auth.uid;
+      allow create: if request.auth != null 
+        && request.resource.data.uid == request.auth.uid;
     }
-    match /puzzleBooks/{bookId} {
-      allow read, write: if request.auth != null;
+    
+    // Published blog posts are public read
+    match /blogPosts/{postId} {
+      allow read: if resource.data.status == 'published';
+      allow write: if false; // server-side only via Admin SDK
     }
-    // Default fallback
+    
+    // Subscriptions belong to their owner
+    match /subscriptions/{subId} {
+      allow read: if request.auth != null 
+        && resource.data.uid == request.auth.uid;
+      allow write: if false; // server-side only via Admin SDK
+    }
+    
+    // Payments belong to their owner
+    match /payments/{paymentId} {
+      allow read: if request.auth != null 
+        && resource.data.uid == request.auth.uid;
+      allow write: if false; // server-side only via Admin SDK
+    }
+    
+    // All other collections: server-side only
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if false;
     }
   }
 }

@@ -1,9 +1,10 @@
 /**
  * API Route & Express Usage Check Middleware
+ * Enforces Bearer token verification, plan retrieval, and usage rate limits.
  */
 
 import { checkAndIncrementUsage, UsageCheckResult } from './usageService';
-import { adminAuth } from './firebase-admin';
+import { adminAuth, adminDb } from './firebase-admin';
 import { getUserDocument } from './userService';
 
 export interface AuthenticatedUserContext {
@@ -28,35 +29,33 @@ export function createExpressUsageMiddleware(action: string) {
         if (match) token = match[1];
       }
 
-      let uid = 'demo-user-123';
-      let email = 'author@kdpstudio.com';
-
-      if (token) {
-        try {
-          const decoded = await adminAuth.verifyIdToken(token);
-          if (decoded && decoded.uid) {
-            uid = decoded.uid;
-            email = decoded.email || email;
-          }
-        } catch (authErr) {
-          // In development or demo mode, parse or allow preview uid
-          if (req.headers['x-user-id']) {
-            uid = String(req.headers['x-user-id']);
-          }
-        }
-      } else if (req.headers['x-user-id']) {
-        uid = String(req.headers['x-user-id']);
+      if (!token) {
+        return res.status(401).json({ error: 'Unauthorized: missing bearer token' });
       }
 
-      // 2. Fetch user plan
+      let uid = '';
+      let email = '';
+
+      try {
+        const decoded = await adminAuth.verifyIdToken(token);
+        if (!decoded?.uid) {
+          return res.status(401).json({ error: 'Unauthorized: invalid token' });
+        }
+        uid = decoded.uid;
+        email = decoded.email || '';
+      } catch (authErr) {
+        return res.status(401).json({ error: 'Unauthorized: token verification failed' });
+      }
+
+      // 2. Fetch user plan from Firestore / cache
       let plan = 'free';
       try {
-        const doc = await getUserDocument(uid);
-        if (doc?.plan) {
-          plan = doc.plan;
+        const userDoc = await getUserDocument(uid);
+        if (userDoc?.plan) {
+          plan = userDoc.plan;
         }
       } catch (docErr) {
-        // fail open with free plan limits
+        // fallback to free tier
       }
 
       // 3. Check and increment usage
@@ -95,8 +94,7 @@ export function createExpressUsageMiddleware(action: string) {
       next();
     } catch (error) {
       console.error(`Usage middleware error for ${action}:`, error);
-      // Fail open to avoid blocking legitimate users during transient issues
-      next();
+      return res.status(500).json({ error: 'Internal server error processing authentication' });
     }
   };
 }
@@ -110,27 +108,47 @@ export function withUsageCheck(
 ) {
   return async (req: Request): Promise<Response> => {
     try {
-      const authHeader = req.headers.get('authorization') || '';
-      let token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : '';
-      let uid = req.headers.get('x-user-id') || 'demo-user-123';
-      let email = 'author@kdpstudio.com';
-
-      if (token) {
-        try {
-          const decoded = await adminAuth.verifyIdToken(token);
-          if (decoded?.uid) {
-            uid = decoded.uid;
-            email = decoded.email || email;
-          }
-        } catch {
-          // ignore
-        }
+      const authHeader = req.headers.get('Authorization') || req.headers.get('authorization') || '';
+      if (!authHeader?.startsWith('Bearer ')) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized: missing or invalid authorization header' }),
+          { status: 401, headers: { 'Content-Type': 'application/json' } }
+        );
       }
 
+      const token = authHeader.split('Bearer ')[1]?.trim();
+      if (!token) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized: empty bearer token' }),
+          { status: 401, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
+      let uid = '';
+      let email = '';
+
+      try {
+        const decoded = await adminAuth.verifyIdToken(token);
+        if (!decoded?.uid) {
+          return new Response(
+            JSON.stringify({ error: 'Unauthorized: invalid token payload' }),
+            { status: 401, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+        uid = decoded.uid;
+        email = decoded.email || '';
+      } catch (err) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized: token verification failed' }),
+          { status: 401, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Fetch user plan from user document
       let plan = 'free';
       try {
-        const doc = await getUserDocument(uid);
-        if (doc?.plan) plan = doc.plan;
+        const userDoc = await getUserDocument(uid);
+        if (userDoc?.plan) plan = userDoc.plan;
       } catch {}
 
       const result = await checkAndIncrementUsage(uid, action, plan);

@@ -1,20 +1,16 @@
 /**
  * Gemini AI Client Utility for Book Studio
- * Communicates with the secure backend Express endpoint at /api/gemini
+ * Communicates with the secure backend endpoint at /api/gemini
  */
+
+import { apiPost, getAuthHeaders } from './apiClient';
 
 export async function callGemini(prompt: string, systemPrompt?: string): Promise<string> {
   try {
-    const response = await fetch('/api/gemini', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'generate',
-        prompt,
-        systemInstruction: systemPrompt,
-      }),
+    const response = await apiPost('/api/gemini', {
+      action: 'generate',
+      prompt,
+      systemInstruction: systemPrompt,
     });
 
     if (!response.ok) {
@@ -41,11 +37,10 @@ export async function streamGemini(
   onError?: (err: Error) => void
 ): Promise<void> {
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch('/api/gemini', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({
         action: 'stream',
         prompt,
@@ -117,13 +112,9 @@ Format your response strictly as 5 numbered lines, each with the format:
 
 Only output the 5 title pairs without extra commentary.`;
 
-    const response = await fetch('/api/gemini', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'title_ideas',
-        prompt,
-      }),
+    const response = await apiPost('/api/gemini', {
+      action: 'title_ideas',
+      prompt,
     });
 
     const data = await response.json();

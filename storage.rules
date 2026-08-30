@@ -1,25 +1,53 @@
+// =============================================================================
+// KDP STUDIO — CLOUD STORAGE SECURITY RULES
+// =============================================================================
+// HOW TO DEPLOY THESE RULES:
+// 1. Firebase CLI: Run `firebase deploy --only storage` in terminal, OR
+// 2. Firebase Console: Go to Firebase Console -> Build -> Storage -> Rules,
+//    paste the entire contents of this file, and click "Publish".
+// =============================================================================
+
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Author photos and logos are publicly readable
-    match /brandKits/{userId}/{allPaths=**} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
+    
+    // User-owned brand assets
+    match /brand-assets/{uid}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null 
+        && request.auth.uid == uid;
     }
-    // Covers
-    match /covers/{userId}/{allPaths=**} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
+    
+    // Book exports (PDFs)
+    match /exports/{uid}/{allPaths=**} {
+      allow read: if request.auth != null 
+        && request.auth.uid == uid;
+      allow write: if false; // server-side only via Admin SDK
     }
-    // Coloring & Activity Book Assets
-    match /puzzles/{userId}/{allPaths=**} {
+    
+    // Blog images (public read)
+    match /blog-images/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow write: if false; // server-side only via Admin SDK
     }
-    // General fallback
+    
+    // Coloring book images (owner read)
+    match /coloring-books/{uid}/{allPaths=**} {
+      allow read: if request.auth != null 
+        && request.auth.uid == uid;
+      allow write: if false;
+    }
+    
+    // UPI payment screenshots
+    match /upi-screenshots/{uid}/{allPaths=**} {
+      allow read: if false; // admin only via admin SDK
+      allow write: if request.auth != null 
+        && request.auth.uid == uid;
+    }
+    
+    // Default deny
     match /{allPaths=**} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow read, write: if false;
     }
   }
 }

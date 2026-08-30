@@ -1,21 +1,36 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth, GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
+import { getStorage, FirebaseStorage } from 'firebase/storage';
 
 /**
  * Firebase Client Configuration Loader
- * Supports both VITE_ and NEXT_PUBLIC_ prefixes for maximum framework portability.
- * Note: To enable Google Sign-In, ensure your hosting domain is added to 
- * Authorized Domains in Firebase Console > Authentication > Settings.
+ * Supports both NEXT_PUBLIC_ and VITE_ prefixes across SSR, Edge, and browser runtime.
  */
-// Helper to get client environment variable with static literal access for Vite build inlining
-const getClientEnv = (val: any, fallback: string): string => {
+function getEnvVar(key: string, viteKey?: string): string | undefined {
+  if (typeof process !== 'undefined' && process.env && process.env[key]) {
+    return process.env[key];
+  }
+  try {
+    const metaEnv = (import.meta as any)?.env;
+    if (metaEnv) {
+      if (metaEnv[key]) return metaEnv[key];
+      if (viteKey && metaEnv[viteKey]) return metaEnv[viteKey];
+    }
+  } catch {}
+  return undefined;
+}
+
+const getClientEnv = (val: string | undefined, fallback: string): string => {
   if (typeof val === 'string' && val.length > 0) return val;
   return fallback;
 };
 
 // Dynamic auth domain calculation to ensure same-origin OAuth handshake
 const getDynamicAuthDomain = (): string => {
+  const customAuthDomain = getEnvVar('NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN', 'VITE_FIREBASE_AUTH_DOMAIN');
+  if (customAuthDomain) return customAuthDomain;
+
   if (typeof window !== 'undefined' && window.location?.hostname) {
     const host = window.location.hostname;
     if (host.includes('kdpstudio-aio') || host.includes('kdpstudioaio')) {
@@ -26,14 +41,13 @@ const getDynamicAuthDomain = (): string => {
   return 'kdpstudioaio-3bf53.firebaseapp.com';
 };
 
-const metaEnv = (import.meta as any)?.env || {};
 export const firebaseConfig = {
-  apiKey: getClientEnv(metaEnv.VITE_FIREBASE_API_KEY || metaEnv.NEXT_PUBLIC_FIREBASE_API_KEY, 'AIzaSyC3gnC1NdRYEHm4zR8Kfe0BJeGR_Ae1xLk'),
+  apiKey: getClientEnv(getEnvVar('NEXT_PUBLIC_FIREBASE_API_KEY', 'VITE_FIREBASE_API_KEY'), 'AIzaSyC3gnC1NdRYEHm4zR8Kfe0BJeGR_Ae1xLk'),
   authDomain: getDynamicAuthDomain(),
-  projectId: getClientEnv(metaEnv.VITE_FIREBASE_PROJECT_ID || metaEnv.NEXT_PUBLIC_FIREBASE_PROJECT_ID, 'kdpstudioaio-3bf53'),
-  storageBucket: getClientEnv(metaEnv.VITE_FIREBASE_STORAGE_BUCKET || metaEnv.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET, 'kdpstudioaio-3bf53.firebasestorage.app'),
-  messagingSenderId: getClientEnv(metaEnv.VITE_FIREBASE_MESSAGING_SENDER_ID || metaEnv.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID, '494698350011'),
-  appId: getClientEnv(metaEnv.VITE_FIREBASE_APP_ID || metaEnv.NEXT_PUBLIC_FIREBASE_APP_ID, '1:494698350011:web:ad96b775d58d49a874309e'),
+  projectId: getClientEnv(getEnvVar('NEXT_PUBLIC_FIREBASE_PROJECT_ID', 'VITE_FIREBASE_PROJECT_ID'), 'kdpstudioaio-3bf53'),
+  storageBucket: getClientEnv(getEnvVar('NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET', 'VITE_FIREBASE_STORAGE_BUCKET'), 'kdpstudioaio-3bf53.firebasestorage.app'),
+  messagingSenderId: getClientEnv(getEnvVar('NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID', 'VITE_FIREBASE_MESSAGING_SENDER_ID'), '494698350011'),
+  appId: getClientEnv(getEnvVar('NEXT_PUBLIC_FIREBASE_APP_ID', 'VITE_FIREBASE_APP_ID'), '1:494698350011:web:ad96b775d58d49a874309e'),
 };
 
 export const isFirebaseConfigured = Boolean(
@@ -70,7 +84,7 @@ if (!getApps().length) {
       appId: '1:1040865203032:web:demo123456789',
     });
     console.info(
-      'ℹ️ Firebase running in Preview Mode. Set VITE_FIREBASE_API_KEY & VITE_FIREBASE_PROJECT_ID to connect your live Firebase project.'
+      'ℹ️ Firebase running in Preview Mode. Set NEXT_PUBLIC_FIREBASE_API_KEY & NEXT_PUBLIC_FIREBASE_PROJECT_ID to connect your live Firebase project.'
     );
   }
 } else {
@@ -79,6 +93,7 @@ if (!getApps().length) {
 
 export const auth: Auth = getAuth(app);
 export const db: Firestore = getFirestore(app);
+export const storage: FirebaseStorage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 

@@ -5,66 +5,75 @@
  */
 
 import { getUserDocument } from '../../../../lib/userService';
-import { adminAuth } from '../../../../lib/firebase-admin';
+import { adminAuth, adminDb } from '../../../../lib/firebase-admin';
 
 export async function GET(request: Request) {
   try {
-    const authHeader = request.headers.get('Authorization') || '';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : '';
+    // 1. Get Authorization header
+    const authHeader = request.headers.get('Authorization') || request.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    const token = authHeader.split('Bearer ')[1]?.trim();
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: empty token' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
+    // 2. Verify token
     let uid = '';
-
-    if (token) {
-      try {
-        const decoded = await adminAuth.verifyIdToken(token);
-        uid = decoded.uid;
-      } catch (authErr) {
-        console.warn('[API/user/plan] Token verification failed:', authErr);
-      }
-    }
-
-    // Fallback: check query parameter or demo fallback
-    if (!uid) {
-      const url = new URL(request.url);
-      uid = url.searchParams.get('uid') || '';
+    try {
+      const decodedToken = await adminAuth.verifyIdToken(token);
+      uid = decodedToken.uid;
+    } catch (authErr) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: invalid token' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
     if (!uid) {
-      return new Response(JSON.stringify({ error: 'Unauthorized: missing token or uid' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
+    // 3. Get user plan from Firestore / userService
     const userDoc = await getUserDocument(uid);
     if (!userDoc) {
-      return new Response(JSON.stringify({
-        plan: 'free',
-        planEndDate: null,
-        billingCycle: null,
-        paymentMethod: null,
-        usage: { daily: {}, monthly: {} }
-      }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({
+          plan: 'free',
+          planEndDate: null,
+          billingCycle: null,
+          paymentMethod: null,
+          usage: { daily: {}, monthly: {} }
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
-    return new Response(JSON.stringify({
-      plan: userDoc.plan || 'free',
-      planEndDate: userDoc.planEndDate || null,
-      billingCycle: userDoc.billingCycle || null,
-      paymentMethod: userDoc.paymentMethod || null,
-      usage: userDoc.usage || { daily: {}, monthly: {} }
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({
+        plan: userDoc.plan || 'free',
+        planEndDate: userDoc.planEndDate || null,
+        billingCycle: userDoc.billingCycle || null,
+        paymentMethod: userDoc.paymentMethod || null,
+        usage: userDoc.usage || { daily: {}, monthly: {} }
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
   } catch (error: any) {
     console.error('[API/user/plan] Internal error:', error);
-    return new Response(JSON.stringify({ error: error.message || 'Internal Server Error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ error: error.message || 'Internal Server Error' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 }

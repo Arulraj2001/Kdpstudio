@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import React from 'react';
+import { AuthProvider } from '../src/components/auth/AuthProvider';
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -133,7 +134,9 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="KDP Studio" />
       </head>
       <body className="bg-[#f8fafc] text-slate-900 antialiased font-sans">
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

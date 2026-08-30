@@ -11,18 +11,21 @@ let adminMessagingInstance: Messaging | null = null;
 export function getFirebaseAdminApp(): App | null {
   if (adminApp) return adminApp;
 
-  const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
+  const existingApps = getApps();
+  if (existingApps.length > 0) {
+    adminApp = existingApps[0]!;
+    return adminApp;
+  }
+
+  const projectId = 
+    process.env.FIREBASE_ADMIN_PROJECT_ID || 
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 
+    process.env.VITE_FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
   let privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
 
   if (privateKey) {
     privateKey = privateKey.replace(/\\n/g, '\n');
-  }
-
-  const existingApps = getApps();
-  if (existingApps.length > 0) {
-    adminApp = existingApps[0]!;
-    return adminApp;
   }
 
   if (projectId && clientEmail && privateKey) {
@@ -45,7 +48,7 @@ export function getFirebaseAdminApp(): App | null {
       });
       return adminApp;
     } catch (err) {
-      console.warn('Failed to initialize Firebase Admin with projectId:', err);
+      console.warn('Failed to initialize Firebase Admin with projectId only:', err);
     }
   }
 
@@ -113,5 +116,23 @@ export function getAdminMessaging(): Messaging | null {
   return adminMessagingInstance;
 }
 
-export const adminDb = getAdminDb();
-export const adminMessaging = getAdminMessaging();
+// Proxy adminDb so property access delegates to getAdminDb() dynamically
+export const adminDb: Firestore = new Proxy({} as Firestore, {
+  get(_target, prop) {
+    const db = getAdminDb();
+    if (!db) {
+      console.warn(`[Firebase Admin] adminDb.${String(prop)} accessed before Admin SDK is fully initialized.`);
+      return () => ({});
+    }
+    const val = (db as any)[prop];
+    return typeof val === 'function' ? val.bind(db) : val;
+  }
+});
+
+export const adminMessaging = {
+  send: async (msg: any) => {
+    const messaging = getAdminMessaging();
+    if (!messaging) return null;
+    return messaging.send(msg);
+  }
+};
