@@ -79,6 +79,10 @@ export const metadata: Metadata = {
     google: process.env.GOOGLE_SITE_VERIFICATION || '',
   },
 
+  verification: {
+    google: 'sPW6LL__14mD8l3h3gOvq6HUN41q563eo3Ry32buN1U',
+  },
+
   alternates: {
     types: {
       'application/rss+xml': [
@@ -99,6 +103,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta name="google-site-verification" content="sPW6LL__14mD8l3h3gOvq6HUN41q563eo3Ry32buN1U" />
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-2CJ2BHJ8BK"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-2CJ2BHJ8BK');
+            `,
+          }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://api.anthropic.com" />
