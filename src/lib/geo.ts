@@ -51,9 +51,52 @@ export interface PlanPricingOverrides {
   lifetimeInr?: number;
 }
 
+// Canonical conversion ratios per plan tier
+export const PLAN_EXCHANGE_RATIOS = {
+  starter: { inrPerUsd: 499 / 6, gbpPerUsd: 5 / 6, eurPerUsd: 6 / 6, cadPerUsd: 8 / 6, audPerUsd: 9 / 6 },
+  pro: { inrPerUsd: 1499 / 18, gbpPerUsd: 15 / 18, eurPerUsd: 17 / 18, cadPerUsd: 22 / 18, audPerUsd: 27 / 18 },
+  agency: { inrPerUsd: 3999 / 49, gbpPerUsd: 39 / 49, eurPerUsd: 45 / 49, cadPerUsd: 60 / 49, audPerUsd: 75 / 49 },
+  lifetime: { inrPerUsd: 9999 / 129, gbpPerUsd: 99 / 129, eurPerUsd: 119 / 129, cadPerUsd: 159 / 129, audPerUsd: 189 / 129 },
+};
+
+/**
+ * Converts USD amount to INR for a specific plan tier
+ */
+export function convertUsdToInr(plan: PlanName, usd: number): number {
+  if (plan === 'free' || !usd || usd <= 0) return 0;
+  const ratio = PLAN_EXCHANGE_RATIOS[plan as keyof typeof PLAN_EXCHANGE_RATIOS]?.inrPerUsd || (1499 / 18);
+  return Math.round(usd * ratio);
+}
+
+/**
+ * Converts INR amount to USD for a specific plan tier
+ */
+export function convertInrToUsd(plan: PlanName, inr: number): number {
+  if (plan === 'free' || !inr || inr <= 0) return 0;
+  const ratio = PLAN_EXCHANGE_RATIOS[plan as keyof typeof PLAN_EXCHANGE_RATIOS]?.inrPerUsd || (1499 / 18);
+  return Math.max(1, Math.round(inr / ratio));
+}
+
+/**
+ * Calculates international rates (GBP, EUR, CAD, AUD) from USD amount
+ */
+export function calculateInternationalCurrencies(plan: PlanName, usd: number): { GBP: number; EUR: number; CAD: number; AUD: number } {
+  if (plan === 'free' || !usd || usd <= 0) {
+    return { GBP: 0, EUR: 0, CAD: 0, AUD: 0 };
+  }
+  const ratios = PLAN_EXCHANGE_RATIOS[plan as keyof typeof PLAN_EXCHANGE_RATIOS] || PLAN_EXCHANGE_RATIOS.pro;
+  return {
+    GBP: Math.max(1, Math.round(usd * ratios.gbpPerUsd)),
+    EUR: Math.max(1, Math.round(usd * ratios.eurPerUsd)),
+    CAD: Math.max(1, Math.round(usd * ratios.cadPerUsd)),
+    AUD: Math.max(1, Math.round(usd * ratios.audPerUsd)),
+  };
+}
+
 /**
  * Computes dynamic pricing table with fallback to static PRICING_TABLE.
- * Supports explicit INR overrides or automatic proportional conversion.
+ * If either USD or INR is changed, all other supported currencies (GBP, EUR, CAD, AUD)
+ * are recalculated automatically in real-time.
  */
 export function computeDynamicPricingTable(overrides?: PlanPricingOverrides | null): PricingTable {
   const base: PricingTable = {
@@ -66,76 +109,64 @@ export function computeDynamicPricingTable(overrides?: PlanPricingOverrides | nu
 
   if (!overrides) return base;
 
-  // Starter override
-  if (typeof overrides.starterMonthly === 'number' && overrides.starterMonthly > 0) {
-    const newUsd = overrides.starterMonthly;
-    const ratio = newUsd / PRICING_TABLE.starter.USD;
+  // 1. Starter Tier
+  const hasStarterUsd = typeof overrides.starterMonthly === 'number' && overrides.starterMonthly > 0;
+  const hasStarterInr = typeof overrides.starterMonthlyInr === 'number' && overrides.starterMonthlyInr > 0;
+
+  if (hasStarterUsd || hasStarterInr) {
+    const usdVal = hasStarterUsd ? overrides.starterMonthly! : convertInrToUsd('starter', overrides.starterMonthlyInr!);
+    const inrVal = hasStarterInr ? overrides.starterMonthlyInr! : convertUsdToInr('starter', usdVal);
+    const intl = calculateInternationalCurrencies('starter', usdVal);
     base.starter = {
-      USD: newUsd,
-      INR: (typeof overrides.starterMonthlyInr === 'number' && overrides.starterMonthlyInr > 0)
-        ? overrides.starterMonthlyInr
-        : Math.round(PRICING_TABLE.starter.INR * ratio),
-      GBP: Math.round(PRICING_TABLE.starter.GBP * ratio),
-      EUR: Math.round(PRICING_TABLE.starter.EUR * ratio),
-      CAD: Math.round(PRICING_TABLE.starter.CAD * ratio),
-      AUD: Math.round(PRICING_TABLE.starter.AUD * ratio),
+      USD: usdVal,
+      INR: inrVal,
+      ...intl,
     };
-  } else if (typeof overrides.starterMonthlyInr === 'number' && overrides.starterMonthlyInr > 0) {
-    base.starter.INR = overrides.starterMonthlyInr;
   }
 
-  // Pro override
-  if (typeof overrides.proMonthly === 'number' && overrides.proMonthly > 0) {
-    const newUsd = overrides.proMonthly;
-    const ratio = newUsd / PRICING_TABLE.pro.USD;
+  // 2. Pro Tier
+  const hasProUsd = typeof overrides.proMonthly === 'number' && overrides.proMonthly > 0;
+  const hasProInr = typeof overrides.proMonthlyInr === 'number' && overrides.proMonthlyInr > 0;
+
+  if (hasProUsd || hasProInr) {
+    const usdVal = hasProUsd ? overrides.proMonthly! : convertInrToUsd('pro', overrides.proMonthlyInr!);
+    const inrVal = hasProInr ? overrides.proMonthlyInr! : convertUsdToInr('pro', usdVal);
+    const intl = calculateInternationalCurrencies('pro', usdVal);
     base.pro = {
-      USD: newUsd,
-      INR: (typeof overrides.proMonthlyInr === 'number' && overrides.proMonthlyInr > 0)
-        ? overrides.proMonthlyInr
-        : Math.round(PRICING_TABLE.pro.INR * ratio),
-      GBP: Math.round(PRICING_TABLE.pro.GBP * ratio),
-      EUR: Math.round(PRICING_TABLE.pro.EUR * ratio),
-      CAD: Math.round(PRICING_TABLE.pro.CAD * ratio),
-      AUD: Math.round(PRICING_TABLE.pro.AUD * ratio),
+      USD: usdVal,
+      INR: inrVal,
+      ...intl,
     };
-  } else if (typeof overrides.proMonthlyInr === 'number' && overrides.proMonthlyInr > 0) {
-    base.pro.INR = overrides.proMonthlyInr;
   }
 
-  // Agency override
-  if (typeof overrides.agencyMonthly === 'number' && overrides.agencyMonthly > 0) {
-    const newUsd = overrides.agencyMonthly;
-    const ratio = newUsd / PRICING_TABLE.agency.USD;
+  // 3. Agency Tier
+  const hasAgencyUsd = typeof overrides.agencyMonthly === 'number' && overrides.agencyMonthly > 0;
+  const hasAgencyInr = typeof overrides.agencyMonthlyInr === 'number' && overrides.agencyMonthlyInr > 0;
+
+  if (hasAgencyUsd || hasAgencyInr) {
+    const usdVal = hasAgencyUsd ? overrides.agencyMonthly! : convertInrToUsd('agency', overrides.agencyMonthlyInr!);
+    const inrVal = hasAgencyInr ? overrides.agencyMonthlyInr! : convertUsdToInr('agency', usdVal);
+    const intl = calculateInternationalCurrencies('agency', usdVal);
     base.agency = {
-      USD: newUsd,
-      INR: (typeof overrides.agencyMonthlyInr === 'number' && overrides.agencyMonthlyInr > 0)
-        ? overrides.agencyMonthlyInr
-        : Math.round(PRICING_TABLE.agency.INR * ratio),
-      GBP: Math.round(PRICING_TABLE.agency.GBP * ratio),
-      EUR: Math.round(PRICING_TABLE.agency.EUR * ratio),
-      CAD: Math.round(PRICING_TABLE.agency.CAD * ratio),
-      AUD: Math.round(PRICING_TABLE.agency.AUD * ratio),
+      USD: usdVal,
+      INR: inrVal,
+      ...intl,
     };
-  } else if (typeof overrides.agencyMonthlyInr === 'number' && overrides.agencyMonthlyInr > 0) {
-    base.agency.INR = overrides.agencyMonthlyInr;
   }
 
-  // Lifetime override
-  if (typeof overrides.lifetime === 'number' && overrides.lifetime > 0) {
-    const newUsd = overrides.lifetime;
-    const ratio = newUsd / PRICING_TABLE.lifetime.USD;
+  // 4. Lifetime Tier
+  const hasLifetimeUsd = typeof overrides.lifetime === 'number' && overrides.lifetime > 0;
+  const hasLifetimeInr = typeof overrides.lifetimeInr === 'number' && overrides.lifetimeInr > 0;
+
+  if (hasLifetimeUsd || hasLifetimeInr) {
+    const usdVal = hasLifetimeUsd ? overrides.lifetime! : convertInrToUsd('lifetime', overrides.lifetimeInr!);
+    const inrVal = hasLifetimeInr ? overrides.lifetimeInr! : convertUsdToInr('lifetime', usdVal);
+    const intl = calculateInternationalCurrencies('lifetime', usdVal);
     base.lifetime = {
-      USD: newUsd,
-      INR: (typeof overrides.lifetimeInr === 'number' && overrides.lifetimeInr > 0)
-        ? overrides.lifetimeInr
-        : Math.round(PRICING_TABLE.lifetime.INR * ratio),
-      GBP: Math.round(PRICING_TABLE.lifetime.GBP * ratio),
-      EUR: Math.round(PRICING_TABLE.lifetime.EUR * ratio),
-      CAD: Math.round(PRICING_TABLE.lifetime.CAD * ratio),
-      AUD: Math.round(PRICING_TABLE.lifetime.AUD * ratio),
+      USD: usdVal,
+      INR: inrVal,
+      ...intl,
     };
-  } else if (typeof overrides.lifetimeInr === 'number' && overrides.lifetimeInr > 0) {
-    base.lifetime.INR = overrides.lifetimeInr;
   }
 
   return base;
