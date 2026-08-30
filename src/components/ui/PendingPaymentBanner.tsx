@@ -48,7 +48,7 @@ export const PendingPaymentBanner: React.FC<PendingPaymentBannerProps> = ({
           const { collection, getDocs, query, where } = await import('firebase/firestore');
           if (isFirebaseConfigured && db) {
             const q = query(
-              collection(db, 'upiPendingPayments'),
+              collection(db, 'upiPending'),
               where('uid', '==', user.uid),
               where('status', '==', 'pending')
             );

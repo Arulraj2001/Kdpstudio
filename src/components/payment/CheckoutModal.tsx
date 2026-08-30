@@ -23,6 +23,7 @@ import { RazorpayCheckout } from './RazorpayCheckout';
 import { PayPalCheckout } from './PayPalCheckout';
 import { UpiPayment } from './UpiPayment';
 import { BmacButton } from './BmacButton';
+import { isRazorpayConfigured, isPayPalConfigured } from '../../lib/paymentConfig';
 import { showPaymentSuccessToast } from '../../lib/postPayment';
 import { CurrencySelector } from '../ui/CurrencySelector';
 
@@ -95,8 +96,25 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const [selectedPlan, setSelectedPlan] = useState<'starter' | 'pro' | 'agency'>('pro');
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
-  const [activePaymentTab, setActivePaymentTab] = useState<string>('default');
+  const [activePaymentTab, setActivePaymentTab] = useState<string>('');
   const [paymentError, setPaymentError] = useState<string | null>(null);
+
+  const isINR = currency === 'INR';
+
+  // Build available payment gateways based on environment configuration
+  const availableTabs: string[] = [];
+  if (isINR) {
+    if (isRazorpayConfigured()) {
+      availableTabs.push('razorpay');
+    }
+    availableTabs.push('upi');
+    availableTabs.push('bmac');
+  } else {
+    if (isPayPalConfigured()) {
+      availableTabs.push('paypal');
+    }
+    availableTabs.push('bmac');
+  }
 
   // Sync props/store when modal opens
   useEffect(() => {
@@ -109,20 +127,19 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       }
       setPaymentError(null);
 
-      // Restore last used payment tab if applicable
-      const isINR = currency === 'INR';
+      // Restore last used payment tab if still available, otherwise default to first available tab
       const savedTab = typeof window !== 'undefined' ? localStorage.getItem('kdp_last_payment_tab') : null;
-      if (savedTab) {
+      if (savedTab && availableTabs.includes(savedTab)) {
         setActivePaymentTab(savedTab);
       } else {
-        setActivePaymentTab(isINR ? 'razorpay' : 'paypal');
+        setActivePaymentTab(availableTabs[0] || 'bmac');
       }
     }
   }, [isOpen, defaultPlan, defaultBillingCycle, currency]);
 
   if (!isOpen) return null;
 
-  const isINR = currency === 'INR';
+  const currentActiveTab = availableTabs.includes(activePaymentTab) ? activePaymentTab : (availableTabs[0] || 'bmac');
 
   // Calculate pricing
   const monthlyRate = PRICING_TABLE[selectedPlan][currency] || PRICING_TABLE[selectedPlan]['USD'];
@@ -364,14 +381,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               </div>
 
               {/* Payment Method Selector Tabs */}
-              {isINR ? (
-                /* INR Tabs: Razorpay, UPI Direct, Buy Me a Coffee */
-                <div className="grid grid-cols-3 gap-2">
+              <div className={`grid gap-2 ${
+                availableTabs.length === 3 ? 'grid-cols-3' : availableTabs.length === 2 ? 'grid-cols-2' : 'grid-cols-1'
+              }`}>
+                {availableTabs.includes('razorpay') && (
                   <button
                     type="button"
                     onClick={() => handleTabChange('razorpay')}
-                    className={`p-3 rounded-2xl border text-left transition-all ${
-                      activePaymentTab === 'razorpay' || activePaymentTab === 'default'
+                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                      currentActiveTab === 'razorpay'
                         ? 'bg-purple-50/70 border-purple-600 ring-2 ring-purple-600/20 shadow-xs'
                         : 'bg-white border-slate-200 hover:border-slate-300'
                     }`}
@@ -384,12 +402,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       Cards, UPI, NetBanking
                     </p>
                   </button>
+                )}
 
+                {availableTabs.includes('upi') && (
                   <button
                     type="button"
                     onClick={() => handleTabChange('upi')}
-                    className={`p-3 rounded-2xl border text-left transition-all ${
-                      activePaymentTab === 'upi'
+                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                      currentActiveTab === 'upi'
                         ? 'bg-purple-50/70 border-purple-600 ring-2 ring-purple-600/20 shadow-xs'
                         : 'bg-white border-slate-200 hover:border-slate-300'
                     }`}
@@ -402,33 +422,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       GPay / PhonePe / QR
                     </p>
                   </button>
+                )}
 
-                  <button
-                    type="button"
-                    onClick={() => handleTabChange('bmac')}
-                    className={`p-3 rounded-2xl border text-left transition-all ${
-                      activePaymentTab === 'bmac'
-                        ? 'bg-purple-50/70 border-purple-600 ring-2 ring-purple-600/20 shadow-xs'
-                        : 'bg-white border-slate-200 hover:border-slate-300'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <Coffee size={16} className="text-amber-700" />
-                      <span className="text-xs font-bold text-slate-900">BMaC</span>
-                    </div>
-                    <p className="text-[10px] text-slate-500 leading-tight">
-                      Coffee / Credits
-                    </p>
-                  </button>
-                </div>
-              ) : (
-                /* International Tabs: PayPal, Buy Me a Coffee Lifetime */
-                <div className="grid grid-cols-2 gap-3">
+                {availableTabs.includes('paypal') && (
                   <button
                     type="button"
                     onClick={() => handleTabChange('paypal')}
-                    className={`p-3.5 rounded-2xl border text-left transition-all ${
-                      activePaymentTab === 'paypal' || activePaymentTab === 'default'
+                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                      currentActiveTab === 'paypal'
                         ? 'bg-blue-50/70 border-blue-600 ring-2 ring-blue-600/20 shadow-xs'
                         : 'bg-white border-slate-200 hover:border-slate-300'
                     }`}
@@ -441,26 +442,28 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       Pay securely with PayPal account or Debit/Credit Cards
                     </p>
                   </button>
+                )}
 
+                {availableTabs.includes('bmac') && (
                   <button
                     type="button"
                     onClick={() => handleTabChange('bmac')}
-                    className={`p-3.5 rounded-2xl border text-left transition-all ${
-                      activePaymentTab === 'bmac'
-                        ? 'bg-amber-50/70 border-amber-500 ring-2 ring-amber-500/20 shadow-xs'
+                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                      currentActiveTab === 'bmac'
+                        ? 'bg-purple-50/70 border-purple-600 ring-2 ring-purple-600/20 shadow-xs'
                         : 'bg-white border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      <Coffee size={16} className="text-amber-800" />
+                      <Coffee size={16} className="text-amber-700" />
                       <span className="text-xs font-bold text-slate-900">Buy Me a Coffee</span>
                     </div>
-                    <p className="text-[11px] text-slate-500 leading-tight">
-                      One-time lifetime access ($129) or bonus AI credits
+                    <p className="text-[10px] text-slate-500 leading-tight">
+                      Coffee / Credits
                     </p>
                   </button>
-                </div>
-              )}
+                )}
+              </div>
 
               {/* Error Message Box */}
               {paymentError && (
@@ -473,7 +476,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               {/* Gateway Interactive Content Area */}
               <div className="pt-2">
                 {/* 1. RAZORPAY */}
-                {(activePaymentTab === 'razorpay' || (isINR && activePaymentTab === 'default')) && (
+                {currentActiveTab === 'razorpay' && availableTabs.includes('razorpay') && (
                   <div className="space-y-4">
                     <RazorpayCheckout
                       plan={selectedPlan}
@@ -487,20 +490,20 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 )}
 
                 {/* 2. UPI DIRECT */}
-                {activePaymentTab === 'upi' && isINR && (
+                {currentActiveTab === 'upi' && availableTabs.includes('upi') && (
                   <div className="space-y-4">
                     <UpiPayment
                       plan={selectedPlan}
                       billingCycle={billingCycle}
                       amount={currentPrice}
                       onSubmitted={handlePaymentSuccess}
-                      onBack={() => setActivePaymentTab('razorpay')}
+                      onBack={() => handleClose()}
                     />
                   </div>
                 )}
 
                 {/* 3. PAYPAL */}
-                {(activePaymentTab === 'paypal' || (!isINR && activePaymentTab === 'default')) && (
+                {currentActiveTab === 'paypal' && availableTabs.includes('paypal') && (
                   <div className="space-y-4">
                     <PayPalCheckout
                       plan={selectedPlan}
@@ -514,7 +517,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 )}
 
                 {/* 4. BUY ME A COFFEE */}
-                {activePaymentTab === 'bmac' && (
+                {currentActiveTab === 'bmac' && availableTabs.includes('bmac') && (
                   <div className="space-y-3">
                     <div className="p-3 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-2">
                       <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">

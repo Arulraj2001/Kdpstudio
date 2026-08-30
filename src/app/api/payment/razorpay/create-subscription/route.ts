@@ -46,19 +46,14 @@ export async function POST(request: Request) {
 
     const rzpKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder';
 
-    // If Razorpay is not configured with real dashboard plan IDs, generate sandbox test subscription ID
+    // If Razorpay is not configured, return 503 service unavailable
     if (!isRazorpayConfigured() || !planId || planId.includes('REPLACE')) {
-      console.log(`[Razorpay] Using test sandbox subscription ID for ${planKey}`);
-      const mockSubId = `sub_test_${Math.random().toString(36).substring(2, 10)}`;
       return new Response(
         JSON.stringify({
-          subscriptionId: mockSubId,
-          razorpayKeyId: rzpKeyId,
-          isSandbox: true,
-          message: 'Running in developer test mode. Real plan IDs can be set in RAZORPAY_PLAN_IDS.',
+          error: 'Razorpay is not configured. Contact support.',
         }),
         {
-          status: 200,
+          status: 503,
           headers: { 'Content-Type': 'application/json' },
         }
       );

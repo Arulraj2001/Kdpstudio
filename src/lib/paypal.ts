@@ -153,12 +153,11 @@ export const PAYPAL_PLAN_IDS: Record<string, string> = {
 };
 
 /**
- * Checks if PayPal is configured with real plan IDs
+ * Checks if PayPal is configured with client ID
  */
 export function isPayPalConfigured(): boolean {
-  const clientId = getEnv('PAYPAL_CLIENT_ID', getEnv('NEXT_PUBLIC_PAYPAL_CLIENT_ID', ''));
-  const clientSecret = getEnv('PAYPAL_CLIENT_SECRET', '');
-  return Boolean(clientId && clientSecret && !clientId.includes('placeholder'));
+  const clientId = getEnv('NEXT_PUBLIC_PAYPAL_CLIENT_ID', getEnv('PAYPAL_CLIENT_ID', getEnv('VITE_PAYPAL_CLIENT_ID', '')));
+  return Boolean(clientId && clientId.trim().length > 0 && !clientId.includes('placeholder'));
 }
 
 /**

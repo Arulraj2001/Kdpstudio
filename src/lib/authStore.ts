@@ -10,7 +10,8 @@ import {
   onAuthStateChanged,
   User as FirebaseUser
 } from 'firebase/auth';
-import { auth, googleProvider, isFirebaseConfigured } from './firebase';
+import { onSnapshot, doc } from 'firebase/firestore';
+import { auth, googleProvider, db, isFirebaseConfigured } from './firebase';
 import { useGeoStore } from './geoStore';
 import { 
   createUserDocument, 
@@ -23,6 +24,7 @@ import {
   sendAdminNewSignupEmail, 
   sendPasswordResetEmail as sendServicePasswordResetEmail 
 } from './emailService';
+import { showPaymentSuccessToast } from './postPayment';
 
 
 export interface AuthUser {
@@ -46,6 +48,7 @@ interface AuthState {
   authError: string | null;
 
   // Actions
+  updateUserData: (data: Partial<UserDocument> & Partial<AuthUser>) => void;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string, name: string) => Promise<void>;
@@ -114,8 +117,64 @@ async function notifyServerSession(idToken?: string, isLogout = false) {
   }
 }
 
+// Global active snapshot listener reference
+let unsubscribeUserSnapshot: (() => void) | null = null;
+
 export const useAuthStore = create<AuthState>((set, get) => {
   let unsubscribeAuth: (() => void) | null = null;
+
+  const setupUserDocListener = (uid: string) => {
+    if (unsubscribeUserSnapshot) {
+      unsubscribeUserSnapshot();
+      unsubscribeUserSnapshot = null;
+    }
+    if (!isFirebaseConfigured || !db) return;
+
+    try {
+      unsubscribeUserSnapshot = onSnapshot(
+        doc(db, 'users', uid),
+        (snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.data() as UserDocument;
+            const previousPlan = get().user?.plan;
+
+            // Synchronize authStore with fresh Firestore document
+            const currentAuthUser = get().user;
+            if (currentAuthUser) {
+              set({
+                userDoc: data,
+                user: {
+                  ...currentAuthUser,
+                  displayName: data.name || data.displayName || currentAuthUser.displayName,
+                  photoURL: data.photoURL || currentAuthUser.photoURL,
+                  emailVerified: data.emailVerified ?? currentAuthUser.emailVerified,
+                  plan: data.plan || currentAuthUser.plan,
+                  currency: data.currency || currentAuthUser.currency,
+                  country: data.country || currentAuthUser.country,
+                  onboardingComplete: data.onboardingComplete ?? currentAuthUser.onboardingComplete,
+                },
+              });
+            }
+
+            // If plan upgraded, show celebratory toast
+            if (
+              previousPlan &&
+              previousPlan !== data.plan &&
+              data.plan !== 'free'
+            ) {
+              const geo = useGeoStore.getState();
+              showPaymentSuccessToast(data.plan, geo.currency as any);
+            }
+          }
+        },
+        (error) => {
+          console.debug('Plan real-time listener notice:', error);
+        }
+      );
+    } catch (err) {
+      console.debug('Error setting up user doc listener:', err);
+    }
+  };
 
   // Initialize Firebase Auth state listener once
   if (typeof window !== 'undefined') {
@@ -165,11 +224,19 @@ export const useAuthStore = create<AuthState>((set, get) => {
             isInitialized: true,
             authError: null,
           });
+
+          // Attach real-time Firestore document listener
+          setupUserDocListener(fbUser.uid);
         } catch (err: any) {
           console.error('Error synchronizing auth state:', err);
           set({ isLoading: false, isInitialized: true });
         }
       } else {
+        if (unsubscribeUserSnapshot) {
+          unsubscribeUserSnapshot();
+          unsubscribeUserSnapshot = null;
+        }
+
         // Check for local demo user if in preview mode
         const localUser = localStorage.getItem('kdp_active_session_user');
         if (localUser) {
@@ -205,6 +272,20 @@ export const useAuthStore = create<AuthState>((set, get) => {
     isLoading: true,
     isInitialized: false,
     authError: null,
+
+    updateUserData: (data: Partial<UserDocument> & Partial<AuthUser>) => {
+      const current = get().user;
+      const currentDoc = get().userDoc;
+      if (!current) return;
+      set({
+        user: {
+          ...current,
+          ...(data as any),
+          plan: (data.plan || current.plan) as any,
+        },
+        userDoc: currentDoc ? { ...currentDoc, ...(data as any) } : null,
+      });
+    },
 
     clearError: () => set({ authError: null }),
 
@@ -420,6 +501,10 @@ export const useAuthStore = create<AuthState>((set, get) => {
 
     signOut: async () => {
       set({ isLoading: true });
+      if (unsubscribeUserSnapshot) {
+        unsubscribeUserSnapshot();
+        unsubscribeUserSnapshot = null;
+      }
       try {
         if (isFirebaseConfigured) {
           await fbSignOut(auth);

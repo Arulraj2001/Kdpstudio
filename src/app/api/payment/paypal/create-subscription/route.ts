@@ -57,20 +57,14 @@ export async function POST(request: Request) {
     const planId = PAYPAL_PLAN_IDS[planKey];
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'http://localhost:3000';
 
-    // If PayPal is unconfigured or in developer test mode, generate sandbox success URL
+    // If PayPal is not configured, return 503 service unavailable
     if (!isPayPalConfigured() || !planId || planId.includes('REPLACE')) {
-      console.log(`[PayPal] Using mock sandbox redirect URL for ${planKey}`);
-      const mockSubId = `I-MOCK_PAYPAL_${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-      const mockApprovalUrl = `/api/payment/paypal/success?subscription_id=${mockSubId}&token=MOCK_TOKEN&uid=${encodeURIComponent(uid)}&plan=${plan}&billingCycle=${billingCycle}`;
-
       return new Response(
         JSON.stringify({
-          approvalUrl: mockApprovalUrl,
-          subscriptionId: mockSubId,
-          isSandbox: true,
+          error: 'PayPal is not configured. Contact support.',
         }),
         {
-          status: 200,
+          status: 503,
           headers: { 'Content-Type': 'application/json' },
         }
       );

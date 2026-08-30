@@ -62,12 +62,11 @@ export const RAZORPAY_PLAN_IDS: Record<string, string> = {
 };
 
 /**
- * Helper to check if Razorpay plans are configured
+ * Helper to check if Razorpay is configured
  */
 export function isRazorpayConfigured(): boolean {
-  const key_id = getEnv('RAZORPAY_KEY_ID', getEnv('NEXT_PUBLIC_RAZORPAY_KEY_ID', ''));
-  const key_secret = getEnv('RAZORPAY_KEY_SECRET', '');
-  return Boolean(key_id && key_secret && !key_id.includes('placeholder'));
+  const key_id = getEnv('NEXT_PUBLIC_RAZORPAY_KEY_ID', getEnv('RAZORPAY_KEY_ID', getEnv('VITE_RAZORPAY_KEY_ID', '')));
+  return Boolean(key_id && key_id.trim().length > 0 && !key_id.includes('placeholder'));
 }
 
 /**
