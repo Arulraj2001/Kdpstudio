@@ -48,14 +48,26 @@ export const useGeoStore = create<GeoState>()(
       const fetchPricingFromApi = async () => {
         try {
           const res = await fetch('/api/config/pricing');
-          if (res.ok) {
-            const data = await res.json();
-            if (data.pricingTable) {
-              set({
-                pricingOverrides: data.pricing || null,
-                pricingTable: data.pricingTable,
-              });
-            }
+          if (!res.ok) {
+            console.debug(`[GeoStore] API pricing fetch non-OK status: ${res.status}`);
+            return;
+          }
+          const contentType = res.headers.get('content-type') || '';
+          if (!contentType.includes('application/json')) {
+            // The endpoint is missing on the server and returned the SPA HTML fallback.
+            console.debug('[GeoStore] API pricing returned non-JSON (SPA fallback).');
+            return;
+          }
+          const data = await res.json();
+          if (!data || typeof data !== 'object') return;
+
+          const overrides = data.pricing && typeof data.pricing === 'object' ? data.pricing : null;
+          const table = data.pricingTable || computeDynamicPricingTable(overrides);
+          if (table) {
+            set({
+              pricingOverrides: overrides,
+              pricingTable: table,
+            });
           }
         } catch (e) {
           console.debug('[GeoStore] API pricing fetch fallback error:', e);
@@ -203,6 +215,8 @@ export const useGeoStore = create<GeoState>()(
         paymentMethods: state.paymentMethods,
         manualOverride: state.manualOverride,
         lastDetectedAt: state.lastDetectedAt,
+        pricingTable: state.pricingTable,
+        pricingOverrides: state.pricingOverrides,
       }),
     }
   )

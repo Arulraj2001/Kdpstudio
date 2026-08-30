@@ -4971,6 +4971,40 @@ Return valid JSON with: readingLevel (grade, fleschScore, averageSentenceLength,
     }
   });
 
+// GET /api/config/pricing
+  // Public: returns active pricing overrides and the fully dynamic pricing table.
+  // No caching so the public price pages always reflect the latest live override.
+  app.get('/api/config/pricing', async (req, res) => {
+    try {
+      const { getAdminDb } = await import('./src/lib/firebase-admin');
+      const { computeDynamicPricingTable } = await import('./src/lib/geo');
+
+      let pricingData: any = null;
+      const db = getAdminDb();
+      if (db) {
+        const snap = await db.collection('appConfig').doc('pricing').get();
+        if (snap.exists) {
+          pricingData = snap.data();
+        }
+      }
+
+      const dynamicTable = computeDynamicPricingTable(pricingData);
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      return res.json({
+        success: true,
+        pricing: pricingData,
+        pricingTable: dynamicTable,
+      });
+    } catch (err: any) {
+      console.error('[server.ts Public Pricing API] Error:', err);
+      const { computeDynamicPricingTable } = await import('./src/lib/geo');
+      return res.json({
+        success: true,
+        pricing: null,
+        pricingTable: computeDynamicPricingTable(null),
+      });
+    }
+  });
 
 
   // Vite middleware for development vs static build for production

@@ -56,6 +56,28 @@ export const isFirebaseConfigured = Boolean(
   firebaseConfig.apiKey !== 'MY_FIREBASE_API_KEY'
 );
 
+// Only allow the throwaway preview project in non-production builds.
+// In production we never silently switch to the demo project — the live
+// pricing / auth / Firestore data would otherwise go stale or break.
+const getIsProduction = (): boolean => {
+  try {
+    const meta = (import.meta as any)?.env;
+    if (meta && typeof meta.PROD === 'boolean') return meta.PROD;
+  } catch {}
+  return typeof process !== 'undefined' && process?.env?.NODE_ENV === 'production';
+};
+
+const isProduction = getIsProduction();
+
+const demoFirebaseConfig = {
+  apiKey: 'AIzaSyDemoKeyForKDPStudioPreviewPrototyping123',
+  authDomain: 'kdp-studio-demo.firebaseapp.com',
+  projectId: 'kdp-studio-demo',
+  storageBucket: 'kdp-studio-demo.appspot.com',
+  messagingSenderId: '1040865203032',
+  appId: '1:1040865203032:web:demo123456789',
+};
+
 let app: FirebaseApp;
 
 if (!getApps().length) {
@@ -63,26 +85,27 @@ if (!getApps().length) {
     try {
       app = initializeApp(firebaseConfig);
     } catch (e) {
+      if (isProduction) {
+        // Fail loudly rather than silently degrade to the demo project.
+        console.error(
+          '⚠️ Firebase initialization failed in production with the provided config. ' +
+          'Verify your VITE_/NEXT_PUBLIC_FIREBASE_* keys point to the live project.',
+          e
+        );
+        throw e;
+      }
       console.warn('⚠️ Firebase initialization failed with provided config, switching to Preview Mode fallback:', e);
-      app = initializeApp({
-        apiKey: 'AIzaSyDemoKeyForKDPStudioPreviewPrototyping123',
-        authDomain: 'kdp-studio-demo.firebaseapp.com',
-        projectId: 'kdp-studio-demo',
-        storageBucket: 'kdp-studio-demo.appspot.com',
-        messagingSenderId: '1040865203032',
-        appId: '1:1040865203032:web:demo123456789',
-      });
+      app = initializeApp(demoFirebaseConfig);
     }
+  } else if (isProduction) {
+    // Never use the demo project for a real production build.
+    throw new Error(
+      'Firebase is not configured for this production build. ' +
+      'Set real NEXT_PUBLIC_FIREBASE_API_KEY / NEXT_PUBLIC_FIREBASE_PROJECT_ID (or VITE_ equivalents) in the deployed environment.'
+    );
   } else {
-    // Demo / Prototyping fallback app initialization
-    app = initializeApp({
-      apiKey: 'AIzaSyDemoKeyForKDPStudioPreviewPrototyping123',
-      authDomain: 'kdp-studio-demo.firebaseapp.com',
-      projectId: 'kdp-studio-demo',
-      storageBucket: 'kdp-studio-demo.appspot.com',
-      messagingSenderId: '1040865203032',
-      appId: '1:1040865203032:web:demo123456789',
-    });
+    // Demo / Prototyping fallback app initialization (non-production only)
+    app = initializeApp(demoFirebaseConfig);
     console.info(
       'ℹ️ Firebase running in Preview Mode. Set NEXT_PUBLIC_FIREBASE_API_KEY & NEXT_PUBLIC_FIREBASE_PROJECT_ID to connect your live Firebase project.'
     );

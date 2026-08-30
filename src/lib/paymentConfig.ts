@@ -46,3 +46,25 @@ export function isUpiConfigured(): boolean {
   const qr = getEnv('NEXT_PUBLIC_UPI_QR_CODE_URL', getEnv('UPI_QR_CODE_URL', getEnv('VITE_UPI_QR_CODE_URL', '')));
   return Boolean((upiId && upiId.trim().length > 0) || (qr && qr.trim().length > 0));
 }
+
+export type PaymentTab = 'razorpay' | 'upi' | 'bmac' | 'paypal';
+
+/**
+ * Returns the payment tabs that should be shown for a given currency.
+ * Mirrors the previous per-component logic: UPI and Buy Me a Coffee are always
+ * available, while Razorpay / PayPal are shown only when configured.
+ */
+export function getAvailablePaymentTabs(currency: string): PaymentTab[] {
+  const curr = (currency || 'USD').toUpperCase();
+  if (curr === 'INR') {
+    const tabs: PaymentTab[] = [];
+    if (isRazorpayConfigured()) tabs.push('razorpay');
+    tabs.push('upi');
+    tabs.push('bmac');
+    return tabs;
+  }
+  const tabs: PaymentTab[] = [];
+  if (isPayPalConfigured()) tabs.push('paypal');
+  tabs.push('bmac');
+  return tabs;
+}

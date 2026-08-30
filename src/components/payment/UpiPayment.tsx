@@ -57,9 +57,28 @@ export const UpiPayment: React.FC<UpiPaymentProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [submittedTime, setSubmittedTime] = useState<string>('');
 
-  const upiId = (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_UPI_ID) || 'kdpstudio@upi';
-  const upiDisplayName = (typeof process !== 'undefined' && (process.env?.NEXT_PUBLIC_UPI_DISPLAY_NAME || process.env?.UPI_DISPLAY_NAME)) || 'KDP Studio';
-  const qrCodeUrl = typeof process !== 'undefined' ? process.env?.NEXT_PUBLIC_UPI_QR_CODE_URL : undefined;
+  // Read UPI credentials from env (works in both SSR `process.env` and the Vite
+  // browser bundle via `import.meta.env.VITE_*`). The browser bundle resets
+  // `process.env` to {} so we must also read `import.meta.env`.
+  const getUpiEnv = (key: string, viteKey?: string): string => {
+    if (typeof process !== 'undefined' && process?.env && process.env[key]) return process.env[key] as string;
+    const meta = typeof import.meta !== 'undefined' ? (import.meta as any)?.env : undefined;
+    if (meta) {
+      if (meta[key]) return meta[key] as string;
+      if (viteKey && meta[viteKey]) return meta[viteKey] as string;
+    }
+    return '';
+  };
+
+  const upiId = getUpiEnv('NEXT_PUBLIC_UPI_ID', 'VITE_UPI_ID') || getUpiEnv('UPI_ID') || 'kdpstudio@upi';
+  const upiDisplayName =
+    getUpiEnv('NEXT_PUBLIC_UPI_DISPLAY_NAME', 'VITE_UPI_DISPLAY_NAME') ||
+    getUpiEnv('UPI_DISPLAY_NAME') ||
+    'KDP Studio';
+  const qrCodeUrl =
+    getUpiEnv('NEXT_PUBLIC_UPI_QR_CODE_URL', 'VITE_UPI_QR_CODE_URL') ||
+    getUpiEnv('UPI_QR_CODE_URL') ||
+    undefined;
 
   const handleCopyUpiId = () => {
     navigator.clipboard.writeText(upiId);

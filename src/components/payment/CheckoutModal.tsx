@@ -23,7 +23,7 @@ import { RazorpayCheckout } from './RazorpayCheckout';
 import { PayPalCheckout } from './PayPalCheckout';
 import { UpiPayment } from './UpiPayment';
 import { BmacButton } from './BmacButton';
-import { isRazorpayConfigured, isPayPalConfigured } from '../../lib/paymentConfig';
+import { getAvailablePaymentTabs } from '../../lib/paymentConfig';
 import { showPaymentSuccessToast } from '../../lib/postPayment';
 import { CurrencySelector } from '../ui/CurrencySelector';
 
@@ -99,22 +99,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [activePaymentTab, setActivePaymentTab] = useState<string>('');
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
-  const isINR = currency === 'INR';
-
   // Build available payment gateways based on environment configuration
-  const availableTabs: string[] = [];
-  if (isINR) {
-    if (isRazorpayConfigured()) {
-      availableTabs.push('razorpay');
-    }
-    availableTabs.push('upi');
-    availableTabs.push('bmac');
-  } else {
-    if (isPayPalConfigured()) {
-      availableTabs.push('paypal');
-    }
-    availableTabs.push('bmac');
-  }
+  const availableTabs = getAvailablePaymentTabs(currency);
 
   // Sync props/store when modal opens
   useEffect(() => {
