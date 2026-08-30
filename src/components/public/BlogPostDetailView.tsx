@@ -23,6 +23,7 @@ export const BlogPostDetailView: React.FC<BlogPostDetailViewProps> = ({ slug, on
   const [scrollProgress, setScrollProgress] = useState<number>(0);
   const [copied, setCopied] = useState<boolean>(false);
   const [activeTocId, setActiveTocId] = useState<string>('');
+  const isPreview = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('preview') === 'true';
 
   useEffect(() => {
     let isMounted = true;
@@ -31,12 +32,14 @@ export const BlogPostDetailView: React.FC<BlogPostDetailViewProps> = ({ slug, on
     window.scrollTo({ top: 0, behavior: 'instant' });
 
     // Fetch from API to get Firestore updates
-    fetch(`/api/blog/posts/${slug}`)
+    const fetchUrl = isPreview ? `/api/blog/posts/${slug}?preview=true` : `/api/blog/posts/${slug}`;
+    fetch(fetchUrl)
       .then((res) => res.json())
       .then((data) => {
         if (isMounted && data?.post) {
           setPost(data.post);
-          if (data.post.id) {
+          // Only increment views on live published posts, NOT in preview mode
+          if (data.post.id && !isPreview) {
             fetch('/api/blog/view', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -50,7 +53,7 @@ export const BlogPostDetailView: React.FC<BlogPostDetailViewProps> = ({ slug, on
     return () => {
       isMounted = false;
     };
-  }, [slug]);
+  }, [slug, isPreview]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -158,11 +161,20 @@ export const BlogPostDetailView: React.FC<BlogPostDetailViewProps> = ({ slug, on
         />
       </div>
 
+      {/* ── Preview Mode Sticky Alert Banner ── */}
+      {isPreview && (
+        <div className="bg-amber-500 text-slate-950 font-bold text-xs py-2.5 px-4 text-center sticky top-0 z-40 shadow-md flex items-center justify-center gap-2">
+          <span>⚠️ PREVIEW MODE</span>
+          <span className="font-medium">— This post is not published (Draft/Review preview). Views are not incremented and search indexing is blocked.</span>
+        </div>
+      )}
+
       <SEOHead
         title={`${post.title} — KDP Studio Blog`}
         description={post.description}
         canonicalPath={`/blog/${post.slug}`}
         ogType="article"
+        noIndex={isPreview || (post as any).noIndex}
       />
       <JsonLd id="jsonld-article" data={articleSchema} />
 

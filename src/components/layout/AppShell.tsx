@@ -67,6 +67,9 @@ import { trackPwaEvent } from '../../lib/pwaTracker';
 import { toastStore } from '../../lib/toastStore';
 import { ContentModerationPage } from '../admin/content/ContentModerationPage';
 import { AuditReportsPage } from '../admin/content/AuditReportsPage';
+import { BlogPostsListPage } from '../admin/blog/BlogPostsListPage';
+import { BlogPostEditor } from '../admin/blog/BlogPostEditor';
+import { BlogAuthorsPage } from '../admin/blog/BlogAuthorsPage';
 import { GeoTestView } from '../geo/GeoTestView';
 import { NewBookModal } from '../modals/NewBookModal';
 import { AuthPages } from '../auth/AuthPages';
@@ -163,6 +166,13 @@ export const ROUTE_PATH_MAP: Record<PageRoute, string> = {
   'admin-support': '/admin/support',
   'admin-content': '/admin/content',
   'admin-content-audits': '/admin/content/audits',
+  'admin-blog': '/admin/blog',
+  'admin-blog-new': '/admin/blog/new',
+  'admin-blog-edit': '/admin/blog/edit',
+  'admin-blog-authors': '/admin/blog/authors',
+  'admin-blog-import': '/admin/blog/import',
+  'admin-blog-ads': '/admin/blog/ads',
+  'admin-blog-analytics': '/admin/blog/analytics',
   'geo-test': '/geo-test',
   'payment-success': '/payment-success',
 };
@@ -171,6 +181,7 @@ export function parsePathToRoute(pathname: string): PageRoute | null {
   const clean = pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
   if (!clean) return null;
 
+  if (clean === 'home' || clean === '') return 'home';
   if (clean === 'payment/success' || clean === 'payment-success') return 'payment-success';
   if (clean === 'pricing') return 'pricing';
   if (clean === 'about') return 'about';
@@ -224,6 +235,13 @@ export function parsePathToRoute(pathname: string): PageRoute | null {
   if (clean === 'brand-kit' || clean === 'brand' || clean === 'settings/brand') return 'brand-kit';
   if (clean === 'settings') return 'settings';
   if (clean === 'billing') return 'billing';
+  if (clean === 'admin/blog/new') return 'admin-blog-new';
+  if (clean.startsWith('admin/blog/') && clean.endsWith('/edit')) return 'admin-blog-edit';
+  if (clean === 'admin/blog/authors') return 'admin-blog-authors';
+  if (clean === 'admin/blog/import') return 'admin-blog-import';
+  if (clean === 'admin/blog/ads') return 'admin-blog-ads';
+  if (clean === 'admin/blog/analytics') return 'admin-blog-analytics';
+  if (clean === 'admin/blog') return 'admin-blog';
   if (clean === 'admin/system/usage' || clean === 'admin/usage') return 'admin-usage';
   if (clean === 'admin/system/health' || clean === 'admin/health') return 'admin-health';
   if (clean === 'admin/system/broadcast' || clean === 'admin/broadcast') return 'admin-broadcast';
@@ -271,7 +289,7 @@ export const AppShell: React.FC = () => {
   const [activeAnalyticsBookId, setActiveAnalyticsBookId] = useState<string>('');
   const [activePuzzleBookId, setActivePuzzleBookId] = useState<string>('');
   const [selectedNiche, setSelectedNiche] = useState<NicheResult | null>(null);
-  const [selectedSavedNicheId, setSelectedSavedNicheId] = useState<string | undefined>(undefined);
+  const [selectedBlogId, setSelectedBlogId] = useState<string>('');
   const [activeBlogSlug, setActiveBlogSlug] = useState<string>(() => {
     if (typeof window !== 'undefined' && window.location.pathname.startsWith('/blog/')) {
       return window.location.pathname.replace('/blog/', '').trim() || 'kdp-niches-2026';
@@ -380,6 +398,9 @@ export const AppShell: React.FC = () => {
     if (params?.id && (route === 'series-detail' || route === 'series')) {
       setSelectedSeriesId(params.id);
     }
+    if (params?.id && route === 'admin-blog-edit') {
+      setSelectedBlogId(params.id);
+    }
     if (params?.q) {
       setResearchInitialQuery(params.q);
     }
@@ -463,6 +484,13 @@ export const AppShell: React.FC = () => {
       case 'admin-support': return 'Support Center';
       case 'admin-content': return 'Content Moderation Review Queue';
       case 'admin-content-audits': return 'Manuscript Audit Reports';
+      case 'admin-blog': return 'Blog Posts & SEO CMS';
+      case 'admin-blog-new': return 'New Blog Article';
+      case 'admin-blog-edit': return 'Edit Blog Article';
+      case 'admin-blog-authors': return 'Author Profiles & EEAT';
+      case 'admin-blog-import': return 'Bulk Article Ingestion';
+      case 'admin-blog-ads': return 'AdSense Placement Controls';
+      case 'admin-blog-analytics': return 'Content & Search Analytics';
       default: return 'Admin Overview';
     }
   };
@@ -553,6 +581,27 @@ export const AppShell: React.FC = () => {
             {currentRoute === 'admin-support' && <SupportCenterPage />}
             {currentRoute === 'admin-content' && <ContentModerationPage />}
             {currentRoute === 'admin-content-audits' && <AuditReportsPage />}
+            {currentRoute === 'admin-blog' && (
+              <BlogPostsListPage
+                onNavigate={handleNavigate}
+                onEditPost={(id) => {
+                  setSelectedBlogId(id);
+                  handleNavigate('admin-blog-edit', { id });
+                }}
+              />
+            )}
+            {currentRoute === 'admin-blog-new' && (
+              <BlogPostEditor onNavigate={handleNavigate} />
+            )}
+            {currentRoute === 'admin-blog-edit' && (
+              <BlogPostEditor
+                postId={selectedBlogId || (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('id') || undefined : undefined)}
+                onNavigate={handleNavigate}
+              />
+            )}
+            {currentRoute === 'admin-blog-authors' && (
+              <BlogAuthorsPage onNavigate={handleNavigate} />
+            )}
           </AdminLayout>
         </AdminGuard>
       ) : (

@@ -180,6 +180,17 @@ export function AdminLayout({
       ],
     },
     {
+      title: 'BLOG & SEO CMS',
+      items: [
+        { id: 'admin-blog', label: 'All Posts', href: '/admin/blog', icon: FileCheck },
+        { id: 'admin-blog-new', label: 'New Post', href: '/admin/blog/new', icon: Send },
+        { id: 'admin-blog-authors', label: 'Authors & EEAT', href: '/admin/blog/authors', icon: Users },
+        { id: 'admin-blog-import', label: 'Bulk Import', href: '/admin/blog/import', icon: Sliders },
+        { id: 'admin-blog-ads', label: 'Ad Settings', href: '/admin/blog/ads', icon: TrendingUp },
+        { id: 'admin-blog-analytics', label: 'Post Analytics', href: '/admin/blog/analytics', icon: Activity },
+      ],
+    },
+    {
       title: 'SUPPORT',
       items: [
         {
