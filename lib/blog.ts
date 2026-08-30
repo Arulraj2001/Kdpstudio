@@ -81,4 +81,5 @@ export async function getBlogPostServer(slug: string): Promise<BlogPost | null> 
   }
 }
 
-export { BlogPost, SEED_BLOG_POSTS, getAllBlogPosts, getBlogPost, getBlogPostsByCategory, getFeaturedPosts, getAllCategories, getAllTags } from '../src/lib/blog';
+export type { BlogPost } from '../src/lib/blog';
+export { SEED_BLOG_POSTS, getAllBlogPosts, getBlogPost, getBlogPostsByCategory, getFeaturedPosts, getAllCategories, getAllTags } from '../src/lib/blog';

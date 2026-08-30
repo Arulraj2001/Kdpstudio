@@ -150,15 +150,13 @@ export function AdminOverviewPage() {
           users: { total, newToday, newThisWeek, activeToday },
           revenue: {
             mrr,
-            todayRevenue: 0,
+            todaysRevenue: 0,
             thisMonthRevenue: 0,
-            totalRevenue: 0,
-            pendingUpiUsd: 0,
+            pendingUpiAmount: 0,
           },
           planDistribution,
           pending: { upiCount: 0, bmacCount: 0, supportCount: 0, flaggedCount: 0 },
           signupTrend: [],
-          systemHealth: { overallStatus: 'healthy', geminiLatencyMs: 0, errorRatePercent: 0, activeJobs: 0 },
         });
       } catch (err: any) {
         console.warn(err);
@@ -277,11 +275,11 @@ export function AdminOverviewPage() {
               />
               <StatCard
                 label="Pending UPI"
-                value={fmt(stats?.revenue.pendingUpiUsd ?? 0)}
+                value={fmt(stats?.revenue.pendingUpiAmount ?? 0)}
                 sub="Awaiting admin verification"
                 accent="text-amber-600"
                 icon="⏳"
-                urgent={(stats?.revenue.pendingUpiUsd ?? 0) > 0}
+                urgent={(stats?.revenue.pendingUpiAmount ?? 0) > 0}
               />
             </>
           )}

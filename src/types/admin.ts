@@ -244,6 +244,11 @@ export interface RevenueSummary {
   // Averages
   averageRevenuePerUser: number; // ARPU
   lifetimeValue: number; // estimated LTV
+
+  // Net period revenue & refunds (consumed by RevenuePage UI)
+  netRevenue?: number;
+  refundsAmount?: number;
+  refundsCount?: number;
 }
 
 export interface DailyRevenueItem {

@@ -400,7 +400,7 @@ export const BlogNewsletterPage: React.FC<BlogNewsletterPageProps> = ({ onNaviga
                   {selectedPost.excerpt || selectedPost.metaDescription || 'No excerpt provided.'}
                 </p>
                 <div className="text-[10px] text-slate-400">
-                  By {selectedPost.authorName || 'KDP Studio Team'} · {selectedPost.readingTime || 5} min read
+                  By {selectedPost.authorName || 'KDP Studio Team'} · {selectedPost.readingTimeMinutes || 5} min read
                 </div>
                 <button
                   type="button"

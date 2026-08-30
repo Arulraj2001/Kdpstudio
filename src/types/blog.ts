@@ -183,6 +183,9 @@ export interface BulkImportPost {
   tags?: string[];
   authorId?: string;
   authorName?: string;
+  authorCredentials?: string;
+  authorPhotoUrl?: string;
+  wordCount?: number;
   status?: BlogStatus;
   publishedAt?: string;        // ISO date string
   metaTitle?: string;
@@ -201,6 +204,7 @@ export interface BulkImportPost {
 
 export interface BulkImportError {
   row: number;
+  title?: string;
   field: string;
   message: string;
   value?: string;

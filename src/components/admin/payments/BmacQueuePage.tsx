@@ -76,8 +76,11 @@ function MatchBmacModal({
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          unmatchedId: item.id,
           bmacPaymentId: item.bmacPaymentId,
           targetUid: selectedUser.uid,
+          amount: item.amount,
+          supportCoffees: item.supportCoffees,
         }),
       });
 

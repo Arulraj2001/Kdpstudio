@@ -90,7 +90,6 @@ export const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
 
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
-        'x-user-id': uid,
       };
       if (idToken) {
         headers['Authorization'] = `Bearer ${idToken}`;

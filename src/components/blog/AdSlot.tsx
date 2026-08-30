@@ -44,7 +44,7 @@ export const AdSlot: React.FC<AdSlotProps> = ({
 
   // 5. Check paid plan suppression
   const isPaidUser = Boolean(
-    userDoc?.plan && userDoc.plan !== 'free' && userDoc.subscriptionStatus === 'active'
+    userDoc?.plan && userDoc.plan !== 'free'
   );
   if (position.hideForPaidUsers && isPaidUser) {
     return null;

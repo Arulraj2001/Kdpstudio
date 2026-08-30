@@ -338,7 +338,7 @@ export const BlogPostDetailView: React.FC<BlogPostDetailViewProps> = ({
         description={postDesc}
         canonicalPath={`/blog/${post.slug}`}
         ogType="article"
-        noIndex={isPreview || Boolean(post.noIndex)}
+        noindex={isPreview || Boolean(post.noIndex)}
       />
       <JsonLd id="jsonld-article" data={articleSchema} />
       <JsonLd id="jsonld-breadcrumb" data={breadcrumbSchema} />

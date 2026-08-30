@@ -22,5 +22,16 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "include": [
+    "src",
+    "server.ts"
+  ],
+  "exclude": [
+    "src/app",
+    "src/middleware.ts",
+    "scratch",
+    "dist",
+    "node_modules"
+  ]
 }

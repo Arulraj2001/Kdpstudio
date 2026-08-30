@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { Clock, MessageSquare, X, ShieldAlert } from 'lucide-react';
 import { useAuthStore } from '../../lib/authStore';
 import { UpiPendingPayment } from '../../types/payment';
+import { auth } from '../../lib/firebase';
 
 interface PendingPaymentBannerProps {
   onContactSupport?: () => void;
@@ -28,9 +29,10 @@ export const PendingPaymentBanner: React.FC<PendingPaymentBannerProps> = ({
       let serverSuccess = false;
 
       try {
-        const res = await fetch(`/api/payment/upi/status?uid=${encodeURIComponent(user.uid)}`, {
+        const token = await auth.currentUser?.getIdToken();
+        const res = await fetch('/api/payment/upi/status', {
           headers: {
-            'x-user-id': user.uid,
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
         });
         if (res.ok && res.headers.get('content-type')?.includes('application/json')) {

@@ -236,8 +236,8 @@ export async function sendNewsletterForPost(postId: string): Promise<number> {
               postExcerpt: post.excerpt || post.metaDescription || '',
               postCategory: post.category || 'Publishing Strategy',
               authorName: post.authorName || 'KDP Studio Team',
-              readingTime: post.readingTime || 5,
-              featuredImageUrl: post.featuredImage?.url || post.coverImage || null,
+              readingTime: post.readingTimeMinutes || 5,
+              featuredImageUrl: post.featuredImage?.url || null,
               unsubscribeUrl: unsubUrl,
             }),
           });

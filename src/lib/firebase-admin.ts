@@ -77,6 +77,9 @@ export const adminAuth = {
   verifyIdToken: async (token: string): Promise<DecodedIdToken> => {
     const auth = getAdminAuth();
     if (!auth) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('Firebase Admin SDK is not configured.');
+      }
       // In development / preview mode without admin service account, parse basic payload
       try {
         const payloadBase64 = token.split('.')[1];
@@ -94,6 +97,9 @@ export const adminAuth = {
   createSessionCookie: async (idToken: string, options: { expiresIn: number }): Promise<string> => {
     const auth = getAdminAuth();
     if (!auth) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('Firebase Admin SDK is not configured.');
+      }
       return `session_demo_${Date.now()}`;
     }
     return auth.createSessionCookie(idToken, options);
@@ -101,6 +107,9 @@ export const adminAuth = {
   verifySessionCookie: async (sessionCookie: string, checkRevoked = true): Promise<DecodedIdToken> => {
     const auth = getAdminAuth();
     if (!auth) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('Firebase Admin SDK is not configured.');
+      }
       return { uid: 'demo-user-123', email: 'author@kdpstudio.com', email_verified: true } as any;
     }
     return auth.verifySessionCookie(sessionCookie, checkRevoked);

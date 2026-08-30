@@ -248,7 +248,7 @@ export const BlogAuthorsPage: React.FC<BlogAuthorsPageProps> = ({ onNavigate }) 
                       <div className="font-bold text-slate-900 flex items-center gap-1.5">
                         <span>{author.name}</span>
                         {author.isVerifiedExpert && (
-                          <ShieldCheck size={14} className="text-emerald-600 shrink-0" title="Verified Expert" />
+                          <ShieldCheck size={14} className="text-emerald-600 shrink-0" aria-label="Verified Expert" />
                         )}
                       </div>
                       <div className="text-[11px] text-slate-500">{author.credentials || 'Contributing Author'}</div>

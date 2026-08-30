@@ -103,7 +103,7 @@ export const BlogAdSettingsPage: React.FC<BlogAdSettingsPageProps> = ({ onNaviga
 
   // Position updates
   const handleUpdatePosition = (
-    id: AdPosition,
+    id: string,
     field: keyof AdPositionConfig,
     value: any
   ) => {
@@ -121,6 +121,7 @@ export const BlogAdSettingsPage: React.FC<BlogAdSettingsPageProps> = ({ onNaviga
       autoAdsEnabled,
       positions,
       updatedAt: new Date().toISOString(),
+      updatedBy: 'admin',
     };
 
     try {

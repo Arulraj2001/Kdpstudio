@@ -37,3 +37,25 @@ export const APP_URL =
   getEnv('NEXT_PUBLIC_APP_URL', getEnv('VITE_APP_URL', getEnv('APP_URL', 'http://localhost:3000')));
 
 export const APP_NAME = 'KDP Studio';
+
+/**
+ * Generic transactional email helper used by the server-side admin service.
+ * Wraps the Resend SDK so sending code does not depend on SDK internals.
+ */
+export async function sendEmail(payload: {
+  to: string;
+  subject: string;
+  html: string;
+  from?: string;
+  replyTo?: string;
+  text?: string;
+}): Promise<any> {
+  return resend.emails.send({
+    from: payload.from || EMAIL_FROM,
+    to: payload.to,
+    subject: payload.subject,
+    html: payload.html,
+    text: payload.text,
+    replyTo: payload.replyTo || EMAIL_REPLY_TO,
+  });
+}

@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
@@ -58,7 +59,12 @@ async function startServer() {
   // Cloud Run injects PORT env var; fallback to 3000 for local dev
   const PORT = parseInt(process.env.PORT || '3000', 10);
 
-  app.use(express.json({ limit: '10mb' }));
+  app.use(express.json({
+    limit: '10mb',
+    verify: (req: any, _res, buf) => {
+      req.rawBody = buf.toString('utf8');
+    },
+  }));
 
   // Security & Performance Headers (Phase 18C Step 7)
   app.use((req, res, next) => {
@@ -75,6 +81,28 @@ async function startServer() {
     }
     next();
   });
+
+  async function requireVerifiedUser(req: any, res: any): Promise<string | null> {
+    const authHeader = (req.headers.authorization as string) || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : '';
+    if (!token) {
+      res.status(401).json({ error: 'Authentication required' });
+      return null;
+    }
+
+    try {
+      const { adminAuth } = await import('./src/lib/firebase-admin');
+      const decoded = await adminAuth.verifyIdToken(token);
+      if (!decoded?.uid) {
+        res.status(401).json({ error: 'Invalid authentication token' });
+        return null;
+      }
+      return decoded.uid;
+    } catch {
+      res.status(401).json({ error: 'Invalid authentication token' });
+      return null;
+    }
+  }
 
   // Health check
   app.get('/api/health', (req, res) => {
@@ -1135,23 +1163,8 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   // Plan Status endpoint
   app.get('/api/user/plan', async (req, res) => {
     try {
-      const authHeader = (req.headers.authorization as string) || '';
-      const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : '';
-      let uid = (req.query.uid as string) || (req.headers['x-user-id'] as string) || '';
-
-      if (token) {
-        try {
-          const { adminAuth } = await import('./src/lib/firebase-admin');
-          const decoded = await adminAuth.verifyIdToken(token);
-          if (decoded?.uid) uid = decoded.uid;
-        } catch (authErr) {
-          console.warn('[server.ts /api/user/plan] Token verification note:', authErr);
-        }
-      }
-
-      if (!uid) {
-        return res.status(401).json({ error: 'Missing token or user identifier' });
-      }
+      const uid = await requireVerifiedUser(req, res);
+      if (!uid) return;
 
       const { getUserDocument } = await import('./src/lib/userService');
       const userDoc = await getUserDocument(uid);
@@ -1185,24 +1198,21 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       const { getRazorpayClient, RAZORPAY_PLAN_IDS, isRazorpayConfigured } = await import('./src/lib/razorpay');
       const { getUserDocument, updateUserDocument } = await import('./src/lib/userService');
 
-      const authHeader = (req.headers.authorization as string) || '';
-      const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : '';
-      let uid = (req.headers['x-user-id'] as string) || req.body?.uid || '';
-
-      if (token) {
-        try {
-          const { adminAuth } = await import('./src/lib/firebase-admin');
-          const decoded = await adminAuth.verifyIdToken(token);
-          if (decoded?.uid) uid = decoded.uid;
-        } catch {}
-      }
+      const uid = await requireVerifiedUser(req, res);
+      if (!uid) return;
 
       const { plan, billingCycle } = req.body || {};
+      if (!['starter', 'pro', 'agency'].includes(plan) || !['monthly', 'annual'].includes(billingCycle)) {
+        return res.status(400).json({ error: 'Invalid plan or billing cycle' });
+      }
       const planKey = `${plan}_${billingCycle}`;
       const planId = RAZORPAY_PLAN_IDS[planKey];
       const rzpKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder';
 
       if (!isRazorpayConfigured() || !planId || planId.includes('REPLACE')) {
+        if (process.env.NODE_ENV === 'production') {
+          return res.status(503).json({ error: 'Razorpay is not configured. Contact support.' });
+        }
         const mockSubId = `sub_test_${Math.random().toString(36).substring(2, 10)}`;
         return res.json({
           subscriptionId: mockSubId,
@@ -1262,20 +1272,40 @@ Sitemap: ${baseUrl}/sitemap.xml`;
         uid: bodyUid,
       } = req.body || {};
 
-      let uid = (req.headers['x-user-id'] as string) || bodyUid || '';
-      const authHeader = (req.headers.authorization as string) || '';
-      const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : '';
+      const uid = await requireVerifiedUser(req, res);
+      if (!uid) return;
 
-      if (token) {
-        try {
-          const { adminAuth } = await import('./src/lib/firebase-admin');
-          const decoded = await adminAuth.verifyIdToken(token);
-          if (decoded?.uid) uid = decoded.uid;
-        } catch {}
+      if (bodyUid && bodyUid !== uid) {
+        return res.status(403).json({ error: 'Payment user mismatch' });
       }
 
-      if (!uid) {
-        return res.status(401).json({ error: 'User identifier required' });
+      if (!['starter', 'pro', 'agency'].includes(plan) || !['monthly', 'annual'].includes(billingCycle)) {
+        return res.status(400).json({ error: 'Invalid plan or billing cycle' });
+      }
+
+      const secret = process.env.RAZORPAY_KEY_SECRET || '';
+      const isSandboxTest =
+        process.env.NODE_ENV !== 'production' &&
+        (!process.env.RAZORPAY_KEY_ID ||
+          !secret ||
+          razorpay_payment_id?.startsWith('pay_test_') ||
+          razorpay_subscription_id?.startsWith('sub_test_'));
+
+      if (!isSandboxTest) {
+        if (!razorpay_payment_id || !razorpay_subscription_id || !razorpay_signature) {
+          return res.status(400).json({ error: 'Missing Razorpay payment verification fields' });
+        }
+
+        const expectedSignature = crypto
+          .createHmac('sha256', secret)
+          .update(`${razorpay_payment_id}|${razorpay_subscription_id}`)
+          .digest('hex');
+        const expectedBuf = Buffer.from(expectedSignature, 'utf8');
+        const receivedBuf = Buffer.from(String(razorpay_signature), 'utf8');
+
+        if (expectedBuf.length !== receivedBuf.length || !crypto.timingSafeEqual(expectedBuf, receivedBuf)) {
+          return res.status(400).json({ error: 'Invalid Razorpay payment signature' });
+        }
       }
 
       const baseINRPrice = (PRICING_TABLE[plan as 'starter' | 'pro' | 'agency']?.INR as number) || 1499;
@@ -1357,7 +1387,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       const { updateUserDocument, getUserDocument } = await import('./src/lib/userService');
 
       const signature = (req.headers['x-razorpay-signature'] as string) || '';
-      const rawBody = JSON.stringify(req.body);
+      const rawBody = (req as any).rawBody || JSON.stringify(req.body);
 
       // Verify webhook signature if configured
       const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
@@ -1462,23 +1492,13 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       const { paypalRequest, PAYPAL_PLAN_IDS, isPayPalConfigured } = await import('./src/lib/paypal');
       const { getUserDocument } = await import('./src/lib/userService');
 
-      const authHeader = (req.headers.authorization as string) || '';
-      const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : '';
-      let uid = (req.headers['x-user-id'] as string) || req.body?.uid || '';
-
-      if (token) {
-        try {
-          const { adminAuth } = await import('./src/lib/firebase-admin');
-          const decoded = await adminAuth.verifyIdToken(token);
-          if (decoded?.uid) uid = decoded.uid;
-        } catch {}
-      }
-
-      if (!uid) {
-        return res.status(401).json({ error: 'User identifier required' });
-      }
+      const uid = await requireVerifiedUser(req, res);
+      if (!uid) return;
 
       const { plan, billingCycle, currency = 'USD' } = req.body || {};
+      if (!['starter', 'pro', 'agency'].includes(plan) || !['monthly', 'annual'].includes(billingCycle)) {
+        return res.status(400).json({ error: 'Invalid plan or billing cycle' });
+      }
       const userDoc = await getUserDocument(uid);
       const email = userDoc?.email || req.body?.email || 'customer@kdpstudio.app';
       const fullName = userDoc?.displayName || userDoc?.name || req.body?.name || 'Author User';
@@ -1496,6 +1516,9 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || '';
 
       if (!isPayPalConfigured() || !planId || planId.includes('REPLACE')) {
+        if (process.env.NODE_ENV === 'production') {
+          return res.status(503).json({ error: 'PayPal is not configured. Contact support.' });
+        }
         const mockSubId = `I-MOCK_PAYPAL_${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
         const mockApprovalUrl = `/api/payment/paypal/success?subscription_id=${mockSubId}&token=MOCK_TOKEN&uid=${encodeURIComponent(uid)}&plan=${plan}&billingCycle=${billingCycle}`;
 
@@ -1557,6 +1580,10 @@ Sitemap: ${baseUrl}/sitemap.xml`;
         return res.redirect('/pricing?error=payment_failed');
       }
 
+      if (process.env.NODE_ENV === 'production' && !isPayPalConfigured()) {
+        return res.redirect('/pricing?error=payment_not_configured');
+      }
+
       let uid = paramUid;
       let plan = paramPlan;
       let billingCycle = paramCycle;
@@ -1564,6 +1591,10 @@ Sitemap: ${baseUrl}/sitemap.xml`;
 
       if (isPayPalConfigured() && !subscriptionId.startsWith('I-MOCK_')) {
         const subDetails = await paypalRequest('GET', `/v1/billing/subscriptions/${subscriptionId}`);
+        if (subDetails?.status !== 'ACTIVE') {
+          console.warn(`[server.ts PayPal success] Subscription ${subscriptionId} is ${subDetails?.status || 'unknown'}, not ACTIVE`);
+          return res.redirect('/pricing?error=payment_pending');
+        }
         if (subDetails?.custom_id) uid = subDetails.custom_id;
         payerId = subDetails?.subscriber?.payer_id || null;
         if (subDetails?.plan_id) {
@@ -1573,6 +1604,14 @@ Sitemap: ${baseUrl}/sitemap.xml`;
             billingCycle = detected.billingCycle;
           }
         }
+      }
+
+      if (subscriptionId.startsWith('I-MOCK_') && process.env.NODE_ENV === 'production') {
+        return res.redirect('/pricing?error=payment_failed');
+      }
+
+      if (!['starter', 'pro', 'agency'].includes(plan) || !['monthly', 'annual'].includes(billingCycle)) {
+        return res.redirect('/pricing?error=invalid_plan');
       }
 
       if (!uid) {
@@ -1643,7 +1682,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       const { updateUserDocument } = await import('./src/lib/userService');
       const { getPlanFromPayPalPlanId } = await import('./src/lib/paypal');
 
-      const rawBody = JSON.stringify(req.body);
+      const rawBody = (req as any).rawBody || JSON.stringify(req.body);
       const isValid = await verifyPayPalWebhook(req.headers as any, rawBody);
 
       if (!isValid) {
@@ -1754,26 +1793,16 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       const { createUpiPendingPayment, checkUtrExists } = await import('./src/lib/paymentService');
       const { getUserDocument } = await import('./src/lib/userService');
 
-      const authHeader = (req.headers.authorization as string) || '';
-      const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : '';
-      let uid = (req.headers['x-user-id'] as string) || req.body?.uid || '';
-
-      if (token) {
-        try {
-          const { adminAuth } = await import('./src/lib/firebase-admin');
-          const decoded = await adminAuth.verifyIdToken(token);
-          if (decoded?.uid) uid = decoded.uid;
-        } catch {}
-      }
-
-      if (!uid) {
-        return res.status(401).json({ error: 'Authentication required' });
-      }
+      const uid = await requireVerifiedUser(req, res);
+      if (!uid) return;
 
       const { plan, billingCycle, amount, utrNumber, screenshotUrl } = req.body || {};
 
       if (!plan || !billingCycle || !amount || !utrNumber) {
         return res.status(400).json({ error: 'Missing required parameters (plan, billingCycle, amount, utrNumber)' });
+      }
+      if (!['starter', 'pro', 'agency'].includes(plan) || !['monthly', 'annual'].includes(billingCycle)) {
+        return res.status(400).json({ error: 'Invalid plan or billing cycle' });
       }
 
       const utrClean = utrNumber.trim().toUpperCase();
@@ -1850,21 +1879,8 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       const { cancelPayPalSubscription } = await import('./src/lib/paypal');
       const { cancelRazorpaySubscription } = await import('./src/lib/razorpay');
 
-      const authHeader = (req.headers.authorization as string) || '';
-      const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : '';
-      let uid = (req.headers['x-user-id'] as string) || req.body?.uid || '';
-
-      if (token) {
-        try {
-          const { adminAuth } = await import('./src/lib/firebase-admin');
-          const decoded = await adminAuth.verifyIdToken(token);
-          if (decoded?.uid) uid = decoded.uid;
-        } catch {}
-      }
-
-      if (!uid) {
-        return res.status(401).json({ error: 'Authentication required to cancel subscription' });
-      }
+      const uid = await requireVerifiedUser(req, res);
+      if (!uid) return;
 
       const userDoc = await getUserDocument(uid);
       if (!userDoc) {
@@ -1931,21 +1947,8 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     try {
       const { getUserPendingUpiPayment } = await import('./src/lib/paymentService');
 
-      const authHeader = (req.headers.authorization as string) || '';
-      const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : '';
-      let uid = (req.query.uid as string) || (req.headers['x-user-id'] as string) || '';
-
-      if (token) {
-        try {
-          const { adminAuth } = await import('./src/lib/firebase-admin');
-          const decoded = await adminAuth.verifyIdToken(token);
-          if (decoded?.uid) uid = decoded.uid;
-        } catch {}
-      }
-
-      if (!uid) {
-        return res.json({ pending: null });
-      }
+      const uid = await requireVerifiedUser(req, res);
+      if (!uid) return;
 
       const pending = await getUserPendingUpiPayment(uid);
       return res.json({ pending });
@@ -1960,21 +1963,11 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     try {
       const { approveUpiPayment } = await import('./src/lib/paymentService');
 
-      const adminEmail = process.env.ADMIN_EMAIL || 'arulraj8637@gmail.com';
-      const authHeader = (req.headers.authorization as string) || '';
-      const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : '';
-      let requesterEmail = (req.headers['x-user-email'] as string) || req.body?.adminEmail || '';
-
-      if (token) {
-        try {
-          const { adminAuth } = await import('./src/lib/firebase-admin');
-          const decoded = await adminAuth.verifyIdToken(token);
-          if (decoded?.email) requesterEmail = decoded.email;
-        } catch {}
-      }
-
-      if (requesterEmail.toLowerCase() !== adminEmail.toLowerCase()) {
-        return res.status(403).json({ error: 'Forbidden: Administrator credentials required' });
+      // Require a verified Firebase ID token belonging to the configured admin.
+      // Never trust spoofable x-user-email / body.adminEmail claims.
+      const adminEmail = await verifyAdminToken(req);
+      if (!adminEmail) {
+        return res.status(401).json({ error: 'Unauthorized: A valid administrator token is required' });
       }
 
       const { pendingId } = req.body || {};
@@ -2018,21 +2011,11 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     try {
       const { rejectUpiPayment } = await import('./src/lib/paymentService');
 
-      const adminEmail = process.env.ADMIN_EMAIL || 'arulraj8637@gmail.com';
-      const authHeader = (req.headers.authorization as string) || '';
-      const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : '';
-      let requesterEmail = (req.headers['x-user-email'] as string) || req.body?.adminEmail || '';
-
-      if (token) {
-        try {
-          const { adminAuth } = await import('./src/lib/firebase-admin');
-          const decoded = await adminAuth.verifyIdToken(token);
-          if (decoded?.email) requesterEmail = decoded.email;
-        } catch {}
-      }
-
-      if (requesterEmail.toLowerCase() !== adminEmail.toLowerCase()) {
-        return res.status(403).json({ error: 'Forbidden: Administrator credentials required' });
+      // Require a verified Firebase ID token belonging to the configured admin.
+      // Never trust spoofable x-user-email / body.adminEmail claims.
+      const adminEmail = await verifyAdminToken(req);
+      if (!adminEmail) {
+        return res.status(401).json({ error: 'Unauthorized: A valid administrator token is required' });
       }
 
       const { pendingId, reason = 'Verification failed', notes = '' } = req.body || {};
@@ -2081,7 +2064,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       const { getUserByEmail, addCredits } = await import('./src/lib/userService');
       const { activateUserPlan, createPaymentRecord } = await import('./src/lib/paymentService');
 
-      const rawBody = JSON.stringify(req.body);
+      const rawBody = (req as any).rawBody || JSON.stringify(req.body);
       const signature =
         (req.headers['x-signature-sha256'] as string) ||
         (req.headers['x-bmac-signature'] as string) ||
@@ -2091,6 +2074,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       const isValid = verifyBmacWebhook(rawBody, signature);
       if (!isValid && process.env.NODE_ENV === 'production') {
         console.warn('[server.ts BMaC Webhook] Signature verification failed');
+        return res.status(401).json({ error: 'Invalid signature' });
       }
 
       const payload = req.body;
@@ -2265,24 +2249,15 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       const { getUserByEmail, getUserDocument, addCredits } = await import('./src/lib/userService');
       const { activateUserPlan, createPaymentRecord } = await import('./src/lib/paymentService');
 
-      const adminEmail = process.env.ADMIN_EMAIL || 'arulraj8637@gmail.com';
-      const authHeader = (req.headers.authorization as string) || '';
-      const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : '';
-      let requesterEmail = (req.headers['x-user-email'] as string) || req.body?.adminEmail || '';
-
-      if (token) {
-        try {
-          const { adminAuth } = await import('./src/lib/firebase-admin');
-          const decoded = await adminAuth.verifyIdToken(token);
-          if (decoded?.email) requesterEmail = decoded.email;
-        } catch {}
+      // Require a verified Firebase ID token belonging to the configured admin.
+      // Never trust spoofable x-user-email / body.adminEmail claims.
+      const adminEmail = await verifyAdminToken(req);
+      if (!adminEmail) {
+        return res.status(401).json({ error: 'Unauthorized: A valid administrator token is required' });
       }
 
-      if (requesterEmail.toLowerCase() !== adminEmail.toLowerCase() && process.env.NODE_ENV === 'production') {
-        return res.status(403).json({ error: 'Forbidden: Administrator credentials required' });
-      }
-
-      const { unmatchedId, targetUid, targetEmail, amount, supportCoffees = 1 } = req.body || {};
+      const { unmatchedId: rawUnmatchedId, bmacPaymentId, targetUid, targetEmail, amount, supportCoffees = 1 } = req.body || {};
+      const unmatchedId = rawUnmatchedId || bmacPaymentId;
 
       if (!unmatchedId || (!targetUid && !targetEmail)) {
         return res.status(400).json({ error: 'Missing unmatchedId or target user identifier' });

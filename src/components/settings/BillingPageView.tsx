@@ -31,6 +31,7 @@ import { getUserPaymentHistory } from '../../lib/paymentService';
 import { PaymentRecord, PlanName } from '../../types/payment';
 import { BmacButton } from '../payment/BmacButton';
 import { UsageWidget } from '../dashboard/UsageWidget';
+import { auth } from '../../lib/firebase';
 
 interface BillingPageViewProps {
   onNavigate?: (route: PageRoute) => void;
@@ -109,14 +110,14 @@ export const BillingPageView: React.FC<BillingPageViewProps> = ({ onNavigate }) 
     setCancelError(null);
 
     try {
+      const token = await auth.currentUser?.getIdToken();
       const res = await fetch('/api/payment/cancel-subscription', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': user.uid,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
-          uid: user.uid,
           reason: cancelReason,
           notes: cancelNotes,
         }),

@@ -39,6 +39,43 @@ const LOCAL_PAYMENTS_KEY = 'kdp_payments_history_';
 const LOCAL_SUBS_KEY = 'kdp_subscriptions_';
 const LOCAL_UPI_KEY = 'kdp_upi_pending_records';
 
+function isServerRuntime(): boolean {
+  return typeof window === 'undefined';
+}
+
+async function getServerAdminDb() {
+  if (!isServerRuntime()) return null;
+  const runtimeImport = new Function('specifier', 'return import(specifier)') as (specifier: string) => Promise<any>;
+  const [{ getApps, initializeApp, cert }, { getFirestore }] = await Promise.all([
+    runtimeImport('firebase-admin/app'),
+    runtimeImport('firebase-admin/firestore'),
+  ]);
+  const projectId =
+    process.env.FIREBASE_ADMIN_PROJECT_ID ||
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
+    process.env.VITE_FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
+  let privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
+  if (privateKey) privateKey = privateKey.replace(/\\n/g, '\n');
+
+  const app = getApps().length
+    ? getApps()[0]
+    : projectId && clientEmail && privateKey
+      ? initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) })
+      : projectId
+        ? initializeApp({ projectId })
+        : null;
+  return app ? getFirestore(app) : null;
+}
+
+async function requireAdminDbForServer() {
+  const adminDb = await getServerAdminDb();
+  if (!adminDb && isServerRuntime() && process.env.NODE_ENV === 'production') {
+    throw new Error('Firebase Admin SDK is required for server-side payment operations.');
+  }
+  return adminDb;
+}
+
 /**
  * Creates a payment transaction record in /payments
  * @param data Payment data without ID
@@ -67,8 +104,18 @@ export async function createPaymentRecord(data: Omit<PaymentRecord, 'id'>): Prom
     }
   }
 
+  const adminDb = await requireAdminDbForServer();
+  if (adminDb) {
+    await adminDb.collection('payments').doc(paymentId).set({
+      ...record,
+      createdAt: record.createdAt || now,
+      updatedAt: now,
+    });
+    return paymentId;
+  }
+
   // 2. Persist to Firestore
-  if (isFirebaseConfigured && db) {
+  if (!adminDb && isFirebaseConfigured && db) {
     try {
       const payRef = doc(db, 'payments', paymentId);
       await setDoc(payRef, {
@@ -93,8 +140,20 @@ export async function updatePaymentRecord(id: string, data: Partial<PaymentRecor
   if (!id) return;
   const now = new Date().toISOString();
 
+  const adminDb = await requireAdminDbForServer();
+  if (adminDb) {
+    await adminDb.collection('payments').doc(id).set(
+      {
+        ...data,
+        updatedAt: now,
+      },
+      { merge: true }
+    );
+    return;
+  }
+
   // Update in Firestore
-  if (isFirebaseConfigured && db) {
+  if (!adminDb && isFirebaseConfigured && db) {
     try {
       const payRef = doc(db, 'payments', id);
       await updateDoc(payRef, {
@@ -134,7 +193,17 @@ export async function createSubscriptionRecord(data: Omit<SubscriptionRecord, 'i
     }
   }
 
-  if (isFirebaseConfigured && db) {
+  const adminDb = await requireAdminDbForServer();
+  if (adminDb) {
+    await adminDb.collection('subscriptions').doc(subId).set({
+      ...record,
+      createdAt: record.createdAt || now,
+      updatedAt: now,
+    });
+    return subId;
+  }
+
+  if (!adminDb && isFirebaseConfigured && db) {
     try {
       const subRef = doc(db, 'subscriptions', subId);
       await setDoc(subRef, {
@@ -158,7 +227,19 @@ export async function createSubscriptionRecord(data: Omit<SubscriptionRecord, 'i
 export async function updateSubscriptionRecord(id: string, data: Partial<SubscriptionRecord>): Promise<void> {
   if (!id) return;
 
-  if (isFirebaseConfigured && db) {
+  const adminDb = await requireAdminDbForServer();
+  if (adminDb) {
+    await adminDb.collection('subscriptions').doc(id).set(
+      {
+        ...data,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
+    return;
+  }
+
+  if (!adminDb && isFirebaseConfigured && db) {
     try {
       const subRef = doc(db, 'subscriptions', id);
       await updateDoc(subRef, {
@@ -178,6 +259,16 @@ export async function updateSubscriptionRecord(id: string, data: Partial<Subscri
  */
 export async function getUserPaymentHistory(uid: string): Promise<PaymentRecord[]> {
   if (!uid) return [];
+
+  const adminDb = await getServerAdminDb();
+  if (adminDb) {
+    const snapshot = await adminDb
+      .collection('payments')
+      .where('uid', '==', uid)
+      .orderBy('createdAt', 'desc')
+      .get();
+    return snapshot.docs.map((d) => ({ ...d.data(), id: d.id } as PaymentRecord));
+  }
 
   // Try Firestore query
   if (isFirebaseConfigured && db) {
@@ -220,6 +311,20 @@ export async function getUserPaymentHistory(uid: string): Promise<PaymentRecord[
  */
 export async function getUserActiveSubscription(uid: string): Promise<SubscriptionRecord | null> {
   if (!uid) return null;
+
+  const adminDb = await getServerAdminDb();
+  if (adminDb) {
+    const snapshot = await adminDb
+      .collection('subscriptions')
+      .where('uid', '==', uid)
+      .where('status', '==', 'active')
+      .limit(1)
+      .get();
+    if (!snapshot.empty) {
+      const docSnap = snapshot.docs[0];
+      return { ...docSnap.data(), id: docSnap.id } as SubscriptionRecord;
+    }
+  }
 
   if (isFirebaseConfigured && db) {
     try {
@@ -286,6 +391,15 @@ export async function submitUpiPayment(
     }
   }
 
+  const adminDb = await requireAdminDbForServer();
+  if (adminDb) {
+    await adminDb.collection('upiPending').doc(pendingId).set({
+      ...record,
+      submittedAt: record.submittedAt || now,
+    });
+    return pendingId;
+  }
+
   if (isFirebaseConfigured && db) {
     try {
       const ref = doc(db, 'upiPending', pendingId);
@@ -308,6 +422,15 @@ export const createUpiPendingPayment = submitUpiPayment;
  * @returns Array of pending UPI submissions
  */
 export async function getPendingUpiPayments(): Promise<UpiPendingPayment[]> {
+  const adminDb = await getServerAdminDb();
+  if (adminDb) {
+    const snapshot = await adminDb
+      .collection('upiPending')
+      .where('status', '==', 'pending')
+      .get();
+    return snapshot.docs.map((d) => ({ ...d.data(), id: d.id } as UpiPendingPayment));
+  }
+
   if (isFirebaseConfigured && db) {
     try {
       const q = query(
@@ -345,6 +468,16 @@ export async function checkUtrExists(utrNumber: string): Promise<boolean> {
   if (!utrNumber) return false;
   const cleanUtr = utrNumber.trim().toUpperCase();
 
+  const adminDb = await getServerAdminDb();
+  if (adminDb) {
+    const snapshot = await adminDb
+      .collection('upiPending')
+      .where('utrNumber', '==', cleanUtr)
+      .limit(1)
+      .get();
+    if (!snapshot.empty) return true;
+  }
+
   if (isFirebaseConfigured && db) {
     try {
       const q = query(
@@ -376,6 +509,20 @@ export async function checkUtrExists(utrNumber: string): Promise<boolean> {
  */
 export async function getUserPendingUpiPayment(uid: string): Promise<UpiPendingPayment | null> {
   if (!uid) return null;
+
+  const adminDb = await getServerAdminDb();
+  if (adminDb) {
+    const snapshot = await adminDb
+      .collection('upiPending')
+      .where('uid', '==', uid)
+      .where('status', '==', 'pending')
+      .limit(1)
+      .get();
+    if (!snapshot.empty) {
+      const docSnap = snapshot.docs[0];
+      return { ...docSnap.data(), id: docSnap.id } as UpiPendingPayment;
+    }
+  }
 
   if (isFirebaseConfigured && db) {
     try {
@@ -417,7 +564,16 @@ export async function approveUpiPayment(pendingId: string, adminEmail: string): 
   const now = new Date().toISOString();
   let pendingRecord: UpiPendingPayment | null = null;
 
+  const adminDb = await requireAdminDbForServer();
+
   // Retrieve pending details
+  if (adminDb) {
+    const snap = await adminDb.collection('upiPending').doc(pendingId).get();
+    if (snap.exists) {
+      pendingRecord = { ...snap.data(), id: snap.id } as UpiPendingPayment;
+    }
+  }
+
   if (isFirebaseConfigured && db) {
     try {
       const ref = doc(db, 'upiPending', pendingId);
@@ -440,9 +596,23 @@ export async function approveUpiPayment(pendingId: string, adminEmail: string): 
   if (!pendingRecord) {
     throw new Error(`Pending UPI payment ${pendingId} not found`);
   }
+  if (pendingRecord.status !== 'pending') {
+    throw new Error(`UPI payment ${pendingId} is already ${pendingRecord.status}`);
+  }
 
   // Update status in Firestore
-  if (isFirebaseConfigured && db) {
+  if (adminDb) {
+    await adminDb.collection('upiPending').doc(pendingId).set(
+      {
+        status: 'approved',
+        reviewedAt: now,
+        reviewedBy: adminEmail,
+      },
+      { merge: true }
+    );
+  }
+
+  if (!adminDb && isFirebaseConfigured && db) {
     try {
       const ref = doc(db, 'upiPending', pendingId);
       await updateDoc(ref, {
@@ -517,6 +687,20 @@ export async function rejectUpiPayment(
   adminEmail: string
 ): Promise<void> {
   const now = new Date().toISOString();
+
+  const adminDb = await requireAdminDbForServer();
+  if (adminDb) {
+    await adminDb.collection('upiPending').doc(pendingId).set(
+      {
+        status: 'rejected',
+        notes: reason,
+        reviewedAt: now,
+        reviewedBy: adminEmail,
+      },
+      { merge: true }
+    );
+    return;
+  }
 
   if (isFirebaseConfigured && db) {
     try {

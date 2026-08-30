@@ -99,6 +99,43 @@ export function matchBmacTier(amountPaid: number): BmacTier | null {
 
 const LOCAL_BMAC_UNMATCHED_KEY = 'kdp_bmac_unmatched_records';
 
+function isServerRuntime(): boolean {
+  return typeof window === 'undefined';
+}
+
+async function getServerAdminDb() {
+  if (!isServerRuntime()) return null;
+  const runtimeImport = new Function('specifier', 'return import(specifier)') as (specifier: string) => Promise<any>;
+  const [{ getApps, initializeApp, cert }, { getFirestore }] = await Promise.all([
+    runtimeImport('firebase-admin/app'),
+    runtimeImport('firebase-admin/firestore'),
+  ]);
+  const projectId =
+    process.env.FIREBASE_ADMIN_PROJECT_ID ||
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
+    process.env.VITE_FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
+  let privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
+  if (privateKey) privateKey = privateKey.replace(/\\n/g, '\n');
+
+  const app = getApps().length
+    ? getApps()[0]
+    : projectId && clientEmail && privateKey
+      ? initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) })
+      : projectId
+        ? initializeApp({ projectId })
+        : null;
+  return app ? getFirestore(app) : null;
+}
+
+async function requireAdminDbForServer() {
+  const adminDb = await getServerAdminDb();
+  if (!adminDb && isServerRuntime() && process.env.NODE_ENV === 'production') {
+    throw new Error('Firebase Admin SDK is required for server-side BMaC operations.');
+  }
+  return adminDb;
+}
+
 /**
  * Stores an unmatched BMaC payment document in /bmacUnmatched for manual administrator triage
  */
@@ -131,6 +168,15 @@ export async function saveBmacUnmatchedPayment(
     } catch {}
   }
 
+  const adminDb = await requireAdminDbForServer();
+  if (adminDb) {
+    await adminDb.collection('bmacUnmatched').doc(id).set({
+      ...record,
+      createdAt: record.createdAt || now,
+    });
+    return id;
+  }
+
   // 2. Firestore document
   if (isFirebaseConfigured && db) {
     try {
@@ -151,6 +197,12 @@ export async function saveBmacUnmatchedPayment(
  * Retrieves all unmatched BMaC payments
  */
 export async function getBmacUnmatchedPayments(): Promise<BmacUnmatchedPayment[]> {
+  const adminDb = await getServerAdminDb();
+  if (adminDb) {
+    const snap = await adminDb.collection('bmacUnmatched').orderBy('createdAt', 'desc').get();
+    return snap.docs.map((d) => ({ ...d.data(), id: d.id } as BmacUnmatchedPayment));
+  }
+
   if (isFirebaseConfigured && db) {
     try {
       const q = query(
@@ -190,6 +242,21 @@ export async function resolveBmacUnmatchedPayment(
   rewardGranted: string
 ): Promise<void> {
   const now = new Date().toISOString();
+
+  const adminDb = await requireAdminDbForServer();
+  if (adminDb) {
+    await adminDb.collection('bmacUnmatched').doc(unmatchedId).set(
+      {
+        status: 'resolved',
+        resolvedUid,
+        resolvedBy: adminEmail,
+        resolvedAt: now,
+        rewardGranted,
+      },
+      { merge: true }
+    );
+    return;
+  }
 
   if (isFirebaseConfigured && db) {
     try {

@@ -20,6 +20,7 @@ import type {
   RevenueSummary,
   DailyRevenueItem,
   AdminPaymentRow,
+  CancelledSubscriptionItem,
   AdminPaymentsQuery,
   AdminPaymentsResult,
   UpiQueueItem,

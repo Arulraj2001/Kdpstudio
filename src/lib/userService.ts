@@ -1,4 +1,4 @@
-import { 
+import {
   doc, 
   getDoc, 
   setDoc, 
@@ -112,6 +112,41 @@ export function generateReferralCode(uid: string): string {
 
 const LOCAL_USER_PREFIX = 'kdp_user_doc_';
 const inMemoryUserDocs = new Map<string, UserDocument>();
+
+function isServerRuntime(): boolean {
+  return typeof window === 'undefined';
+}
+
+async function getServerAdminDb() {
+  if (!isServerRuntime()) return null;
+  const runtimeImport = new Function('specifier', 'return import(specifier)') as (specifier: string) => Promise<any>;
+  const [{ getApps, initializeApp, cert }, { getFirestore }] = await Promise.all([
+    runtimeImport('firebase-admin/app'),
+    runtimeImport('firebase-admin/firestore'),
+  ]);
+  const projectId =
+    process.env.FIREBASE_ADMIN_PROJECT_ID ||
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
+    process.env.VITE_FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
+  let privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
+  if (privateKey) privateKey = privateKey.replace(/\\n/g, '\n');
+
+  const app = getApps().length
+    ? getApps()[0]
+    : projectId && clientEmail && privateKey
+      ? initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) })
+      : projectId
+        ? initializeApp({ projectId })
+        : null;
+  return app ? getFirestore(app) : null;
+}
+
+async function getServerFieldValue() {
+  const runtimeImport = new Function('specifier', 'return import(specifier)') as (specifier: string) => Promise<any>;
+  const { FieldValue } = await runtimeImport('firebase-admin/firestore');
+  return FieldValue;
+}
 
 /**
  * Creates user document at /users/{uid} in Firestore.
@@ -246,6 +281,23 @@ export async function getUserDocument(uid: string): Promise<UserDocument | null>
   }
 
   // Check live Firestore if available
+  if (isServerRuntime()) {
+    const adminDb = await getServerAdminDb();
+    if (adminDb) {
+      try {
+        const snapshot = await adminDb.collection('users').doc(uid).get();
+        if (snapshot.exists) {
+          const data = { ...snapshot.data(), uid: snapshot.id } as UserDocument;
+          inMemoryUserDocs.set(uid, data);
+          return data;
+        }
+      } catch (err) {
+        console.warn('Could not read user document with Admin SDK:', err);
+      }
+    }
+  }
+
+  // Check live Firestore if available
   if (isFirebaseConfigured && db) {
     try {
       const userRef = doc(db, 'users', uid);
@@ -305,6 +357,24 @@ export async function updateUserDocument(uid: string, data: Partial<UserDocument
   }
 
   // Update Firestore
+  if (isServerRuntime()) {
+    const adminDb = await getServerAdminDb();
+    if (adminDb) {
+      await adminDb.collection('users').doc(uid).set(
+        {
+          ...data,
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true }
+      );
+      return;
+    }
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Firebase Admin SDK is required for server-side user updates.');
+    }
+  }
+
+  // Update Firestore
   if (isFirebaseConfigured && db) {
     try {
       const userRef = doc(db, 'users', uid);
@@ -324,6 +394,26 @@ export async function updateUserDocument(uid: string, data: Partial<UserDocument
 export async function getUserByEmail(email: string): Promise<UserDocument | null> {
   if (!email) return null;
   const targetEmail = email.toLowerCase().trim();
+
+  // 1. Query live Firestore if available
+  if (isServerRuntime()) {
+    const adminDb = await getServerAdminDb();
+    if (adminDb) {
+      try {
+        const snapshot = await adminDb
+          .collection('users')
+          .where('email', '==', targetEmail)
+          .limit(1)
+          .get();
+        if (!snapshot.empty) {
+          const docSnap = snapshot.docs[0];
+          return { ...docSnap.data(), uid: docSnap.id } as UserDocument;
+        }
+      } catch (err) {
+        console.warn('[UserService] Admin SDK getUserByEmail error:', err);
+      }
+    }
+  }
 
   // 1. Query live Firestore if available
   if (isFirebaseConfigured && db) {
@@ -385,6 +475,25 @@ export async function addCredits(uid: string, amount: number): Promise<void> {
   }
 
   // Firestore atomic increment
+  if (isServerRuntime()) {
+    const adminDb = await getServerAdminDb();
+    if (adminDb) {
+      const FieldValue = await getServerFieldValue();
+      await adminDb.collection('users').doc(uid).set(
+        {
+          credits: FieldValue.increment(amount),
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true }
+      );
+      return;
+    }
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Firebase Admin SDK is required for server-side credit updates.');
+    }
+  }
+
+  // Firestore atomic increment
   if (isFirebaseConfigured && db) {
     try {
       const userRef = doc(db, 'users', uid);
@@ -427,6 +536,26 @@ export async function deductCredit(uid: string, amount: number = 1): Promise<boo
   }
 
   // Firestore atomic decrement
+  if (isServerRuntime()) {
+    const adminDb = await getServerAdminDb();
+    if (adminDb) {
+      const FieldValue = await getServerFieldValue();
+      await adminDb.collection('users').doc(uid).set(
+        {
+          credits: FieldValue.increment(-amount),
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true }
+      );
+      console.log(`[Credits] Deducted ${amount} credit(s) from user ${uid}. Remaining: ${newTotal}`);
+      return true;
+    }
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Firebase Admin SDK is required for server-side credit updates.');
+    }
+  }
+
+  // Firestore atomic decrement
   if (isFirebaseConfigured && db) {
     try {
       const userRef = doc(db, 'users', uid);
@@ -451,4 +580,3 @@ export async function getUserCredits(uid: string): Promise<number> {
   const userDoc = await getUserDocument(uid);
   return Number(userDoc?.credits || 0);
 }
-

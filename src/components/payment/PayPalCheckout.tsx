@@ -47,7 +47,6 @@ export const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
 
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
-        'x-user-id': uid,
       };
       if (idToken) {
         headers['Authorization'] = `Bearer ${idToken}`;

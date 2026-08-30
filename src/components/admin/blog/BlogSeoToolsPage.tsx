@@ -21,7 +21,7 @@ import {
 import { PageRoute } from '../../../types';
 
 interface BlogSeoToolsPageProps {
-  onNavigate: (route: PageRoute) => void;
+  onNavigate: (route: PageRoute, params?: Record<string, any>) => void;
 }
 
 export const BlogSeoToolsPage: React.FC<BlogSeoToolsPageProps> = ({ onNavigate }) => {
