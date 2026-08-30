@@ -70,6 +70,8 @@ services:
       # ── Buy Me a Coffee (public URL + server-side webhook) ──────────────────
       - key: NEXT_PUBLIC_BMAC_URL
         value: https://buymeacoffee.com/x4kqsD0lkA
+      - key: VITE_BMAC_URL
+        value: https://buymeacoffee.com/x4kqsD0lkA
       # ── UPI (public config baked into the SPA when Render serves the app) ───
       - key: VITE_UPI_ID
         value: vizhitn@ptaxis

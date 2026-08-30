@@ -29,7 +29,7 @@ export const BmacButton: React.FC<BmacButtonProps> = ({
   const rawBmacUrl = 
     (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_BMAC_URL) ||
     (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_BMAC_URL) ||
-    'https://buymeacoffee.com/kdpstudio';
+    'https://buymeacoffee.com/x4kqsD0lkA';
 
   // Determine coffee count and label based on variant
   let targetCoffees = coffees || 1;
