@@ -53,7 +53,7 @@ const PLAN_BADGE_STYLE: Record<string, { bg: string; text: string; border: strin
 
 export const BillingPageView: React.FC<BillingPageViewProps> = ({ onNavigate }) => {
   const { user, userDoc, refreshUserData } = useAuthStore();
-  const { currency } = useGeoStore();
+  const { currency, getFormattedPrice } = useGeoStore();
   const checkout = useCheckoutStore();
 
   const currentPlan = (userDoc?.plan?.toLowerCase() as PlanName) || 'free';
@@ -218,7 +218,7 @@ export const BillingPageView: React.FC<BillingPageViewProps> = ({ onNavigate }) 
             <div className="text-xl font-black text-slate-900">
               {currentPlan === 'free' 
                 ? '₹0 / $0' 
-                : formatPrice(PRICING_TABLE[currentPlan][currency] || PRICING_TABLE[currentPlan]['USD'], currency)}
+                : getFormattedPrice(currentPlan, currency)}
             </div>
             <div className="text-[11px] text-slate-500">
               {currentPlan === 'free' ? 'Always Free' : 'Billed Monthly / Annual'}

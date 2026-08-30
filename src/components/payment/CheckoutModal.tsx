@@ -92,7 +92,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const defaultBillingCycle = propDefaultBillingCycle || checkoutStore.defaultBillingCycle || 'monthly';
 
   const { user, userDoc, refreshUserData } = useAuthStore();
-  const { currency } = useGeoStore();
+  const { currency, pricingTable, pricingOverrides } = useGeoStore();
 
   const [selectedPlan, setSelectedPlan] = useState<'starter' | 'pro' | 'agency'>('pro');
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
@@ -141,9 +141,22 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const currentActiveTab = availableTabs.includes(activePaymentTab) ? activePaymentTab : (availableTabs[0] || 'bmac');
 
-  // Calculate pricing
-  const monthlyRate = PRICING_TABLE[selectedPlan][currency] || PRICING_TABLE[selectedPlan]['USD'];
-  const annualRate = monthlyRate * 10; // 10 months for price of 12 (17% off)
+  // Calculate pricing dynamically
+  const currentTable = pricingTable || PRICING_TABLE;
+  const planMatrix = currentTable[selectedPlan] || PRICING_TABLE[selectedPlan];
+  const monthlyRate = planMatrix[currency] || planMatrix['USD'];
+
+  let annualRate = Math.round(monthlyRate * 10);
+  if (currency === 'USD' && pricingOverrides) {
+    if (selectedPlan === 'starter' && pricingOverrides.starterAnnual) {
+      annualRate = pricingOverrides.starterAnnual;
+    } else if (selectedPlan === 'pro' && pricingOverrides.proAnnual) {
+      annualRate = pricingOverrides.proAnnual;
+    } else if (selectedPlan === 'agency' && pricingOverrides.agencyAnnual) {
+      annualRate = pricingOverrides.agencyAnnual;
+    }
+  }
+
   const currentPrice = billingCycle === 'annual' ? annualRate : monthlyRate;
   const currentPriceDisplay = formatPrice(currentPrice, currency);
   const monthlyEquivalentDisplay = billingCycle === 'annual' 
@@ -282,8 +295,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 {(['starter', 'pro', 'agency'] as const).map((planKey) => {
                   const meta = PLAN_META[planKey];
                   const isSelected = selectedPlan === planKey;
-                  const mPrice = PRICING_TABLE[planKey][currency] || PRICING_TABLE[planKey]['USD'];
-                  const aPrice = mPrice * 10;
+                  const matrix = currentTable[planKey] || PRICING_TABLE[planKey];
+                  const mPrice = matrix[currency] || matrix['USD'];
+                  let aPrice = Math.round(mPrice * 10);
+                  if (currency === 'USD' && pricingOverrides) {
+                    if (planKey === 'starter' && pricingOverrides.starterAnnual) aPrice = pricingOverrides.starterAnnual;
+                    else if (planKey === 'pro' && pricingOverrides.proAnnual) aPrice = pricingOverrides.proAnnual;
+                    else if (planKey === 'agency' && pricingOverrides.agencyAnnual) aPrice = pricingOverrides.agencyAnnual;
+                  }
                   const priceToShow = billingCycle === 'annual' ? aPrice : mPrice;
 
                   return (

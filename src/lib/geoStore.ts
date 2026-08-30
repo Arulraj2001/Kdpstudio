@@ -1,11 +1,16 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { onSnapshot, doc } from 'firebase/firestore';
+import { db, isFirebaseConfigured } from './firebase';
 import { 
   Currency, 
   PlanName, 
   PaymentMethod, 
   LocationData, 
-  PRICING_TABLE, 
+  PRICING_TABLE,
+  PricingTable,
+  PlanPricingOverrides,
+  computeDynamicPricingTable,
   detectUserLocation, 
   getCurrencyForCountry, 
   getPaymentMethods, 
@@ -15,104 +20,156 @@ import {
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
+let unsubscribePricingSnapshot: (() => void) | null = null;
+
 interface GeoState {
   location: LocationData | null;
   currency: Currency;
   paymentMethods: PaymentMethod[];
+  pricingTable: PricingTable;
+  pricingOverrides: PlanPricingOverrides | null;
   isDetecting: boolean;
   manualOverride: boolean;
   lastDetectedAt: number | null;
 
   initLocation: (force?: boolean) => Promise<void>;
   setCurrencyManually: (currency: Currency) => void;
-  getPriceForPlan: (plan: PlanName) => number;
-  getFormattedPrice: (plan: PlanName) => string;
+  getPriceForPlan: (plan: PlanName, currencyOverride?: Currency) => number;
+  getFormattedPrice: (plan: PlanName, currencyOverride?: Currency) => string;
   resetToAutoDetection: () => Promise<void>;
+  initPricingListener: () => void;
 }
 
 export const useGeoStore = create<GeoState>()(
   persist(
-    (set, get) => ({
-      location: null,
-      currency: 'USD',
-      paymentMethods: ['paypal', 'bmac'],
-      isDetecting: false,
-      manualOverride: false,
-      lastDetectedAt: null,
-
-      initLocation: async (force = false) => {
-        const { location, manualOverride, lastDetectedAt, isDetecting } = get();
-
-        // If currently detecting, prevent duplicate requests
-        if (isDetecting) return;
-
-        const isFresh = lastDetectedAt && (Date.now() - lastDetectedAt < ONE_DAY_MS);
-
-        // If we already have fresh detected location and no force reload
-        if (location && isFresh && !force) {
-          return;
+    (set, get) => {
+      // Initialize real-time pricing listener from Firestore
+      const setupPricingListener = () => {
+        if (typeof window === 'undefined') return;
+        if (unsubscribePricingSnapshot) {
+          unsubscribePricingSnapshot();
+          unsubscribePricingSnapshot = null;
         }
-
-        set({ isDetecting: true });
+        if (!isFirebaseConfigured || !db) return;
 
         try {
-          const detected = await detectUserLocation();
-          const now = Date.now();
+          unsubscribePricingSnapshot = onSnapshot(
+            doc(db, 'appConfig', 'pricing'),
+            (snapshot) => {
+              if (snapshot.exists()) {
+                const data = snapshot.data() as PlanPricingOverrides;
+                const dynamicTable = computeDynamicPricingTable(data);
+                set({
+                  pricingOverrides: data,
+                  pricingTable: dynamicTable,
+                });
+              } else {
+                set({
+                  pricingOverrides: null,
+                  pricingTable: computeDynamicPricingTable(null),
+                });
+              }
+            },
+            (error) => {
+              console.debug('[GeoStore] Pricing real-time listener notice:', error);
+            }
+          );
+        } catch (err) {
+          console.debug('[GeoStore] Error setting up pricing listener:', err);
+        }
+      };
 
-          // Only change currency if user has not manually overridden it
-          if (!manualOverride) {
-            const mappedCurrency = normalizeToSupportedCurrency(detected.currency, detected.country);
-            const methods = getPaymentMethods(mappedCurrency);
+      if (typeof window !== 'undefined') {
+        setupPricingListener();
+      }
 
+      return {
+        location: null,
+        currency: 'USD',
+        paymentMethods: ['paypal', 'bmac'],
+        pricingTable: computeDynamicPricingTable(null),
+        pricingOverrides: null,
+        isDetecting: false,
+        manualOverride: false,
+        lastDetectedAt: null,
+
+        initPricingListener: setupPricingListener,
+
+        initLocation: async (force = false) => {
+          const { location, manualOverride, lastDetectedAt, isDetecting } = get();
+
+          // If currently detecting, prevent duplicate requests
+          if (isDetecting) return;
+
+          const isFresh = lastDetectedAt && (Date.now() - lastDetectedAt < ONE_DAY_MS);
+
+          // If we already have fresh detected location and no force reload
+          if (location && isFresh && !force) {
+            return;
+          }
+
+          set({ isDetecting: true });
+
+          try {
+            const detected = await detectUserLocation();
+            const now = Date.now();
+
+            // Only change currency if user has not manually overridden it
+            if (!manualOverride) {
+              const mappedCurrency = normalizeToSupportedCurrency(detected.currency, detected.country);
+              const methods = getPaymentMethods(mappedCurrency);
+
+              set({
+                location: detected,
+                currency: mappedCurrency,
+                paymentMethods: methods,
+                lastDetectedAt: now,
+                isDetecting: false,
+              });
+            } else {
+              set({
+                location: detected,
+                lastDetectedAt: now,
+                isDetecting: false,
+              });
+            }
+          } catch (error) {
+            console.warn('[GeoStore] Init location error, falling back to USD:', error);
             set({
-              location: detected,
-              currency: mappedCurrency,
-              paymentMethods: methods,
-              lastDetectedAt: now,
-              isDetecting: false,
-            });
-          } else {
-            set({
-              location: detected,
-              lastDetectedAt: now,
               isDetecting: false,
             });
           }
-        } catch (error) {
-          console.warn('[GeoStore] Init location error, falling back to USD:', error);
+        },
+
+        setCurrencyManually: (currency: Currency) => {
+          const methods = getPaymentMethods(currency);
           set({
-            isDetecting: false,
+            currency,
+            paymentMethods: methods,
+            manualOverride: true,
           });
-        }
-      },
+        },
 
-      setCurrencyManually: (currency: Currency) => {
-        const methods = getPaymentMethods(currency);
-        set({
-          currency,
-          paymentMethods: methods,
-          manualOverride: true,
-        });
-      },
+        resetToAutoDetection: async () => {
+          set({ manualOverride: false });
+          await get().initLocation(true);
+        },
 
-      resetToAutoDetection: async () => {
-        set({ manualOverride: false });
-        await get().initLocation(true);
-      },
+        getPriceForPlan: (plan: PlanName, currencyOverride?: Currency) => {
+          const curr = currencyOverride || get().currency;
+          const table = get().pricingTable || PRICING_TABLE;
+          const planTier = table[plan];
+          if (!planTier) return 0;
+          return planTier[curr] ?? planTier.USD ?? 0;
+        },
 
-      getPriceForPlan: (plan: PlanName) => {
-        const { currency } = get();
-        const planTier = PRICING_TABLE[plan];
-        if (!planTier) return 0;
-        return planTier[currency] ?? planTier.USD ?? 0;
-      },
-
-      getFormattedPrice: (plan: PlanName) => {
-        const { currency, getPriceForPlan } = get();
-        const price = getPriceForPlan(plan);
-        return formatPrice(price, currency);
-      },
-    }),
+        getFormattedPrice: (plan: PlanName, currencyOverride?: Currency) => {
+          const curr = currencyOverride || get().currency;
+          const price = get().getPriceForPlan(plan, curr);
+          return formatPrice(price, curr);
+        },
+      };
+    },
     {
       name: 'kdp_studio_geo_storage',
       partialize: (state) => ({
@@ -125,3 +182,4 @@ export const useGeoStore = create<GeoState>()(
     }
   )
 );
+

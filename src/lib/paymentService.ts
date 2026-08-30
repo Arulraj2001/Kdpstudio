@@ -602,8 +602,20 @@ export async function activateUserPlan(
       const userName = userDoc.name || userDoc.displayName || userEmail.split('@')[0];
       const currency = userDoc.currency || (gateway === 'upi' || gateway === 'razorpay' ? 'INR' : 'USD');
       
-      const { PRICING_TABLE } = await import('./geo');
-      const basePrice = (PRICING_TABLE[plan as 'starter' | 'pro' | 'agency']?.[currency as 'INR' | 'USD'] as number) || (currency === 'INR' ? 1499 : 19);
+      const { PRICING_TABLE, computeDynamicPricingTable } = await import('./geo');
+      let dynamicTable: any = PRICING_TABLE;
+      try {
+        if (isFirebaseConfigured && db) {
+          const priceSnap = await getDoc(doc(db, 'appConfig', 'pricing'));
+          if (priceSnap.exists()) {
+            dynamicTable = computeDynamicPricingTable(priceSnap.data() as any);
+          }
+        }
+      } catch {
+        // Fallback to static table
+      }
+
+      const basePrice = (dynamicTable[plan as 'starter' | 'pro' | 'agency']?.[currency as 'INR' | 'USD'] as number) || (currency === 'INR' ? 1499 : 19);
       const totalAmount = billingCycle === 'annual' ? Math.round(basePrice * 10) : basePrice;
       const formattedAmount = currency === 'INR' ? `₹${totalAmount}` : `$${totalAmount}`;
 

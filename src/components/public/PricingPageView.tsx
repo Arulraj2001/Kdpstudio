@@ -76,7 +76,7 @@ const PRICING_SCHEMA = {
 };
 
 export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) => {
-  const { currency, location } = useGeoStore();
+  const { currency, location, pricingTable, pricingOverrides } = useGeoStore();
   const { user } = useAuthStore();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
@@ -120,9 +120,24 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
     setActiveGatewayTab(isIndia ? 'razorpay' : 'paypal');
   }, [isIndia]);
   
-  const starterPrice = billingCycle === 'monthly' ? PRICING_TABLE.starter[currKey] : Math.round(PRICING_TABLE.starter[currKey] * 10);
-  const proPrice = billingCycle === 'monthly' ? PRICING_TABLE.pro[currKey] : Math.round(PRICING_TABLE.pro[currKey] * 10);
-  const agencyPrice = billingCycle === 'monthly' ? PRICING_TABLE.agency[currKey] : Math.round(PRICING_TABLE.agency[currKey] * 10);
+  const currentTable = pricingTable || PRICING_TABLE;
+  const starterMonthly = currentTable.starter?.[currKey] ?? PRICING_TABLE.starter[currKey];
+  const proMonthly = currentTable.pro?.[currKey] ?? PRICING_TABLE.pro[currKey];
+  const agencyMonthly = currentTable.agency?.[currKey] ?? PRICING_TABLE.agency[currKey];
+
+  const starterAnnual = pricingOverrides?.starterAnnual && currKey === 'USD'
+    ? pricingOverrides.starterAnnual
+    : Math.round(starterMonthly * 10);
+  const proAnnual = pricingOverrides?.proAnnual && currKey === 'USD'
+    ? pricingOverrides.proAnnual
+    : Math.round(proMonthly * 10);
+  const agencyAnnual = pricingOverrides?.agencyAnnual && currKey === 'USD'
+    ? pricingOverrides.agencyAnnual
+    : Math.round(agencyMonthly * 10);
+
+  const starterPrice = billingCycle === 'monthly' ? starterMonthly : starterAnnual;
+  const proPrice = billingCycle === 'monthly' ? proMonthly : proAnnual;
+  const agencyPrice = billingCycle === 'monthly' ? agencyMonthly : agencyAnnual;
 
   const faqs = [
     {

@@ -45,6 +45,12 @@ service cloud.firestore {
       allow write: if false; // server-side only via Admin SDK
     }
     
+    // Global app configurations (pricing, feature flags, maintenance mode) are public read
+    match /appConfig/{configDoc} {
+      allow read: if true;
+      allow write: if false; // server-side only via Admin SDK
+    }
+    
     // All other collections: server-side only
     match /{document=**} {
       allow read, write: if false;
