@@ -3,7 +3,90 @@
  * KDP Studio — Amazon KDP Self-Publishing Suite
  */
 
-import { BlogTocItem } from '../types/blog';
+import { BlogTocItem, AdPositionConfig } from '../types/blog';
+
+export const DEFAULT_AD_POSITIONS: AdPositionConfig[] = [
+  {
+    id: 'header',
+    name: 'Header Banner',
+    description: 'Above the post title',
+    adUnitId: '',
+    enabled: false,
+    hideForLoggedIn: false,
+    hideForPaidUsers: true,
+    minWordCount: 0,
+  },
+  {
+    id: 'in-article-1',
+    name: 'In-Article #1',
+    description: 'After first 300 words',
+    adUnitId: '',
+    enabled: false,
+    hideForLoggedIn: false,
+    hideForPaidUsers: true,
+    minWordCount: 600,
+  },
+  {
+    id: 'in-article-2',
+    name: 'In-Article #2',
+    description: 'After middle of article',
+    adUnitId: '',
+    enabled: false,
+    hideForLoggedIn: false,
+    hideForPaidUsers: true,
+    minWordCount: 900,
+  },
+  {
+    id: 'in-article-3',
+    name: 'In-Article #3',
+    description: 'Near end of article',
+    adUnitId: '',
+    enabled: false,
+    hideForLoggedIn: false,
+    hideForPaidUsers: true,
+    minWordCount: 1500,
+  },
+  {
+    id: 'sidebar',
+    name: 'Sidebar',
+    description: 'Sticky sidebar',
+    adUnitId: '',
+    enabled: false,
+    hideForLoggedIn: false,
+    hideForPaidUsers: true,
+    minWordCount: 0,
+  },
+  {
+    id: 'footer',
+    name: 'Footer',
+    description: 'Below article content',
+    adUnitId: '',
+    enabled: false,
+    hideForLoggedIn: false,
+    hideForPaidUsers: false,
+    minWordCount: 0,
+  },
+  {
+    id: 'between-posts',
+    name: 'Between Posts',
+    description: 'Between related posts',
+    adUnitId: '',
+    enabled: false,
+    hideForLoggedIn: false,
+    hideForPaidUsers: true,
+    minWordCount: 0,
+  },
+  {
+    id: 'above-comments',
+    name: 'Above Comments',
+    description: 'Above discussions area',
+    adUnitId: '',
+    enabled: false,
+    hideForLoggedIn: false,
+    hideForPaidUsers: true,
+    minWordCount: 0,
+  },
+];
 
 /**
  * Normalizes title into URL-friendly slug

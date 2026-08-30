@@ -70,6 +70,9 @@ import { AuditReportsPage } from '../admin/content/AuditReportsPage';
 import { BlogPostsListPage } from '../admin/blog/BlogPostsListPage';
 import { BlogPostEditor } from '../admin/blog/BlogPostEditor';
 import { BlogAuthorsPage } from '../admin/blog/BlogAuthorsPage';
+import { BlogBulkImportPage } from '../admin/blog/BlogBulkImportPage';
+import { BlogAdSettingsPage } from '../admin/blog/BlogAdSettingsPage';
+import { BlogAnalyticsPage } from '../admin/blog/BlogAnalyticsPage';
 import { GeoTestView } from '../geo/GeoTestView';
 import { NewBookModal } from '../modals/NewBookModal';
 import { AuthPages } from '../auth/AuthPages';
@@ -601,6 +604,21 @@ export const AppShell: React.FC = () => {
             )}
             {currentRoute === 'admin-blog-authors' && (
               <BlogAuthorsPage onNavigate={handleNavigate} />
+            )}
+            {currentRoute === 'admin-blog-import' && (
+              <BlogBulkImportPage onNavigate={handleNavigate} />
+            )}
+            {currentRoute === 'admin-blog-ads' && (
+              <BlogAdSettingsPage onNavigate={handleNavigate} />
+            )}
+            {currentRoute === 'admin-blog-analytics' && (
+              <BlogAnalyticsPage
+                onNavigate={handleNavigate}
+                onEditPost={(id) => {
+                  setSelectedBlogId(id);
+                  handleNavigate('admin-blog-edit', { id });
+                }}
+              />
             )}
           </AdminLayout>
         </AdminGuard>

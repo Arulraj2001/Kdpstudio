@@ -10,7 +10,7 @@ import {
   BlogStatus,
   BlogSchemaType,
 } from '../types/blog';
-import { generateSlug } from './blogService';
+import { generateSlug } from './blogUtils';
 
 const VALID_STATUSES: BlogStatus[] = ['draft', 'review', 'published', 'archived'];
 const VALID_SCHEMA_TYPES: BlogSchemaType[] = [
