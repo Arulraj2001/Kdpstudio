@@ -396,6 +396,80 @@ ${posts.map((p) => {
     }
   });
 
+  // Internal Linking & Graph API
+  app.get('/api/admin/blog/internal-links', async (req, res) => {
+    try {
+      const { getAdminDb } = await import('./src/lib/firebase-admin');
+      const { buildInternalLinkGraph } = await import('./src/lib/internalLinkService');
+      const adminDb = getAdminDb();
+      if (!adminDb) return res.json({ success: true, nodes: [], orphanCount: 0, wellLinkedCount: 0, totalPosts: 0 });
+
+      const snap = await adminDb.collection('blogPosts').where('status', '==', 'published').get();
+      const posts = snap.docs.map((doc) => {
+        const d = doc.data();
+        return {
+          id: doc.id,
+          slug: d.slug || doc.id,
+          title: d.title || 'Untitled',
+          excerpt: d.excerpt || d.metaDescription || '',
+          category: d.category || 'Publishing Strategy',
+          tags: Array.isArray(d.tags) ? d.tags : [],
+          focusKeyword: d.focusKeyword || '',
+          secondaryKeywords: Array.isArray(d.secondaryKeywords) ? d.secondaryKeywords : [],
+          wordCount: d.wordCount || 0,
+          publishedAt: d.publishedAt?.toDate ? d.publishedAt.toDate() : new Date(d.publishedAt || Date.now()),
+          content: d.content || '',
+        };
+      });
+
+      const mode = req.query.mode;
+      if (mode === 'graph') {
+        const graph = buildInternalLinkGraph(posts);
+        return res.json({ success: true, ...graph });
+      }
+
+      return res.json({ success: true, posts });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Internal link graph failed' });
+    }
+  });
+
+  app.post('/api/admin/blog/internal-links', async (req, res) => {
+    try {
+      const { getAdminDb } = await import('./src/lib/firebase-admin');
+      const { findInternalLinkOpportunities, analyzePostLinks } = await import('./src/lib/internalLinkService');
+      const adminDb = getAdminDb();
+      let posts: any[] = [];
+      if (adminDb) {
+        const snap = await adminDb.collection('blogPosts').where('status', '==', 'published').get();
+        posts = snap.docs.map((doc) => {
+          const d = doc.data();
+          return {
+            id: doc.id,
+            slug: d.slug || doc.id,
+            title: d.title || 'Untitled',
+            excerpt: d.excerpt || '',
+            category: d.category || '',
+            tags: d.tags || [],
+            focusKeyword: d.focusKeyword || '',
+            secondaryKeywords: d.secondaryKeywords || [],
+            wordCount: d.wordCount || 0,
+            publishedAt: d.publishedAt?.toDate ? d.publishedAt.toDate() : new Date(d.publishedAt || Date.now()),
+            content: d.content || '',
+          };
+        });
+      }
+
+      const body = req.body || {};
+      const opportunities = findInternalLinkOpportunities(body, posts);
+      const analysis = analyzePostLinks(body.content || '', posts);
+
+      return res.json({ success: true, suggestions: opportunities, analysis });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Failed to analyze internal links' });
+    }
+  });
+
   // Newsletter Email Signup
   app.post('/api/newsletter/subscribe', async (req, res) => {
     try {

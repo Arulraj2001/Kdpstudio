@@ -35,6 +35,7 @@ import { calculateSeoScore, SeoScoreResult } from '../../../lib/seoScorer';
 import { generateSlug } from '../../../lib/blogUtils';
 import { AiDraftGenerator } from './AiDraftGenerator';
 import { executeAiEditorAction } from '../../../lib/aiBlogGenerator';
+import { InternalLinksPanel } from './InternalLinksPanel';
 
 interface BlogPostEditorProps {
   postId?: string; // If provided -> edit mode, if undefined -> create mode
@@ -48,7 +49,7 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
   const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false);
   const [isAiDraft, setIsAiDraft] = useState<boolean>(false);
   const [inlineAiLoading, setInlineAiLoading] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'seo' | 'social' | 'schema' | 'eeat' | 'settings'>('seo');
+  const [activeTab, setActiveTab] = useState<'seo' | 'social' | 'schema' | 'eeat' | 'links' | 'settings'>('seo');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Unsaved LocalStorage restore prompt
@@ -565,6 +566,24 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
     }
   };
 
+  const handleInsertInternalLink = (slug: string, anchorText: string, mode: 'wrap' | 'append') => {
+    const linkHtml = `<a href="/blog/${slug}">${anchorText}</a>`;
+    if (mode === 'append') {
+      setContent((c) => c + `\n<p><strong>Related Guide:</strong> ${linkHtml}</p>`);
+      showToast(`🔗 Appended link to /blog/${slug}`);
+    } else {
+      const regex = new RegExp(`(${anchorText.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'i');
+      if (regex.test(content)) {
+        const newContent = content.replace(regex, linkHtml);
+        setContent(newContent);
+        showToast(`🔗 Linked "${anchorText}" to /blog/${slug}`);
+      } else {
+        setContent((c) => c + `\n<p><strong>Related:</strong> ${linkHtml}</p>`);
+        showToast(`ℹ️ Anchor text not found directly. Appended link to /blog/${slug}`);
+      }
+    }
+  };
+
   const handleTriggerPublish = () => {
     if (seoResult.score < 40) {
       setShowLowSeoModal(true);
@@ -1011,12 +1030,13 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
           
           {/* Tab Navigation Header */}
           <div className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-2xs">
-            <div className="grid grid-cols-5 border-b border-slate-200/80 text-center text-xs font-bold">
+            <div className="grid grid-cols-6 border-b border-slate-200/80 text-center text-xs font-bold">
               {[
                 { id: 'seo', label: 'SEO', badge: seoResult.score },
                 { id: 'social', label: 'Social' },
                 { id: 'schema', label: 'Schema' },
                 { id: 'eeat', label: 'EEAT' },
+                { id: 'links', label: 'Links' },
                 { id: 'settings', label: 'Settings' },
               ].map((tab) => (
                 <button
@@ -1409,7 +1429,18 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
                 </div>
               )}
 
-              {/* ── TAB 5: SETTINGS & ADS ── */}
+              {/* ── TAB 5: INTERNAL LINKS ── */}
+              {activeTab === 'links' && (
+                <div className="space-y-4 animate-in fade-in duration-150">
+                  <InternalLinksPanel
+                    currentPost={{ id: postId, slug, title, category, tags, focusKeyword }}
+                    editorContent={content}
+                    onInsertLink={handleInsertInternalLink}
+                  />
+                </div>
+              )}
+
+              {/* ── TAB 6: SETTINGS & ADS ── */}
               {activeTab === 'settings' && (
                 <div className="space-y-4 animate-in fade-in duration-150">
                   {/* Category */}

@@ -36,6 +36,10 @@ export const BlogSeoToolsPage: React.FC<BlogSeoToolsPageProps> = ({ onNavigate }
   const [publishedCount, setPublishedCount] = useState<number>(0);
   const [recentCount, setRecentCount] = useState<number>(0);
 
+  // Link Graph & Orphan Post State
+  const [linkGraph, setLinkGraph] = useState<any | null>(null);
+  const [loadingGraph, setLoadingGraph] = useState<boolean>(false);
+
   const baseUrl = typeof window !== 'undefined'
     ? window.location.origin
     : (process.env.NEXT_PUBLIC_APP_URL || 'https://kdpstudio-aio.web.app');
@@ -324,7 +328,153 @@ export const BlogSeoToolsPage: React.FC<BlogSeoToolsPageProps> = ({ onNavigate }
         </div>
       </div>
 
-      {/* ── Section 3: Crawl Status & Search Console Guidance ── */}
+      {/* ── Section 3: Internal Link Health & Orphan Post Detector ── */}
+      <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-2xs space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <span>🔗</span>
+              <span>Internal Link Health & Orphan Post Detector</span>
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Identify orphan posts with 0 inbound links and optimize topical clusters across your blog
+            </p>
+          </div>
+
+          <button
+            onClick={() => {
+              setLoadingGraph(true);
+              fetch('/api/admin/blog/internal-links?mode=graph')
+                .then((res) => res.json())
+                .then((data) => {
+                  if (data?.nodes) {
+                    setLinkGraph(data);
+                    showToast('✅ Link graph scan complete');
+                  }
+                })
+                .catch(() => showToast('❌ Failed to scan internal link graph'))
+                .finally(() => setLoadingGraph(false));
+            }}
+            disabled={loadingGraph}
+            className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50 self-start sm:self-auto"
+          >
+            <RefreshCw size={13} className={loadingGraph ? 'animate-spin' : ''} />
+            <span>{loadingGraph ? 'Scanning Link Graph...' : 'Scan Internal Links'}</span>
+          </button>
+        </div>
+
+        {linkGraph && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 space-y-1">
+                <div className="text-2xl font-black">{linkGraph.orphanCount}</div>
+                <div className="text-xs font-bold uppercase tracking-wider text-rose-700">Orphan Articles</div>
+                <p className="text-[11px] text-rose-600/80">0 internal links pointing to these posts</p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-1">
+                <div className="text-2xl font-black">{linkGraph.wellLinkedCount}</div>
+                <div className="text-xs font-bold uppercase tracking-wider text-emerald-700">Well-Linked Articles</div>
+                <p className="text-[11px] text-emerald-600/80">3+ internal links pointing to them</p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 space-y-1">
+                <div className="text-2xl font-black">{linkGraph.totalPosts}</div>
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-700">Total Published Posts</div>
+                <p className="text-[11px] text-slate-500">Live indexed articles in link graph</p>
+              </div>
+            </div>
+
+            {/* Orphan Posts Resolution Matrix */}
+            {linkGraph.orphanCount > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-xs font-black uppercase tracking-wider text-rose-800 flex items-center gap-1.5">
+                  <AlertCircle size={14} className="text-rose-600" />
+                  <span>Orphan Posts Requiring Inbound Links ({linkGraph.orphanCount})</span>
+                </h3>
+
+                <div className="space-y-2.5">
+                  {linkGraph.nodes
+                    .filter((n: any) => n.isOrphan)
+                    .map((node: any) => (
+                      <div
+                        key={node.slug}
+                        className="p-4 rounded-2xl bg-rose-50/40 border border-rose-200 space-y-2.5"
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div>
+                            <div className="font-extrabold text-xs text-slate-900">{node.title}</div>
+                            <div className="text-[11px] font-mono text-purple-700">/blog/{node.slug}</div>
+                          </div>
+                          <button
+                            onClick={() => onNavigate('admin-blog-edit', { id: node.id } as any)}
+                            className="px-3 py-1.5 rounded-xl bg-white border border-rose-300 text-rose-800 text-xs font-bold hover:bg-rose-100/50 cursor-pointer self-start sm:self-auto"
+                          >
+                            Edit Post & Open Links Tab
+                          </button>
+                        </div>
+
+                        {/* Suggested Linking Improvements */}
+                        {node.suggestedParentPosts && node.suggestedParentPosts.length > 0 && (
+                          <div className="p-3 rounded-xl bg-white border border-rose-100 space-y-1.5 text-xs">
+                            <span className="text-[11px] font-bold text-slate-600">
+                              💡 Recommended: Add links to "{node.title}" inside these published articles:
+                            </span>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                              {node.suggestedParentPosts.map((parent: any) => (
+                                <div
+                                  key={parent.slug}
+                                  className="p-2 rounded-lg bg-slate-50 border border-slate-200 flex flex-col justify-between gap-1"
+                                >
+                                  <div className="font-bold text-[11px] text-slate-800 line-clamp-1">
+                                    {parent.title}
+                                  </div>
+                                  <div className="text-[10px] text-purple-700 font-mono">
+                                    /blog/{parent.slug}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {/* Most Linked Destination Articles */}
+            <div className="space-y-2 pt-2 border-t border-slate-100">
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                Most Linked Destination Articles (Top Inbound Authority)
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {linkGraph.nodes
+                  .slice()
+                  .sort((a: any, b: any) => b.inboundCount - a.inboundCount)
+                  .slice(0, 6)
+                  .map((node: any) => (
+                    <div
+                      key={node.slug}
+                      className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 text-xs"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-bold text-slate-900 truncate">{node.title}</div>
+                        <div className="text-[10px] font-mono text-purple-700 truncate">/blog/{node.slug}</div>
+                      </div>
+                      <span className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 font-extrabold text-slate-800 text-xs shrink-0">
+                        {node.inboundCount} links
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Section 4: Crawl Status & Search Console Guidance ── */}
       <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-purple-900 via-indigo-900 to-slate-900 text-white shadow-xl space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
