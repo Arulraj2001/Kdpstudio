@@ -24,6 +24,7 @@ import {
   X,
   ShieldCheck,
   Search,
+  Mail,
 } from 'lucide-react';
 
 interface NavItem {
@@ -190,6 +191,7 @@ export function AdminLayout({
         { id: 'admin-blog-ads', label: 'Ad Settings', href: '/admin/blog/ads', icon: TrendingUp },
         { id: 'admin-blog-analytics', label: 'Post Analytics', href: '/admin/blog/analytics', icon: Activity },
         { id: 'admin-blog-seo', label: 'SEO & Sitemaps', href: '/admin/blog/seo', icon: Search },
+        { id: 'admin-blog-newsletter', label: 'Newsletter', href: '/admin/blog/newsletter', icon: Mail },
       ],
     },
     {

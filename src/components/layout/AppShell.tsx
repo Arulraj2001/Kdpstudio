@@ -74,6 +74,7 @@ import { BlogBulkImportPage } from '../admin/blog/BlogBulkImportPage';
 import { BlogAdSettingsPage } from '../admin/blog/BlogAdSettingsPage';
 import { BlogAnalyticsPage } from '../admin/blog/BlogAnalyticsPage';
 import { BlogSeoToolsPage } from '../admin/blog/BlogSeoToolsPage';
+import { BlogNewsletterPage } from '../admin/blog/BlogNewsletterPage';
 import { GeoTestView } from '../geo/GeoTestView';
 import { NewBookModal } from '../modals/NewBookModal';
 import { AuthPages } from '../auth/AuthPages';
@@ -623,6 +624,9 @@ export const AppShell: React.FC = () => {
             )}
             {currentRoute === 'admin-blog-seo' && (
               <BlogSeoToolsPage onNavigate={handleNavigate} />
+            )}
+            {currentRoute === 'admin-blog-newsletter' && (
+              <BlogNewsletterPage onNavigate={handleNavigate} />
             )}
           </AdminLayout>
         </AdminGuard>

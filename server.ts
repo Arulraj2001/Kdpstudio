@@ -470,28 +470,195 @@ ${posts.map((p) => {
     }
   });
 
-  // Newsletter Email Signup
+  // Blog Share Tracking API
+  app.post('/api/blog/share', async (req, res) => {
+    try {
+      const { postId, platform } = req.body || {};
+      if (!postId) return res.status(400).json({ error: 'Post ID is required' });
+      const { getAdminDb } = await import('./src/lib/firebase-admin');
+      const adminDb = getAdminDb();
+      if (adminDb) {
+        const { FieldValue } = await import('firebase-admin/firestore');
+        const postRef = adminDb.collection('blogPosts').doc(postId);
+        const postDoc = await postRef.get();
+        if (postDoc.exists) {
+          await postRef.update({ shareCount: FieldValue.increment(1) });
+        }
+        await adminDb.collection('shareEvents').add({
+          postId,
+          platform: platform || 'unknown',
+          timestamp: new Date(),
+        });
+      }
+      return res.json({ success: true });
+    } catch (err: any) {
+      return res.json({ success: true });
+    }
+  });
+
+  // Newsletter Double Opt-In Subscribe
   app.post('/api/newsletter/subscribe', async (req, res) => {
     try {
-      const { email, source } = req.body;
-      if (!email) {
-        return res.status(400).json({ error: 'Email is required' });
-      }
-
-      try {
-        const { adminDb } = await import('./src/lib/firebase-admin');
-        await adminDb.collection('emailSignups').add({
-          email,
-          source: source || 'blog',
-          createdAt: new Date().toISOString(),
-        });
-      } catch (dbErr) {
-        console.warn('Firestore email signup fallback:', dbErr);
-      }
-
-      return res.json({ status: 'subscribed', email });
+      const { subscribeToNewsletter } = await import('./src/lib/newsletterService');
+      const { email, name, source, tags } = req.body || {};
+      if (!email) return res.status(400).json({ error: 'Email is required' });
+      const result = await subscribeToNewsletter(email, name || null, source || 'blog-footer', tags || []);
+      return res.json({ success: true, ...result });
     } catch (err: any) {
-      return res.json({ status: 'subscribed', email: req.body.email });
+      return res.status(400).json({ error: err.message || 'Subscription failed' });
+    }
+  });
+
+  // Newsletter Confirm (Double Opt-In Link)
+  app.get('/api/newsletter/confirm', async (req, res) => {
+    const token = (req.query.token as string) || '';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://kdpstudio-aio.web.app';
+    if (!token) return res.redirect(`${baseUrl}/blog?error=invalid_token`);
+    try {
+      const { confirmSubscription } = await import('./src/lib/newsletterService');
+      const result = await confirmSubscription(token);
+      if (result === 'confirmed' || result === 'already_confirmed') {
+        return res.redirect(`${baseUrl}/blog?subscribed=true`);
+      } else if (result === 'expired') {
+        return res.redirect(`${baseUrl}/blog?error=token_expired`);
+      } else {
+        return res.redirect(`${baseUrl}/blog?error=subscription_not_found`);
+      }
+    } catch {
+      return res.redirect(`${baseUrl}/blog?error=server_error`);
+    }
+  });
+
+  // Newsletter 1-Click Unsubscribe
+  app.get('/api/newsletter/unsubscribe', async (req, res) => {
+    const email = (req.query.email as string) || '';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://kdpstudio-aio.web.app';
+    if (!email) return res.redirect(`${baseUrl}/blog?unsubscribed=false`);
+    try {
+      const { unsubscribe } = await import('./src/lib/newsletterService');
+      await unsubscribe(email);
+      return res.redirect(`${baseUrl}/blog?unsubscribed=true`);
+    } catch {
+      return res.redirect(`${baseUrl}/blog?unsubscribed=true`);
+    }
+  });
+
+  // Admin Newsletter Subscribers
+  app.get('/api/admin/blog/newsletter/subscribers', async (req, res) => {
+    try {
+      const { getAdminDb } = await import('./src/lib/firebase-admin');
+      const adminDb = getAdminDb();
+      if (!adminDb) return res.json({ subscribers: [] });
+      const snap = await adminDb.collection('newsletterSubscribers').orderBy('subscribedAt', 'desc').limit(500).get();
+      const subscribers = snap.docs.map((doc) => {
+        const d = doc.data();
+        return {
+          id: doc.id,
+          email: d.email,
+          name: d.name || null,
+          status: d.status || 'pending',
+          source: d.source || 'unknown',
+          tags: Array.isArray(d.tags) ? d.tags : [],
+          subscribedAt: d.subscribedAt?.toDate ? d.subscribedAt.toDate() : new Date(d.subscribedAt || 0),
+          confirmedAt: d.confirmedAt?.toDate ? d.confirmedAt.toDate() : null,
+        };
+      });
+      return res.json({ success: true, subscribers });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.patch('/api/admin/blog/newsletter/subscribers', async (req, res) => {
+    try {
+      const { email, action } = req.body || {};
+      const { getAdminDb } = await import('./src/lib/firebase-admin');
+      const adminDb = getAdminDb();
+      if (!adminDb || !email) return res.status(400).json({ error: 'Invalid parameters' });
+      const snap = await adminDb.collection('newsletterSubscribers').where('email', '==', email.toLowerCase()).get();
+      const batch = adminDb.batch();
+      snap.docs.forEach((d) => {
+        if (action === 'unsubscribe') {
+          batch.update(d.ref, { status: 'unsubscribed', unsubscribedAt: new Date() });
+        }
+      });
+      await batch.commit();
+      return res.json({ success: true });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.delete('/api/admin/blog/newsletter/subscribers', async (req, res) => {
+    try {
+      const { id, email } = req.body || {};
+      const { getAdminDb } = await import('./src/lib/firebase-admin');
+      const adminDb = getAdminDb();
+      if (!adminDb) return res.status(500).json({ error: 'No database' });
+      if (id) {
+        await adminDb.collection('newsletterSubscribers').doc(id).delete();
+      } else if (email) {
+        const snap = await adminDb.collection('newsletterSubscribers').where('email', '==', email.toLowerCase()).get();
+        const batch = adminDb.batch();
+        snap.docs.forEach((d) => batch.delete(d.ref));
+        await batch.commit();
+      }
+      return res.json({ success: true });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Admin Newsletter Config & Campaign Send
+  app.get('/api/admin/blog/newsletter/config', async (req, res) => {
+    try {
+      const { getNewsletterConfig } = await import('./src/lib/newsletterService');
+      const config = await getNewsletterConfig();
+      return res.json({ success: true, config });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/admin/blog/newsletter/config', async (req, res) => {
+    try {
+      const { saveNewsletterConfig } = await import('./src/lib/newsletterService');
+      await saveNewsletterConfig(req.body || {});
+      return res.json({ success: true });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/admin/blog/newsletter/send', async (req, res) => {
+    try {
+      const { sendNewsletterForPost } = await import('./src/lib/newsletterService');
+      const { postId, target, testEmail } = req.body || {};
+      if (!postId) return res.status(400).json({ error: 'Post ID is required' });
+
+      if (target === 'admin-test') {
+        const { getAdminDb } = await import('./src/lib/firebase-admin');
+        const { resend, EMAIL_FROM, APP_URL } = await import('./src/lib/resend');
+        const adminDb = getAdminDb();
+        const postDoc = await adminDb?.collection('blogPosts').doc(postId).get();
+        if (!postDoc || !postDoc.exists) return res.status(404).json({ error: 'Post not found' });
+        const post = postDoc.data() as any;
+        const recipient = testEmail || process.env.ADMIN_EMAIL || 'admin@kdpstudio.com';
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || APP_URL || 'https://kdpstudio-aio.web.app';
+
+        await resend.emails.send({
+          from: EMAIL_FROM,
+          to: recipient,
+          subject: `[TEST NEWSLETTER] ${post.title}`,
+          html: `<div style="font-family: sans-serif; padding: 20px;"><div style="color: #7c3aed; font-weight: bold;">${post.category || 'Publishing'}</div><h2>${post.title}</h2><p>${post.excerpt || ''}</p><a href="${baseUrl}/blog/${post.slug || postId}">Read Full Post →</a></div>`,
+        });
+        return res.json({ success: true, sentCount: 1 });
+      }
+
+      const sentCount = await sendNewsletterForPost(postId);
+      return res.json({ success: true, sentCount });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
     }
   });
 

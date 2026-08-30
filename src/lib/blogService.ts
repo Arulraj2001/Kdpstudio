@@ -295,9 +295,22 @@ export async function createBlogPost(
     }
   }
 
-  // Trigger ISR Revalidation if published
+  // Trigger ISR Revalidation & Auto-send Newsletter if published
   if (isPublished) {
     revalidateBlogPost(slug).catch(console.error);
+    import('./newsletterService')
+      .then(({ getNewsletterConfig, sendNewsletterForPost }) => {
+        getNewsletterConfig()
+          .then((cfg) => {
+            if (cfg.autoSendOnPublish) {
+              sendNewsletterForPost(postId).catch((err) =>
+                console.warn('[Newsletter AutoSend]', err)
+              );
+            }
+          })
+          .catch(() => {});
+      })
+      .catch(() => {});
   }
 
   return postId;
@@ -350,9 +363,25 @@ export async function updateBlogPost(
     });
   }
 
-  // Revalidate ISR
+  // Revalidate ISR & Auto-send Newsletter if published
   if (data.slug || updateData.slug) {
     revalidateBlogPost(data.slug || updateData.slug).catch(console.error);
+  }
+
+  if (data.status === 'published') {
+    import('./newsletterService')
+      .then(({ getNewsletterConfig, sendNewsletterForPost }) => {
+        getNewsletterConfig()
+          .then((cfg) => {
+            if (cfg.autoSendOnPublish) {
+              sendNewsletterForPost(id).catch((err) =>
+                console.warn('[Newsletter AutoSend]', err)
+              );
+            }
+          })
+          .catch(() => {});
+      })
+      .catch(() => {});
   }
 }
 

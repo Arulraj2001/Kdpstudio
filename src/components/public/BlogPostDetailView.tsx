@@ -31,6 +31,8 @@ import { BlogPost, BlogAuthor, BlogTocItem, AdConfig } from '../../types/blog';
 import { SEOHead } from '../seo/SEOHead';
 import { JsonLd } from '../seo/JsonLd';
 import { AdSlot } from '../blog/AdSlot';
+import { SocialShare } from '../blog/SocialShare';
+import { SubscribeInline } from '../blog/SubscribeInline';
 import { injectAdMarkers } from '../../lib/injectAds';
 import { generateTableOfContents, countWords, calculateReadingTime } from '../../lib/blogUtils';
 import { getBlogPost, getAllBlogPosts } from '../../lib/blog';
@@ -54,6 +56,7 @@ export const BlogPostDetailView: React.FC<BlogPostDetailViewProps> = ({
   const [activeTocId, setActiveTocId] = useState<string>('');
   const [isTocOpen, setIsTocOpen] = useState<boolean>(true);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [showExitPopup, setShowExitPopup] = useState<boolean>(false);
 
   const isPreview = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('preview') === 'true';
 
@@ -133,6 +136,35 @@ export const BlogPostDetailView: React.FC<BlogPostDetailViewProps> = ({
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // ── Exit-Intent Popup Detection (Desktop Only, 30s Dwell) ──
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.innerWidth < 1024) return;
+    const isSubscribed = localStorage.getItem('kdp_newsletter_subscribed');
+    const dismissedAt = localStorage.getItem('kdp_exit_popup_dismissed');
+    const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+
+    if (isSubscribed || (dismissedAt && Date.now() - Number(dismissedAt) < sevenDaysMs)) {
+      return;
+    }
+
+    let isEligible = false;
+    const timer = setTimeout(() => {
+      isEligible = true;
+    }, 30000); // 30s dwell time
+
+    const handleMouseLeave = (e: MouseEvent) => {
+      if (isEligible && e.clientY <= 5) {
+        setShowExitPopup(true);
+      }
+    };
+
+    document.addEventListener('mouseleave', handleMouseLeave);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('mouseleave', handleMouseLeave);
+    };
   }, []);
 
   // ── Extract Table of Contents items ──
@@ -623,6 +655,15 @@ export const BlogPostDetailView: React.FC<BlogPostDetailViewProps> = ({
               </div>
             )}
 
+            {/* ── Newsletter Subscribe Card ── */}
+            <div className="pt-4">
+              <SubscribeInline
+                source="blog-post"
+                tags={[postCategory, ...(post.tags || [])]}
+                variant="card"
+              />
+            </div>
+
             {/* ── Related Posts Section ── */}
             {relatedPosts.length > 0 && (
               <div className="space-y-4 pt-8 border-t border-slate-200/80">
@@ -703,6 +744,17 @@ export const BlogPostDetailView: React.FC<BlogPostDetailViewProps> = ({
             {/* Sidebar Ad Slot */}
             <AdSlot positionId="sidebar" adConfig={adConfig} postWordCount={postWords} />
 
+            {/* Sidebar Newsletter Minimal Box */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 shadow-2xs space-y-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-purple-800">
+                📬 Free KDP Tips
+              </span>
+              <p className="text-xs text-slate-600">
+                Join our newsletter for weekly niche analysis and publishing tutorials.
+              </p>
+              <SubscribeInline source="sidebar" variant="minimal" />
+            </div>
+
             {/* Compact Author Summary */}
             <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-2">
               <div className="flex items-center gap-2.5">
@@ -745,6 +797,44 @@ export const BlogPostDetailView: React.FC<BlogPostDetailViewProps> = ({
           </aside>
         </div>
       </div>
+
+      {/* ── Sticky Left Sidebar on Desktop & Fixed Bottom Bar on Mobile ── */}
+      <div className="fixed left-6 top-1/2 -translate-y-1/2 z-30 hidden xl:block">
+        <SocialShare
+          postId={post?.id}
+          url={typeof window !== 'undefined' ? window.location.href : `https://kdpstudio-aio.web.app/blog/${post?.slug}`}
+          title={postTitle}
+          excerpt={postDesc}
+          tags={post?.tags || []}
+          initialShareCount={post?.shareCount || 0}
+        />
+      </div>
+
+      {/* Mobile Floating Share Bar */}
+      <div className="xl:hidden">
+        <SocialShare
+          postId={post?.id}
+          url={typeof window !== 'undefined' ? window.location.href : `https://kdpstudio-aio.web.app/blog/${post?.slug}`}
+          title={postTitle}
+          excerpt={postDesc}
+          tags={post?.tags || []}
+          initialShareCount={post?.shareCount || 0}
+        />
+      </div>
+
+      {/* ── Exit-Intent Popup (Desktop Only) ── */}
+      {showExitPopup && (
+        <SubscribeInline
+          source="blog-exit-popup"
+          variant="popup"
+          onClosePopup={() => {
+            setShowExitPopup(false);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('kdp_exit_popup_dismissed', String(Date.now()));
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

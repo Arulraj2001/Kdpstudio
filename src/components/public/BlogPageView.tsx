@@ -23,6 +23,7 @@ import { BlogPost, AdConfig } from '../../types/blog';
 import { SEOHead } from '../seo/SEOHead';
 import { JsonLd } from '../seo/JsonLd';
 import { AdSlot } from '../blog/AdSlot';
+import { SubscribeInline } from '../blog/SubscribeInline';
 import { getAllBlogPosts } from '../../lib/blog';
 
 interface BlogPageViewProps {
@@ -44,7 +45,21 @@ export const BlogPageView: React.FC<BlogPageViewProps> = ({
   const [email, setEmail] = useState<string>('');
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [urlToast, setUrlToast] = useState<string | null>(null);
   const postsPerPage = 6;
+
+  // Check URL query parameters for confirmation messages
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('subscribed') === 'true') {
+      setUrlToast("🎉 You're confirmed! Welcome to KDP Studio Strategy Academy.");
+      setTimeout(() => setUrlToast(null), 6000);
+    } else if (params.get('unsubscribed') === 'true') {
+      setUrlToast('You have been unsubscribed from blog updates.');
+      setTimeout(() => setUrlToast(null), 6000);
+    }
+  }, []);
 
   // Fetch live blog posts and ad configuration from Firestore
   useEffect(() => {
@@ -210,6 +225,14 @@ export const BlogPageView: React.FC<BlogPageViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* ── URL Confirmation Toast Banner ── */}
+      {urlToast && (
+        <div className="bg-emerald-600 text-white font-bold text-xs sm:text-sm py-3 px-4 text-center sticky top-0 z-40 shadow-lg flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top duration-200">
+          <CheckCircle2 size={16} />
+          <span>{urlToast}</span>
+        </div>
+      )}
 
       {/* ── Main Layout (70% Grid / 30% Sticky Sidebar) ── */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
@@ -464,41 +487,8 @@ export const BlogPageView: React.FC<BlogPageViewProps> = ({
             <AdSlot positionId="sidebar" adConfig={adConfig} postWordCount={800} />
 
             {/* Newsletter CTA Widget */}
-            <div className="p-6 rounded-3xl bg-gradient-to-br from-purple-900 via-indigo-900 to-slate-900 text-white shadow-xl space-y-3 relative overflow-hidden">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-purple-500/30 text-purple-200 border border-purple-400/30">
-                Weekly Intel
-              </span>
-              <h4 className="text-base font-black tracking-tight leading-snug">
-                Get Bestselling KDP Niches in Your Inbox
-              </h4>
-              <p className="text-xs text-purple-200/80 leading-relaxed">
-                Join 4,500+ indie publishers receiving our weekly keyword demand and royalty breakdowns.
-              </p>
-
-              {isSubscribed ? (
-                <div className="p-3 bg-emerald-500/20 border border-emerald-500/40 rounded-xl text-emerald-300 text-xs font-bold flex items-center gap-2">
-                  <CheckCircle2 size={16} />
-                  <span>You're subscribed! Check your inbox.</span>
-                </div>
-              ) : (
-                <form onSubmit={handleSubscribe} className="space-y-2 pt-1">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email address..."
-                    required
-                    className="w-full px-3 py-2 text-xs rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-slate-400 focus:bg-white focus:text-slate-900 outline-none font-medium"
-                  />
-                  <button
-                    type="submit"
-                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white font-bold text-xs shadow-md cursor-pointer transition-all active:scale-95 flex items-center justify-center gap-1.5"
-                  >
-                    <Send size={13} />
-                    <span>Subscribe Free</span>
-                  </button>
-                </form>
-              )}
+            <div className="pt-2">
+              <SubscribeInline source="blog-list" variant="card" />
             </div>
           </aside>
         </div>

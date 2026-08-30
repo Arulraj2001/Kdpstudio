@@ -22,7 +22,10 @@ export type EmailTemplate =
   | 'contact-form'
   | 'admin-new-signup'
   | 'admin-new-payment'
-  | 'admin-upi-pending';
+  | 'admin-upi-pending'
+  | 'newsletter-confirm'
+  | 'newsletter-welcome'
+  | 'new-post-notification';
 
 export interface BaseEmailData {
   to: string;
@@ -220,3 +223,28 @@ export interface EmailLogRecord {
   success: boolean;
   error?: string | null;
 }
+
+export interface NewsletterConfirmEmailData extends BaseEmailData {
+  confirmUrl: string;
+  sourcePage?: string;
+}
+
+export interface NewsletterWelcomeEmailData extends BaseEmailData {
+  recentPostTitle?: string;
+  recentPostUrl?: string;
+  unsubscribeUrl?: string;
+}
+
+export interface NewPostNotificationEmailData {
+  to: string;
+  recipientName?: string | null;
+  postTitle: string;
+  postUrl: string;
+  postExcerpt: string;
+  postCategory: string;
+  authorName: string;
+  readingTime: number;
+  featuredImageUrl?: string | null;
+  unsubscribeUrl: string;
+}
+

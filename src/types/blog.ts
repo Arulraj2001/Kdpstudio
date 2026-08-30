@@ -285,3 +285,27 @@ export interface BlogGenerationResult {
   wordCount: number;
   seoScore: number;
 }
+
+// ── Newsletter System Types ──
+
+export interface NewsletterSubscriber {
+  id: string;
+  email: string;
+  name: string | null;
+  subscribedAt: Date | string;
+  confirmedAt: Date | string | null;
+  status: 'pending' | 'confirmed' | 'unsubscribed';
+  source: 'blog-footer' | 'blog-post' | 'sidebar' | 'popup' | 'changelog' | string;
+  tags: string[];
+  unsubscribedAt: Date | string | null;
+  confirmToken: string;
+}
+
+export interface NewsletterConfig {
+  autoSendOnPublish: boolean;
+  senderName: string;
+  senderEmail: string;
+  replyToEmail?: string;
+  updatedAt?: string | Date;
+}
+
