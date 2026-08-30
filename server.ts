@@ -4976,15 +4976,26 @@ Return valid JSON with: readingLevel (grade, fleschScore, averageSentenceLength,
   // No caching so the public price pages always reflect the latest live override.
   app.get('/api/config/pricing', async (req, res) => {
     try {
-      const { getAdminDb } = await import('./src/lib/firebase-admin');
       const { computeDynamicPricingTable } = await import('./src/lib/geo');
 
+      // Only reach for the Admin SDK when the server has a real service-account
+      // key. With only a projectId (no private key) firebase-admin would try to
+      // auth via ADC and fail, causing a 502 for this public endpoint.
+      const hasAdminServiceAccount = Boolean(
+        process.env.FIREBASE_ADMIN_PROJECT_ID &&
+        process.env.FIREBASE_ADMIN_CLIENT_EMAIL &&
+        process.env.FIREBASE_ADMIN_PRIVATE_KEY
+      );
+
       let pricingData: any = null;
-      const db = getAdminDb();
-      if (db) {
-        const snap = await db.collection('appConfig').doc('pricing').get();
-        if (snap.exists) {
-          pricingData = snap.data();
+      if (hasAdminServiceAccount) {
+        const { getAdminDb } = await import('./src/lib/firebase-admin');
+        const db = getAdminDb();
+        if (db) {
+          const snap = await db.collection('appConfig').doc('pricing').get();
+          if (snap.exists) {
+            pricingData = snap.data();
+          }
         }
       }
 
