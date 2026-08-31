@@ -269,6 +269,148 @@
   border: 1px solid #e2e8f0;
 }
 
+/* Data Tables & Comparison Grids */
+.data-table-wrapper {
+  overflow-x: auto;
+  margin: 1.75rem 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.data-table th {
+  background: #f8fafc;
+  padding: 0.875rem 1.25rem;
+  font-weight: 700;
+  color: #334155;
+  border-bottom: 2px solid #e2e8f0;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.data-table td {
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tr:hover td {
+  background: #faf5ff;
+}
+
+/* Formula & Math Callouts */
+.formula-box {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-left: 4px solid #7c3aed;
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9375rem;
+  color: #1e293b;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* Pro-Tip & Key Takeaway Callout Boxes */
+.pro-tip-box {
+  background: #fdf4ff;
+  border: 1px solid #f5d0fe;
+  border-left: 4px solid #c026d3;
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  margin: 1.75rem 0;
+  color: #701a75;
+}
+
+.pro-tip-box strong {
+  color: #86198f;
+}
+
+.callout-info {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid #2563eb;
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  margin: 1.75rem 0;
+  color: #1e3a8a;
+}
+
+/* Step-by-Step Card Framework */
+.step-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.step-card:hover {
+  border-color: #9333ea;
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.08);
+}
+
+.step-card-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background: #7c3aed;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.8125rem;
+  margin-right: 0.75rem;
+}
+
+/* Checklist Box */
+.checklist-box {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  margin: 1.75rem 0;
+  color: #14532d;
+}
+
+.checklist-box ul {
+  list-style: none !important;
+  padding-left: 0 !important;
+  margin: 0.5rem 0 !important;
+}
+
+.checklist-box li {
+  position: relative;
+  padding-left: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.checklist-box li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #16a34a;
+  font-weight: 800;
+}
+
 /* ==========================================================================
    Mobile PWA & Touch UX Optimizations (Phase 20B)
    ========================================================================== */
