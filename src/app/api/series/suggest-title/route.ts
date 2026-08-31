@@ -35,7 +35,7 @@ Return ONLY a JSON array of 3 strings. Example: ["The Silverwood Chronicles", "T
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       contents: prompt,
     });
     const text = response.text?.trim() || '';

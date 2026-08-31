@@ -1841,21 +1841,21 @@ export async function getSystemHealthReport(): Promise<SystemHealthReport> {
     const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
     if (apiKey) {
       services.push({
-        name: 'Google Gemini 2.5 AI',
+        name: 'Google Gemini 3.6 AI',
         status: 'operational',
         latencyMs: 320,
         lastChecked: now,
-        details: 'Model gemini-2.5-flash ready for chapter & metadata generation',
+        details: 'Model gemini-3.6-flash ready for chapter & metadata generation',
       });
     } else {
       services.push({
-        name: 'Google Gemini 2.5 AI',
+        name: 'Google Gemini 3.6 AI',
         status: 'degraded',
         details: 'API Key not detected in environment',
       });
     }
   } catch (err: any) {
-    services.push({ name: 'Google Gemini 2.5 AI', status: 'error', details: err.message });
+    services.push({ name: 'Google Gemini 3.6 AI', status: 'error', details: err.message });
   }
 
   // 4. Imagen 3 API Check

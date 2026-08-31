@@ -32,7 +32,7 @@ Return ONLY the description text without quotes or preamble.`;
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       contents: prompt,
     });
     const text = response.text?.trim() || '';

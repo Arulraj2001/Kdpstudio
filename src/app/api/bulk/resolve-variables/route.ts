@@ -31,7 +31,7 @@ export async function resolveVariablesHandler(
       if (ai) {
         try {
           const response = await ai.models.generateContent({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-3.6-flash',
             contents: `You are an expert publishing editor. Generate ${count} unique, distinct values for the book variable "${v.name}" (${v.label}).
 User Instructions: ${prompt}
 

@@ -1,7 +1,8 @@
 import { GoogleGenAI } from '@google/genai';
+import { generateImageWithFallback } from '../src/lib/imageGeneration';
 
 /**
- * Generates an image using Gemini / Imagen 3 or creates a fallback book illustration
+ * Generates an image using the unified fallback cascade (Imagen 3 -> Hugging Face -> Cloudflare -> SVG)
  */
 export async function generateCoverImageService(
   ai: GoogleGenAI,
@@ -10,46 +11,24 @@ export async function generateCoverImageService(
   style: string = 'Digital art',
   mood: string = 'Dramatic'
 ): Promise<{ imageBase64: string; mimeType: string }> {
-  // If API key is present, attempt Gemini/Imagen generation
-  if (process.env.GEMINI_API_KEY) {
-    try {
-      const fullPrompt = `Book cover illustration artwork: ${prompt}. Art style: ${style}. Atmospheric mood: ${mood}. Professional publishing quality, high detail, masterpiece composition, no text, clean artwork.`;
-
-      // Supported aspect ratios for image generation: '1:1', '3:4', '4:3', '9:16', '16:9'
-      let validAspect = '3:4';
-      if (aspectRatio === '1:1' || aspectRatio === 'square') validAspect = '1:1';
-      else if (aspectRatio === '16:9' || aspectRatio === 'landscape') validAspect = '16:9';
-      else if (aspectRatio === '9:16') validAspect = '9:16';
-      else if (aspectRatio === '4:3') validAspect = '4:3';
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.1-flash-lite-image',
-        contents: {
-          parts: [{ text: fullPrompt }],
-        },
-        config: {
-          imageConfig: {
-            aspectRatio: validAspect as any,
-          },
-        },
-      });
-
-      if (response.candidates && response.candidates[0]?.content?.parts) {
-        for (const part of response.candidates[0].content.parts) {
-          if (part.inlineData && part.inlineData.data) {
-            return {
-              imageBase64: part.inlineData.data,
-              mimeType: part.inlineData.mimeType || 'image/png',
-            };
-          }
-        }
+  try {
+    const fullPrompt = `Book cover illustration artwork: ${prompt}. Art style: ${style}. Atmospheric mood: ${mood}. Professional publishing quality, high detail, masterpiece composition, no text, clean artwork.`;
+    const result = await generateImageWithFallback(fullPrompt, aspectRatio);
+    
+    if (result.imageUrl && result.imageUrl.startsWith('data:image/')) {
+      const match = result.imageUrl.match(/^data:([^;]+);base64,(.+)$/);
+      if (match) {
+        return {
+          mimeType: match[1],
+          imageBase64: match[2],
+        };
       }
-    } catch (err: any) {
-      console.warn('Gemini image generation attempt fallback:', err.message);
     }
+  } catch (err: any) {
+    console.warn('[CoverService] Image generation fallback triggered:', err.message);
   }
 
-  // Fallback: Generate an SVG rasterized/encoded artistic backdrop matching the prompt/style/mood
+  // Fallback: Generate an SVG rasterized/encoded artistic backdrop
   return generateFallbackCoverArt(prompt, style, mood, aspectRatio);
 }
 
@@ -81,7 +60,7 @@ Return a valid JSON object with the following fields:
 }`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.7-flash',
+        model: 'gemini-3.6-flash',
         contents: prompt,
         config: {
           responseMimeType: 'application/json',

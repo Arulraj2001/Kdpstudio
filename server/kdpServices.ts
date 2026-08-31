@@ -44,7 +44,7 @@ KDP Description Guidelines:
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3.7-flash',
+      model: 'gemini-3.6-flash',
       contents: prompt,
       config: {
         systemInstruction: 'You are an expert Amazon Kindle Direct Publishing (KDP) marketing strategist and copywriter. Output valid, clean HTML accepted by Amazon KDP.',
@@ -120,7 +120,7 @@ Return a JSON array of 20 keywords following this exact schema:
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3.7-flash',
+      model: 'gemini-3.6-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -193,7 +193,7 @@ Provide 5 detailed category recommendations. Return a JSON array with schema:
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3.7-flash',
+      model: 'gemini-3.6-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -283,7 +283,7 @@ Format your output as a JSON object with:
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3.7-flash',
+      model: 'gemini-3.6-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -397,7 +397,7 @@ Return a JSON object with this schema:
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3.7-flash',
+      model: 'gemini-3.6-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',

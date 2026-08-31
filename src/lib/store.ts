@@ -401,7 +401,7 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   autoSaveIntervalSec: 15,
   bleedDefault: true,
   exportDpi: 300,
-  geminiModel: 'gemini-2.5-flash',
+  geminiModel: 'gemini-3.6-flash',
 };
 
 export interface SettingsStore {

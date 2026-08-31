@@ -359,7 +359,7 @@ CRITICAL: Return ONLY valid JSON array with ${count} results. No markdown syntax
     // Attempt 1: Call Gemini with Google Search tool enabled
     try {
       const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-3.6-flash',
         contents: prompt,
         config: {
           systemInstruction: SYSTEM_PROMPT,
@@ -372,7 +372,7 @@ CRITICAL: Return ONLY valid JSON array with ${count} results. No markdown syntax
       console.warn('Gemini search grounding call failed, falling back to standard inference:', groundingErr);
       // Fallback: standard call without tools
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.6-flash',
         contents: prompt,
         config: {
           systemInstruction: SYSTEM_PROMPT,

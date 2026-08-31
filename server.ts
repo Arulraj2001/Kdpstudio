@@ -2442,8 +2442,10 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       const { generateCoverImageService } = await import('./server/coverServices');
       const result = await generateCoverImageService(ai, prompt, aspectRatio, style, mood);
 
+      const dataUrl = `data:${result.mimeType};base64,${result.imageBase64}`;
       return res.json({
         success: true,
+        imageUrl: dataUrl,
         imageBase64: result.imageBase64,
         mimeType: result.mimeType,
       });
