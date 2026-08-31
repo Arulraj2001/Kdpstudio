@@ -1,6 +1,6 @@
-const CACHE_NAME = 'kdp-studio-v2';
-const STATIC_CACHE_NAME = 'kdp-static-v2';
-const FONT_CACHE_NAME = 'kdp-fonts-v2';
+const CACHE_NAME = 'kdp-studio-v3';
+const STATIC_CACHE_NAME = 'kdp-static-v3';
+const FONT_CACHE_NAME = 'kdp-fonts-v3';
 
 const STATIC_ASSETS = [
   '/',

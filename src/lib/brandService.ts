@@ -4,8 +4,7 @@
  * Phase 12A — KDP Studio
  */
 
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from './firebase';
 import { BrandKit, DEFAULT_BRAND_KIT } from '../types/brand';
 import { Book } from '../types';
@@ -109,62 +108,24 @@ function fileToDataUrl(file: File): Promise<string> {
 }
 
 /**
- * Uploads an Author Photo to Firebase Storage or local Data URL fallback
+ * Uploads an Author Photo directly to Firestore as an optimized Data URL
  */
 export async function uploadAuthorPhoto(uid: string, file: File): Promise<string> {
   if (!uid || !file) throw new Error('Missing user or file for photo upload');
 
-  // 1. Immediately create a fast Base64 Data URL for instant rendering & Firestore persistence
   const dataUrl = await fileToDataUrl(file);
   await saveBrandKit(uid, { authorPhotoUrl: dataUrl });
-
-  // 2. Best-effort Cloud Storage upload in background if Storage is provisioned
-  if (isFirebaseConfigured) {
-    try {
-      const storage = getStorage();
-      const ext = file.name.split('.').pop() || 'jpg';
-      const fileRef = ref(storage, `brand-assets/${uid}/author-photo.${ext}`);
-      uploadBytes(fileRef, file)
-        .then(() => getDownloadURL(fileRef))
-        .then((downloadUrl) => saveBrandKit(uid, { authorPhotoUrl: downloadUrl }))
-        .catch(() => {
-          // Cloud Storage not yet provisioned in Firebase Console — base64 dataUrl is safely used
-        });
-    } catch {
-      // silent
-    }
-  }
-
   return dataUrl;
 }
 
 /**
- * Uploads an Author / Publisher Logo
+ * Uploads an Author / Publisher Logo directly to Firestore as an optimized Data URL
  */
 export async function uploadLogo(uid: string, file: File): Promise<string> {
   if (!uid || !file) throw new Error('Missing user or file for logo upload');
 
-  // 1. Immediately create a fast Base64 Data URL for instant rendering & Firestore persistence
   const dataUrl = await fileToDataUrl(file);
   await saveBrandKit(uid, { logoUrl: dataUrl });
-
-  // 2. Best-effort Cloud Storage upload in background if Storage is provisioned
-  if (isFirebaseConfigured) {
-    try {
-      const storage = getStorage();
-      const ext = file.name.split('.').pop() || 'png';
-      const fileRef = ref(storage, `brand-assets/${uid}/logo.${ext}`);
-      uploadBytes(fileRef, file)
-        .then(() => getDownloadURL(fileRef))
-        .then((downloadUrl) => saveBrandKit(uid, { logoUrl: downloadUrl }))
-        .catch(() => {
-          // Cloud Storage not yet provisioned in Firebase Console — base64 dataUrl is safely used
-        });
-    } catch {
-      // silent
-    }
-  }
-
   return dataUrl;
 }
 
