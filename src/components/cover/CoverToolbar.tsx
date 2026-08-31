@@ -27,6 +27,8 @@ interface CoverToolbarProps {
   onTriggerImageUpload: () => void;
   onOpenAiDrawer: () => void;
   onOpenTemplatesDrawer: () => void;
+  onOpenTextDrawer: () => void;
+  onOpenShapesDrawer: () => void;
   onOpenElementsDrawer: () => void;
   onOpenBackgroundDrawer: () => void;
   onOpen3DMockupModal: () => void;
@@ -43,6 +45,8 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
   onTriggerImageUpload,
   onOpenAiDrawer,
   onOpenTemplatesDrawer,
+  onOpenTextDrawer,
+  onOpenShapesDrawer,
   onOpenElementsDrawer,
   onOpenBackgroundDrawer,
   onOpen3DMockupModal,
@@ -50,9 +54,6 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
   onApplyBrandKit,
   onOpenSetupModal,
 }) => {
-  const [textMenuOpen, setTextMenuOpen] = React.useState(false);
-  const [shapeMenuOpen, setShapeMenuOpen] = React.useState(false);
-
   return (
     <aside
       id="cover-left-toolbar"
@@ -64,8 +65,6 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
         id="tool-btn-select"
         onClick={() => {
           setActiveTool('select');
-          setTextMenuOpen(false);
-          setShapeMenuOpen(false);
         }}
         title="Select & Move Objects (V)"
         className={`w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
@@ -78,14 +77,12 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
         <span className="text-[10px] font-semibold">Select</span>
       </button>
 
-      {/* 2. Genre Templates */}
+      {/* 2. Genre Templates / Presets */}
       <button
         type="button"
         id="tool-btn-templates-drawer"
         onClick={() => {
           onOpenTemplatesDrawer();
-          setTextMenuOpen(false);
-          setShapeMenuOpen(false);
         }}
         title="Browse 1-Click KDP Genre Cover Presets"
         className="w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:bg-purple-50 hover:text-purple-700 transition-all cursor-pointer"
@@ -94,97 +91,40 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
         <span className="text-[10px] font-semibold text-center leading-tight">Presets</span>
       </button>
 
-      {/* 3. Text Tool with Submenu */}
-      <div className="relative">
-        <button
-          type="button"
-          id="tool-btn-text"
-          onClick={() => {
-            setActiveTool('text');
-            setTextMenuOpen(!textMenuOpen);
-            setShapeMenuOpen(false);
-          }}
-          title="Add Text Elements (T)"
-          className={`w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
-            activeTool === 'text'
-              ? 'bg-purple-600 text-white shadow-md shadow-purple-600/25 font-bold'
-              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-          }`}
-        >
-          <Type className="w-4 h-4" />
-          <span className="text-[10px] font-semibold">Text</span>
-        </button>
+      {/* 3. Text Presets Drawer */}
+      <button
+        type="button"
+        id="tool-btn-text"
+        onClick={() => {
+          onOpenTextDrawer();
+        }}
+        title="Typography & Text Presets (Titles, Subtitles, Author, Spine)"
+        className="w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:bg-purple-50 hover:text-purple-700 transition-all cursor-pointer"
+      >
+        <Type className="w-4 h-4 text-purple-600" />
+        <span className="text-[10px] font-semibold">Text</span>
+      </button>
 
-        {textMenuOpen && (
-          <div className="absolute left-16 top-0 ml-2 w-52 bg-white rounded-2xl border border-slate-200 shadow-xl p-2 z-50 space-y-1 animate-in fade-in zoom-in-95">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 py-1">Add Typography</div>
-            <button
-              type="button"
-              onClick={() => {
-                onAddText('title');
-                setTextMenuOpen(false);
-              }}
-              className="w-full text-left px-3 py-2 rounded-xl hover:bg-purple-50 hover:text-purple-700 text-xs font-bold text-slate-900 flex items-center gap-2 transition-colors cursor-pointer"
-            >
-              <Type className="w-4 h-4 text-purple-600" />
-              <span>Book Title (Cover)</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onAddText('subtitle');
-                setTextMenuOpen(false);
-              }}
-              className="w-full text-left px-3 py-2 rounded-xl hover:bg-purple-50 hover:text-purple-700 text-xs font-medium text-slate-700 flex items-center gap-2 transition-colors cursor-pointer"
-            >
-              <BookText className="w-4 h-4 text-purple-500" />
-              <span>Subtitle</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onAddText('author');
-                setTextMenuOpen(false);
-              }}
-              className="w-full text-left px-3 py-2 rounded-xl hover:bg-purple-50 hover:text-purple-700 text-xs font-medium text-slate-700 flex items-center gap-2 transition-colors cursor-pointer"
-            >
-              <Type className="w-3.5 h-3.5 text-purple-400" />
-              <span>Author Name</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onAddText('spine');
-                setTextMenuOpen(false);
-              }}
-              className="w-full text-left px-3 py-2 rounded-xl hover:bg-purple-50 hover:text-purple-700 text-xs font-bold text-purple-700 flex items-center gap-2 transition-colors cursor-pointer"
-            >
-              <AlignVerticalSpaceAround className="w-4 h-4 text-purple-600" />
-              <span>Spine Title (Rotated)</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onAddText('body');
-                setTextMenuOpen(false);
-              }}
-              className="w-full text-left px-3 py-2 rounded-xl hover:bg-purple-50 hover:text-purple-700 text-xs font-normal text-slate-600 flex items-center gap-2 transition-colors cursor-pointer"
-            >
-              <Type className="w-3 h-3 text-slate-400" />
-              <span>Back Cover Blurb</span>
-            </button>
-          </div>
-        )}
-      </div>
+      {/* 4. Shapes & Badges Drawer */}
+      <button
+        type="button"
+        id="tool-btn-shape"
+        onClick={() => {
+          onOpenShapesDrawer();
+        }}
+        title="Shapes, Badges, Dividers & Frames"
+        className="w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:bg-blue-50 hover:text-blue-700 transition-all cursor-pointer"
+      >
+        <Square className="w-4 h-4 text-blue-600" />
+        <span className="text-[10px] font-semibold">Shapes</span>
+      </button>
 
-      {/* 4. Elements & Badges Library */}
+      {/* 5. Elements & Badges Library */}
       <button
         type="button"
         id="tool-btn-elements-drawer"
         onClick={() => {
           onOpenElementsDrawer();
-          setTextMenuOpen(false);
-          setShapeMenuOpen(false);
         }}
         title="Bestseller Badges, Ornaments & Silhouettes"
         className="w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:bg-amber-50 hover:text-amber-700 transition-all cursor-pointer"
@@ -192,67 +132,6 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
         <Award className="w-4 h-4 text-amber-600" />
         <span className="text-[10px] font-semibold">Elements</span>
       </button>
-
-      {/* 5. Shapes Tool with Submenu */}
-      <div className="relative">
-        <button
-          type="button"
-          id="tool-btn-shape"
-          onClick={() => {
-            setActiveTool('shape');
-            setShapeMenuOpen(!shapeMenuOpen);
-            setTextMenuOpen(false);
-          }}
-          title="Add Geometric Shapes (S)"
-          className={`w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
-            activeTool === 'shape'
-              ? 'bg-purple-600 text-white shadow-md shadow-purple-600/25 font-bold'
-              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-          }`}
-        >
-          <Square className="w-4 h-4" />
-          <span className="text-[10px] font-semibold">Shapes</span>
-        </button>
-
-        {shapeMenuOpen && (
-          <div className="absolute left-16 top-0 ml-2 w-52 bg-white rounded-2xl border border-slate-200 shadow-xl p-2 z-50 space-y-1 animate-in fade-in zoom-in-95">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 py-1">Shapes & Lines</div>
-            <button
-              type="button"
-              onClick={() => {
-                onAddShape('rect');
-                setShapeMenuOpen(false);
-              }}
-              className="w-full text-left px-3 py-2 rounded-xl hover:bg-purple-50 hover:text-purple-700 text-xs font-medium text-slate-800 flex items-center gap-2 transition-colors cursor-pointer"
-            >
-              <Square className="w-4 h-4 text-purple-600" />
-              <span>Rectangle / Card</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onAddShape('circle');
-                setShapeMenuOpen(false);
-              }}
-              className="w-full text-left px-3 py-2 rounded-xl hover:bg-purple-50 hover:text-purple-700 text-xs font-medium text-slate-800 flex items-center gap-2 transition-colors cursor-pointer"
-            >
-              <Circle className="w-4 h-4 text-purple-600" />
-              <span>Circle / Badge</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onAddShape('line');
-                setShapeMenuOpen(false);
-              }}
-              className="w-full text-left px-3 py-2 rounded-xl hover:bg-purple-50 hover:text-purple-700 text-xs font-medium text-slate-800 flex items-center gap-2 transition-colors cursor-pointer"
-            >
-              <Minus className="w-4 h-4 text-purple-600" />
-              <span>Divider Line</span>
-            </button>
-          </div>
-        )}
-      </div>
 
       {/* 6. Backgrounds & Mesh Gradients */}
       <button

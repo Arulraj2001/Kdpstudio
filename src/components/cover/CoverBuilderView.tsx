@@ -22,12 +22,15 @@ import {
 import { useBookStore } from '../../lib/store';
 import { useSeriesStore } from '../../lib/seriesStore';
 import { Book, TrimSize, PaperType } from '../../types/index';
+import jsPDF from 'jspdf';
 import { getCoverDimensions, getTrimDimensions } from '../../lib/kdp';
 import { CoverToolbar, CoverToolType } from './CoverToolbar';
 import { CoverPropertiesPanel } from './CoverPropertiesPanel';
 import { CoverSetupModal } from './CoverSetupModal';
 import { CoverAiDrawer } from './CoverAiDrawer';
 import { CoverExportModal } from './CoverExportModal';
+import { CoverTextDrawer, TextPresetItem } from './CoverTextDrawer';
+import { CoverShapesDrawer, ShapePresetItem } from './CoverShapesDrawer';
 import { CoverElementsDrawer } from './CoverElementsDrawer';
 import { CoverTemplatesDrawer } from './CoverTemplatesDrawer';
 import { CoverBackgroundDrawer } from './CoverBackgroundDrawer';
@@ -55,6 +58,8 @@ export const CoverBuilderView: React.FC = () => {
   const [isSetupModalOpen, setIsSetupModalOpen] = useState<boolean>(false);
   const [isAiDrawerOpen, setIsAiDrawerOpen] = useState<boolean>(false);
   const [isTemplatesDrawerOpen, setIsTemplatesDrawerOpen] = useState<boolean>(false);
+  const [isTextDrawerOpen, setIsTextDrawerOpen] = useState<boolean>(false);
+  const [isShapesDrawerOpen, setIsShapesDrawerOpen] = useState<boolean>(false);
   const [isElementsDrawerOpen, setIsElementsDrawerOpen] = useState<boolean>(false);
   const [isBackgroundDrawerOpen, setIsBackgroundDrawerOpen] = useState<boolean>(false);
   const [is3DMockupModalOpen, setIs3DMockupModalOpen] = useState<boolean>(false);
@@ -532,7 +537,56 @@ export const CoverBuilderView: React.FC = () => {
     setIsSaved(false);
   };
 
-  // Add Geometric Shapes
+  // Add rich typography preset to canvas
+  const handleAddTextPreset = (preset: TextPresetItem) => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+
+    const frontCenterX = bleedPx + trimWidthPx + spineWidthPx + trimWidthPx / 2;
+    const spineCenterX = bleedPx + trimWidthPx + spineWidthPx / 2;
+
+    let targetLeft = frontCenterX;
+    let targetTop = canvasHeightPx * 0.35;
+    let targetAngle = preset.angle || 0;
+
+    if (preset.isSpine || preset.category === 'spine') {
+      targetLeft = spineCenterX;
+      targetTop = canvasHeightPx / 2;
+      targetAngle = 90;
+    } else if (preset.category === 'author') {
+      targetTop = canvasHeightPx * 0.82;
+    } else if (preset.category === 'subtitle') {
+      targetTop = canvasHeightPx * 0.52;
+    } else if (preset.category === 'series') {
+      targetTop = canvasHeightPx * 0.18;
+    } else if (preset.category === 'review') {
+      targetTop = canvasHeightPx * 0.12;
+    }
+
+    const textObj = new fabric.IText(preset.sampleText, {
+      left: targetLeft,
+      top: targetTop,
+      originX: 'center',
+      originY: 'center',
+      fontFamily: preset.fontFamily.split(',')[0].replace(/['"]/g, '').trim(),
+      fontSize: preset.fontSize,
+      fontWeight: preset.fontWeight as any,
+      fill: preset.fill,
+      angle: targetAngle,
+      textAlign: preset.textAlign || 'center',
+      backgroundColor: preset.backgroundColor || undefined,
+      lineHeight: preset.lineHeight || 1.2,
+    });
+
+    canvas.add(textObj);
+    canvas.setActiveObject(textObj);
+    canvas.renderAll();
+    saveStateToHistory();
+    setIsSaved(false);
+    setIsTextDrawerOpen(false);
+  };
+
+  // Add Geometric Shapes & Badges
   const handleAddShape = (type: 'rect' | 'circle' | 'line' | 'barcode_placeholder') => {
     const canvas = fabricCanvasRef.current;
     if (!canvas) return;
@@ -595,6 +649,88 @@ export const CoverBuilderView: React.FC = () => {
     canvas.renderAll();
     saveStateToHistory();
     setIsSaved(false);
+  };
+
+  // Add rich shape / badge / frame preset to canvas
+  const handleAddShapePreset = (preset: ShapePresetItem) => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+
+    const frontCenterX = bleedPx + trimWidthPx + spineWidthPx + trimWidthPx / 2;
+
+    if (preset.svgString) {
+      const dataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(preset.svgString);
+      const imgElement = new Image();
+      imgElement.crossOrigin = 'anonymous';
+      imgElement.src = dataUrl;
+      imgElement.onload = () => {
+        const fabricImg = new fabric.FabricImage(imgElement, {
+          left: frontCenterX,
+          top: canvasHeightPx * 0.5,
+          originX: 'center',
+          originY: 'center',
+        });
+        canvas.add(fabricImg);
+        canvas.setActiveObject(fabricImg);
+        canvas.renderAll();
+        saveStateToHistory();
+        setIsSaved(false);
+      };
+    } else if (preset.type === 'rect' || preset.type === 'frame') {
+      const rect = new fabric.Rect({
+        left: frontCenterX - preset.width / 2,
+        top: canvasHeightPx * 0.5 - preset.height / 2,
+        width: preset.width,
+        height: preset.height,
+        fill: preset.fill === 'transparent' ? 'transparent' : preset.fill,
+        stroke: preset.stroke,
+        strokeWidth: preset.strokeWidth || 1,
+        strokeDashArray: preset.strokeDashArray,
+        rx: preset.rx || 0,
+        ry: preset.ry || 0,
+        opacity: preset.opacity ?? 1,
+      });
+      canvas.add(rect);
+      canvas.setActiveObject(rect);
+    } else if (preset.type === 'circle') {
+      const circle = new fabric.Circle({
+        left: frontCenterX,
+        top: canvasHeightPx * 0.5,
+        radius: preset.width / 2,
+        originX: 'center',
+        originY: 'center',
+        fill: preset.fill,
+        stroke: preset.stroke,
+        strokeWidth: preset.strokeWidth || 0,
+        opacity: preset.opacity ?? 1,
+      });
+      canvas.add(circle);
+      canvas.setActiveObject(circle);
+    } else if (preset.type === 'line') {
+      const line = new fabric.Line([frontCenterX - preset.width / 2, canvasHeightPx * 0.5, frontCenterX + preset.width / 2, canvasHeightPx * 0.5], {
+        stroke: preset.stroke || '#fbbf24',
+        strokeWidth: preset.strokeWidth || 2,
+      });
+      canvas.add(line);
+      canvas.setActiveObject(line);
+    } else if (preset.type === 'polygon' && preset.points) {
+      const polygon = new fabric.Polygon(preset.points, {
+        left: frontCenterX,
+        top: canvasHeightPx * 0.5,
+        originX: 'center',
+        originY: 'center',
+        fill: preset.fill === 'transparent' ? 'transparent' : preset.fill,
+        stroke: preset.stroke,
+        strokeWidth: preset.strokeWidth || 2,
+      });
+      canvas.add(polygon);
+      canvas.setActiveObject(polygon);
+    }
+
+    canvas.renderAll();
+    saveStateToHistory();
+    setIsSaved(false);
+    setIsShapesDrawerOpen(false);
   };
 
   // Image Upload Trigger & Loading
@@ -862,37 +998,47 @@ export const CoverBuilderView: React.FC = () => {
     const canvas = fabricCanvasRef.current;
     if (!canvas) return;
 
-    // High quality export data URL (multiplier scales screen 96 DPI to 300 DPI: 300 / 96 ~= 3.125)
+    // High quality export data URL (multiplier scales screen 96 DPI to 300 DPI: 300 / 96 = 3.125)
     const multiplier = 300 / DPI_SCREEN;
     const imageDataUrl = canvas.toDataURL({
-      format: format === 'jpg' ? 'jpeg' : 'png',
+      format: 'png',
       multiplier,
       quality: 1,
     });
 
-    const response = await fetch('/api/export-cover', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        imageDataUrl,
-        coverDimensions: coverDims,
-        exportFormat: format,
-      }),
-    });
+    const bookTitleSlug = (book?.title || 'Book').toLowerCase().replace(/[^a-z0-9]+/g, '_');
 
-    if (!response.ok) {
-      throw new Error('Failed to export cover file from server');
+    if (format === 'pdf') {
+      const widthInches = coverDims.totalWidth;
+      const heightInches = coverDims.totalHeight;
+
+      // Pure client-side standard PDF creation
+      const pdf = new jsPDF({
+        orientation: widthInches > heightInches ? 'landscape' : 'portrait',
+        unit: 'in',
+        format: [widthInches, heightInches],
+        compress: true,
+      });
+
+      pdf.addImage(imageDataUrl, 'PNG', 0, 0, widthInches, heightInches, undefined, 'FAST');
+      pdf.save(`${bookTitleSlug}_kdp_cover_300dpi.pdf`);
+      return;
     }
 
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${(book?.title || 'Book').toLowerCase().replace(/\s+/g, '_')}_kdp_cover_300dpi.${format}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    if (format === 'jpg') {
+      const jpgDataUrl = canvas.toDataURL({
+        format: 'jpeg',
+        multiplier,
+        quality: 1,
+      });
+      const link = document.createElement('a');
+      link.download = `${bookTitleSlug}_kdp_cover_300dpi.jpg`;
+      link.href = jpgDataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
+    }
   };
 
   // Apply Author Brand Kit to Canvas
@@ -1220,12 +1366,32 @@ export const CoverBuilderView: React.FC = () => {
           onOpenAiDrawer={() => {
             setIsAiDrawerOpen(true);
             setIsTemplatesDrawerOpen(false);
+            setIsTextDrawerOpen(false);
+            setIsShapesDrawerOpen(false);
             setIsElementsDrawerOpen(false);
             setIsBackgroundDrawerOpen(false);
           }}
           onOpenTemplatesDrawer={() => {
             setIsTemplatesDrawerOpen(!isTemplatesDrawerOpen);
             setIsAiDrawerOpen(false);
+            setIsTextDrawerOpen(false);
+            setIsShapesDrawerOpen(false);
+            setIsElementsDrawerOpen(false);
+            setIsBackgroundDrawerOpen(false);
+          }}
+          onOpenTextDrawer={() => {
+            setIsTextDrawerOpen(!isTextDrawerOpen);
+            setIsShapesDrawerOpen(false);
+            setIsAiDrawerOpen(false);
+            setIsTemplatesDrawerOpen(false);
+            setIsElementsDrawerOpen(false);
+            setIsBackgroundDrawerOpen(false);
+          }}
+          onOpenShapesDrawer={() => {
+            setIsShapesDrawerOpen(!isShapesDrawerOpen);
+            setIsTextDrawerOpen(false);
+            setIsAiDrawerOpen(false);
+            setIsTemplatesDrawerOpen(false);
             setIsElementsDrawerOpen(false);
             setIsBackgroundDrawerOpen(false);
           }}
@@ -1233,12 +1399,16 @@ export const CoverBuilderView: React.FC = () => {
             setIsElementsDrawerOpen(!isElementsDrawerOpen);
             setIsAiDrawerOpen(false);
             setIsTemplatesDrawerOpen(false);
+            setIsTextDrawerOpen(false);
+            setIsShapesDrawerOpen(false);
             setIsBackgroundDrawerOpen(false);
           }}
           onOpenBackgroundDrawer={() => {
             setIsBackgroundDrawerOpen(!isBackgroundDrawerOpen);
             setIsAiDrawerOpen(false);
             setIsTemplatesDrawerOpen(false);
+            setIsTextDrawerOpen(false);
+            setIsShapesDrawerOpen(false);
             setIsElementsDrawerOpen(false);
           }}
           onOpen3DMockupModal={handleOpen3DMockupModal}
@@ -1560,6 +1730,20 @@ export const CoverBuilderView: React.FC = () => {
         isOpen={isTemplatesDrawerOpen}
         onClose={() => setIsTemplatesDrawerOpen(false)}
         onApplyTemplate={handleApplyGenreTemplate}
+      />
+
+      {/* Typography & Text Presets Drawer */}
+      <CoverTextDrawer
+        isOpen={isTextDrawerOpen}
+        onClose={() => setIsTextDrawerOpen(false)}
+        onAddTextToCanvas={handleAddTextPreset}
+      />
+
+      {/* Shapes, Badges, Dividers & Frames Drawer */}
+      <CoverShapesDrawer
+        isOpen={isShapesDrawerOpen}
+        onClose={() => setIsShapesDrawerOpen(false)}
+        onAddShapeToCanvas={handleAddShapePreset}
       />
 
       {/* Graphic Elements & Badges Drawer */}

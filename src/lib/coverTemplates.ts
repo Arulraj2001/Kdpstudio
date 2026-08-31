@@ -98,7 +98,7 @@ export interface GraphicElementItem {
 }
 
 export const GRAPHIC_ELEMENTS: GraphicElementItem[] = [
-  // 1. BADGES
+  // 1. BADGES & SEALS
   {
     id: 'badge-nyt-bestseller',
     title: '#1 Bestseller Ribbon',
@@ -125,15 +125,42 @@ export const GRAPHIC_ELEMENTS: GraphicElementItem[] = [
     </svg>`,
   },
   {
+    id: 'badge-5star-seal',
+    title: '5-Star Acclaim Badge',
+    category: 'Badges',
+    defaultWidth: 150,
+    defaultHeight: 60,
+    svgString: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 60" width="150" height="60">
+      <rect x="2" y="2" width="146" height="56" rx="28" fill="#1e293b" stroke="#ca8a04" stroke-width="2"/>
+      <text x="75" y="25" font-family="Georgia, serif" font-size="16" fill="#fcd34d" text-anchor="middle">★★★★★</text>
+      <text x="75" y="44" font-family="Montserrat, sans-serif" font-size="9" font-weight="bold" fill="#f8fafc" text-anchor="middle" letter-spacing="1.5">5-STAR RATED</text>
+    </svg>`,
+  },
+  {
     id: 'badge-special-edition',
-    title: 'Special Edition Seal',
+    title: 'Special Edition Rosette',
     category: 'Badges',
     defaultWidth: 130,
     defaultHeight: 130,
     svgString: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 130" width="130" height="130">
       <polygon points="65,5 82,24 107,18 113,44 135,58 126,83 135,108 110,117 101,141 76,133 55,145 42,123 17,126 15,100 0,81 14,59 7,33 32,28 42,5" fill="#dc2626" stroke="#fef2f2" stroke-width="2"/>
-      <text x="65" y="62" font-family="Arial, sans-serif" font-size="11" font-weight="900" fill="#ffffff" text-anchor="middle">SPECIAL</text>
-      <text x="65" y="78" font-family="Arial, sans-serif" font-size="11" font-weight="900" fill="#ffffff" text-anchor="middle">EDITION</text>
+      <circle cx="65" cy="65" r="42" fill="#991b1b" stroke="#fef08a" stroke-width="1.5"/>
+      <text x="65" y="60" font-family="Arial, sans-serif" font-size="10" font-weight="900" fill="#ffffff" text-anchor="middle">SPECIAL</text>
+      <text x="65" y="75" font-family="Arial, sans-serif" font-size="10" font-weight="900" fill="#ffffff" text-anchor="middle">EDITION</text>
+    </svg>`,
+  },
+  {
+    id: 'badge-editors-pick',
+    title: "Editor's Choice Seal",
+    category: 'Badges',
+    defaultWidth: 130,
+    defaultHeight: 130,
+    svgString: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 130" width="130" height="130">
+      <circle cx="65" cy="65" r="58" fill="#4338ca" stroke="#a5b4fc" stroke-width="2"/>
+      <circle cx="65" cy="65" r="50" fill="#312e81" stroke="#fcd34d" stroke-width="1.5" stroke-dasharray="4,2"/>
+      <text x="65" y="55" font-family="Georgia, serif" font-size="10" font-weight="bold" fill="#fcd34d" text-anchor="middle">EDITOR'S</text>
+      <text x="65" y="72" font-family="Georgia, serif" font-size="12" font-weight="900" fill="#ffffff" text-anchor="middle">CHOICE</text>
+      <text x="65" y="86" font-family="Montserrat, sans-serif" font-size="7" font-weight="bold" fill="#a5b4fc" text-anchor="middle">RECOMMENDED</text>
     </svg>`,
   },
   {
@@ -184,6 +211,32 @@ export const GRAPHIC_ELEMENTS: GraphicElementItem[] = [
       <path d="M30,0 L34,22 L56,12 L38,30 L56,48 L34,38 L30,60 L26,38 L4,48 L22,30 L4,12 L26,22 Z" fill="#eab308"/>
     </svg>`,
   },
+  {
+    id: 'flourish-floral-branch',
+    title: 'Botanical Laurel Branch',
+    category: 'Flourishes',
+    defaultWidth: 160,
+    defaultHeight: 40,
+    svgString: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 40" width="160" height="40">
+      <path d="M10,20 Q80,5 150,20" fill="none" stroke="#ca8a04" stroke-width="2"/>
+      <ellipse cx="40" cy="14" rx="8" ry="4" transform="rotate(-25 40 14)" fill="#ca8a04"/>
+      <ellipse cx="70" cy="11" rx="8" ry="4" transform="rotate(-15 70 11)" fill="#ca8a04"/>
+      <ellipse cx="100" cy="11" rx="8" ry="4" transform="rotate(15 100 11)" fill="#ca8a04"/>
+      <ellipse cx="130" cy="14" rx="8" ry="4" transform="rotate(25 130 14)" fill="#ca8a04"/>
+    </svg>`,
+  },
+  {
+    id: 'flourish-celtic-knot',
+    title: 'Celtic Knot Ornament',
+    category: 'Flourishes',
+    defaultWidth: 100,
+    defaultHeight: 100,
+    svgString: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+      <path d="M50,15 C65,15 75,25 75,40 C75,55 60,65 50,85 C40,65 25,55 25,40 C25,25 35,15 50,15 Z" fill="none" stroke="#ca8a04" stroke-width="3"/>
+      <circle cx="50" cy="42" r="18" fill="none" stroke="#ca8a04" stroke-width="3"/>
+      <circle cx="50" cy="42" r="5" fill="#ca8a04"/>
+    </svg>`,
+  },
 
   // 3. SILHOUETTES & ICONS
   {
@@ -208,6 +261,44 @@ export const GRAPHIC_ELEMENTS: GraphicElementItem[] = [
     </svg>`,
   },
   {
+    id: 'silhouette-crown',
+    title: 'Royal Crown Icon',
+    category: 'Silhouettes',
+    defaultWidth: 120,
+    defaultHeight: 80,
+    svgString: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80" width="120" height="80">
+      <polygon points="10,65 110,65 105,25 75,50 60,15 45,50 15,25" fill="#ca8a04" stroke="#fef08a" stroke-width="2"/>
+      <circle cx="15" cy="22" r="5" fill="#fef08a"/>
+      <circle cx="60" cy="12" r="6" fill="#fef08a"/>
+      <circle cx="105" cy="22" r="5" fill="#fef08a"/>
+      <rect x="10" y="65" width="100" height="8" rx="2" fill="#a16207"/>
+    </svg>`,
+  },
+  {
+    id: 'silhouette-mountain',
+    title: 'Mountain Range Silhouette',
+    category: 'Silhouettes',
+    defaultWidth: 240,
+    defaultHeight: 110,
+    svgString: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 110" width="240" height="110">
+      <polygon points="0,110 50,45 80,75 130,20 180,80 210,55 240,110" fill="#0f172a" opacity="0.9"/>
+      <polygon points="130,20 145,45 130,40 118,48" fill="#e2e8f0"/>
+      <polygon points="50,45 58,62 50,58 42,65" fill="#e2e8f0"/>
+    </svg>`,
+  },
+  {
+    id: 'silhouette-moon-stars',
+    title: 'Crescent Moon & Stars',
+    category: 'Silhouettes',
+    defaultWidth: 90,
+    defaultHeight: 90,
+    svgString: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 90" width="90" height="90">
+      <path d="M50,10 C30,10 15,25 15,45 C15,65 30,80 50,80 C58,80 65,77 71,72 C55,70 42,56 42,39 C42,26 49,15 60,10 Z" fill="#fcd34d"/>
+      <polygon points="75,20 77,26 83,28 77,30 75,36 73,30 67,28 73,26" fill="#ffffff"/>
+      <polygon points="65,48 66,52 70,53 66,55 65,59 64,55 60,53 64,52" fill="#ffffff"/>
+    </svg>`,
+  },
+  {
     id: 'silhouette-tree',
     title: 'Misty Pine Tree Silhouette',
     category: 'Silhouettes',
@@ -225,6 +316,45 @@ export const GRAPHIC_ELEMENTS: GraphicElementItem[] = [
     defaultHeight: 150,
     svgString: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 150" width="70" height="150">
       <path d="M60,5 C40,15 20,45 15,80 C12,100 8,125 0,145 L10,140 C20,115 30,90 40,70 C55,50 65,25 60,5 Z" fill="#ca8a04"/>
+    </svg>`,
+  },
+  {
+    id: 'silhouette-rose',
+    title: 'Vintage Rose Blossom',
+    category: 'Silhouettes',
+    defaultWidth: 90,
+    defaultHeight: 90,
+    svgString: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 90" width="90" height="90">
+      <circle cx="45" cy="45" r="38" fill="none" stroke="#f43f5e" stroke-width="2"/>
+      <path d="M45,20 C35,20 28,30 35,42 C24,42 22,55 32,62 C38,68 52,68 58,62 C68,55 66,42 55,42 C62,30 55,20 45,20 Z" fill="#e11d48"/>
+      <circle cx="45" cy="45" r="8" fill="#fda4af"/>
+    </svg>`,
+  },
+  {
+    id: 'silhouette-compass',
+    title: 'Nautical Adventure Compass',
+    category: 'Silhouettes',
+    defaultWidth: 100,
+    defaultHeight: 100,
+    svgString: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+      <circle cx="50" cy="50" r="45" fill="none" stroke="#ca8a04" stroke-width="2"/>
+      <circle cx="50" cy="50" r="38" fill="none" stroke="#ca8a04" stroke-width="1" stroke-dasharray="4,2"/>
+      <polygon points="50,15 56,44 50,42 44,44" fill="#dc2626"/>
+      <polygon points="50,85 56,56 50,58 44,56" fill="#475569"/>
+      <polygon points="15,50 44,56 42,50 44,44" fill="#475569"/>
+      <polygon points="85,50 56,56 58,50 56,44" fill="#475569"/>
+      <circle cx="50" cy="50" r="4" fill="#ca8a04"/>
+    </svg>`,
+  },
+  {
+    id: 'silhouette-spaceship',
+    title: 'Sci-Fi Starfighter Silhouette',
+    category: 'Silhouettes',
+    defaultWidth: 110,
+    defaultHeight: 120,
+    svgString: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 120" width="110" height="120">
+      <polygon points="55,5 65,45 105,80 95,95 65,85 62,110 55,115 48,110 45,85 15,95 5,80 45,45" fill="#38bdf8" stroke="#e0f2fe" stroke-width="1.5"/>
+      <circle cx="55" cy="50" r="6" fill="#0284c7"/>
     </svg>`,
   },
 
@@ -245,6 +375,32 @@ export const GRAPHIC_ELEMENTS: GraphicElementItem[] = [
       <path d="M8,400 L8,432 L40,432" fill="none" stroke="#ca8a04" stroke-width="3"/>
       <!-- Bottom Right -->
       <path d="M260,432 L292,432 L292,400" fill="none" stroke="#ca8a04" stroke-width="3"/>
+    </svg>`,
+  },
+  {
+    id: 'frame-gothic-arch',
+    title: 'Gothic Cathedral Arch Frame',
+    category: 'Frames',
+    defaultWidth: 280,
+    defaultHeight: 420,
+    svgString: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 420" width="280" height="420">
+      <path d="M20,400 L20,160 Q20,20 140,20 Q260,20 260,160 L260,400 Z" fill="none" stroke="#ca8a04" stroke-width="2"/>
+      <path d="M30,395 L30,165 Q30,35 140,35 Q250,35 250,165 L250,395 Z" fill="none" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,2"/>
+    </svg>`,
+  },
+  {
+    id: 'frame-art-deco',
+    title: 'Art Deco Geometric Border',
+    category: 'Frames',
+    defaultWidth: 290,
+    defaultHeight: 430,
+    svgString: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 290 430" width="290" height="430">
+      <rect x="15" y="15" width="260" height="400" fill="none" stroke="#eab308" stroke-width="2"/>
+      <rect x="25" y="25" width="240" height="380" fill="none" stroke="#ca8a04" stroke-width="1"/>
+      <polygon points="15,45 45,15 15,15" fill="#eab308"/>
+      <polygon points="275,45 245,15 275,15" fill="#eab308"/>
+      <polygon points="15,385 45,415 15,415" fill="#eab308"/>
+      <polygon points="275,385 245,415 275,415" fill="#eab308"/>
     </svg>`,
   },
 ];

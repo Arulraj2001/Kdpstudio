@@ -72,7 +72,7 @@ export function generateIsbnBarcodeSvg(isbnInput: string, priceCode = '90000'): 
   const mainBarHeight = 54;
   const guardBarHeight = 62;
   const totalSvgWidth = 200;
-  const totalSvgHeight = 110;
+  const totalSvgHeight = 82;
 
   let barsSvg = '';
   for (let i = 0; i < bitString.length; i++) {
@@ -88,15 +88,13 @@ export function generateIsbnBarcodeSvg(isbnInput: string, priceCode = '90000'): 
   const formattedIsbn = `ISBN: ${full13.slice(0, 3)}-${full13.slice(3, 4)}-${full13.slice(4, 9)}-${full13.slice(9, 12)}-${full13.slice(12)}`;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalSvgWidth} ${totalSvgHeight}" width="${totalSvgWidth}" height="${totalSvgHeight}">
-    <rect width="100%" height="100%" fill="#ffffff" rx="4" />
+    <rect width="100%" height="100%" fill="#ffffff" rx="2" />
     <text x="100" y="9" font-family="monospace, Arial, sans-serif" font-size="8" font-weight="bold" fill="#000000" text-anchor="middle">${formattedIsbn}</text>
     <g>${barsSvg}</g>
     <!-- Numbers beneath bars -->
-    <text x="${(startX - 8).toFixed(1)}" y="72" font-family="monospace, sans-serif" font-size="9" font-weight="bold" fill="#000000">${full13[0]}</text>
-    <text x="${(startX + 18).toFixed(1)}" y="72" font-family="monospace, sans-serif" font-size="9" font-weight="bold" fill="#000000" letter-spacing="1.2">${full13.slice(1, 7)}</text>
-    <text x="${(startX + 98).toFixed(1)}" y="72" font-family="monospace, sans-serif" font-size="9" font-weight="bold" fill="#000000" letter-spacing="1.2">${full13.slice(7, 13)}</text>
-    <text x="100" y="88" font-family="monospace, sans-serif" font-size="8" font-weight="bold" fill="#64748b" text-anchor="middle">KDP BARCODE SAFE ZONE</text>
-    <text x="100" y="100" font-family="sans-serif" font-size="7" fill="#94a3b8" text-anchor="middle">2.0" × 1.2" (Standard Placement)</text>
+    <text x="${(startX - 8).toFixed(1)}" y="74" font-family="monospace, sans-serif" font-size="9" font-weight="bold" fill="#000000">${full13[0]}</text>
+    <text x="${(startX + 18).toFixed(1)}" y="74" font-family="monospace, sans-serif" font-size="9" font-weight="bold" fill="#000000" letter-spacing="1.2">${full13.slice(1, 7)}</text>
+    <text x="${(startX + 98).toFixed(1)}" y="74" font-family="monospace, sans-serif" font-size="9" font-weight="bold" fill="#000000" letter-spacing="1.2">${full13.slice(7, 13)}</text>
   </svg>`;
 }
 
