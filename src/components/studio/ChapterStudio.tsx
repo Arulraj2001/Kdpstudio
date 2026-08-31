@@ -18,11 +18,13 @@ import {
   RotateCw,
   History,
   Search,
+  PanelLeftClose,
+  PanelLeft,
 } from 'lucide-react';
 import { Book, Chapter, FrontMatter, BackMatter } from '../../types/index';
 import { ContentAuditReport } from '../../types/audit';
 import { useBookStore } from '../../lib/store';
-import { ChapterList } from './ChapterList';
+import { StudioSidebar } from './StudioSidebar';
 import { TiptapToolbar } from './TiptapToolbar';
 import { FrontMatterModal } from './FrontMatterModal';
 import { BackMatterModal } from './BackMatterModal';
@@ -82,6 +84,23 @@ export const ChapterStudio: React.FC<ChapterStudioProps> = ({
   // Editable chapter title in editor
   const [chapterTitleInput, setChapterTitleInput] = useState(activeChapter?.title || '');
   const [mobileActiveView, setMobileActiveView] = useState<'chapters' | 'editor'>('editor');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // Copilot direct insertion handlers
+  const handleInsertFromCopilot = (htmlOrText: string) => {
+    if (editor) {
+      editor.commands.insertContent(htmlOrText);
+      setSaveStatus('unsaved');
+    }
+  };
+
+  const handleReplaceSelectionFromCopilot = (htmlOrText: string) => {
+    if (editor) {
+      editor.commands.insertContent(htmlOrText);
+      setSelectedText('');
+      setSaveStatus('unsaved');
+    }
+  };
 
   // Keep title input in sync when switching chapters
   useEffect(() => {
@@ -310,6 +329,15 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
             <ArrowLeft className="w-4 h-4" />
           </button>
 
+          <button
+            type="button"
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className="hidden md:inline-flex p-1.5 rounded-lg text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40 transition-colors"
+            title={isSidebarCollapsed ? 'Show Studio Suite Sidebar' : 'Hide Sidebar (Focus Mode)'}
+          >
+            {isSidebarCollapsed ? <PanelLeft className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+          </button>
+
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 shrink-0">
               {currentBook.trimSize}
@@ -461,23 +489,32 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
         </div>
       </div>
 
-      {/* Main Studio Body: Left Panel 30% + Right Panel 70% */}
+      {/* Main Studio Body: Left Panel (Collapsible) + Right Panel (Editor Surface) */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Panel (30% width) - Chapter List */}
-        <aside className={`w-full md:w-72 sm:md:w-80 lg:w-[30%] shrink-0 h-full ${mobileActiveView === 'chapters' ? 'block' : 'hidden md:block'}`}>
-          <ChapterList
-            chapters={currentBook.chapters}
-            currentChapterId={selectedChapterId}
-            onSelectChapter={handleSelectChapter}
-            onAddChapter={handleAddChapter}
-            onReorderChapters={handleReorderChapters}
-            onRenameChapter={handleRenameChapter}
-            onDeleteChapter={handleDeleteChapter}
-            onDuplicateChapter={handleDuplicateChapter}
-          />
-        </aside>
+        {/* Left Panel - Studio Suite Sidebar */}
+        {!isSidebarCollapsed && (
+          <aside className={`w-full md:w-80 lg:w-[320px] xl:w-[340px] shrink-0 h-full ${mobileActiveView === 'chapters' ? 'block' : 'hidden md:block'}`}>
+            <StudioSidebar
+              book={currentBook}
+              currentChapterId={selectedChapterId}
+              selectedText={selectedText}
+              onSelectChapter={handleSelectChapter}
+              onAddChapter={handleAddChapter}
+              onReorderChapters={handleReorderChapters}
+              onRenameChapter={handleRenameChapter}
+              onDeleteChapter={handleDeleteChapter}
+              onDuplicateChapter={handleDuplicateChapter}
+              onOpenFrontMatter={() => setIsFrontMatterOpen(true)}
+              onOpenBackMatter={() => setIsBackMatterOpen(true)}
+              onInsertContent={handleInsertFromCopilot}
+              onReplaceSelection={handleReplaceSelectionFromCopilot}
+              isCollapsed={isSidebarCollapsed}
+              onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            />
+          </aside>
+        )}
 
-        {/* Right Panel (70% width) - Editor Surface */}
+        {/* Right Panel - Editor Surface */}
         <main className={`flex-1 flex flex-col h-full bg-gray-50/40 dark:bg-[#0f0f17] overflow-hidden ${mobileActiveView === 'editor' ? 'flex' : 'hidden md:flex'}`}>
           {/* Tiptap Toolbar */}
           <TiptapToolbar editor={editor} />
