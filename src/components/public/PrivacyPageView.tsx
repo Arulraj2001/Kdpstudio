@@ -51,7 +51,7 @@ export const PrivacyPageView: React.FC<PrivacyPageViewProps> = ({ onNavigate }) 
             </p>
             <ul className="list-disc pl-5 space-y-1 text-xs">
               <li><strong>Firebase (Google Cloud):</strong> Encrypted database authentication and user profile storage.</li>
-              <li><strong>Google Gemini & Imagen:</strong> AI model inferencing without using your private data to train public models.</li>
+              <li><strong>AI Model Inferencing:</strong> High-performance AI inferencing without using your private data to train public models.</li>
               <li><strong>Payment Processors (Stripe / UPI):</strong> PCI-DSS compliant payment processing. We never store credit card numbers directly.</li>
             </ul>
           </section>
@@ -86,8 +86,18 @@ export const PrivacyPageView: React.FC<PrivacyPageViewProps> = ({ onNavigate }) 
 
           <section className="space-y-2">
             <h2 className="text-lg font-bold text-slate-900">8. Contact Us</h2>
-            <p>
-              If you have any questions regarding privacy or data handling, email our privacy team at <strong>privacy@kdpstudio.com</strong>.
+            <p className="text-sm text-slate-600 leading-relaxed">
+              If you have any questions regarding privacy, GDPR/DPDP data handling, or data deletion requests, please reach out directly via our{' '}
+              <button
+                type="button"
+                onClick={() => {
+                  if (onNavigate) onNavigate('contact');
+                  else window.dispatchEvent(new CustomEvent('open-contact-modal', { detail: { subject: 'General Support' } }));
+                }}
+                className="font-bold text-purple-600 hover:text-purple-700 underline cursor-pointer inline-flex items-center gap-1"
+              >
+                Contact &amp; Support Form →
+              </button>
             </p>
           </section>
 

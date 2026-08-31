@@ -103,8 +103,8 @@ export const ChangelogPageView: React.FC<ChangelogPageViewProps> = ({ onNavigate
             <Sparkles size={14} className="text-purple-600" />
             <span>Product Updates</span>
           </div>
-          <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">
-            Changelog
+          <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight font-display">
+            Changelog &amp; <span className="font-serif italic font-normal text-purple-600">Product Evolution</span>
           </h1>
           <p className="text-base text-slate-600">
             What's new in KDP Studio. We ship updates, new models, and performance improvements every week.

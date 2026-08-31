@@ -39,7 +39,7 @@ export const ContactPageView: React.FC<ContactPageViewProps> = ({ onNavigate }) 
 
       setSubmitted(true);
     } catch {
-      setErrorMsg('Failed to send message. Please email support@kdpstudio.com directly.');
+      setErrorMsg('Network error. Please try submitting again in a moment.');
     } finally {
       setIsSubmitting(false);
     }
@@ -72,34 +72,45 @@ export const ContactPageView: React.FC<ContactPageViewProps> = ({ onNavigate }) 
           
           {/* Contact Info Cards */}
           <div className="space-y-4 lg:col-span-1">
-            <div className="p-6 rounded-2xl border border-slate-200 bg-slate-50/60 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+            <button 
+              type="button"
+              onClick={() => {
+                setSubject('General Support');
+                document.getElementById('contact-form-card')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="w-full text-left p-6 rounded-2xl border border-slate-200 bg-slate-50/60 hover:bg-purple-50/40 hover:border-purple-300 transition-all space-y-3 cursor-pointer group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center group-hover:scale-105 transition-transform">
                 <Mail size={20} />
               </div>
               <h3 className="font-bold text-sm text-slate-900">Email Support</h3>
               <p className="text-xs text-slate-600">
                 Direct inquiry response within 12-24 business hours.
               </p>
-              <a 
-                href="mailto:support@kdpstudio.com"
-                className="text-xs font-bold text-purple-600 hover:text-purple-700 block"
-              >
-                support@kdpstudio.com
-              </a>
-            </div>
+              <span className="text-xs font-bold text-purple-600 group-hover:text-purple-700 block">
+                Open Support Form →
+              </span>
+            </button>
 
-            <div className="p-6 rounded-2xl border border-slate-200 bg-slate-50/60 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+            <button 
+              type="button"
+              onClick={() => {
+                setSubject('UPI Verification / Billing');
+                document.getElementById('contact-form-card')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="w-full text-left p-6 rounded-2xl border border-slate-200 bg-slate-50/60 hover:bg-emerald-50/40 hover:border-emerald-300 transition-all space-y-3 cursor-pointer group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center group-hover:scale-105 transition-transform">
                 <MessageSquare size={20} />
               </div>
               <h3 className="font-bold text-sm text-slate-900">Direct UPI Activation</h3>
               <p className="text-xs text-slate-600">
-                Paid via UPI or Indian Net Banking? Send your transaction reference for instant account activation.
+                Paid via UPI or Indian Net Banking? Submit your transaction reference for instant account activation.
               </p>
-              <span className="text-xs font-bold text-emerald-600 block">
-                billing@kdpstudio.com
+              <span className="text-xs font-bold text-emerald-600 group-hover:text-emerald-700 block">
+                Verify UPI Transaction →
               </span>
-            </div>
+            </button>
 
             <div className="p-6 rounded-2xl border border-slate-200 bg-slate-50/60 space-y-3">
               <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
@@ -114,7 +125,7 @@ export const ContactPageView: React.FC<ContactPageViewProps> = ({ onNavigate }) 
           </div>
 
           {/* Form */}
-          <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 shadow-xs">
+          <div id="contact-form-card" className="lg:col-span-2 bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 shadow-xs scroll-mt-24">
             {submitted ? (
               <div className="py-12 text-center space-y-4">
                 <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">

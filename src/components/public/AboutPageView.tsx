@@ -13,7 +13,7 @@ export const AboutPageView: React.FC<AboutPageViewProps> = ({ onNavigate }) => {
       <SEOHead
         pageKey="about"
         title="About — KDP Studio"
-        description="KDP Studio is an AI-powered book publishing suite built for Amazon KDP authors. Made in India, powered by Google AI."
+        description="KDP Studio is an AI-powered book publishing suite built for Amazon KDP authors and publishers. Made in India · Built for KDP Creators."
         canonicalPath="/about"
       />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-16">
@@ -23,8 +23,8 @@ export const AboutPageView: React.FC<AboutPageViewProps> = ({ onNavigate }) => {
           <span className="text-xs font-bold uppercase tracking-wider text-purple-600 bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
             Our Mission
           </span>
-          <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">
-            Democratizing Amazon KDP Self-Publishing
+          <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight font-display">
+            Democratizing Amazon KDP <span className="font-serif italic font-normal text-purple-600">Self-Publishing</span>
           </h1>
           <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
             We built KDP Studio to solve the painful formatting errors, rejected covers, and complex margin calculations that keep great authors from publishing.
@@ -35,7 +35,7 @@ export const AboutPageView: React.FC<AboutPageViewProps> = ({ onNavigate }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
           <div className="space-y-4 text-sm sm:text-base text-slate-600 leading-relaxed">
             <h2 className="text-2xl font-bold text-slate-900">
-              Made in India with Google AI
+              Made in India · Built for KDP Creators
             </h2>
             <p>
               Self-publishing on Amazon Kindle Direct Publishing (KDP) offers unprecedented creative freedom and 70% royalties. However, the technical barriers — calculating page gutters, converting RGB images to 300 DPI CMYK, designing wrap-around covers with spine math — routinely lead to book rejections.

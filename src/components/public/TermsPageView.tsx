@@ -88,8 +88,18 @@ export const TermsPageView: React.FC<TermsPageViewProps> = ({ onNavigate }) => {
 
           <section className="space-y-2">
             <h2 className="text-lg font-bold text-slate-900">9. Contact Information</h2>
-            <p>
-              For legal inquiries or questions regarding these terms, please contact us at <strong>legal@kdpstudio.com</strong> or via our Help Center.
+            <p className="text-sm text-slate-600 leading-relaxed">
+              For legal inquiries, copyright notices, or questions regarding these terms, please submit an inquiry through our{' '}
+              <button
+                type="button"
+                onClick={() => {
+                  if (onNavigate) onNavigate('contact');
+                  else window.dispatchEvent(new CustomEvent('open-contact-modal', { detail: { subject: 'General Support' } }));
+                }}
+                className="font-bold text-purple-600 hover:text-purple-700 underline cursor-pointer inline-flex items-center gap-1"
+              >
+                Contact &amp; Support Form →
+              </button>
             </p>
           </section>
 

@@ -116,24 +116,27 @@ export const PendingPaymentBanner: React.FC<PendingPaymentBannerProps> = ({
         </div>
 
         <div className="flex items-center gap-2 shrink-0 ml-auto">
-          {onContactSupport ? (
-            <button
-              type="button"
-              onClick={onContactSupport}
-              className="px-2.5 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer"
-            >
-              <MessageSquare size={12} />
-              <span>Contact Support</span>
-            </button>
-          ) : (
-            <a
-              href="mailto:support@kdpstudio.com?subject=UPI%20Verification%20UTR%20"
-              className="px-2.5 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer"
-            >
-              <MessageSquare size={12} />
-              <span>Contact Support</span>
-            </a>
-          )}
+          <button
+            type="button"
+            onClick={() => {
+              if (onContactSupport) {
+                onContactSupport();
+              } else {
+                window.dispatchEvent(
+                  new CustomEvent('open-contact-modal', {
+                    detail: {
+                      subject: 'UPI Verification / Billing',
+                      message: `Please verify my manual UPI payment for plan ${pendingPayment.planId || 'Pro'}. My transaction UTR is: ${pendingPayment.utr || ''}`,
+                    },
+                  })
+                );
+              }
+            }}
+            className="px-2.5 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer"
+          >
+            <MessageSquare size={12} />
+            <span>Contact Support</span>
+          </button>
 
           <button
             type="button"

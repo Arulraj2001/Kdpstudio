@@ -27,6 +27,7 @@ import { useCheckoutStore } from '../../lib/checkoutStore';
 import { getDynamicPlanFeatures, getGrowthPromo } from '../../lib/planLimits';
 import { SEOHead } from '../seo/SEOHead';
 import { JsonLd } from '../seo/JsonLd';
+import { SectionShadowTransition } from './SectionShadowTransition';
 
 interface PricingPageViewProps {
   onNavigate: (route: PageRoute) => void;
@@ -240,8 +241,8 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
           </span>
         </div>
 
-        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight">
-          Simple, Transparent Pricing
+        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight font-display">
+          Simple, Transparent Pricing — <span className="font-serif italic font-normal text-purple-600">Keep 100% of Your Royalties</span>
         </h1>
         <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto">
           Start free. Upgrade when you're ready to publish more books.

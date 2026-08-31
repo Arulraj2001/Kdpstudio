@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Sparkles, Copy, Check, ArrowRight, Share2, Star, ShieldCheck, Zap, BookOpen } from 'lucide-react';
 import { PageRoute } from '../../types';
 import { SEOHead } from '../seo/SEOHead';
+import { SectionShadowTransition } from './SectionShadowTransition';
 
 interface LaunchPageViewProps {
   onNavigate?: (route: PageRoute) => void;
@@ -71,15 +72,15 @@ export const LaunchPageView: React.FC<LaunchPageViewProps> = ({ onNavigate }) =>
             <span>🎉 We're live on Product Hunt today!</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-[1.15] text-white">
+          <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-[1.15] text-white font-display">
             Thank You Product Hunt Community! <br />
-            <span className="bg-gradient-to-r from-purple-400 via-violet-300 to-indigo-300 bg-clip-text text-transparent">
+            <span className="font-serif italic font-normal bg-gradient-to-r from-purple-400 via-violet-300 to-indigo-300 bg-clip-text text-transparent">
               Exclusive 40% Launch Discount
             </span>
           </h1>
 
           <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto">
-            KDP Studio is the complete AI-powered publishing suite for Amazon Kindle Direct Publishing. Write with Gemini AI, auto-format interiors, and design covers in minutes.
+            KDP Studio is the complete AI-powered publishing suite for Amazon Kindle Direct Publishing. Write with Claude AI, auto-format interiors, and design covers in minutes.
           </p>
 
           {/* Product Hunt Custom Launch Badge */}
@@ -176,11 +177,12 @@ export const LaunchPageView: React.FC<LaunchPageViewProps> = ({ onNavigate }) =>
 
         </div>
       </section>
+      <SectionShadowTransition type="dark-to-white" />
 
-      {/* ── Feature Highlights for PH Audience ── */}
-      <section className="py-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      {/* ── Feature Highlights ── */}
+      <section className="py-16 sm:py-24 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         <div className="text-center space-y-3 max-w-2xl mx-auto">
-          <h2 className="text-3xl font-extrabold text-slate-900">
+          <h2 className="text-3xl font-extrabold text-slate-900 font-serif">
             Why Creators Choose KDP Studio
           </h2>
           <p className="text-slate-600 text-sm sm:text-base">

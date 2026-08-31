@@ -476,3 +476,77 @@ html {
   }
 }
 
+/* ==========================================================================
+   Editorial Typography & Premium Font Classes
+   ========================================================================== */
+
+.font-editorial {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.font-editorial-italic {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+}
+
+.font-garamond {
+  font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+}
+
+.font-display {
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+}
+
+.font-cinzel {
+  font-family: 'Cinzel', serif;
+}
+
+/* ==========================================================================
+   Medium Section-to-Section Atmospheric Shadow & Vignette Transition
+   ========================================================================== */
+
+.section-shadow-dark-to-light {
+  position: relative;
+}
+
+.section-shadow-dark-to-light::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 96px;
+  background: linear-gradient(180deg, transparent 0%, rgba(2, 6, 23, 0.4) 35%, rgba(2, 6, 23, 0.85) 75%, rgba(248, 250, 252, 0.95) 95%, #f8fafc 100%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.section-shadow-dark-to-white::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 96px;
+  background: linear-gradient(180deg, transparent 0%, rgba(2, 6, 23, 0.4) 35%, rgba(2, 6, 23, 0.85) 75%, rgba(255, 255, 255, 0.95) 95%, #ffffff 100%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.section-shadow-light-to-dark::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(180deg, transparent 0%, rgba(2, 6, 23, 0.15) 30%, rgba(2, 6, 23, 0.6) 70%, #020617 100%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Atmospheric medium ambient drop shadow divider component */
+.shadow-section-medium {
+  box-shadow: 0 20px 40px -12px rgba(2, 6, 23, 0.35);
+}
+

@@ -31,6 +31,7 @@ import { formatPrice } from '../../lib/geo';
 import { getLivePlanLimits, getLiveFeatureAccess } from '../../lib/planLimits';
 import { SEOHead } from '../seo/SEOHead';
 import { JsonLd } from '../seo/JsonLd';
+import { SectionShadowTransition } from './SectionShadowTransition';
 
 interface HomePageViewProps {
   onNavigate: (route: PageRoute) => void;
@@ -275,7 +276,7 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
       {/* ─────────────────────────────────────────────────────────────────────────────
           1. HERO SECTION (Tighter Vertical Spacing + Ambient Glow + Interactive Prompt)
          ───────────────────────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-slate-950 text-white pt-8 pb-12 sm:pt-12 sm:pb-16">
+      <section className="relative overflow-hidden bg-slate-950 text-white pt-12 pb-14 sm:pt-16 sm:pb-18 lg:pt-20 lg:pb-20">
         {/* Ambient Glows */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-purple-600/20 rounded-full blur-[140px] pointer-events-none" />
         <div className="absolute top-1/3 left-1/4 w-[400px] h-[250px] bg-indigo-600/15 rounded-full blur-[120px] pointer-events-none" />
@@ -301,9 +302,9 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
           </div>
 
           {/* Main Headline */}
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.08] max-w-4xl mx-auto">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.08] max-w-4xl mx-auto font-display">
             From Idea to Upload-Ready Book — <br className="hidden sm:inline" />
-            <span className="bg-gradient-to-r from-purple-300 via-violet-200 to-indigo-300 bg-clip-text text-transparent">
+            <span className="font-serif italic font-normal bg-gradient-to-r from-purple-300 via-violet-200 to-indigo-300 bg-clip-text text-transparent">
               The Complete AI Studio
             </span>
           </h1>
@@ -420,7 +421,11 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
           </div>
 
         </div>
+        
+        {/* Medium Atmospheric Shadow Vignette Transition (Dark-to-Light) */}
+        <div className="absolute bottom-0 left-0 right-0 h-16 sm:h-20 bg-gradient-to-b from-transparent via-slate-950/70 to-slate-950 pointer-events-none" />
       </section>
+      <SectionShadowTransition type="dark-to-light" />
 
       {/* ─────────────────────────────────────────────────────────────────────────────
           2. REAL BOOK PROOF: "Books We Actually Built With KDP Studio" (Single Compact Row)
@@ -433,8 +438,8 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
               <BadgeCheck size={13} className="text-emerald-600" />
               <span>Real Builds, Not Generic Mockups</span>
             </div>
-            <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
-              Books We Actually Built With It
+            <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight font-display">
+              Books We Actually <span className="font-serif italic font-normal text-purple-600">Built With KDP Studio</span>
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl mx-auto">
               Every book below was produced end-to-end inside KDP Studio — manuscript, formatted interior PDF, and spine-calculated wrap cover — passing our 100-point Amazon KDP pre-flight audit.
@@ -501,13 +506,15 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
         </div>
       </section>
 
+      <SectionShadowTransition type="light-to-dark" />
+
       {/* ─────────────────────────────────────────────────────────────────────────────
           3. INFINITE GENRE COVER MARQUEE (12+ Real Covers with Hover Lift)
          ───────────────────────────────────────────────────────────────────────────── */}
       <section className="py-16 bg-slate-950 text-white overflow-hidden relative">
         <div className="max-w-4xl mx-auto px-4 text-center mb-8 space-y-2">
-          <h2 className="text-2xl sm:text-4xl font-black tracking-tight">
-            Covers That Look Like You Hired a Top Agency
+          <h2 className="text-2xl sm:text-4xl font-black tracking-tight font-display">
+            Covers That Look Like You <span className="font-serif italic font-normal text-purple-400">Hired a Top Agency</span>
           </h2>
           <p className="text-xs sm:text-sm text-slate-400">
             Genre-aware artwork, clean typography, and precise spine calculations for every trim size and page count.
@@ -558,6 +565,8 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
         </div>
       </section>
 
+      <SectionShadowTransition type="dark-to-white" />
+
       {/* ─────────────────────────────────────────────────────────────────────────────
           4. THE COMPLETE PUBLISHING PACKAGE (1-Click Exploded ZIP View)
          ───────────────────────────────────────────────────────────────────────────── */}
@@ -569,8 +578,8 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
               <FolderArchive size={14} className="text-purple-600" />
               <span>1-Click Ready to Upload</span>
             </div>
-            <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
-              Everything You Need to Publish — In One ZIP
+            <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight font-display">
+              Everything You Need to Publish — <span className="font-serif italic font-normal text-purple-600">In One ZIP</span>
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl mx-auto">
               You don't just get a raw text file. You get a professionally formatted, pre-flight audited publishing bundle ready for instant Amazon KDP upload.
@@ -715,20 +724,23 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
         </div>
       </section>
 
+      <SectionShadowTransition type="white-to-dark" />
+
       {/* ─────────────────────────────────────────────────────────────────────────────
-          5. HOW IT WORKS SECTION (Classic 3-Step Dark Section - Linked from Footer)
+          5. HOW IT WORKS (3-Step Pipeline, Classic Dark #0f0f1a Section)
          ───────────────────────────────────────────────────────────────────────────── */}
-      <section id="how-it-works" className="py-20 sm:py-28 bg-[#0f0f1a] text-white border-b border-purple-900/40 scroll-mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+      <section id="how-it-works" className="py-20 sm:py-28 bg-[#0f0f1a] text-white relative overflow-hidden scroll-mt-16">
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-purple-600/15 rounded-full blur-[160px] pointer-events-none" />
+
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
           
-          {/* Header */}
-          <div className="text-center max-w-3xl mx-auto space-y-3">
-            <span className="text-purple-400 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-purple-950/60 border border-purple-800/40">
-              SIMPLE PUBLISHING PIPELINE
+          <div className="text-center max-w-3xl mx-auto space-y-4">
+            <span className="text-xs font-bold uppercase tracking-wider text-purple-400 bg-purple-950/70 px-3 py-1 rounded-full border border-purple-500/30">
+              Simple 3-Step Process
             </span>
-            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
-              From Idea to Published <br />
-              <span className="text-purple-400">In Three Steps</span>
+            <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight font-display">
+              From Blank Page to Amazon Shelf <br />
+              <span className="font-serif italic font-normal text-purple-400">In Three Simple Steps</span>
             </h2>
             <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto">
               Follow our proven 3-phase automated engine to launch your bestselling books on Amazon KDP in record time.
@@ -803,6 +815,7 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
 
         </div>
       </section>
+      <SectionShadowTransition type="dark-to-light" />
 
       {/* ─────────────────────────────────────────────────────────────────────────────
           6. SIX STEPS FROM IDEA TO PUBLISHED BOOK (Studio Pipeline)
@@ -815,8 +828,8 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
               <SlidersHorizontal size={14} className="text-indigo-600" />
               <span>Studio Pipeline</span>
             </div>
-            <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
-              Six Steps From Idea to Published Book
+            <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight font-display">
+              Six Steps From <span className="font-serif italic font-normal text-purple-600">Idea to Published Book</span>
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl mx-auto">
               You don't need publishing experience. Follow the guided step-by-step studio workflow.
@@ -928,8 +941,8 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
             <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black uppercase tracking-wider">
               Transparent Pricing
             </span>
-            <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
-              Start Free, Scale as You Publish
+            <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight font-display">
+              Start Free, Scale as <span className="font-serif italic font-normal text-purple-600">You Publish</span>
             </h2>
             <p className="text-sm text-slate-600">
               No hidden fees. 100% royalty ownership. Cancel anytime.
@@ -1121,6 +1134,8 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
         </div>
       </section>
 
+      <SectionShadowTransition type="white-to-dark" />
+
       {/* ─────────────────────────────────────────────────────────────────────────────
           8. FINAL CALL TO ACTION BANNER
          ───────────────────────────────────────────────────────────────────────────── */}
@@ -1128,8 +1143,8 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-purple-600/20 rounded-full blur-[120px] pointer-events-none" />
         
         <div className="relative max-w-4xl mx-auto px-4 text-center space-y-6">
-          <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
-            Ready to Publish Your Next Book?
+          <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight font-display">
+            Ready to Publish Your Next <span className="font-serif italic font-normal text-purple-400">Amazon Bestseller?</span>
           </h2>
           <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto">
             Join authors, publishers, and creators creating books with KDP Studio. Start with free credits today.

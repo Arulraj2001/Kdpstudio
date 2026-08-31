@@ -59,7 +59,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
             <div className="pt-1">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-800/90 text-slate-300 border border-slate-700/60">
-                <span>🇮🇳</span> Made in India · Powered by Google AI
+                <span>🇮🇳</span> Made in India · Built for KDP Creators
               </span>
             </div>
 
@@ -278,10 +278,10 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             © 2026 KDP Studio. All rights reserved.
           </div>
 
-          <div className="flex items-center gap-1 text-slate-400">
+          <div className="flex items-center gap-1.5 text-slate-400">
             <span>Made with</span>
-            <span className="text-red-500">❤️</span>
-            <span>using Google AI</span>
+            <span className="text-rose-500 animate-pulse">❤️</span>
+            <span>for KDP Authors &amp; Publishers</span>
           </div>
 
           <div className="flex items-center gap-2">

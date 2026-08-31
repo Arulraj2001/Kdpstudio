@@ -5,6 +5,8 @@ import { AdsenseLoader } from '../blog/AdsenseLoader';
 import { PageRoute } from '../../types';
 import { getAdConfigClient } from '../../lib/blog';
 
+import { ContactModal } from './ContactModal';
+
 interface PublicLayoutProps {
   currentRoute?: PageRoute;
   onNavigate: (route: PageRoute) => void;
@@ -36,6 +38,7 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({
       <PublicNavbar currentRoute={currentRoute} onNavigate={onNavigate} />
       <main className="flex-1 w-full">{children}</main>
       <Footer onNavigate={onNavigate} />
+      <ContactModal />
     </div>
   );
 };

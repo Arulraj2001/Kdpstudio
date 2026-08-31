@@ -29,6 +29,7 @@ import { PageRoute } from '../../types';
 import { useAuthStore } from '../../lib/authStore';
 import { SEOHead } from '../seo/SEOHead';
 import { JsonLd } from '../seo/JsonLd';
+import { SectionShadowTransition } from './SectionShadowTransition';
 
 interface FeaturesPageViewProps {
   onNavigate: (route: PageRoute) => void;
@@ -90,9 +91,9 @@ export const FeaturesPageView: React.FC<FeaturesPageViewProps> = ({ onNavigate }
             <span>Engineered specifically for Amazon KDP & Print-On-Demand Publishers</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-[1.1] max-w-4xl mx-auto">
+          <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-[1.1] max-w-4xl mx-auto font-display">
             Every Tool You Need to Build, <br className="hidden sm:inline" />
-            <span className="bg-gradient-to-r from-purple-300 via-violet-200 to-indigo-300 bg-clip-text text-transparent">
+            <span className="font-serif italic font-normal bg-gradient-to-r from-purple-300 via-violet-200 to-indigo-300 bg-clip-text text-transparent">
               Format & Publish Bestsellers
             </span>
           </h1>
@@ -118,6 +119,7 @@ export const FeaturesPageView: React.FC<FeaturesPageViewProps> = ({ onNavigate }
           </div>
         </div>
       </section>
+      <SectionShadowTransition type="dark-to-white" />
 
       {/* ─────────────────────────────────────────────────────────────────────────────
           2. DEEP FEATURE BREAKDOWN MODULES
@@ -131,8 +133,8 @@ export const FeaturesPageView: React.FC<FeaturesPageViewProps> = ({ onNavigate }
               <Cpu size={14} className="text-purple-600" />
               <span>Claude AI Core</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
-              AI Manuscript Studio with Consistent Author Voice
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight font-display">
+              AI Manuscript Studio with <span className="font-serif italic font-normal text-purple-600">Consistent Author Voice</span>
             </h2>
             <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
               Never get stuck on a blank page. Generate deeply researched book blueprints, complete 15+ chapter outlines, and draft prose chapter-by-chapter while retaining your established tone, target audience persona, and style guide.

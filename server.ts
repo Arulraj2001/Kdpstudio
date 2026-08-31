@@ -880,6 +880,39 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
+  // Contact Form Submission Endpoint
+  app.post('/api/contact', async (req, res) => {
+    try {
+      const { name, email, subject, message } = req.body || {};
+      if (!email || !message) {
+        return res.status(400).json({ error: 'Email and message are required' });
+      }
+
+      console.log(`[API /api/contact] Received inquiry from ${email} (${name || 'Anonymous'}): ${subject}`);
+      
+      // Store in firestore if admin initialized
+      if (admin && admin.firestore) {
+        try {
+          await admin.firestore().collection('contact_messages').add({
+            name: name || 'Anonymous',
+            email,
+            subject: subject || 'General',
+            message,
+            status: 'unread',
+            createdAt: new Date().toISOString(),
+          });
+        } catch (dbErr) {
+          console.warn('[API /api/contact] Firestore save error:', dbErr);
+        }
+      }
+
+      return res.json({ success: true, message: 'Message received successfully' });
+    } catch (err: any) {
+      console.error('[API /api/contact] Error:', err);
+      return res.status(500).json({ error: err?.message || 'Failed to process contact message' });
+    }
+  });
+
   // ─────────────────────────────────────────
   // Blog CMS API Endpoints (Phase 21 Prompt 1)
   // ─────────────────────────────────────────
