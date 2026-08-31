@@ -45,6 +45,39 @@
   animation: pulse-slow 8s ease-in-out infinite;
 }
 
+/* 3D Realistic Book Lighting & Infinite Marquee Animation */
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 45s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+.book-shadow {
+  box-shadow: 
+    -3px 0 6px -1px rgba(0, 0, 0, 0.25),
+    10px 14px 24px -3px rgba(15, 23, 42, 0.35),
+    0 4px 6px -2px rgba(0, 0, 0, 0.1);
+}
+
+.book-spine-highlight {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 18px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0.35) 45%, rgba(255,255,255,0.08) 85%, transparent 100%);
+  pointer-events: none;
+}
+
 /* ==========================================================================
    Editorial Blog Typography & Article Reader Styling (.prose-custom)
    ========================================================================== */

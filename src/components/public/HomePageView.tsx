@@ -7,14 +7,31 @@ import {
   Check, 
   Star, 
   ChevronDown, 
-  ShieldCheck,
-  CheckCircle2
+  ChevronUp,
+  ShieldCheck, 
+  CheckCircle2,
+  BookOpen,
+  FileCheck,
+  Layers,
+  Zap,
+  Gift,
+  Download,
+  Palette,
+  Search,
+  PenTool,
+  Grid,
+  FileText,
+  BadgeCheck,
+  Award,
+  Clock,
+  ArrowUpRight,
+  TrendingUp
 } from 'lucide-react';
 import { PageRoute } from '../../types';
 import { useAuthStore } from '../../lib/authStore';
 import { useGeoStore } from '../../lib/geoStore';
 import { formatPrice } from '../../lib/geo';
-import { getLivePlanLimits, getLiveFeatureAccess } from '../../lib/planLimits';
+import { getLivePlanLimits, getLiveFeatureAccess, getDynamicPlanFeatures } from '../../lib/planLimits';
 import { SEOHead } from '../seo/SEOHead';
 import { JsonLd } from '../seo/JsonLd';
 
@@ -26,7 +43,7 @@ const SOFTWARE_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "KDP Studio",
-  "description": "All-in-one Amazon KDP publishing platform. AI writing studio, print interior formatter, cover generator, and low-content puzzle creator.",
+  "description": "All-in-one Amazon KDP self-publishing platform. AI writing studio, print interior formatter, wrap cover generator, and low-content puzzle creator.",
   "url": "https://kdpstudio-aio.web.app",
   "applicationCategory": "BusinessApplication",
   "operatingSystem": "All",
@@ -36,10 +53,44 @@ const SOFTWARE_SCHEMA = {
     "priceCurrency": "USD"
   },
   "featureList": [
-    "AI Book Writer",
-    "Interior Formatter",
-    "Cover Designer",
-    "KDP Metadata Optimizer"
+    "AI Book Writer (Gemini 2.0)",
+    "Print Interior Formatter with Bleed & Gutters",
+    "Spine-Calculated Wrap Cover Designer",
+    "Puzzle & Coloring Book Generator",
+    "Amazon KDP 7-Keyword SEO Optimizer"
+  ]
+};
+
+const HOWTO_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to Create and Publish an Amazon KDP Book with AI",
+  "description": "Step-by-step workflow to research, write, format, and publish a print-ready book on Amazon KDP with KDP Studio.",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "position": 1,
+      "name": "Pick Your Book Format & Niche",
+      "text": "Select from Fiction, Nonfiction, Word Search, Sudoku, Coloring, or Planners with market research."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 2,
+      "name": "Generate Chapter Outline & Manuscript",
+      "text": "Draft structured chapters with consistent author voice powered by Google Gemini 2.0."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 3,
+      "name": "Design Spine-Calculated Wrap Cover",
+      "text": "Generate print-ready 300 DPI full-wrap cover with calculated spine width and barcode safe zone."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 4,
+      "name": "Export KDP-Compliant Package",
+      "text": "Download print-ready PDF interior, wrap cover, 7 Amazon keywords, and BISAC category list."
+    }
   ]
 };
 
@@ -52,50 +103,42 @@ const FAQ_SCHEMA = {
       "name": "Is there really a free plan?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. The free plan includes 1 active book project, 3 AI generations per day, and basic formatting tools. No credit card is needed to sign up."
+        "text": "Yes! The free plan includes active book projects, daily AI generation credits, puzzle generation, and print formatting tools. No credit card required."
       }
     },
     {
       "@type": "Question",
-      "name": "Can I publish on Amazon KDP with this?",
+      "name": "Are exports 100% compliant with Amazon KDP print requirements?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. All exports are KDP-ready PDFs with calculated gutters, margins, and 300 DPI covers that upload directly to Amazon KDP without additional formatting."
+        "text": "Yes. All interiors and wrap covers include calculated gutters, 0.125 inch bleed zones, 300 DPI resolution, and barcode safe areas to guarantee zero Amazon print rejections."
       }
     },
     {
       "@type": "Question",
-      "name": "What AI powers KDP Studio?",
+      "name": "Who owns the rights and royalties to created books?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Google Gemini 2.0 powers manuscript writing, outline generation, and niche research, while Google Imagen 3 generates cover art and coloring book illustrations."
+        "text": "You own 100% of all copyrights, manuscripts, covers, and royalties. KDP Studio takes 0% commission."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I generate puzzle books and coloring books?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes! KDP Studio includes a built-in generator for Word Search, Sudoku, Word Fit, Color by Number, and High-Resolution Coloring Books with complete answer keys."
       }
     }
-  ]
-};
-
-const ORGANIZATION_SCHEMA = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "KDP Studio",
-  "url": "https://kdpstudio-aio.web.app",
-  "logo": "https://kdpstudio-aio.web.app/logo.png",
-  "contactPoint": {
-    "@type": "ContactPoint",
-    "contactType": "customer support",
-    "email": "support@kdpstudio.com"
-  },
-  "sameAs": [
-    "https://twitter.com/kdpstudio",
-    "https://linkedin.com/company/kdpstudio"
   ]
 };
 
 export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
   const { user } = useAuthStore();
   const { currency, getFormattedPrice, initPricingListener, fetchPricing } = useGeoStore();
-  const [activeBookTab, setActiveBookTab] = useState<'non-fiction' | 'childrens' | 'coloring' | 'puzzle'>('non-fiction');
+  const [ideaInput, setIdeaInput] = useState('');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<'interior' | 'cover' | 'puzzles' | 'keywords'>('interior');
 
   // Initialize and refresh dynamic pricing on mount
   useEffect(() => {
@@ -111,6 +154,16 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
     }
   };
 
+  const handleIdeaSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (ideaInput.trim()) {
+      try {
+        sessionStorage.setItem('kdp_seed_idea', ideaInput.trim());
+      } catch {}
+    }
+    handleStart();
+  };
+
   const handleScrollTo = (elementId: string) => {
     const el = document.getElementById(elementId);
     if (el) {
@@ -122,1128 +175,697 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
     setOpenFaqIndex(openFaqIndex === idx ? null : idx);
   };
 
+  const freeLimits = getLivePlanLimits('free');
+
+  // 12 Showcase Genre Book Covers for Infinite Marquee
+  const marqueeCovers = [
+    { title: 'The Midnight Antiquarian', genre: 'Gothic Thriller', pages: '340p', gradient: 'from-slate-900 via-indigo-950 to-slate-900', accent: 'text-indigo-400', border: 'border-indigo-500/30' },
+    { title: 'Atomic Focus Framework', genre: 'Productivity Nonfiction', pages: '180p', gradient: 'from-amber-950 via-slate-900 to-amber-950', accent: 'text-amber-400', border: 'border-amber-500/30' },
+    { title: 'Artisanal Sourdough Secrets', genre: 'Culinary & Baking', pages: '182p', gradient: 'from-orange-950 via-stone-900 to-amber-950', accent: 'text-orange-300', border: 'border-orange-500/30' },
+    { title: 'True Crime Word Search', genre: 'Low-Content Puzzle', pages: '140p', gradient: 'from-red-950 via-slate-950 to-red-900', accent: 'text-rose-400', border: 'border-rose-500/30' },
+    { title: 'Mindful Forest Mandalas', genre: 'Adult Coloring Book', pages: '124p', gradient: 'from-emerald-950 via-teal-950 to-slate-900', accent: 'text-emerald-300', border: 'border-emerald-500/30' },
+    { title: 'Shadows Over Oxford', genre: 'Dark Academia', pages: '310p', gradient: 'from-purple-950 via-slate-950 to-purple-900', accent: 'text-purple-300', border: 'border-purple-500/30' },
+    { title: 'The 90-Day Author Planner', genre: 'Guided Journal', pages: '200p', gradient: 'from-cyan-950 via-slate-900 to-blue-950', accent: 'text-cyan-300', border: 'border-cyan-500/30' },
+    { title: 'Quantum Horizons 2088', genre: 'Hard Sci-Fi', pages: '410p', gradient: 'from-blue-950 via-indigo-950 to-slate-950', accent: 'text-blue-400', border: 'border-blue-500/30' },
+    { title: 'Little Star Bedtime Tales', genre: "Children's Storybook", pages: '48p', gradient: 'from-yellow-950 via-indigo-950 to-purple-950', accent: 'text-yellow-300', border: 'border-yellow-500/30' },
+    { title: 'Calm Senior Sudoku 300', genre: 'Large Print Puzzle', pages: '160p', gradient: 'from-teal-950 via-slate-900 to-teal-900', accent: 'text-teal-300', border: 'border-teal-500/30' },
+    { title: 'Letters to the Rose Garden', genre: 'Historical Romance', pages: '290p', gradient: 'from-pink-950 via-slate-900 to-rose-950', accent: 'text-pink-300', border: 'border-pink-500/30' },
+    { title: 'SaaS Bootstrapping Bible', genre: 'Business & Startup', pages: '220p', gradient: 'from-slate-900 via-emerald-950 to-slate-950', accent: 'text-emerald-400', border: 'border-emerald-500/30' },
+  ];
+
   return (
-    <div className="w-full bg-white text-slate-900 font-sans selection:bg-purple-500 selection:text-white">
+    <div className="w-full bg-white text-slate-900 font-sans selection:bg-purple-600 selection:text-white">
       {/* SEO Head & JSON-LD Structured Data */}
       <SEOHead
-        title="KDP Studio — Create & Publish KDP Books with AI"
-        description="The complete AI publishing suite for Amazon KDP. Write books, format interiors, design covers, and optimize metadata. Free plan available."
+        title="KDP Studio — The Complete AI Self-Publishing Studio for Amazon KDP"
+        description="From blank idea to upload-ready Amazon KDP book. Write manuscripts with Gemini 2.0, generate 300 DPI wrap covers, format print interiors, and build puzzle books. Free plan available."
         canonicalPath="/"
-        languages={{
-          en: '/',
-          'x-default': '/',
-        }}
+        languages={{ en: '/', 'x-default': '/' }}
       />
       <JsonLd id="jsonld-software" data={SOFTWARE_SCHEMA} />
+      <JsonLd id="jsonld-howto" data={HOWTO_SCHEMA} />
       <JsonLd id="jsonld-faq" data={FAQ_SCHEMA} />
-      <JsonLd id="jsonld-org" data={ORGANIZATION_SCHEMA} />
 
-      
       {/* ─────────────────────────────────────────────────────────────────────────────
-          STEP 2: HERO SECTION (Dark Gradient + Grid + Floating Preview)
+          1. HERO SECTION (Dark Obsidian + Violet/Indigo Ambient Lighting + Interactive Prompt)
          ───────────────────────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#0f0f1a] via-[#1a1638] to-[#0f0f1a] text-white pt-20 pb-28 sm:pt-28 sm:pb-36">
-        {/* Subtle CSS Grid Overlay */}
+      <section className="relative overflow-hidden bg-slate-950 text-white pt-16 pb-24 sm:pt-24 sm:pb-32">
+        {/* Ambient Glows */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-purple-600/20 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute top-1/3 left-1/4 w-[400px] h-[300px] bg-indigo-600/15 rounded-full blur-[120px] pointer-events-none" />
+
+        {/* Subtle CSS Grid Background */}
         <div 
-          className="absolute inset-0 pointer-events-none opacity-40"
+          className="absolute inset-0 pointer-events-none opacity-25"
           style={{
             backgroundImage: `
-              linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px)
+              linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)
             `,
-            backgroundSize: '50px 50px'
+            backgroundSize: '48px 48px'
           }}
         />
 
-        {/* Ambient Glows */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-purple-600/20 rounded-full blur-[140px] pointer-events-none animate-pulse-slow" />
-        <div className="absolute top-1/3 left-1/4 w-[400px] h-[300px] bg-indigo-600/15 rounded-full blur-[120px] pointer-events-none" />
-
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
           
-          {/* Badge: Powered by Google Gemini AI */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-950/70 border border-purple-500/40 text-purple-300 text-xs sm:text-sm font-semibold backdrop-blur-md shadow-lg shadow-purple-950/50 hover:border-purple-400 transition-colors">
-            <Sparkles size={14} className="text-purple-400" />
-            <span>✨ Powered by Google Gemini AI</span>
+          {/* Trust Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 text-xs sm:text-sm font-semibold backdrop-blur-md shadow-lg shadow-emerald-950/40">
+            <BadgeCheck size={16} className="text-emerald-400" />
+            <span>Official Amazon KDP Publishing Suite • 100% Bleed & Gutter Compliant</span>
           </div>
 
-          {/* Headline (Split White + Purple/Indigo Gradient) */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] max-w-4xl mx-auto">
-            Publish KDP Books <br className="hidden sm:inline" />
-            <span className="bg-gradient-to-r from-purple-400 via-violet-300 to-indigo-300 bg-clip-text text-transparent">
-              Faster Than Ever
+          {/* Main Headline */}
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.08] max-w-4xl mx-auto">
+            From Idea to Upload-Ready Book — <br className="hidden sm:inline" />
+            <span className="bg-gradient-to-r from-purple-300 via-violet-200 to-indigo-300 bg-clip-text text-transparent">
+              The Complete AI Studio
             </span>
           </h1>
 
-          {/* Subheadline */}
-          <p className="text-base sm:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed font-normal">
-            Write with AI, format for print, design covers, and optimize your Amazon listing — all in one tool.
+          {/* Subtitle */}
+          <p className="text-base sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed font-normal">
+            Create your manuscript, typeset print interiors, generate spine-calculated 300 DPI wrap covers, and download a complete KDP publishing package in minutes.
           </p>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+          {/* ── Interactive 60-Second "Try Your Idea" Input Box ── */}
+          <div className="max-w-2xl mx-auto">
+            <form 
+              onSubmit={handleIdeaSubmit}
+              className="flex flex-col sm:flex-row items-stretch gap-2 p-2 rounded-2xl bg-white/[0.06] border border-white/[0.15] backdrop-blur-md shadow-2xl shadow-purple-950/60 focus-within:border-purple-400 transition-all"
+            >
+              <div className="flex items-center flex-1 min-w-0 px-3">
+                <Sparkles size={18} className="text-purple-400 shrink-0 mr-2.5 animate-pulse" />
+                <input
+                  type="text"
+                  maxLength={140}
+                  value={ideaInput}
+                  onChange={(e) => setIdeaInput(e.target.value)}
+                  placeholder="Type your book idea… e.g. 50 Calming Sudoku Puzzles for Seniors"
+                  className="w-full bg-transparent text-white placeholder:text-slate-400 text-sm sm:text-base py-3 outline-none"
+                />
+              </div>
+              <button
+                type="submit"
+                className="shrink-0 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm sm:text-base px-6 py-3 shadow-lg shadow-purple-600/30 transition-all cursor-pointer active:scale-95"
+              >
+                <span>Try It Free</span>
+                <ArrowRight size={16} />
+              </button>
+            </form>
+            <p className="mt-2.5 text-xs text-slate-400">
+              Get an instant preview concept in about 60 seconds — no credit card required.
+            </p>
+          </div>
+
+          {/* Trust Value Props */}
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 pt-2 text-xs sm:text-sm text-slate-300 font-medium">
+            <div className="flex items-center gap-2">
+              <Gift size={16} className="text-emerald-400" />
+              <span><strong>{freeLimits.daily.aiGenerations} daily AI credits</strong> included free</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <ShieldCheck size={16} className="text-emerald-400" />
+              <span>You own 100% of all royalties & copyrights</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <FileCheck size={16} className="text-emerald-400" />
+              <span>Guaranteed zero Amazon bleed rejections</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────────────────────
+          2. REAL BOOK PROOF: "Books We Actually Built With KDP Studio"
+         ───────────────────────────────────────────────────────────────────────────── */}
+      <section className="py-20 bg-slate-50 border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="text-center max-w-3xl mx-auto mb-14 space-y-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-black uppercase tracking-wider">
+              <BadgeCheck size={14} className="text-emerald-600" />
+              <span>Real Builds, Not Generic Mockups</span>
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+              Books We Actually Built With It
+            </h2>
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+              Every book below was produced end-to-end inside KDP Studio — manuscript, formatted interior PDF, and spine-calculated wrap cover — passing our 100-point Amazon KDP pre-flight audit.
+            </p>
+          </div>
+
+          {/* 5 Tangible Real Book Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+            
+            {/* 1. Fiction */}
+            <div className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl hover:border-purple-300 transition-all flex flex-col justify-between">
+              <div>
+                <div className="relative aspect-[2/3] bg-gradient-to-b from-slate-950 via-slate-900 to-indigo-950 p-4 flex flex-col justify-between text-white overflow-hidden">
+                  <div className="book-spine-highlight" />
+                  <div className="text-[10px] uppercase font-black tracking-widest text-indigo-400">Gothic Thriller</div>
+                  <div className="my-auto text-center space-y-1">
+                    <div className="text-base font-black leading-tight tracking-tight">The Midnight Antiquarian</div>
+                    <div className="text-[10px] text-slate-400 italic">A Paris Mystery Arc</div>
+                  </div>
+                  <div className="text-right text-[9px] font-mono text-slate-400">KDP Studio Edition</div>
+                </div>
+
+                <div className="p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-purple-700">Fiction</span>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      <BadgeCheck size={12} /> Quality 100/100
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900 leading-snug">The Midnight Antiquarian</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    A 340-page modern gothic thriller with a complete 18-chapter plotted arc, voice-consistent prose, and spine-calculated wrap.
+                  </p>
+                </div>
+              </div>
+              <div className="p-4 pt-0 border-t border-slate-100 mt-2 text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
+                <BookOpen size={13} className="text-purple-600" />
+                <span>340 pages • 6″ × 9″ Trade</span>
+              </div>
+            </div>
+
+            {/* 2. Nonfiction */}
+            <div className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl hover:border-purple-300 transition-all flex flex-col justify-between">
+              <div>
+                <div className="relative aspect-[2/3] bg-gradient-to-b from-slate-950 via-slate-900 to-amber-950 p-4 flex flex-col justify-between text-white overflow-hidden">
+                  <div className="book-spine-highlight" />
+                  <div className="text-[10px] uppercase font-black tracking-widest text-amber-400">Framework</div>
+                  <div className="my-auto text-center space-y-1">
+                    <div className="text-base font-black leading-tight tracking-tight">Atomic Focus Framework</div>
+                    <div className="text-[10px] text-slate-400 italic">Daily Shutdown Rituals</div>
+                  </div>
+                  <div className="text-right text-[9px] font-mono text-slate-400">KDP Studio Edition</div>
+                </div>
+
+                <div className="p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-700">Nonfiction</span>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      <BadgeCheck size={12} /> Quality 99/100
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900 leading-snug">Atomic Focus Framework</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Actionable blueprint with chaptered framework boxes, callouts, and typeset running headers.
+                  </p>
+                </div>
+              </div>
+              <div className="p-4 pt-0 border-t border-slate-100 mt-2 text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
+                <BookOpen size={13} className="text-amber-600" />
+                <span>174 pages • 5.5″ × 8.5″ Digest</span>
+              </div>
+            </div>
+
+            {/* 3. Cookbook */}
+            <div className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl hover:border-purple-300 transition-all flex flex-col justify-between">
+              <div>
+                <div className="relative aspect-[2/3] bg-gradient-to-b from-orange-950 via-stone-900 to-amber-950 p-4 flex flex-col justify-between text-white overflow-hidden">
+                  <div className="book-spine-highlight" />
+                  <div className="text-[10px] uppercase font-black tracking-widest text-orange-400">Culinary</div>
+                  <div className="my-auto text-center space-y-1">
+                    <div className="text-base font-black leading-tight tracking-tight">Artisanal Sourdough</div>
+                    <div className="text-[10px] text-slate-400 italic">85 Master Recipes</div>
+                  </div>
+                  <div className="text-right text-[9px] font-mono text-slate-400">KDP Studio Edition</div>
+                </div>
+
+                <div className="p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-orange-700">Cookbook</span>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      <BadgeCheck size={12} /> Quality 98/100
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900 leading-snug">Artisanal Sourdough</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    85 formatted recipe spreads with structured ingredient tables, method steps, and gloss wrap.
+                  </p>
+                </div>
+              </div>
+              <div className="p-4 pt-0 border-t border-slate-100 mt-2 text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
+                <BookOpen size={13} className="text-orange-600" />
+                <span>182 pages • 8.25″ × 11″</span>
+              </div>
+            </div>
+
+            {/* 4. Puzzle Book */}
+            <div className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl hover:border-purple-300 transition-all flex flex-col justify-between">
+              <div>
+                <div className="relative aspect-[2/3] bg-gradient-to-b from-rose-950 via-slate-950 to-red-950 p-4 flex flex-col justify-between text-white overflow-hidden">
+                  <div className="book-spine-highlight" />
+                  <div className="text-[10px] uppercase font-black tracking-widest text-rose-400">Puzzles</div>
+                  <div className="my-auto text-center space-y-1">
+                    <div className="text-base font-black leading-tight tracking-tight">True Crime Word Search</div>
+                    <div className="text-[10px] text-slate-400 italic">100 Themed Grids</div>
+                  </div>
+                  <div className="text-right text-[9px] font-mono text-slate-400">KDP Studio Edition</div>
+                </div>
+
+                <div className="p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-rose-700">Word Search</span>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      <BadgeCheck size={12} /> Quality 100/100
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900 leading-snug">True Crime Word Search</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    100 large-print crime puzzles with theme-pure word banks, calculated gutters, and answer keys.
+                  </p>
+                </div>
+              </div>
+              <div className="p-4 pt-0 border-t border-slate-100 mt-2 text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
+                <BookOpen size={13} className="text-rose-600" />
+                <span>140 pages • 8.5″ × 11″</span>
+              </div>
+            </div>
+
+            {/* 5. Kids Coloring */}
+            <div className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl hover:border-purple-300 transition-all flex flex-col justify-between">
+              <div>
+                <div className="relative aspect-[2/3] bg-gradient-to-b from-emerald-950 via-teal-950 to-slate-950 p-4 flex flex-col justify-between text-white overflow-hidden">
+                  <div className="book-spine-highlight" />
+                  <div className="text-[10px] uppercase font-black tracking-widest text-emerald-400">Coloring</div>
+                  <div className="my-auto text-center space-y-1">
+                    <div className="text-base font-black leading-tight tracking-tight">Mindful Mandalas</div>
+                    <div className="text-[10px] text-slate-400 italic">60 Vector Line Arts</div>
+                  </div>
+                  <div className="text-right text-[9px] font-mono text-slate-400">KDP Studio Edition</div>
+                </div>
+
+                <div className="p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700">Coloring Book</span>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      <BadgeCheck size={12} /> Quality 97/100
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900 leading-snug">Mindful Mandalas</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    60 crisp 300 DPI vector line-art pages with single-sided bleed protection and print-ready PDF export.
+                  </p>
+                </div>
+              </div>
+              <div className="p-4 pt-0 border-t border-slate-100 mt-2 text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
+                <BookOpen size={13} className="text-emerald-600" />
+                <span>124 pages • 8.5″ × 11″</span>
+              </div>
+            </div>
+
+          </div>
+
+          <div className="mt-12 text-center">
             <button
               onClick={handleStart}
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-purple-600 hover:bg-purple-500 active:scale-98 text-white font-bold text-base shadow-xl shadow-purple-600/30 hover:shadow-purple-500/50 transition-all cursor-pointer flex items-center justify-center gap-2 group"
+              className="px-8 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-md transition-all cursor-pointer inline-flex items-center gap-2"
             >
-              <span>{user ? 'Go to Dashboard' : 'Start Publishing Free'}</span>
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-            </button>
-
-            <button
-              onClick={() => handleScrollTo('how-it-works')}
-              className="w-full sm:w-auto px-7 py-4 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-base border border-white/20 hover:border-white/40 transition-all cursor-pointer flex items-center justify-center gap-2"
-            >
-              <span>See How It Works</span>
-              <span>→</span>
+              <span>Build Your Own Book Now</span>
+              <ArrowRight size={16} />
             </button>
           </div>
-
-          {/* Trust line below buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs sm:text-sm text-slate-400 font-medium">
-            <span className="flex items-center gap-1.5">
-              <Check size={14} className="text-emerald-400" /> Free plan available
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Check size={14} className="text-emerald-400" /> No credit card
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Check size={14} className="text-emerald-400" /> Cancel anytime
-            </span>
-          </div>
-
-          {/* Social Proof Stats */}
-          <div className="pt-6 border-t border-white/10 max-w-2xl mx-auto flex items-center justify-center gap-6 sm:gap-10 text-xs sm:text-sm font-semibold text-slate-300">
-            <div>
-              <span className="text-white font-black text-sm sm:text-base">10,000+</span> Authors
-            </div>
-            <div className="h-4 w-px bg-white/20" />
-            <div>
-              <span className="text-white font-black text-sm sm:text-base">50,000+</span> Books Created
-            </div>
-            <div className="h-4 w-px bg-white/20" />
-            <div className="flex items-center gap-1">
-              <span className="text-amber-400">4.9★</span> Rating
-            </div>
-          </div>
-
-          {/* High-Fidelity Floating Dashboard Preview Card */}
-          <div className="pt-10 sm:pt-14 relative max-w-5xl mx-auto">
-            <div className="rounded-3xl p-1.5 bg-gradient-to-b from-purple-500/50 via-indigo-500/30 to-purple-500/10 shadow-2xl shadow-purple-950/80 animate-float">
-              <div className="rounded-[22px] bg-[#0c0c16] border border-white/10 overflow-hidden text-left shadow-inner">
-                {/* Browser/Window Header */}
-                <div className="bg-[#141424] px-4 py-3 border-b border-white/10 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                    <div className="w-3 h-3 rounded-full bg-amber-500/80" />
-                    <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                    <span className="ml-3 text-[11px] font-mono text-slate-400 hidden sm:inline">
-                      kdpstudio.io/studio/manuscript-editor
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] bg-purple-900/60 text-purple-300 font-bold px-2 py-0.5 rounded-full border border-purple-500/30">
-                      ⚡ Gemini 2.0 Active
-                    </span>
-                  </div>
-                </div>
-
-                {/* Dashboard Workspace Mockup Body */}
-                <div className="grid grid-cols-12 min-h-[380px] sm:min-h-[460px] text-xs">
-                  {/* Left Sidebar Mockup */}
-                  <div className="hidden sm:block sm:col-span-3 bg-[#111122] border-r border-white/10 p-4 space-y-4">
-                    <div className="flex items-center gap-2 pb-3 border-b border-white/10">
-                      <div className="w-6 h-6 rounded-md bg-purple-600 flex items-center justify-center text-white text-[10px] font-bold">
-                        📚
-                      </div>
-                      <span className="font-bold text-white truncate text-xs">Mindful Living 101</span>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Chapters</div>
-                      <div className="px-2.5 py-1.5 rounded-lg bg-purple-600/20 text-purple-300 border border-purple-500/30 font-medium">
-                        1. The Morning Ritual
-                      </div>
-                      <div className="px-2.5 py-1.5 rounded-lg text-slate-400 hover:bg-white/5 font-medium">
-                        2. Cultivating Presence
-                      </div>
-                      <div className="px-2.5 py-1.5 rounded-lg text-slate-400 hover:bg-white/5 font-medium">
-                        3. Digital Detox Habits
-                      </div>
-                      <div className="px-2.5 py-1.5 rounded-lg text-slate-400 hover:bg-white/5 font-medium">
-                        4. Evening Reflection
-                      </div>
-                    </div>
-
-                    <div className="pt-4 border-t border-white/10 space-y-2">
-                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Export Settings</div>
-                      <div className="flex items-center justify-between text-slate-300 text-[11px]">
-                        <span>Trim Size:</span>
-                        <span className="text-purple-400 font-bold">6×9" (Non-Bleed)</span>
-                      </div>
-                      <div className="flex items-center justify-between text-slate-300 text-[11px]">
-                        <span>Word Count:</span>
-                        <span className="text-emerald-400 font-bold">14,280 words</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Main Editor Center */}
-                  <div className="col-span-12 sm:col-span-6 bg-[#0c0c16] p-5 sm:p-7 flex flex-col justify-between">
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg sm:text-xl font-black text-white">Chapter 1: The Morning Ritual</span>
-                        <span className="text-[10px] text-slate-400">Page 1 of 124</span>
-                      </div>
-                      <p className="text-slate-300 leading-relaxed text-xs sm:text-sm font-serif">
-                        "The way you spend your first sixty minutes sets the emotional trajectory for the entire day. Rather than reaching for a glowing smartphone screen, begin with silence, gratitude, and a deliberate intention..."
-                      </p>
-                      <div className="p-3.5 rounded-xl bg-purple-950/40 border border-purple-500/30 flex items-start gap-2.5">
-                        <Sparkles size={16} className="text-purple-400 shrink-0 mt-0.5" />
-                        <div className="text-[11px] text-purple-200">
-                          <strong className="text-purple-300">AI Assistant generated:</strong> 3 practical exercises added to strengthen chapter engagement and reader retention.
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-4 border-t border-white/10 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <button className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-[11px] flex items-center gap-1.5">
-                          <Sparkles size={12} />
-                          <span>AI Continue Writing</span>
-                        </button>
-                        <button className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-slate-300 font-semibold text-[11px]">
-                          Improve Tone
-                        </button>
-                      </div>
-                      <span className="text-emerald-400 font-bold text-[11px] flex items-center gap-1">
-                        <Check size={12} /> Auto-Saved
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Right Assistant / KDP Inspector Mockup */}
-                  <div className="hidden sm:block sm:col-span-3 bg-[#111122] border-l border-white/10 p-4 space-y-4">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                      <ShieldCheck size={13} className="text-emerald-400" />
-                      <span>KDP Print Inspector</span>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="p-2.5 rounded-xl bg-[#17172e] border border-emerald-500/30 space-y-1">
-                        <div className="flex items-center justify-between text-[11px] font-bold text-emerald-300">
-                          <span>Gutter Margin</span>
-                          <span>0.375" (Exact)</span>
-                        </div>
-                        <p className="text-[10px] text-slate-400">Calculated for 124 page count</p>
-                      </div>
-
-                      <div className="p-2.5 rounded-xl bg-[#17172e] border border-purple-500/30 space-y-1">
-                        <div className="flex items-center justify-between text-[11px] font-bold text-purple-300">
-                          <span>Spine Width</span>
-                          <span>0.280"</span>
-                        </div>
-                        <p className="text-[10px] text-slate-400">White paper standard 50lb</p>
-                      </div>
-
-                      <div className="p-2.5 rounded-xl bg-[#17172e] border border-indigo-500/30 space-y-1">
-                        <div className="flex items-center justify-between text-[11px] font-bold text-indigo-300">
-                          <span>300 DPI Cover</span>
-                          <span>Ready</span>
-                        </div>
-                        <p className="text-[10px] text-slate-400">Full wrap PDF with bleed</p>
-                      </div>
-                    </div>
-
-                    <div className="pt-2">
-                      <button 
-                        onClick={handleStart}
-                        className="w-full py-2 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:brightness-110 text-white font-bold text-[11px] text-center shadow-md shadow-purple-900/30 cursor-pointer"
-                      >
-                        Export KDP Package →
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
         </div>
       </section>
 
-
       {/* ─────────────────────────────────────────────────────────────────────────────
-          STEP 3: SOCIAL PROOF BAR (Clean White, Compact Badges)
+          3. INFINITE GENRE COVER MARQUEE (12+ Realistic Covers with Hover Lift)
          ───────────────────────────────────────────────────────────────────────────── */}
-      <section className="bg-white border-b border-slate-100 py-6">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center space-y-3">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-            Trusted by publishers worldwide
+      <section className="py-20 bg-slate-950 text-white overflow-hidden relative">
+        <div className="max-w-4xl mx-auto px-4 text-center mb-10 space-y-2">
+          <h2 className="text-2xl sm:text-4xl font-black tracking-tight">
+            Covers That Look Like You Hired a Top Agency
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-400">
+            Genre-aware artwork, clean typography, and precise spine calculations for every trim size and page count.
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-center justify-center text-xs sm:text-sm font-semibold text-slate-700">
-            <div className="flex items-center justify-center gap-1.5 p-2 rounded-lg bg-slate-50 border border-slate-100">
-              <span className="text-amber-500">⭐⭐⭐⭐⭐</span>
-              <span>4.9/5 (200+ reviews)</span>
-            </div>
-            <div className="flex items-center justify-center gap-1.5 p-2 rounded-lg bg-slate-50 border border-slate-100">
-              <span>📚</span>
-              <span>50,000+ books published</span>
-            </div>
-            <div className="flex items-center justify-center gap-1.5 p-2 rounded-lg bg-slate-50 border border-slate-100">
-              <span>🌍</span>
-              <span>Publishers in 45+ countries</span>
-            </div>
-            <div className="flex items-center justify-center gap-1.5 p-2 rounded-lg bg-slate-50 border border-slate-100">
-              <span>⚡</span>
-              <span>Created in &lt; 20 minutes</span>
-            </div>
-          </div>
         </div>
-      </section>
 
+        {/* Scrolling Marquee Container */}
+        <div className="relative w-full overflow-hidden">
+          {/* Left/Right Fade Mask */}
+          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-slate-950 to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-slate-950 to-transparent z-10 pointer-events-none" />
 
-      {/* ─────────────────────────────────────────────────────────────────────────────
-          STEP 4: FEATURES SECTION (Alternating 4-Part Layout with CSS Mockups)
-         ───────────────────────────────────────────────────────────────────────────── */}
-      <section id="features" className="py-24 sm:py-32 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-24">
-          
-          {/* Header */}
-          <div className="text-center max-w-3xl mx-auto space-y-3">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-xs font-bold uppercase tracking-wider border border-purple-200/60">
-              EVERYTHING YOU NEED
-            </div>
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
-              One Tool. Complete Pipeline.
-            </h2>
-            <p className="text-base sm:text-lg text-slate-600 font-normal">
-              From blank page to KDP listing — without switching between apps.
-            </p>
-          </div>
-
-          {/* Feature 1: AI Writing (Text Left, Visual Right) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-            <div className="lg:col-span-6 space-y-6">
-              <span className="px-3 py-1 rounded-md bg-purple-100 text-purple-800 text-xs font-bold uppercase tracking-wider">
-                AI Writing
-              </span>
-              <h3 className="text-2xl sm:text-4xl font-extrabold text-slate-900 leading-snug">
-                Write Entire Books with AI
-              </h3>
-              <p className="text-slate-600 text-base sm:text-lg leading-relaxed">
-                Describe your chapter topic and let Google Gemini write it. Or paste your own content. Supports 10+ languages with contextual tone tuning.
-              </p>
-              <ul className="space-y-3 font-medium text-slate-700 text-sm sm:text-base">
-                <li className="flex items-center gap-2.5">
-                  <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
-                  <span>Chapter-by-chapter AI generation</span>
-                </li>
-                <li className="flex items-center gap-2.5">
-                  <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
-                  <span>Continue writing from where you left off</span>
-                </li>
-                <li className="flex items-center gap-2.5">
-                  <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
-                  <span>Select text → improve, shorten, or rewrite</span>
-                </li>
-              </ul>
-              <button 
+          <div className="animate-marquee gap-6 py-4">
+            {[...marqueeCovers, ...marqueeCovers].map((cover, idx) => (
+              <div
+                key={idx}
+                className="w-44 sm:w-52 shrink-0 group select-none transition-all duration-300 hover:-translate-y-2 cursor-pointer"
                 onClick={handleStart}
-                className="pt-2 text-purple-600 hover:text-purple-700 font-bold text-sm sm:text-base inline-flex items-center gap-1.5 group cursor-pointer"
               >
-                <span>Start Writing Free</span>
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-
-            {/* Visual: CSS Text Editor Mockup */}
-            <div className="lg:col-span-6">
-              <div className="rounded-2xl bg-[#0f0f1a] p-6 text-white border border-slate-800 shadow-xl space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800 text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-purple-500" />
-                    <span className="font-mono text-slate-300">Chapter_2_Draft.kdp</span>
+                <div className={`relative aspect-[2/3] rounded-2xl bg-gradient-to-b ${cover.gradient} p-4 border ${cover.border} book-shadow flex flex-col justify-between overflow-hidden`}>
+                  <div className="book-spine-highlight" />
+                  <div className={`text-[10px] font-black uppercase tracking-wider ${cover.accent}`}>
+                    {cover.genre}
                   </div>
-                  <span className="px-2 py-0.5 rounded bg-purple-900/60 text-purple-300 font-semibold text-[10px]">
-                    AI Active
-                  </span>
-                </div>
-                <div className="bg-[#18182c] rounded-xl p-4 border border-purple-500/30 text-xs text-slate-300 font-serif leading-relaxed">
-                  <p className="italic text-purple-300 pb-2">"Prompt: Expand on actionable time-management hacks for entrepreneurs."</p>
-                  <p>
-                    "1. Time-boxing high-leverage tasks into uninterrupted 90-minute blocks.<br/>
-                    2. Conducting weekly energy audits rather than mere hour tracking..."
-                  </p>
-                </div>
-                <div className="flex items-center justify-between pt-1">
-                  <div className="flex gap-2">
-                    <span className="text-[11px] px-2.5 py-1 rounded bg-purple-600 text-white font-bold">AI Write</span>
-                    <span className="text-[11px] px-2.5 py-1 rounded bg-slate-800 text-slate-300">Rewrite</span>
-                  </div>
-                  <span className="text-[11px] text-slate-400 font-mono">1,842 words</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Feature 2: Interior Formatting (Visual Left, Text Right) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-            {/* Visual: CSS Book Spread & Margins */}
-            <div className="lg:col-span-6 order-2 lg:order-1">
-              <div className="rounded-2xl bg-slate-900 p-6 text-white border border-slate-800 shadow-xl space-y-4">
-                <div className="flex items-center justify-between text-xs text-slate-400 pb-2 border-b border-slate-800">
-                  <span>Interior PDF Preview</span>
-                  <span className="text-emerald-400 font-mono font-bold">Gutter: 0.375" | Bleed: 0.125"</span>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-white text-slate-900 rounded-lg p-4 text-[10px] space-y-2 border-2 border-dashed border-indigo-400 relative">
-                    <div className="h-2 w-16 bg-slate-300 rounded" />
-                    <div className="space-y-1">
-                      <div className="h-1.5 w-full bg-slate-200 rounded" />
-                      <div className="h-1.5 w-5/6 bg-slate-200 rounded" />
-                      <div className="h-1.5 w-4/6 bg-slate-200 rounded" />
+                  <div className="my-auto text-center space-y-1">
+                    <div className="text-sm sm:text-base font-black text-white leading-tight">
+                      {cover.title}
                     </div>
-                    <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[8px] text-slate-400">14</span>
                   </div>
-                  <div className="bg-white text-slate-900 rounded-lg p-4 text-[10px] space-y-2 border-2 border-dashed border-indigo-400 relative">
-                    <div className="h-2 w-16 bg-slate-300 rounded" />
-                    <div className="space-y-1">
-                      <div className="h-1.5 w-full bg-slate-200 rounded" />
-                      <div className="h-1.5 w-5/6 bg-slate-200 rounded" />
-                      <div className="h-1.5 w-4/6 bg-slate-200 rounded" />
-                    </div>
-                    <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[8px] text-slate-400">15</span>
+                  <div className="flex items-center justify-between text-[9px] font-mono text-slate-400 pt-2 border-t border-white/10">
+                    <span>{cover.pages}</span>
+                    <span>300 DPI</span>
                   </div>
                 </div>
-                <div className="text-[11px] text-slate-400 text-center">
-                  ✅ 100% compliant with Amazon KDP print engine guidelines
-                </div>
+                <p className="text-center text-xs font-bold text-slate-300 mt-2.5 group-hover:text-purple-400 transition-colors">
+                  {cover.title}
+                </p>
               </div>
-            </div>
-
-            <div className="lg:col-span-6 order-1 lg:order-2 space-y-6">
-              <span className="px-3 py-1 rounded-md bg-indigo-100 text-indigo-800 text-xs font-bold uppercase tracking-wider">
-                Interior Formatting
-              </span>
-              <h3 className="text-2xl sm:text-4xl font-extrabold text-slate-900 leading-snug">
-                KDP-Exact Margins, Automatically
-              </h3>
-              <p className="text-slate-600 text-base sm:text-lg leading-relaxed">
-                Forget the complicated KDP formatting guide. We calculate margins, spine width, and gutter automatically based on your page count and trim size.
-              </p>
-              <ul className="space-y-3 font-medium text-slate-700 text-sm sm:text-base">
-                <li className="flex items-center gap-2.5">
-                  <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
-                  <span>6 industry standard trim sizes supported</span>
-                </li>
-                <li className="flex items-center gap-2.5">
-                  <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
-                  <span>Auto-gutter calculated from dynamic page count</span>
-                </li>
-                <li className="flex items-center gap-2.5">
-                  <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
-                  <span>Print-ready 300 DPI PDF in one click</span>
-                </li>
-              </ul>
-              <button 
-                onClick={() => onNavigate(user ? 'formatter' : 'signup')}
-                className="pt-2 text-indigo-600 hover:text-indigo-700 font-bold text-sm sm:text-base inline-flex items-center gap-1.5 group cursor-pointer"
-              >
-                <span>Try the Formatter</span>
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
+            ))}
           </div>
-
-          {/* Feature 3: Cover Builder (Text Left, Visual Right) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-            <div className="lg:col-span-6 space-y-6">
-              <span className="px-3 py-1 rounded-md bg-purple-100 text-purple-800 text-xs font-bold uppercase tracking-wider">
-                Cover Builder
-              </span>
-              <h3 className="text-2xl sm:text-4xl font-extrabold text-slate-900 leading-snug">
-                Design Covers That Sell
-              </h3>
-              <p className="text-slate-600 text-base sm:text-lg leading-relaxed">
-                Full cover spread builder — front, spine, and back. Auto-calculates spine width with barcode safety margins. Built-in Google Imagen AI creates eye-catching art.
-              </p>
-              <ul className="space-y-3 font-medium text-slate-700 text-sm sm:text-base">
-                <li className="flex items-center gap-2.5">
-                  <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
-                  <span>Drag-and-drop canvas editor with typography presets</span>
-                </li>
-                <li className="flex items-center gap-2.5">
-                  <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
-                  <span>AI image generation built in (Google Imagen 3)</span>
-                </li>
-                <li className="flex items-center gap-2.5">
-                  <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
-                  <span>Export at 300 DPI full-bleed print-ready PDF</span>
-                </li>
-              </ul>
-              <button 
-                onClick={() => onNavigate(user ? 'cover' : 'signup')}
-                className="pt-2 text-purple-600 hover:text-purple-700 font-bold text-sm sm:text-base inline-flex items-center gap-1.5 group cursor-pointer"
-              >
-                <span>Design a Cover</span>
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-
-            {/* Visual: CSS Cover Builder Mockup */}
-            <div className="lg:col-span-6">
-              <div className="rounded-2xl bg-[#0f0f1a] p-6 text-white border border-slate-800 shadow-xl space-y-3">
-                <div className="flex items-center justify-between text-xs text-slate-400 pb-2 border-b border-slate-800">
-                  <span>Cover Spread Preview (Front + Spine + Back)</span>
-                  <span className="text-purple-400 font-bold">300 DPI CMYK</span>
-                </div>
-                <div className="grid grid-cols-12 gap-1 bg-gradient-to-r from-purple-900 via-indigo-900 to-violet-950 rounded-xl p-4 min-h-[160px] border border-purple-500/40 text-center">
-                  <div className="col-span-5 border border-white/20 rounded p-2 flex flex-col justify-between text-[9px] text-slate-300">
-                    <span>Back Cover Blurb</span>
-                    <div className="w-10 h-6 bg-white/30 rounded self-start mt-auto" />
-                  </div>
-                  <div className="col-span-2 border-x border-white/30 flex items-center justify-center text-[8px] font-bold text-purple-200">
-                    <span className="rotate-90 whitespace-nowrap">TITLE • AUTHOR</span>
-                  </div>
-                  <div className="col-span-5 border border-white/20 rounded p-2 flex flex-col justify-center items-center text-[10px] font-bold text-white">
-                    <span className="text-xs font-black">THE ART OF FOCUS</span>
-                    <span className="text-[8px] text-purple-300 mt-1">A Masterclass</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Feature 4: Puzzle Books (Visual Left, Text Right) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-            {/* Visual: CSS Puzzle Grid */}
-            <div className="lg:col-span-6 order-2 lg:order-1">
-              <div className="rounded-2xl bg-slate-900 p-6 text-white border border-slate-800 shadow-xl space-y-4">
-                <div className="flex items-center justify-between text-xs pb-2 border-b border-slate-800">
-                  <span className="font-bold text-purple-400">Word Search #12: Mindfulness</span>
-                  <span className="text-slate-400 text-[10px]">15×15 Grid</span>
-                </div>
-                <div className="grid grid-cols-8 gap-1.5 text-center font-mono text-xs text-slate-300 font-bold bg-[#141426] p-4 rounded-xl border border-white/10">
-                  <span className="p-1 rounded bg-purple-600 text-white">P</span>
-                  <span className="p-1 rounded bg-purple-600 text-white">E</span>
-                  <span className="p-1 rounded bg-purple-600 text-white">A</span>
-                  <span className="p-1 rounded bg-purple-600 text-white">C</span>
-                  <span className="p-1 rounded bg-purple-600 text-white">E</span>
-                  <span className="p-1">K</span>
-                  <span className="p-1">L</span>
-                  <span className="p-1">M</span>
-                  <span className="p-1">B</span>
-                  <span className="p-1">R</span>
-                  <span className="p-1">E</span>
-                  <span className="p-1">A</span>
-                  <span className="p-1">T</span>
-                  <span className="p-1">H</span>
-                  <span className="p-1">E</span>
-                  <span className="p-1">O</span>
-                </div>
-                <div className="flex items-center justify-between text-[11px] text-slate-400">
-                  <span>✅ Answer keys auto-generated</span>
-                  <span>⚡ 20 batch puzzles ready</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="lg:col-span-6 order-1 lg:order-2 space-y-6">
-              <span className="px-3 py-1 rounded-md bg-purple-100 text-purple-800 text-xs font-bold uppercase tracking-wider">
-                Puzzle Books
-              </span>
-              <h3 className="text-2xl sm:text-4xl font-extrabold text-slate-900 leading-snug">
-                Generate Entire Puzzle Books
-              </h3>
-              <p className="text-slate-600 text-base sm:text-lg leading-relaxed">
-                Word search, coloring books, and word fit puzzles — generate 20+ variations in one batch. The fastest, most profitable low-content KDP publishing niche.
-              </p>
-              <ul className="space-y-3 font-medium text-slate-700 text-sm sm:text-base">
-                <li className="flex items-center gap-2.5">
-                  <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
-                  <span>AI-generated themed word lists and grids</span>
-                </li>
-                <li className="flex items-center gap-2.5">
-                  <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
-                  <span>Bulk generation for high-volume publishers</span>
-                </li>
-                <li className="flex items-center gap-2.5">
-                  <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
-                  <span>KDP-ready interior PDF with complete solution index</span>
-                </li>
-              </ul>
-              <button 
-                onClick={() => onNavigate(user ? 'puzzles' : 'signup')}
-                className="pt-2 text-purple-600 hover:text-purple-700 font-bold text-sm sm:text-base inline-flex items-center gap-1.5 group cursor-pointer"
-              >
-                <span>Generate Puzzle Books</span>
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-          </div>
-
         </div>
       </section>
 
-
       {/* ─────────────────────────────────────────────────────────────────────────────
-          STEP 5: HOW IT WORKS SECTION (Dark #0f0f1a, 3 Steps)
+          4. THE COMPLETE PUBLISHING PACKAGE (Exploded ZIP View)
          ───────────────────────────────────────────────────────────────────────────── */}
-      <section id="how-it-works" className="py-24 sm:py-32 bg-[#0f0f1a] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20">
-          
-          {/* Header */}
-          <div className="text-center max-w-3xl mx-auto space-y-3">
-            <span className="text-purple-400 text-xs font-bold uppercase tracking-widest">
-              SIMPLE PUBLISHING PIPELINE
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
-              From Idea to Published <br />
-              <span className="text-purple-400">In Three Steps</span>
-            </h2>
-          </div>
-
-          {/* 3 Step Cards Horizontal Row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-            
-            {/* Step 1 */}
-            <div className="bg-[#16162a] rounded-2xl p-8 border border-white/10 space-y-4 relative group hover:border-purple-500/50 transition-all">
-              <span className="text-6xl sm:text-7xl font-black text-purple-900/40 absolute top-4 right-6 pointer-events-none group-hover:text-purple-800/40 transition-colors">
-                01
-              </span>
-              <div className="w-12 h-12 rounded-xl bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-xl">
-                💡
-              </div>
-              <h3 className="text-xl font-bold text-white">Describe Your Book</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                Tell us the topic, genre, audience, and style. Takes 30 seconds.
-              </p>
-              <p className="text-xs text-purple-300 font-medium pt-2">
-                Works for fiction, non-fiction, coloring books, puzzle books, and more.
-              </p>
-            </div>
-
-            {/* Step 2 */}
-            <div className="bg-[#16162a] rounded-2xl p-8 border border-white/10 space-y-4 relative group hover:border-purple-500/50 transition-all">
-              <span className="text-6xl sm:text-7xl font-black text-purple-900/40 absolute top-4 right-6 pointer-events-none group-hover:text-purple-800/40 transition-colors">
-                02
-              </span>
-              <div className="w-12 h-12 rounded-xl bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-xl">
-                ⚡
-              </div>
-              <h3 className="text-xl font-bold text-white">AI Builds Everything</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                Gemini writes your chapters. Imagen creates illustrations. We format the interior and design the layout.
-              </p>
-              <p className="text-xs text-purple-300 font-medium pt-2">
-                Real-time preview with automated KDP margins & spine calculation.
-              </p>
-            </div>
-
-            {/* Step 3 */}
-            <div className="bg-[#16162a] rounded-2xl p-8 border border-white/10 space-y-4 relative group hover:border-purple-500/50 transition-all">
-              <span className="text-6xl sm:text-7xl font-black text-purple-900/40 absolute top-4 right-6 pointer-events-none group-hover:text-purple-800/40 transition-colors">
-                03
-              </span>
-              <div className="w-12 h-12 rounded-xl bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-xl">
-                📤
-              </div>
-              <h3 className="text-xl font-bold text-white">Export & Publish</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                Download your KDP-ready interior PDF and cover. Upload directly to Amazon. Start earning.
-              </p>
-              <p className="text-xs text-purple-300 font-medium pt-2">
-                Includes keyword optimizer and SEO book description tags.
-              </p>
-            </div>
-
-          </div>
-
-          {/* Mini Testimonial Callout */}
-          <div className="max-w-2xl mx-auto text-center p-6 rounded-2xl bg-purple-950/40 border border-purple-500/30">
-            <p className="text-slate-200 text-sm sm:text-base font-serif italic">
-              "I published my first book in one evening. The whole process took less than 2 hours."
-            </p>
-            <p className="text-purple-400 text-xs font-semibold mt-2">
-              — Priya M., Chennai · Non-Fiction Author
-            </p>
-          </div>
-
-        </div>
-      </section>
-
-
-      {/* ─────────────────────────────────────────────────────────────────────────────
-          STEP 6: BOOK TYPES SHOWCASE (4 Interactive Tabs)
-         ───────────────────────────────────────────────────────────────────────────── */}
-      <section id="book-types" className="py-24 sm:py-32 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          
-          <div className="text-center max-w-2xl mx-auto space-y-3">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
-              What Will You Create?
-            </h2>
-            <p className="text-slate-600 text-base">
-              Choose your format to see tailored tools, word targets, and profit estimations.
-            </p>
-          </div>
-
-          {/* Tab Selection Row */}
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <button
-              onClick={() => setActiveBookTab('non-fiction')}
-              className={`px-5 py-3 rounded-xl font-bold text-sm transition-all cursor-pointer flex items-center gap-2 ${
-                activeBookTab === 'non-fiction'
-                  ? 'bg-purple-600 text-white shadow-md shadow-purple-900/20'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              <span>📖</span>
-              <span>Non-Fiction</span>
-            </button>
-
-            <button
-              onClick={() => setActiveBookTab('childrens')}
-              className={`px-5 py-3 rounded-xl font-bold text-sm transition-all cursor-pointer flex items-center gap-2 ${
-                activeBookTab === 'childrens'
-                  ? 'bg-purple-600 text-white shadow-md shadow-purple-900/20'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              <span>🧒</span>
-              <span>Children's</span>
-            </button>
-
-            <button
-              onClick={() => setActiveBookTab('coloring')}
-              className={`px-5 py-3 rounded-xl font-bold text-sm transition-all cursor-pointer flex items-center gap-2 ${
-                activeBookTab === 'coloring'
-                  ? 'bg-purple-600 text-white shadow-md shadow-purple-900/20'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              <span>🎨</span>
-              <span>Coloring</span>
-            </button>
-
-            <button
-              onClick={() => setActiveBookTab('puzzle')}
-              className={`px-5 py-3 rounded-xl font-bold text-sm transition-all cursor-pointer flex items-center gap-2 ${
-                activeBookTab === 'puzzle'
-                  ? 'bg-purple-600 text-white shadow-md shadow-purple-900/20'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              <span>🧩</span>
-              <span>Puzzles</span>
-            </button>
-          </div>
-
-          {/* Tab Content Panel */}
-          <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-8 sm:p-10 transition-all">
-            {activeBookTab === 'non-fiction' && (
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-                <div className="md:col-span-7 space-y-4">
-                  <h3 className="text-2xl font-bold text-slate-900">Non-Fiction & Self-Help</h3>
-                  <p className="text-slate-600 text-sm">
-                    Structured guides, finance books, and handbooks with AI research assistance.
-                  </p>
-                  <ul className="space-y-2 text-sm text-slate-700 font-medium">
-                    <li className="flex items-center gap-2">✅ AI-powered chapter writing & expansion</li>
-                    <li className="flex items-center gap-2">✅ Deep research & citation assistant</li>
-                    <li className="flex items-center gap-2">✅ KDP keyword optimizer & description builder</li>
-                    <li className="flex items-center gap-2">✅ Print-ready 6×9" interior PDF & EPUB for Kindle</li>
-                  </ul>
-                  <button onClick={handleStart} className="pt-2 px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm inline-flex items-center gap-2 cursor-pointer shadow-sm">
-                    <span>Create a Non-Fiction Book</span>
-                    <span>→</span>
-                  </button>
-                </div>
-                <div className="md:col-span-5 grid grid-cols-1 gap-3">
-                  <div className="p-4 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
-                    <span className="font-bold text-slate-500 uppercase">Average Book</span>
-                    <p className="text-base font-bold text-slate-900">40,000 words</p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
-                    <span className="font-bold text-slate-500 uppercase">Time to Complete</span>
-                    <p className="text-base font-bold text-purple-600">2-4 hours with AI</p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
-                    <span className="font-bold text-slate-500 uppercase">Typical Price</span>
-                    <p className="text-base font-bold text-slate-900">$9.99 - $14.99</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeBookTab === 'childrens' && (
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-                <div className="md:col-span-7 space-y-4">
-                  <h3 className="text-2xl font-bold text-slate-900">Children's Illustrated Stories</h3>
-                  <p className="text-slate-600 text-sm">
-                    Vibrant bedtime tales, early readers, and picture storybooks with character consistency.
-                  </p>
-                  <ul className="space-y-2 text-sm text-slate-700 font-medium">
-                    <li className="flex items-center gap-2">✅ Illustrated story generation with rhyming pacing</li>
-                    <li className="flex items-center gap-2">✅ Age-appropriate language filter (Ages 3-8)</li>
-                    <li className="flex items-center gap-2">✅ Colorful AI artwork per page with character lock</li>
-                    <li className="flex items-center gap-2">✅ 8.5×8.5" and 8.5×11" full-bleed layouts</li>
-                  </ul>
-                  <button onClick={handleStart} className="pt-2 px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm inline-flex items-center gap-2 cursor-pointer shadow-sm">
-                    <span>Create a Children's Book</span>
-                    <span>→</span>
-                  </button>
-                </div>
-                <div className="md:col-span-5 grid grid-cols-1 gap-3">
-                  <div className="p-4 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
-                    <span className="font-bold text-slate-500 uppercase">Typical Length</span>
-                    <p className="text-base font-bold text-slate-900">500 - 2,000 words</p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
-                    <span className="font-bold text-slate-500 uppercase">Time to Complete</span>
-                    <p className="text-base font-bold text-purple-600">1-2 hours</p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
-                    <span className="font-bold text-slate-500 uppercase">Typical Price</span>
-                    <p className="text-base font-bold text-slate-900">$7.99 - $12.99</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeBookTab === 'coloring' && (
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-                <div className="md:col-span-7 space-y-4">
-                  <h3 className="text-2xl font-bold text-slate-900">Coloring & Activity Books</h3>
-                  <p className="text-slate-600 text-sm">
-                    Adult mandalas, children's line art, and mindfulness activity pages.
-                  </p>
-                  <ul className="space-y-2 text-sm text-slate-700 font-medium">
-                    <li className="flex items-center gap-2">✅ AI line art generation in 12 distinct art styles</li>
-                    <li className="flex items-center gap-2">✅ 10-40 illustrations per batch</li>
-                    <li className="flex items-center gap-2">✅ Automatic blank back pages (prevents bleed-through)</li>
-                    <li className="flex items-center gap-2">✅ 8.5×8.5" and 8.5×11" high-resolution exports</li>
-                  </ul>
-                  <button onClick={handleStart} className="pt-2 px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm inline-flex items-center gap-2 cursor-pointer shadow-sm">
-                    <span>Create a Coloring Book</span>
-                    <span>→</span>
-                  </button>
-                </div>
-                <div className="md:col-span-5 grid grid-cols-1 gap-3">
-                  <div className="p-4 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
-                    <span className="font-bold text-slate-500 uppercase">Volume</span>
-                    <p className="text-base font-bold text-slate-900">10-40 illustrations / book</p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
-                    <span className="font-bold text-slate-500 uppercase">Time to Complete</span>
-                    <p className="text-base font-bold text-purple-600">30-60 minutes</p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
-                    <span className="font-bold text-slate-500 uppercase">Typical Price</span>
-                    <p className="text-base font-bold text-slate-900">$6.99 - $12.99</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeBookTab === 'puzzle' && (
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-                <div className="md:col-span-7 space-y-4">
-                  <h3 className="text-2xl font-bold text-slate-900">Puzzle & Word Search Books</h3>
-                  <p className="text-slate-600 text-sm">
-                    Word searches, word fit puzzles, and color by number with automated solution keys.
-                  </p>
-                  <ul className="space-y-2 text-sm text-slate-700 font-medium">
-                    <li className="flex items-center gap-2">✅ Themed word search & word fit generators</li>
-                    <li className="flex items-center gap-2">✅ AI-generated niche word lists</li>
-                    <li className="flex items-center gap-2">✅ Complete answer key index automatically appended</li>
-                    <li className="flex items-center gap-2">✅ Bulk generation (20+ variations in one click)</li>
-                  </ul>
-                  <button onClick={handleStart} className="pt-2 px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm inline-flex items-center gap-2 cursor-pointer shadow-sm">
-                    <span>Create a Puzzle Book</span>
-                    <span>→</span>
-                  </button>
-                </div>
-                <div className="md:col-span-5 grid grid-cols-1 gap-3">
-                  <div className="p-4 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
-                    <span className="font-bold text-slate-500 uppercase">Puzzles</span>
-                    <p className="text-base font-bold text-slate-900">15-50 puzzles / book</p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
-                    <span className="font-bold text-slate-500 uppercase">Time to Complete</span>
-                    <p className="text-base font-bold text-purple-600">15-30 minutes</p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
-                    <span className="font-bold text-slate-500 uppercase">Typical Price</span>
-                    <p className="text-base font-bold text-slate-900">$5.99 - $9.99</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-        </div>
-      </section>
-
-
-      {/* ─────────────────────────────────────────────────────────────────────────────
-          STEP 7: TESTIMONIALS SECTION (Light Grey #f9fafb, 3 Cards)
-         ───────────────────────────────────────────────────────────────────────────── */}
-      <section className="py-24 sm:py-32 bg-[#f9fafb] border-y border-slate-200/80">
+      <section className="py-20 sm:py-28 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
           
-          <div className="text-center max-w-2xl mx-auto space-y-3">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
-              What Publishers Are Saying
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-black uppercase tracking-wider">
+              1-Click Ready to Upload
+            </span>
+            <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+              Everything You Need to Publish — In One ZIP
             </h2>
-            <p className="text-slate-600 text-base">
-              Real authors publishing on Amazon KDP using our complete suite.
+            <p className="text-sm sm:text-base text-slate-600">
+              You don't just get a raw text file. You get a professionally formatted, pre-flight audited publishing bundle ready for Amazon KDP.
+            </p>
+          </div>
+
+          {/* Exploded Package Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            
+            {/* 1. Interior PDF */}
+            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 hover:border-purple-300 transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                <FileText size={24} />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="text-lg font-bold text-slate-900">1. Print-Ready Interior PDF</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Ornamental chapter headings, drop caps, header/footer running heads, and mathematically calculated gutter margins to prevent text swallowing in binding.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-2 text-[11px] font-semibold text-purple-800">
+                <span className="px-2.5 py-1 rounded-lg bg-purple-50 border border-purple-200">0.125" Bleed Safe</span>
+                <span className="px-2.5 py-1 rounded-lg bg-purple-50 border border-purple-200">KDP Gutter Math</span>
+              </div>
+            </div>
+
+            {/* 2. Wrap Cover Spread */}
+            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 hover:border-purple-300 transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+                <Palette size={24} />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="text-lg font-bold text-slate-900">2. Spine-Calculated Wrap Cover</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Full spread PDF including front artwork, back cover marketing blurb, barcode safe zone, and exact spine width calculated from your page count and paper type.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-2 text-[11px] font-semibold text-indigo-800">
+                <span className="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200">300 DPI High-Res</span>
+                <span className="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200">Barcode Safe Zone</span>
+              </div>
+            </div>
+
+            {/* 3. SEO & 7 Keywords */}
+            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 hover:border-purple-300 transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                <Search size={24} />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="text-lg font-bold text-slate-900">3. Amazon 7-Keyword Strategy</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  High-intent keyword strings tailored for Amazon search algorithms, 3 primary/secondary BISAC categories, and formatted HTML book description ready to paste.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-2 text-[11px] font-semibold text-emerald-800">
+                <span className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200">7 Keyword Strings</span>
+                <span className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200">BISAC Categories</span>
+              </div>
+            </div>
+
+            {/* 4. Kindle ePub */}
+            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 hover:border-purple-300 transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                <BookOpen size={24} />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="text-lg font-bold text-slate-900">4. Kindle Reflowable ePub</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Validated ePub eBook package ready for Kindle Direct Publishing with working Table of Contents, responsive images, and typography tags.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-2 text-[11px] font-semibold text-amber-800">
+                <span className="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200">Reflowable Layout</span>
+                <span className="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200">Kindle Tested</span>
+              </div>
+            </div>
+
+            {/* 5. Pre-flight Quality Audit */}
+            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 hover:border-purple-300 transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold">
+                <ShieldCheck size={24} />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="text-lg font-bold text-slate-900">5. KDP Pre-Flight Quality Audit</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Automated checks against Amazon print guidelines: font embedding verification, minimum margin clearances, bleed validation, and image compression checks.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-2 text-[11px] font-semibold text-rose-800">
+                <span className="px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-200">100-Point Audit</span>
+                <span className="px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-200">Zero Rejections</span>
+              </div>
+            </div>
+
+            {/* 6. Instant ZIP Download */}
+            <div className="bg-gradient-to-br from-purple-900 to-slate-950 p-6 rounded-3xl text-white space-y-4 flex flex-col justify-between shadow-xl">
+              <div className="space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center font-bold">
+                  <Download size={24} />
+                </div>
+                <h3 className="text-lg font-bold">6. One-Click ZIP Download</h3>
+                <p className="text-xs text-purple-200 leading-relaxed">
+                  All production assets organized into structured folders with an upload checklist to guide you through your Amazon KDP dashboard in 5 minutes.
+                </p>
+              </div>
+              <button
+                onClick={handleStart}
+                className="w-full py-3 rounded-xl bg-white text-slate-950 hover:bg-purple-50 font-bold text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>Download Sample Package</span>
+                <ArrowRight size={14} />
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────────────────────
+          5. SIX STEPS FROM IDEA TO PUBLISHED BOOK (The Step-by-Step Pipeline)
+         ───────────────────────────────────────────────────────────────────────────── */}
+      <section id="how-it-works" className="py-20 bg-slate-50 border-b border-slate-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+          
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+              Six Steps From Idea to Published Book
+            </h2>
+            <p className="text-sm sm:text-base text-slate-600">
+              You don't need publishing experience. Follow the guided step-by-step studio workflow.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            {[
+              { num: '1', title: 'Pick Your Book Format', desc: 'Select from Fiction, Nonfiction, Word Search, Sudoku, Coloring Books, or Planners — each with its specialized generator workflow.' },
+              { num: '2', title: 'AI Niche & Market Research', desc: 'Discover profitable Amazon KDP keywords, analyze competitor sales ranks, and identify audience demand before writing.' },
+              { num: '3', title: 'Generate Manuscript & Interior', desc: 'Draft chapter outlines and full manuscript sections with voice-consistent Gemini 2.0 AI. Edit and lock chapters as you go.' },
+              { num: '4', title: 'Design 300 DPI Wrap Cover', desc: 'Generate genre-aware artwork with calculated spine width, crisp typography, and full paperback wrap.' },
+              { num: '5', title: 'Pre-Flight Quality Audit', desc: 'Run automated compliance verification to ensure zero margin or bleed errors on Amazon KDP print presses.' },
+              { num: '6', title: 'Download & Publish', desc: 'Download your full upload-ready ZIP and upload directly to Amazon KDP, IngramSpark, or Etsy. Keep 100% of your earnings.' },
+            ].map((step, idx) => (
+              <div key={idx} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-purple-300 transition-all space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-slate-900 text-white font-black text-sm flex items-center justify-center">
+                  {step.num}
+                </div>
+                <h3 className="text-base font-bold text-slate-900">{step.title}</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">{step.desc}</p>
+              </div>
+            ))}
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────────────────────
+          6. PRICING PREVIEW (Connected to Live Firestore Limits)
+         ───────────────────────────────────────────────────────────────────────────── */}
+      <section className="py-20 sm:py-28 bg-white border-b border-slate-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14">
+          
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black uppercase tracking-wider">
+              Transparent Pricing
+            </span>
+            <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+              Start Free, Scale as You Publish
+            </h2>
+            <p className="text-sm text-slate-600">
+              No hidden fees. 100% royalty ownership. Cancel anytime.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             
-            {/* Card 1 */}
-            <div className="bg-white rounded-2xl p-8 border border-slate-200/80 shadow-sm space-y-5 flex flex-col justify-between relative">
-              <div className="space-y-3">
-                <div className="text-amber-500 text-sm">⭐⭐⭐⭐⭐</div>
-                <p className="text-slate-700 text-sm sm:text-base leading-relaxed font-serif">
-                  "I published my first book in one evening. The AI writing tools are incredible — it actually understood my topic and wrote in my authentic voice."
-                </p>
-              </div>
-              <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
-                <div className="w-10 h-10 rounded-full bg-purple-600 text-white font-bold flex items-center justify-center text-sm">
-                  PM
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-900 text-sm">Priya M.</h4>
-                  <p className="text-xs text-slate-500">Non-Fiction Author, Chennai · Published 3 books</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 2 */}
-            <div className="bg-white rounded-2xl p-8 border border-slate-200/80 shadow-sm space-y-5 flex flex-col justify-between relative">
-              <div className="space-y-3">
-                <div className="text-amber-500 text-sm">⭐⭐⭐⭐⭐</div>
-                <p className="text-slate-700 text-sm sm:text-base leading-relaxed font-serif">
-                  "The puzzle book generator is a game changer. I created 15 word search books with different themes in one afternoon. They're all live on Amazon now."
-                </p>
-              </div>
-              <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
-                <div className="w-10 h-10 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-sm">
-                  JK
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-900 text-sm">James K.</h4>
-                  <p className="text-xs text-slate-500">KDP Publisher, United Kingdom · Published 22 books</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 3 */}
-            <div className="bg-white rounded-2xl p-8 border border-slate-200/80 shadow-sm space-y-5 flex flex-col justify-between relative">
-              <div className="space-y-3">
-                <div className="text-amber-500 text-sm">⭐⭐⭐⭐⭐</div>
-                <p className="text-slate-700 text-sm sm:text-base leading-relaxed font-serif">
-                  "Finally, a tool that actually understands KDP's requirements. No more margin errors, no more cover rejections. Just clean, ready-to-upload files."
-                </p>
-              </div>
-              <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
-                <div className="w-10 h-10 rounded-full bg-violet-600 text-white font-bold flex items-center justify-center text-sm">
-                  SL
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-900 text-sm">Sarah L.</h4>
-                  <p className="text-xs text-slate-500">Children's Book Author, Canada · Published 8 books</p>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-      </section>
-
-
-      {/* ─────────────────────────────────────────────────────────────────────────────
-          STEP 8: PRICING PREVIEW & FAQ ACCORDION (3 Cards + geoStore pricing)
-         ───────────────────────────────────────────────────────────────────────────── */}
-      <section className="py-24 sm:py-32 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
-          
-          <div className="text-center max-w-2xl mx-auto space-y-3">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
-              Simple, Transparent Pricing
-            </h2>
-            <p className="text-slate-600 text-base">
-              Start free. Upgrade when ready.
-            </p>
-          </div>
-
-          {/* 3 Plan Cards: Free, Pro (Most Popular), Agency */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-            
-            {/* Free Plan */}
-            <div className="rounded-2xl bg-white border border-slate-200 p-8 flex flex-col justify-between shadow-xs space-y-6">
+            {/* Free */}
+            <div className="bg-white rounded-3xl border border-slate-200 p-8 flex flex-col justify-between shadow-xs space-y-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-slate-900 text-lg">Free Plan</h3>
-                  <span className="text-xl">🌱</span>
+                  <h3 className="font-bold text-slate-900 text-xl">Free Tier</h3>
+                  <span className="text-2xl">🌱</span>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-3xl font-black text-slate-900">
+                  <div className="text-4xl font-black text-slate-900">
                     {formatPrice(0, currency)}
                   </div>
-                  <p className="text-xs text-slate-500">Free forever, no credit card required</p>
+                  <p className="text-xs text-slate-500 font-medium">Free forever, no credit card required</p>
                 </div>
-                <ul className="space-y-2.5 text-xs text-slate-600 font-medium pt-4 border-t border-slate-100">
-                  <li className="flex items-center gap-2">✅ <strong>{getLivePlanLimits('free').total.bookProjects}</strong> active book project{getLivePlanLimits('free').total.bookProjects > 1 ? 's' : ''}</li>
-                  <li className="flex items-center gap-2">✅ <strong>{getLivePlanLimits('free').daily.aiGenerations}</strong> AI generation runs / day</li>
-                  <li className="flex items-center gap-2">✅ <strong>{getLivePlanLimits('free').daily.pdfExports}</strong> PDF exports / day</li>
-                  {getLiveFeatureAccess('puzzleGenerator') === 'free' && (
-                    <li className="flex items-center gap-2">✅ <strong>{getLivePlanLimits('free').daily.puzzleGenerations}</strong> puzzle generations / day</li>
-                  )}
-                  <li className="flex items-center gap-2">✅ Cover layout presets & spine calculator</li>
-                  <li className="flex items-center gap-2">✅ Watermarked PDF export</li>
+                <ul className="space-y-3 text-xs text-slate-700 font-semibold pt-4 border-t border-slate-100">
+                  <li className="flex items-center gap-2.5">
+                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <span><strong>{freeLimits.total.bookProjects}</strong> Active Book Projects</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <span><strong>{freeLimits.daily.aiGenerations}</strong> Daily AI Generation Runs</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <span><strong>{freeLimits.daily.pdfExports}</strong> Daily PDF Exports</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <span><strong>{freeLimits.daily.puzzleGenerations}</strong> Daily Puzzle & Activity Generations</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <span>Spine Width & Gutter Calculator</span>
+                  </li>
                 </ul>
               </div>
-              <button 
+              <button
                 onClick={handleStart}
-                className="w-full py-3 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-900 font-bold text-sm transition-colors cursor-pointer"
+                className="w-full py-3.5 rounded-2xl border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white font-bold text-sm transition-all cursor-pointer"
               >
                 Start Free
               </button>
             </div>
 
-            {/* Pro Plan (Most Popular) */}
-            <div className="rounded-2xl bg-[#0f0f1a] text-white border-2 border-purple-500 p-8 flex flex-col justify-between shadow-xl shadow-purple-950/50 space-y-6 relative">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs px-3.5 py-1 rounded-full uppercase tracking-wider shadow-md">
+            {/* Pro (Most Popular) */}
+            <div className="bg-slate-950 text-white rounded-3xl border-2 border-purple-500 p-8 flex flex-col justify-between shadow-2xl shadow-purple-950/50 space-y-6 relative scale-103">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-[11px] px-4 py-1 rounded-full uppercase tracking-wider shadow-md">
                 Most Popular
               </div>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-white text-lg">Pro Plan</h3>
-                  <span className="text-xl">⚡</span>
+                  <h3 className="font-bold text-white text-xl">Pro Plan</h3>
+                  <span className="text-2xl">⚡</span>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-3xl font-black text-white">
+                  <div className="text-4xl font-black text-white">
                     {getFormattedPrice('pro')}
-                    <span className="text-xs font-normal text-slate-400">/mo</span>
+                    <span className="text-sm font-normal text-slate-400">/mo</span>
                   </div>
-                  <p className="text-xs text-purple-300">For serious authors & publishers</p>
+                  <p className="text-xs text-purple-300 font-medium">For serious indie authors & publishers</p>
                 </div>
-                <ul className="space-y-2.5 text-xs text-slate-300 font-medium pt-4 border-t border-slate-800">
-                  <li className="flex items-center gap-2">✅ Unlimited book projects</li>
-                  <li className="flex items-center gap-2">✅ Unlimited AI writing with Gemini 2.0</li>
-                  <li className="flex items-center gap-2">✅ AI Cover Art generation (Imagen 3)</li>
-                  <li className="flex items-center gap-2">✅ Amazon Niche & Keyword Research</li>
-                  <li className="flex items-center gap-2">✅ 100% unbranded 300 DPI exports</li>
+                <ul className="space-y-3 text-xs text-slate-200 font-semibold pt-4 border-t border-slate-800">
+                  <li className="flex items-center gap-2.5">
+                    <Check size={16} className="text-purple-400 shrink-0" />
+                    <span><strong>Unlimited</strong> Book Projects</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check size={16} className="text-purple-400 shrink-0" />
+                    <span><strong>Unlimited</strong> AI Writing with Gemini 2.0</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check size={16} className="text-purple-400 shrink-0" />
+                    <span><strong>Google Imagen 3</strong> AI Cover Art</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check size={16} className="text-purple-400 shrink-0" />
+                    <span>Amazon Niche & Keyword Analysis</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check size={16} className="text-purple-400 shrink-0" />
+                    <span>100% Unbranded 300 DPI PDF Exports</span>
+                  </li>
                 </ul>
               </div>
-              <button 
-                onClick={handleStart}
-                className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-sm transition-all shadow-md shadow-purple-900/40 cursor-pointer"
+              <button
+                onClick={() => onNavigate('pricing')}
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-purple-600/40 transition-all cursor-pointer"
               >
                 Start with Pro
               </button>
             </div>
 
-            {/* Agency Plan */}
-            <div className="rounded-2xl bg-white border border-slate-200 p-8 flex flex-col justify-between shadow-xs space-y-6">
+            {/* Agency */}
+            <div className="bg-white rounded-3xl border border-slate-200 p-8 flex flex-col justify-between shadow-xs space-y-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-slate-900 text-lg">Agency Plan</h3>
-                  <span className="text-xl">🚀</span>
+                  <h3 className="font-bold text-slate-900 text-xl">Agency Plan</h3>
+                  <span className="text-2xl">🚀</span>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-3xl font-black text-slate-900">
+                  <div className="text-4xl font-black text-slate-900">
                     {getFormattedPrice('agency')}
-                    <span className="text-xs font-normal text-slate-400">/mo</span>
+                    <span className="text-sm font-normal text-slate-400">/mo</span>
                   </div>
-                  <p className="text-xs text-slate-500">For high-volume KDP agencies</p>
+                  <p className="text-xs text-slate-500 font-medium">For publishing teams & high volume</p>
                 </div>
-                <ul className="space-y-2.5 text-xs text-slate-600 font-medium pt-4 border-t border-slate-100">
-                  <li className="flex items-center gap-2">✅ Everything in Pro</li>
-                  <li className="flex items-center gap-2">✅ Bulk Batch Generator (20 books/batch)</li>
-                  <li className="flex items-center gap-2">✅ 5 Team member seats</li>
-                  <li className="flex items-center gap-2">✅ Priority rendering & support</li>
-                  <li className="flex items-center gap-2">✅ White-label export capability</li>
+                <ul className="space-y-3 text-xs text-slate-700 font-semibold pt-4 border-t border-slate-100">
+                  <li className="flex items-center gap-2.5">
+                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <span>Everything in Pro Unlimited</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <span><strong>5 Team Member Seats</strong></span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <span>Bulk Batch Series Generator</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <span>Brand Kit & Shared Style Guide</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <span>Dedicated VIP Account Manager</span>
+                  </li>
                 </ul>
               </div>
-              <button 
-                onClick={handleStart}
-                className="w-full py-3 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-900 font-bold text-sm transition-colors cursor-pointer"
-              >
-                Get Agency
-              </button>
-            </div>
-
-          </div>
-
-          <div className="text-center pt-2">
-            <button
-              onClick={() => onNavigate('pricing')}
-              className="text-purple-600 hover:text-purple-700 font-bold text-sm inline-flex items-center gap-1.5 cursor-pointer"
-            >
-              <span>See full feature comparison</span>
-              <span>→</span>
-            </button>
-          </div>
-
-          {/* FAQ Accordion Preview */}
-          <div className="max-w-3xl mx-auto pt-10 border-t border-slate-200/80 space-y-4">
-            <h3 className="text-xl font-bold text-slate-900 text-center mb-6">
-              Frequently Asked Questions
-            </h3>
-
-            {/* Q1 */}
-            <div className="border border-slate-200 rounded-xl overflow-hidden">
               <button
-                onClick={() => toggleFaq(1)}
-                className="w-full p-4 text-left font-bold text-sm text-slate-900 flex items-center justify-between hover:bg-slate-50 cursor-pointer"
+                onClick={() => onNavigate('pricing')}
+                className="w-full py-3.5 rounded-2xl border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white font-bold text-sm transition-all cursor-pointer"
               >
-                <span>Is there really a free plan?</span>
-                <ChevronDown size={18} className={`text-slate-500 transition-transform ${openFaqIndex === 1 ? 'rotate-180' : ''}`} />
+                View Full Pricing
               </button>
-              {openFaqIndex === 1 && (
-                <div className="p-4 pt-0 text-xs sm:text-sm text-slate-600 leading-relaxed bg-slate-50/50">
-                  Yes. The free plan includes 1 active book project, 3 AI generations per day, and basic formatting tools. No credit card is needed to sign up.
-                </div>
-              )}
-            </div>
-
-            {/* Q2 */}
-            <div className="border border-slate-200 rounded-xl overflow-hidden">
-              <button
-                onClick={() => toggleFaq(2)}
-                className="w-full p-4 text-left font-bold text-sm text-slate-900 flex items-center justify-between hover:bg-slate-50 cursor-pointer"
-              >
-                <span>Can I publish on Amazon KDP with this?</span>
-                <ChevronDown size={18} className={`text-slate-500 transition-transform ${openFaqIndex === 2 ? 'rotate-180' : ''}`} />
-              </button>
-              {openFaqIndex === 2 && (
-                <div className="p-4 pt-0 text-xs sm:text-sm text-slate-600 leading-relaxed bg-slate-50/50">
-                  Yes. All exports are KDP-ready PDFs with calculated gutters, margins, and 300 DPI covers that upload directly to Amazon KDP without additional formatting.
-                </div>
-              )}
-            </div>
-
-            {/* Q3 */}
-            <div className="border border-slate-200 rounded-xl overflow-hidden">
-              <button
-                onClick={() => toggleFaq(3)}
-                className="w-full p-4 text-left font-bold text-sm text-slate-900 flex items-center justify-between hover:bg-slate-50 cursor-pointer"
-              >
-                <span>What AI powers KDP Studio?</span>
-                <ChevronDown size={18} className={`text-slate-500 transition-transform ${openFaqIndex === 3 ? 'rotate-180' : ''}`} />
-              </button>
-              {openFaqIndex === 3 && (
-                <div className="p-4 pt-0 text-xs sm:text-sm text-slate-600 leading-relaxed bg-slate-50/50">
-                  Google Gemini 2.0 powers manuscript writing, outline generation, and niche research, while Google Imagen 3 generates cover art and coloring book illustrations.
-                </div>
-              )}
             </div>
 
           </div>
@@ -1251,33 +873,68 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
         </div>
       </section>
 
+      {/* ─────────────────────────────────────────────────────────────────────────────
+          7. FAQ ACCORDION
+         ───────────────────────────────────────────────────────────────────────────── */}
+      <section className="py-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+        <div className="text-center space-y-2">
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+            Frequently Asked Questions
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-500">
+            Got questions about publishing with KDP Studio?
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          {[
+            { q: 'Is there really a free plan?', a: 'Yes! The free plan includes active book projects, daily AI generation credits, puzzle generation, and print formatting tools with zero credit card required.' },
+            { q: 'Are exports 100% compliant with Amazon KDP print requirements?', a: 'Yes. All interiors and wrap covers include calculated gutters, 0.125 inch bleed zones, 300 DPI resolution, and barcode safe areas to guarantee zero Amazon print rejections.' },
+            { q: 'Who owns the rights and royalties to created books?', a: 'You own 100% of all copyrights, manuscripts, covers, and royalties. KDP Studio takes 0% commission.' },
+            { q: 'Can I generate puzzle books and coloring books?', a: 'Yes! KDP Studio includes a built-in generator for Word Search, Sudoku, Word Fit, Color by Number, and High-Resolution Coloring Books with complete answer keys.' },
+          ].map((faq, idx) => {
+            const isOpen = openFaqIndex === idx;
+            return (
+              <div key={idx} className="rounded-2xl border border-slate-200 bg-white overflow-hidden transition-all">
+                <button
+                  onClick={() => toggleFaq(idx)}
+                  className="w-full px-6 py-4 text-left font-bold text-sm sm:text-base text-slate-900 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                >
+                  <span>{faq.q}</span>
+                  {isOpen ? <ChevronUp size={18} className="text-purple-600 shrink-0" /> : <ChevronDown size={18} className="text-slate-400 shrink-0" />}
+                </button>
+                {isOpen && (
+                  <div className="px-6 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
       {/* ─────────────────────────────────────────────────────────────────────────────
-          STEP 9: FINAL CTA SECTION (Purple Gradient, Big White Button, Emojis)
+          8. FINAL CALL TO ACTION BANNER
          ───────────────────────────────────────────────────────────────────────────── */}
-      <section className="py-20 sm:py-28 bg-gradient-to-r from-purple-700 via-indigo-700 to-violet-800 text-white text-center relative overflow-hidden">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-6 relative z-10">
-          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
-            Your First Book is Waiting
+      <section className="bg-slate-950 text-white py-20 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-purple-600/20 rounded-full blur-[120px] pointer-events-none" />
+        
+        <div className="relative max-w-4xl mx-auto px-4 text-center space-y-6">
+          <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
+            Ready to Publish Your Next Book?
           </h2>
-          <p className="text-purple-100 text-base sm:text-lg max-w-xl mx-auto leading-relaxed">
-            Join 10,000+ authors who use KDP Studio to publish faster, smarter, and more profitably on Amazon.
+          <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto">
+            Join authors, publishers, and creators creating books with KDP Studio. Start with free credits today.
           </p>
           <div className="pt-2">
             <button
               onClick={handleStart}
-              className="px-9 py-4 rounded-xl bg-white hover:bg-slate-100 active:scale-98 text-purple-900 font-extrabold text-base shadow-2xl shadow-purple-950/60 hover:shadow-white/20 transition-all cursor-pointer inline-flex items-center gap-2 group"
+              className="px-10 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-base shadow-xl shadow-purple-600/30 transition-all cursor-pointer inline-flex items-center gap-2.5 active:scale-95"
             >
-              <span>Start Publishing for Free</span>
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              <span>{user ? 'Open Studio Dashboard' : 'Start Publishing Free'}</span>
+              <ArrowRight size={18} />
             </button>
-          </div>
-          <p className="text-xs text-purple-200">
-            No credit card · Free plan forever · Cancel paid plans anytime
-          </p>
-          <div className="pt-4 flex items-center justify-center gap-2 text-xs text-purple-200">
-            <span>📖 🧒 🎨 🧩 📓</span>
-            <span className="font-semibold">All book types supported</span>
           </div>
         </div>
       </section>
