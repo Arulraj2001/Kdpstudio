@@ -147,6 +147,14 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
             >
               About
             </button>
+            <button
+              onClick={() => handleNav('contact')}
+              className={`hover:text-purple-600 transition-colors cursor-pointer ${
+                currentRoute === 'contact' ? 'text-purple-600 font-bold' : ''
+              }`}
+            >
+              Contact
+            </button>
           </div>
 
           {/* Right Action Buttons */}
@@ -249,6 +257,12 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
               className="text-2xl font-bold text-slate-200 hover:text-purple-400 transition-colors"
             >
               About
+            </button>
+            <button
+              onClick={() => handleNav('contact')}
+              className="text-2xl font-bold text-slate-200 hover:text-purple-400 transition-colors"
+            >
+              Contact
             </button>
             <button
               onClick={() => handleNav('puzzles')}

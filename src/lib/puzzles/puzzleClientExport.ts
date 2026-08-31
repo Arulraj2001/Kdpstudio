@@ -102,14 +102,15 @@ export async function exportPuzzleBookPdfClient(book: PuzzleBook): Promise<void>
       doc.text(subLines, pageW / 2, marginY + contentH * 0.48, { align: 'center' });
     }
 
-    // Centered Diamond Icon
+    // Centered Ornament Divider
+    const orx = pageW / 2;
+    const ory = marginY + contentH * 0.63;
+    doc.setDrawColor(203, 213, 225);
+    doc.setLineWidth(0.008);
+    doc.line(orx - 0.8, ory, orx - 0.15, ory);
+    doc.line(orx + 0.15, ory, orx + 0.8, ory);
     doc.setFillColor(15, 23, 42);
-    doc.polygon([
-      { x: pageW / 2, y: marginY + contentH * 0.62 },
-      { x: pageW / 2 + 0.08, y: marginY + contentH * 0.62 + 0.08 },
-      { x: pageW / 2, y: marginY + contentH * 0.62 + 0.16 },
-      { x: pageW / 2 - 0.08, y: marginY + contentH * 0.62 + 0.08 },
-    ], 'F');
+    doc.circle(orx, ory, 0.04, 'F');
 
     // Author
     doc.setFont('helvetica', 'bold');
