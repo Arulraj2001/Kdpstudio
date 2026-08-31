@@ -514,6 +514,36 @@ export async function seedBlogPostsIfEmpty(): Promise<BlogPost[]> {
   return [];
 }
 
+export async function syncAllSeedPostsToFirestoreClient(): Promise<{ success: boolean; count: number }> {
+  try {
+    const { SEED_BLOG_POSTS } = await import('./blog');
+    if (!SEED_BLOG_POSTS || !SEED_BLOG_POSTS.length) return { success: false, count: 0 };
+
+    if (db) {
+      let count = 0;
+      for (const post of SEED_BLOG_POSTS) {
+        const docRef = doc(db, 'blogPosts', post.slug);
+        const fullPost = mapSeedPostToBlogPost(post);
+        if (!fullPost.featuredImage) {
+          fullPost.featuredImage = {
+            url: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=1200&auto=format&fit=crop&q=80',
+            alt: `${fullPost.title} - Amazon KDP Publishing Guide`,
+            caption: fullPost.title,
+            width: 1200,
+            height: 630
+          };
+        }
+        await setDoc(docRef, fullPost, { merge: true });
+        count++;
+      }
+      return { success: true, count };
+    }
+  } catch (err) {
+    console.error('[BlogService] syncAllSeedPostsToFirestoreClient error:', err);
+  }
+  return { success: false, count: 0 };
+}
+
 export async function getPublishedPosts(options?: {
   limit?: number;
   cursor?: string;

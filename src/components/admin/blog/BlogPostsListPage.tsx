@@ -31,6 +31,7 @@ import {
   createBlogPost,
   updateBlogPost,
   deleteBlogPost,
+  syncAllSeedPostsToFirestoreClient,
 } from '../../../lib/blogService';
 
 interface BlogPostsListPageProps {
@@ -41,6 +42,7 @@ interface BlogPostsListPageProps {
 export const BlogPostsListPage: React.FC<BlogPostsListPageProps> = ({ onNavigate, onEditPost }) => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [syncingSeed, setSyncingSeed] = useState<boolean>(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeStatusTab, setActiveStatusTab] = useState<string>('all');
@@ -48,6 +50,26 @@ export const BlogPostsListPage: React.FC<BlogPostsListPageProps> = ({ onNavigate
   const [selectedAuthor, setSelectedAuthor] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('latest');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const handleSyncSeedPosts = async () => {
+    setSyncingSeed(true);
+    try {
+      const res = await syncAllSeedPostsToFirestoreClient();
+      if (res.success) {
+        setToastMessage(`✅ Synced ${res.count} updated pillar articles into Firestore!`);
+        setTimeout(() => setToastMessage(null), 3500);
+        await fetchPosts();
+      } else {
+        setToastMessage('⚠️ Could not sync posts to Firestore.');
+        setTimeout(() => setToastMessage(null), 3500);
+      }
+    } catch (err) {
+      setToastMessage('❌ Sync failed.');
+      setTimeout(() => setToastMessage(null), 3500);
+    } finally {
+      setSyncingSeed(false);
+    }
+  };
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -282,6 +304,15 @@ export const BlogPostsListPage: React.FC<BlogPostsListPageProps> = ({ onNavigate
         </div>
 
         <div className="flex items-center gap-2.5">
+          <button
+            onClick={handleSyncSeedPosts}
+            disabled={syncingSeed}
+            className="px-3.5 py-2.5 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 disabled:opacity-50"
+            title="Sync latest seed articles with full SEO scores into Firestore"
+          >
+            <Sparkles size={14} className={syncingSeed ? 'animate-spin' : 'text-purple-600'} />
+            <span>{syncingSeed ? 'Syncing...' : 'Sync DB with Latest Seed'}</span>
+          </button>
           <button
             onClick={fetchPosts}
             className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
