@@ -17,7 +17,9 @@ import {
   ExternalLink,
   ChevronRight,
   Zap,
-  BookOpen
+  BookOpen,
+  Compass,
+  KeyRound
 } from 'lucide-react';
 import { useAuthStore } from '../../lib/authStore';
 import { useCheckoutStore } from '../../lib/checkoutStore';
@@ -513,6 +515,82 @@ export const PuzzlesDashboardView: React.FC<PuzzlesDashboardViewProps> = ({
               title="Bulk Generate Color by Number Batch"
             >
               <span>📦 Bulk →</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Card 5: Algorithmic Mazes Studio */}
+        <div className="relative group bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
+                <Compass size={24} />
+              </div>
+              <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1">
+                <Sparkles size={11} />
+                <span>Wilson's Algorithm</span>
+              </span>
+            </div>
+
+            <h2 className="text-lg font-bold text-slate-900">Algorithmic Mazes 🧭</h2>
+            <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+              Generate 100% solvable high-resolution mazes in rectangular, circular, and diamond geometries with instant vector solution paths.
+            </p>
+
+            <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <div className="flex items-center gap-1.5">
+                <Clock size={13} className="text-indigo-500" />
+                <span>Instant Pure Vector PDF</span>
+              </div>
+              <span className="font-semibold text-slate-700">8.5×11 &bull; 6×9</span>
+            </div>
+          </div>
+
+          <div className="mt-6 flex items-center gap-2">
+            <button
+              onClick={() => onNavigate?.('maze-generator')}
+              className="flex-1 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md"
+            >
+              <span>Open Maze Studio</span>
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* Card 6: Cryptograms & Cipher Studio */}
+        <div className="relative group bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-100">
+                <KeyRound size={24} />
+              </div>
+              <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1">
+                <Sparkles size={11} />
+                <span>Cipher Substitution</span>
+              </span>
+            </div>
+
+            <h2 className="text-lg font-bold text-slate-900">Cryptograms &amp; Ciphers 🔑</h2>
+            <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+              Create substitution cipher puzzle books with famous quote libraries, letter frequency analysis, pre-revealed hint clues, and answer keys.
+            </p>
+
+            <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <div className="flex items-center gap-1.5">
+                <Clock size={13} className="text-purple-500" />
+                <span>Multi-Category Quotes</span>
+              </div>
+              <span className="font-semibold text-slate-700">8.5×11 &bull; 6×9</span>
+            </div>
+          </div>
+
+          <div className="mt-6 flex items-center gap-2">
+            <button
+              onClick={() => onNavigate?.('cryptogram-generator')}
+              className="flex-1 py-3 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md"
+            >
+              <span>Open Cryptogram Studio</span>
+              <ChevronRight size={14} />
             </button>
           </div>
         </div>

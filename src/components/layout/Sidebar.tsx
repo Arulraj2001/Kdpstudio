@@ -16,7 +16,11 @@ import {
   Puzzle,
   Palette,
   BarChart3,
-  ShieldAlert
+  ShieldAlert,
+  Calculator,
+  Compass,
+  AlertOctagon,
+  QrCode
 } from 'lucide-react';
 import { PageRoute } from '../../types';
 import { useAuthStore } from '../../lib/authStore';
@@ -80,10 +84,14 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'cover', label: 'Cover Builder', icon: ImageIcon },
   { id: 'kdp', label: 'KDP Assistant', icon: Tag },
   { id: 'research', label: 'Niche Research', icon: SearchChartIcon, badge: 'Pro' },
+  { id: 'asin-spy', label: 'Reverse ASIN Spy', icon: Compass, badge: 'Pro' },
+  { id: 'review-miner', label: 'Review Miner', icon: AlertOctagon, badge: 'Pro' },
+  { id: 'royalty-calculator', label: 'Royalty Calculator', icon: Calculator, badge: 'Tool' },
+  { id: 'lead-magnet', label: 'Lead Magnet & QR', icon: QrCode, badge: 'New' },
   { id: 'books', label: 'My Books', icon: BookOpen },
   { id: 'analytics', label: 'Analytics', icon: BarChart3, badge: 'Pro' },
   { id: 'series', label: 'Series', icon: BookMarked },
-  { id: 'puzzles', label: 'Puzzles', icon: Puzzle, badge: 'New' },
+  { id: 'puzzles', label: 'Puzzles Suite', icon: Puzzle, badge: 'Updated' },
   { id: 'bulk', label: 'Bulk Generator', icon: BatchLayersIcon, badge: 'Agency' },
   { id: 'publish', label: 'Publish Checklist', icon: ShieldCheck },
   { id: 'brand-kit', label: 'Brand Kit', icon: Palette },

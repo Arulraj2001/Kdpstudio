@@ -103,6 +103,12 @@ import { ChangelogPageView } from '../public/ChangelogPageView';
 import { BlogPageView } from '../public/BlogPageView';
 import { BlogPostDetailView } from '../public/BlogPostDetailView';
 import { LaunchPageView } from '../public/LaunchPageView';
+import { KdpRoyaltyCalculatorView } from '../tools/KdpRoyaltyCalculatorView';
+import { ReverseAsinSpyView } from '../tools/ReverseAsinSpyView';
+import { ReviewPainPointMinerView } from '../tools/ReviewPainPointMinerView';
+import { LeadMagnetQrStudioView } from '../tools/LeadMagnetQrStudioView';
+import { MazeGeneratorView } from '../puzzles/MazeGeneratorView';
+import { CryptogramGeneratorView } from '../puzzles/CryptogramGeneratorView';
 import { useGeoStore } from '../../lib/geoStore';
 import { useAuthStore } from '../../lib/authStore';
 import { useBookStore } from '../../lib/store';
@@ -131,6 +137,8 @@ export const ROUTE_PATH_MAP: Record<PageRoute, string> = {
   formatter: '/formatter',
   cover: '/cover',
   puzzles: '/puzzles',
+  'maze-generator': '/puzzles/mazes',
+  'cryptogram-generator': '/puzzles/cryptograms',
   'word-search': '/word-search',
   'word-search-generating': '/word-search-generating',
   'word-search-detail': '/word-search-detail',
@@ -143,6 +151,10 @@ export const ROUTE_PATH_MAP: Record<PageRoute, string> = {
   'color-by-number': '/color-by-number',
   'color-by-number-generating': '/color-by-number-generating',
   'color-by-number-detail': '/color-by-number-detail',
+  'royalty-calculator': '/tools/royalty-calculator',
+  'asin-spy': '/tools/asin-spy',
+  'review-miner': '/tools/review-miner',
+  'lead-magnet': '/tools/lead-magnet',
   kdp: '/kdp',
   research: '/research',
   'research-detail': '/research-detail',
@@ -228,7 +240,12 @@ export function parsePathToRoute(pathname: string): PageRoute | null {
   if (clean === 'puzzles/coloring/detail' || clean === 'coloring-detail') return 'coloring-detail';
   if (clean === 'puzzles/color-by-number' || clean === 'color-by-number') return 'color-by-number';
   if (clean === 'puzzles/color-by-number/generating' || clean === 'color-by-number-generating') return 'color-by-number-generating';
-  if (clean === 'puzzles/color-by-number/detail' || clean === 'color-by-number-detail') return 'color-by-number-detail';
+  if (clean === 'puzzles/mazes' || clean === 'puzzles/maze' || clean === 'maze-generator' || clean === 'mazes') return 'maze-generator';
+  if (clean === 'puzzles/cryptograms' || clean === 'puzzles/cryptogram' || clean === 'cryptogram-generator' || clean === 'cryptograms') return 'cryptogram-generator';
+  if (clean === 'tools/royalty-calculator' || clean === 'royalty-calculator' || clean === 'calculator') return 'royalty-calculator';
+  if (clean === 'tools/asin-spy' || clean === 'asin-spy' || clean === 'spy') return 'asin-spy';
+  if (clean === 'tools/review-miner' || clean === 'review-miner' || clean === 'miner') return 'review-miner';
+  if (clean === 'tools/lead-magnet' || clean === 'lead-magnet' || clean === 'qr-studio' || clean === 'qr') return 'lead-magnet';
   if (clean === 'kdp') return 'kdp';
   if (clean === 'research') return 'research';
   if (clean === 'research/saved' || clean === 'research-saved') return 'research-saved';
@@ -401,7 +418,8 @@ export const AppShell: React.FC = () => {
     if (!isInitialized) return;
 
     const isPublicMarketingRoute = [
-      'home', 'pricing', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'blog-detail', 'launch', 'payment-success'
+      'home', 'features', 'pricing', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'blog-detail', 'launch', 'payment-success',
+      'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator'
     ].includes(currentRoute);
 
     const isAuth = ['login', 'signup', 'forgot-password', 'verify-email'].includes(currentRoute);
@@ -511,7 +529,8 @@ export const AppShell: React.FC = () => {
   };
 
   const isPublicMarketingRoute = [
-    'home', 'features', 'pricing', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'blog-detail', 'launch', 'payment-success'
+    'home', 'features', 'pricing', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'blog-detail', 'launch', 'payment-success',
+    'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator'
   ].includes(currentRoute);
 
   const isAuthRoute = ['login', 'signup', 'forgot-password', 'verify-email'].includes(currentRoute);
@@ -586,6 +605,12 @@ export const AppShell: React.FC = () => {
           )}
           {currentRoute === 'launch' && <LaunchPageView onNavigate={handleNavigate} />}
           {currentRoute === 'payment-success' && <PaymentSuccessPageView onNavigate={handleNavigate} />}
+          {currentRoute === 'royalty-calculator' && <KdpRoyaltyCalculatorView onNavigate={handleNavigate} />}
+          {currentRoute === 'asin-spy' && <ReverseAsinSpyView onNavigate={handleNavigate} />}
+          {currentRoute === 'review-miner' && <ReviewPainPointMinerView onNavigate={handleNavigate} />}
+          {currentRoute === 'lead-magnet' && <LeadMagnetQrStudioView onNavigate={handleNavigate} />}
+          {currentRoute === 'maze-generator' && <MazeGeneratorView onNavigate={handleNavigate} />}
+          {currentRoute === 'cryptogram-generator' && <CryptogramGeneratorView onNavigate={handleNavigate} />}
         </PublicLayout>
       ) : isOnboardingRoute ? (
         /* ─────────────────────────────────────────
@@ -1134,6 +1159,12 @@ export const AppShell: React.FC = () => {
 
               {currentRoute === 'settings' && <SettingsView onNavigate={handleNavigate} />}
 
+              {currentRoute === 'royalty-calculator' && <KdpRoyaltyCalculatorView onNavigate={handleNavigate} />}
+              {currentRoute === 'asin-spy' && <ReverseAsinSpyView onNavigate={handleNavigate} />}
+              {currentRoute === 'review-miner' && <ReviewPainPointMinerView onNavigate={handleNavigate} />}
+              {currentRoute === 'lead-magnet' && <LeadMagnetQrStudioView onNavigate={handleNavigate} />}
+              {currentRoute === 'maze-generator' && <MazeGeneratorView onNavigate={handleNavigate} />}
+              {currentRoute === 'cryptogram-generator' && <CryptogramGeneratorView onNavigate={handleNavigate} />}
               {currentRoute === 'billing' && <BillingPageView onNavigate={handleNavigate} />}
 
               {currentRoute === 'geo-test' && <GeoTestView />}
