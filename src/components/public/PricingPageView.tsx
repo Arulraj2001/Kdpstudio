@@ -590,26 +590,26 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
 
           </div>
 
-          <div className="pt-4 max-w-2xl mx-auto">
-            <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-6 text-center space-y-4">
-              <div className="space-y-1">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-200 text-amber-900">
+          <div className="pt-6 max-w-3xl mx-auto">
+            <div className="bg-gradient-to-b from-amber-50/90 via-amber-50/60 to-amber-100/40 border border-amber-200/90 rounded-3xl p-6 sm:p-8 text-center space-y-5 shadow-xs">
+              <div className="space-y-1.5 max-w-xl mx-auto">
+                <span className="inline-block px-3 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-200/80 text-amber-900 border border-amber-300">
                   Bonus Quota Refills
                 </span>
-                <h4 className="text-base font-black text-slate-900">
+                <h4 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
                   Need Extra AI Generations Without Upgrading?
                 </h4>
-                <p className="text-xs text-slate-600">
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                   Buy bonus credits that never expire via Buy Me a Coffee. 1 coffee ($6) = 50 high-priority AI generations.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto pt-2">
                 <BmacButton variant="credits" showNotice={false} />
                 <BmacButton variant="lifetime" showNotice={false} />
               </div>
 
-              <p className="text-[11px] text-slate-500">
+              <p className="text-xs text-slate-500 font-medium">
                 Credits never expire and activate automatically when you use your KDP Studio account email at checkout.
               </p>
             </div>

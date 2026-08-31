@@ -72,25 +72,25 @@ export const BmacButton: React.FC<BmacButtonProps> = ({
         target="_blank"
         rel="noopener noreferrer"
         onClick={handleClick}
-        className="group relative flex items-center justify-between gap-3 px-4 py-3 bg-[#FFDD00] hover:bg-[#FACC15] text-[#000000] rounded-xl font-bold transition-all duration-150 shadow-xs hover:shadow-md active:scale-[0.99] border border-amber-300"
+        className="group relative flex flex-col justify-between p-4 sm:p-5 bg-gradient-to-br from-[#FFDE02] via-[#FFD700] to-[#FBBF24] text-slate-950 rounded-2xl font-bold transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 border border-amber-300/80 text-left cursor-pointer"
       >
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-black/10 flex items-center justify-center shrink-0">
-            <Icon size={18} className="text-black" />
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <div className="w-9 h-9 rounded-xl bg-black/10 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <Icon size={20} className="text-black" />
           </div>
-          <div className="text-left">
-            <div className="text-sm font-black leading-tight flex items-center gap-1.5">
-              <span>{title}</span>
-              <ExternalLink size={13} className="opacity-60 group-hover:opacity-100 transition-opacity" />
-            </div>
-            <p className="text-[11px] font-medium text-black/75 leading-tight">
-              {subtitle}
-            </p>
-          </div>
+          <span className="shrink-0 bg-slate-950 text-[#FFDE02] text-xs font-black px-3 py-1 rounded-full shadow-xs tracking-tight">
+            {badgeText}
+          </span>
         </div>
 
-        <div className="shrink-0 bg-black/90 text-[#FFDD00] text-[11px] font-black px-2.5 py-1 rounded-lg">
-          {badgeText}
+        <div className="space-y-1">
+          <div className="text-sm sm:text-base font-black leading-snug flex items-center gap-1.5 text-slate-950">
+            <span>{title}</span>
+            <ExternalLink size={14} className="opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all shrink-0" />
+          </div>
+          <p className="text-xs font-medium text-slate-900/80 leading-relaxed">
+            {subtitle}
+          </p>
         </div>
       </a>
 
