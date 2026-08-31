@@ -101,10 +101,9 @@ service cloud.firestore {
       allow write: if true;
     }
     
-    // 14. Global App Configurations (Pricing, Feature Flags, Ads)
+    // 14. Global App Configurations (Pricing, Feature Flags, Ads, Dynamic Plan Limits)
     match /appConfig/{configDoc} {
-      allow read: if true;
-      allow write: if isAuthenticated();
+      allow read, write: if true;
     }
     
     // 15. All other collections: strict server-side only

@@ -2,7 +2,15 @@
  * KDP Studio Usage Tracking Service & Plan Gating
  */
 
-import { PLAN_LIMITS, FEATURE_ACCESS, PLAN_RANKS, PlanTier, FEATURE_LABELS } from './planLimits';
+import {
+  PLAN_LIMITS,
+  FEATURE_ACCESS,
+  PLAN_RANKS,
+  PlanTier,
+  FEATURE_LABELS,
+  getLivePlanLimits,
+  getLiveFeatureAccess,
+} from './planLimits';
 import { getUserDocument, updateUserDocument, deductCredit } from './userService';
 import { sendUsageWarningEmail, sendQuotaExceededEmail } from './emailService';
 import { APP_URL } from './resend';
@@ -63,11 +71,11 @@ export function getCurrentMonthUtc(): string {
 }
 
 /**
- * Check if a plan has access to a specific feature key
+ * Check if a plan has access to a specific feature key (Dynamic Live Check)
  */
 export function checkFeatureAccess(plan: string = 'free', feature: string): FeatureAccessResult {
   const normalizedPlan = (plan.toLowerCase() as PlanTier) || 'free';
-  const requiredPlan = FEATURE_ACCESS[feature] || 'free';
+  const requiredPlan = getLiveFeatureAccess(feature);
 
   const userRank = PLAN_RANKS[normalizedPlan] ?? 0;
   const requiredRank = PLAN_RANKS[requiredPlan] ?? 0;
@@ -86,7 +94,7 @@ export function checkFeatureAccess(plan: string = 'free', feature: string): Feat
 
 /**
  * Main function called before AI or Export actions
- * Atomically validates and increments usage counters
+ * Atomically validates and increments usage counters against dynamic limits
  */
 export async function checkAndIncrementUsage(
   uid: string,
@@ -95,7 +103,7 @@ export async function checkAndIncrementUsage(
 ): Promise<UsageCheckResult> {
   const resetTime = 'Resets at midnight UTC';
   const normalizedPlan = (plan.toLowerCase() as PlanTier) || 'free';
-  const limits = PLAN_LIMITS[normalizedPlan] || PLAN_LIMITS.free;
+  const limits = getLivePlanLimits(normalizedPlan);
 
   const today = getTodayUtc();
   const currentMonth = getCurrentMonthUtc();
@@ -352,7 +360,7 @@ export async function getUserUsageSummary(uid: string, fallbackPlan: string = 'f
     console.warn('Could not load user doc for usage summary:', err);
   }
 
-  const limits = PLAN_LIMITS[userPlan] || PLAN_LIMITS.free;
+  const limits = getLivePlanLimits(userPlan);
   const trackedActions = ['aiGenerations', 'pdfExports', 'imageGenerations', 'coverExports', 'puzzleGenerations', 'epubExports'];
 
   const dailyResult: Record<string, MetricUsageItem> = {};

@@ -25,6 +25,7 @@ import {
   ShieldCheck,
   Search,
   Mail,
+  Zap,
 } from 'lucide-react';
 
 interface NavItem {
@@ -210,6 +211,7 @@ export function AdminLayout({
     {
       title: 'SYSTEM & CONTROL',
       items: [
+        { id: 'admin-limits', label: 'Plan Limits & Quotas', href: '/admin/system/limits', icon: Zap },
         { id: 'admin-usage', label: 'Feature Analytics', href: '/admin/system/usage', icon: Activity },
         { id: 'admin-health', label: 'System Health', href: '/admin/system/health', icon: HeartPulse },
         { id: 'admin-broadcast', label: 'Broadcast Email', href: '/admin/system/broadcast', icon: Send },

@@ -233,6 +233,28 @@ export function AppSettingsPage() {
         </div>
       )}
 
+      {/* ── Dynamic Plan Limits & Quotas Callout Card ── */}
+      <div className="bg-gradient-to-r from-purple-900/60 to-indigo-950/60 border border-purple-500/30 rounded-2xl p-5 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Sparkles size={18} className="text-amber-400" />
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+              Dynamic Plan Limits & Quota Management
+            </h3>
+          </div>
+          <p className="text-xs text-purple-200">
+            Control Free tier bonuses, daily AI credits, puzzle quotas, and feature gates live from Firestore without code changes.
+          </p>
+        </div>
+        <a
+          href="/admin/system/limits"
+          className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shrink-0 flex items-center gap-1.5"
+        >
+          <span>Open Plan Limits Manager</span>
+          <span>→</span>
+        </a>
+      </div>
+
       {/* ── 1. Feature Flags (Kill Switches) ── */}
       <section className="bg-[#1a1a2e] border border-white/10 rounded-xl p-6 shadow-sm space-y-4">
         <div className="flex items-center justify-between border-b border-white/10 pb-3">

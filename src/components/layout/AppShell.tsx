@@ -57,6 +57,8 @@ import { FeatureUsagePage } from '../admin/system/FeatureUsagePage';
 import { SystemHealthPage } from '../admin/system/SystemHealthPage';
 import { BroadcastEmailPage } from '../admin/system/BroadcastEmailPage';
 import { AppSettingsPage } from '../admin/system/AppSettingsPage';
+import { PlanLimitsAdminPage } from '../admin/system/PlanLimitsAdminPage';
+import { initPlanLimitsSubscription } from '../../lib/planLimits';
 import { SupportCenterPage } from '../admin/support/SupportCenterPage';
 import { InstallPrompt } from '../pwa/InstallPrompt';
 import { UpdatePrompt } from '../pwa/UpdatePrompt';
@@ -252,6 +254,7 @@ export function parsePathToRoute(pathname: string): PageRoute | null {
   if (clean === 'admin/blog/seo') return 'admin-blog-seo';
   if (clean === 'admin/blog/newsletter') return 'admin-blog-newsletter';
   if (clean === 'admin/blog') return 'admin-blog';
+  if (clean === 'admin/system/limits' || clean === 'admin/limits' || clean === 'admin-limits') return 'admin-limits';
   if (clean === 'admin/system/usage' || clean === 'admin/usage') return 'admin-usage';
   if (clean === 'admin/system/health' || clean === 'admin/health') return 'admin-health';
   if (clean === 'admin/system/broadcast' || clean === 'admin/broadcast') return 'admin-broadcast';
@@ -374,10 +377,14 @@ export const AppShell: React.FC = () => {
       if (unsub) unsubscribeFCM = unsub;
     });
 
+    // Initialize dynamic plan limits real-time subscription from Firestore
+    const unsubscribePlanLimits = initPlanLimitsSubscription();
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       if (unsubscribeFCM) unsubscribeFCM();
+      if (unsubscribePlanLimits) unsubscribePlanLimits();
     };
   }, [user?.uid]);
 
@@ -515,6 +522,7 @@ export const AppShell: React.FC = () => {
       case 'admin-health': return 'System Health & Probes';
       case 'admin-broadcast': return 'Broadcast Email System';
       case 'admin-settings': return 'App Configuration & Feature Flags';
+      case 'admin-limits': return 'Dynamic Plan Limits & Quota Manager';
       case 'admin-support': return 'Support Center';
       case 'admin-content': return 'Content Moderation Review Queue';
       case 'admin-content-audits': return 'Manuscript Audit Reports';
@@ -631,6 +639,7 @@ export const AppShell: React.FC = () => {
             {currentRoute === 'admin-health' && <SystemHealthPage />}
             {currentRoute === 'admin-broadcast' && <BroadcastEmailPage />}
             {currentRoute === 'admin-settings' && <AppSettingsPage />}
+            {currentRoute === 'admin-limits' && <PlanLimitsAdminPage />}
             {currentRoute === 'admin-support' && <SupportCenterPage />}
             {currentRoute === 'admin-content' && <ContentModerationPage />}
             {currentRoute === 'admin-content-audits' && <AuditReportsPage />}
