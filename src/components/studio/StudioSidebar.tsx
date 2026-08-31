@@ -31,13 +31,9 @@ import {
   Target,
   Users,
   ChevronLeft,
-  ChevronRight,
-  Circle,
-  CheckCircle2,
   Clock,
-  PlusCircle,
 } from 'lucide-react';
-import { Book, Chapter, FrontMatter, BackMatter } from '../../types';
+import { Book, Chapter } from '../../types';
 import { StudioAiCopilot } from './StudioAiCopilot';
 import { StudioKdpEstimator } from './StudioKdpEstimator';
 
@@ -100,7 +96,6 @@ const SortableChapterRow: React.FC<SortableChapterRowProps> = ({
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(chapter.title);
 
-  // Status cycling: draft -> review -> final -> draft
   const status: 'draft' | 'review' | 'final' = (chapter as any).status || 'draft';
 
   const cycleStatus = (e: React.MouseEvent) => {
@@ -128,8 +123,8 @@ const SortableChapterRow: React.FC<SortableChapterRowProps> = ({
       id={`chapter-row-${chapter.id}`}
       className={`group relative flex items-center justify-between p-2.5 rounded-xl border transition-all ${
         isActive
-          ? 'bg-purple-50/90 dark:bg-purple-950/50 border-purple-400 dark:border-purple-600 shadow-xs ring-1 ring-purple-400/30'
-          : 'bg-white dark:bg-[#1a1a2e] border-gray-200/80 dark:border-gray-800/80 hover:border-purple-200 dark:hover:border-gray-700 hover:shadow-xs'
+          ? 'bg-purple-50/90 border-purple-400 shadow-xs ring-1 ring-purple-400/30'
+          : 'bg-white border-slate-200 hover:border-purple-300 hover:shadow-xs'
       }`}
     >
       <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -138,7 +133,7 @@ const SortableChapterRow: React.FC<SortableChapterRowProps> = ({
           type="button"
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing text-gray-300 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-300 p-0.5"
+          className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-600 p-0.5"
           title="Drag to reorder chapter"
         >
           <GripVertical className="w-3.5 h-3.5" />
@@ -163,19 +158,19 @@ const SortableChapterRow: React.FC<SortableChapterRowProps> = ({
                 }
               }}
               autoFocus
-              className="w-full text-xs font-semibold px-1.5 py-0.5 bg-white dark:bg-[#131320] border border-purple-500 rounded text-gray-900 dark:text-white focus:outline-none"
+              className="w-full text-xs font-semibold px-1.5 py-0.5 bg-white border border-purple-500 rounded text-slate-900 focus:outline-none"
             />
           ) : (
             <>
               <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded">
+                <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded">
                   Ch.{chapter.order}
                 </span>
                 <span
-                  className={`text-xs font-semibold truncate ${
+                  className={`text-xs truncate ${
                     isActive
-                      ? 'text-purple-950 dark:text-purple-200 font-bold'
-                      : 'text-gray-800 dark:text-gray-200'
+                      ? 'text-purple-950 font-bold'
+                      : 'text-slate-800 font-medium'
                   }`}
                 >
                   {chapter.title}
@@ -183,7 +178,7 @@ const SortableChapterRow: React.FC<SortableChapterRowProps> = ({
               </div>
 
               {/* Word Count & Status Indicator */}
-              <div className="flex items-center gap-2 text-[10px] text-gray-400 dark:text-gray-500 mt-1 pl-0.5">
+              <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-1 pl-0.5">
                 <span className="font-mono">{words.toLocaleString()} w</span>
                 <span>·</span>
                 <span className="flex items-center gap-0.5">
@@ -198,10 +193,10 @@ const SortableChapterRow: React.FC<SortableChapterRowProps> = ({
                   title="Click to cycle status: Draft -> Review -> Final"
                   className={`inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-semibold uppercase tracking-wider transition-colors ${
                     status === 'final'
-                      ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
+                      ? 'bg-emerald-100 text-emerald-700'
                       : status === 'review'
-                      ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
-                      : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-amber-100 text-amber-700'
                   }`}
                 >
                   <span className={`w-1.5 h-1.5 rounded-full ${
@@ -223,7 +218,7 @@ const SortableChapterRow: React.FC<SortableChapterRowProps> = ({
             e.stopPropagation();
             setMenuOpen(!menuOpen);
           }}
-          className="p-1 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
         >
           <MoreVertical className="w-3.5 h-3.5" />
         </button>
@@ -234,7 +229,7 @@ const SortableChapterRow: React.FC<SortableChapterRowProps> = ({
               className="fixed inset-0 z-40"
               onClick={() => setMenuOpen(false)}
             />
-            <div className="absolute right-0 top-full mt-1 w-36 bg-white dark:bg-[#151525] border border-gray-200 dark:border-gray-800 rounded-lg shadow-xl py-1 z-50 text-xs">
+            <div className="absolute right-0 top-full mt-1 w-36 bg-white border border-slate-200 rounded-lg shadow-xl py-1 z-50 text-xs">
               <button
                 type="button"
                 onClick={(e) => {
@@ -242,7 +237,7 @@ const SortableChapterRow: React.FC<SortableChapterRowProps> = ({
                   setMenuOpen(false);
                   setIsEditingTitle(true);
                 }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors"
               >
                 <Edit2 className="w-3.5 h-3.5" />
                 <span>Rename</span>
@@ -255,13 +250,13 @@ const SortableChapterRow: React.FC<SortableChapterRowProps> = ({
                   setMenuOpen(false);
                   onDuplicate();
                 }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors"
               >
                 <Copy className="w-3.5 h-3.5" />
                 <span>Duplicate</span>
               </button>
 
-              <div className="my-1 border-t border-gray-100 dark:border-gray-800" />
+              <div className="my-1 border-t border-slate-100" />
 
               <button
                 type="button"
@@ -270,7 +265,7 @@ const SortableChapterRow: React.FC<SortableChapterRowProps> = ({
                   setMenuOpen(false);
                   onDelete();
                 }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-red-600 hover:bg-red-50 transition-colors"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>Delete</span>
@@ -343,12 +338,12 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
   );
 
   return (
-    <div className="flex flex-col h-full bg-gray-50/60 dark:bg-[#131320] border-r border-gray-200 dark:border-gray-800 select-none">
+    <div className="flex flex-col h-full bg-slate-50/80 border-r border-slate-200 select-none">
       {/* 1. Sidebar Top Header & Navigation Tabs */}
-      <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1a1a2e] shrink-0">
+      <div className="border-b border-slate-200 bg-white shrink-0">
         <div className="flex items-center justify-between px-3 pt-2.5 pb-2">
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="text-xs font-bold uppercase tracking-wider text-gray-800 dark:text-gray-200 truncate">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-800 truncate">
               Studio Suite
             </span>
           </div>
@@ -357,7 +352,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
             <button
               type="button"
               onClick={onToggleCollapse}
-              className="p-1 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
               title="Collapse sidebar (Focus Mode)"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -372,8 +367,8 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
             onClick={() => setActiveTab('outline')}
             className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg text-[11px] font-semibold transition-all ${
               activeTab === 'outline'
-                ? 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 shadow-2xs'
-                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/60'
+                ? 'bg-purple-100 text-purple-700 shadow-2xs font-bold'
+                : 'text-slate-500 hover:bg-slate-100'
             }`}
             title="Manuscript Tree & Chapters"
           >
@@ -386,12 +381,12 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
             onClick={() => setActiveTab('copilot')}
             className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg text-[11px] font-semibold transition-all ${
               activeTab === 'copilot'
-                ? 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 shadow-2xs'
-                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/60'
+                ? 'bg-purple-100 text-purple-700 shadow-2xs font-bold'
+                : 'text-slate-500 hover:bg-slate-100'
             }`}
             title="AI Co-Writer Copilot"
           >
-            <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+            <Sparkles className="w-3.5 h-3.5 text-purple-600" />
             <span className="hidden lg:inline">AI Copilot</span>
           </button>
 
@@ -400,8 +395,8 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
             onClick={() => setActiveTab('bible')}
             className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg text-[11px] font-semibold transition-all ${
               activeTab === 'bible'
-                ? 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 shadow-2xs'
-                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/60'
+                ? 'bg-purple-100 text-purple-700 shadow-2xs font-bold'
+                : 'text-slate-500 hover:bg-slate-100'
             }`}
             title="Characters & World Notes"
           >
@@ -414,8 +409,8 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
             onClick={() => setActiveTab('goals')}
             className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg text-[11px] font-semibold transition-all ${
               activeTab === 'goals'
-                ? 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 shadow-2xs'
-                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/60'
+                ? 'bg-purple-100 text-purple-700 shadow-2xs font-bold'
+                : 'text-slate-500 hover:bg-slate-100'
             }`}
             title="KDP Specs & Word Goals"
           >
@@ -431,15 +426,15 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
         {activeTab === 'outline' && (
           <div className="flex-1 overflow-hidden flex flex-col">
             {/* Search Filter */}
-            <div className="p-2.5 border-b border-gray-200 dark:border-gray-800 bg-white/70 dark:bg-[#16162a]/60">
+            <div className="p-2.5 border-b border-slate-200 bg-white">
               <div className="relative">
-                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search chapters..."
-                  className="w-full pl-8 pr-2.5 py-1.5 bg-gray-100/70 dark:bg-[#131320] border border-gray-200/80 dark:border-gray-700/80 rounded-lg text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500"
                 />
               </div>
             </div>
@@ -450,18 +445,18 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
               <button
                 type="button"
                 onClick={onOpenFrontMatter}
-                className="w-full flex items-center justify-between p-2 rounded-xl border border-gray-200/70 dark:border-gray-800/70 bg-white dark:bg-[#1a1a2e] hover:border-purple-300 dark:hover:border-purple-800 hover:bg-purple-50/40 dark:hover:bg-purple-950/20 transition-all text-left text-xs"
+                className="w-full flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-white hover:border-purple-300 hover:bg-purple-50/40 transition-all text-left text-xs shadow-2xs"
               >
                 <div className="flex items-center gap-2">
-                  <div className="p-1 rounded-md bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300">
+                  <div className="p-1 rounded-md bg-purple-100 text-purple-700">
                     <FileText className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-800 dark:text-gray-200">Front Matter</div>
-                    <div className="text-[10px] text-gray-400">Title, Copyright, Dedication</div>
+                    <div className="font-semibold text-slate-800">Front Matter</div>
+                    <div className="text-[10px] text-slate-400">Title, Copyright, Dedication</div>
                   </div>
                 </div>
-                <span className="text-[10px] font-semibold text-purple-600 dark:text-purple-400">Edit</span>
+                <span className="text-[10px] font-semibold text-purple-600">Edit</span>
               </button>
 
               {/* Sortable Chapter Items */}
@@ -485,7 +480,6 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                         onDelete={() => onDeleteChapter(chapter.id)}
                         onDuplicate={() => onDuplicateChapter(chapter.id)}
                         onToggleStatus={(newStatus) => {
-                          // Update chapter status in store
                           (chapter as any).status = newStatus;
                         }}
                       />
@@ -498,23 +492,23 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
               <button
                 type="button"
                 onClick={onOpenBackMatter}
-                className="w-full flex items-center justify-between p-2 rounded-xl border border-gray-200/70 dark:border-gray-800/70 bg-white dark:bg-[#1a1a2e] hover:border-purple-300 dark:hover:border-purple-800 hover:bg-purple-50/40 dark:hover:bg-purple-950/20 transition-all text-left text-xs"
+                className="w-full flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-white hover:border-purple-300 hover:bg-purple-50/40 transition-all text-left text-xs shadow-2xs"
               >
                 <div className="flex items-center gap-2">
-                  <div className="p-1 rounded-md bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300">
+                  <div className="p-1 rounded-md bg-purple-100 text-purple-700">
                     <BookmarkCheck className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-800 dark:text-gray-200">Back Matter</div>
-                    <div className="text-[10px] text-gray-400">Author Bio, Also by Author</div>
+                    <div className="font-semibold text-slate-800">Back Matter</div>
+                    <div className="text-[10px] text-slate-400">Author Bio, Also by Author</div>
                   </div>
                 </div>
-                <span className="text-[10px] font-semibold text-purple-600 dark:text-purple-400">Edit</span>
+                <span className="text-[10px] font-semibold text-purple-600">Edit</span>
               </button>
             </div>
 
             {/* Bottom Add Chapter & Stats */}
-            <div className="p-2.5 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1a1a2e] space-y-2 shrink-0">
+            <div className="p-2.5 border-t border-slate-200 bg-white space-y-2 shrink-0">
               <button
                 type="button"
                 id="btn-sidebar-add-chapter"
@@ -525,10 +519,10 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                 <span>Add Chapter</span>
               </button>
 
-              <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400 px-1 font-mono">
+              <div className="flex items-center justify-between text-[11px] text-slate-500 px-1 font-mono">
                 <span>{book.chapters.length} chapters</span>
                 <span>·</span>
-                <span className="font-semibold text-gray-700 dark:text-gray-300">{totalWords.toLocaleString()} words</span>
+                <span className="font-semibold text-slate-800">{totalWords.toLocaleString()} words</span>
                 <span>·</span>
                 <span>~{Math.max(1, Math.ceil(totalWords / 250))} p</span>
               </div>
@@ -549,29 +543,29 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
 
         {/* TAB 3: CHARACTER & WORLD BIBLE */}
         {activeTab === 'bible' && (
-          <div className="flex-1 overflow-y-auto p-3 space-y-3 text-xs">
+          <div className="flex-1 overflow-y-auto p-3 space-y-3 text-xs bg-white">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+              <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-purple-600" />
                 <span>Story Characters & Lore</span>
               </span>
               <button
                 type="button"
                 onClick={() => setIsAddingChar(!isAddingChar)}
-                className="text-[11px] text-purple-600 dark:text-purple-400 hover:underline font-semibold"
+                className="text-[11px] text-purple-600 hover:underline font-semibold"
               >
                 + Add Note
               </button>
             </div>
 
             {isAddingChar && (
-              <div className="p-2.5 bg-purple-50/60 dark:bg-purple-950/40 rounded-xl border border-purple-200 dark:border-purple-800 space-y-2">
+              <div className="p-2.5 bg-purple-50/60 rounded-xl border border-purple-200 space-y-2">
                 <input
                   type="text"
                   placeholder="Character or Location Name..."
                   value={newCharName}
                   onChange={(e) => setNewCharName(e.target.value)}
-                  className="w-full px-2 py-1 bg-white dark:bg-[#131320] border border-purple-300 dark:border-purple-700 rounded text-xs focus:outline-none"
+                  className="w-full px-2 py-1 bg-white border border-purple-300 rounded text-xs focus:outline-none"
                 />
                 <button
                   type="button"
@@ -596,15 +590,15 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
               {characterNotes.map((c) => (
                 <div
                   key={c.id}
-                  className="p-2.5 bg-white dark:bg-[#1a1a2e] rounded-xl border border-gray-200 dark:border-gray-800 space-y-1"
+                  className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-gray-900 dark:text-white">{c.name}</span>
-                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 font-medium">
+                    <span className="font-bold text-slate-900">{c.name}</span>
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-purple-100 text-purple-700 font-medium">
                       {c.role}
                     </span>
                   </div>
-                  <p className="text-[11px] text-gray-600 dark:text-gray-400 leading-relaxed">
+                  <p className="text-[11px] text-slate-600 leading-relaxed">
                     {c.notes}
                   </p>
                 </div>

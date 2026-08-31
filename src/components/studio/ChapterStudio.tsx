@@ -125,7 +125,7 @@ export const ChapterStudio: React.FC<ChapterStudioProps> = ({
     content: activeChapter?.content || '<p>Start writing your chapter here...</p>',
     editorProps: {
       attributes: {
-        class: 'prose dark:prose-invert prose-purple max-w-none focus:outline-none min-h-[420px] px-6 py-6 text-gray-900 dark:text-gray-100 leading-relaxed font-serif text-base',
+        class: 'prose prose-slate max-w-none focus:outline-none min-h-[550px] px-8 py-8 text-slate-900 leading-relaxed font-serif text-base',
       },
     },
     onUpdate: ({ editor }) => {
@@ -316,14 +316,14 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
   }
 
   return (
-    <div id="chapter-studio-viewport" className="flex flex-col h-[calc(100vh-6rem)] -m-4 sm:-m-8 bg-white dark:bg-[#131320] overflow-hidden">
+    <div id="chapter-studio-viewport" className="flex flex-col h-[calc(100vh-6rem)] -m-4 sm:-m-8 bg-slate-100/70 text-slate-900 overflow-hidden">
       {/* Top Action Bar */}
-      <header className="h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1a1a2e] px-4 sm:px-6 flex items-center justify-between z-10 shrink-0">
+      <header className="h-14 border-b border-slate-200 bg-white px-4 sm:px-6 flex items-center justify-between z-10 shrink-0 shadow-xs">
         <div className="flex items-center gap-3 min-w-0">
           <button
             type="button"
             onClick={onBackToDashboard}
-            className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
             title="Back to Dashboard"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -332,17 +332,17 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
           <button
             type="button"
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="hidden md:inline-flex p-1.5 rounded-lg text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40 transition-colors"
+            className="hidden md:inline-flex p-1.5 rounded-lg text-slate-500 hover:text-purple-600 hover:bg-purple-50 transition-colors"
             title={isSidebarCollapsed ? 'Show Studio Suite Sidebar' : 'Hide Sidebar (Focus Mode)'}
           >
             {isSidebarCollapsed ? <PanelLeft className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
           </button>
 
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 shrink-0">
+            <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-purple-100 text-purple-700 shrink-0">
               {currentBook.trimSize}
             </span>
-            <h2 className="text-sm font-bold text-gray-900 dark:text-white truncate">
+            <h2 className="text-sm font-bold text-slate-900 truncate">
               {currentBook.title}
             </h2>
           </div>
@@ -355,9 +355,9 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
             type="button"
             id="btn-open-front-matter"
             onClick={() => setIsFrontMatterOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#131320] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
           >
-            <FileText className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+            <FileText className="w-3.5 h-3.5 text-purple-600" />
             <span className="hidden sm:inline">Front Matter</span>
           </button>
 
@@ -366,9 +366,9 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
             type="button"
             id="btn-open-back-matter"
             onClick={() => setIsBackMatterOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#131320] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
           >
-            <BookmarkCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+            <BookmarkCheck className="w-3.5 h-3.5 text-purple-600" />
             <span className="hidden sm:inline">Back Matter</span>
           </button>
 
@@ -379,12 +379,12 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
             onClick={() => toggleDrawer('history')}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
               activeDrawer === 'history'
-                ? 'bg-purple-100 dark:bg-purple-950/80 border-purple-400 text-purple-700 dark:text-purple-300'
-                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-[#131320] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                ? 'bg-purple-100 border-purple-400 text-purple-700'
+                : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
             }`}
             title="View Version History & Snapshots"
           >
-            <History className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+            <History className="w-3.5 h-3.5 text-purple-600" />
             <span className="hidden sm:inline">History</span>
           </button>
 
@@ -395,12 +395,12 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
             onClick={() => toggleDrawer('audit')}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
               activeDrawer === 'audit'
-                ? 'bg-purple-100 dark:bg-purple-950/80 border-purple-400 text-purple-700 dark:text-purple-300'
-                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-[#131320] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                ? 'bg-purple-100 border-purple-400 text-purple-700'
+                : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
             }`}
             title="Content Quality & KDP Policy Audit"
           >
-            <Search className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+            <Search className="w-3.5 h-3.5 text-purple-600" />
             <span className="hidden sm:inline">Audit</span>
           </button>
 
@@ -409,7 +409,7 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
             type="button"
             id="btn-open-ai-write"
             onClick={() => setIsAiWriteOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 transition-colors"
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>AI Write Chapter</span>
@@ -443,14 +443,14 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
             onClick={handleSave}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-all ${
               saveStatus === 'saved'
-                ? 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
-                : 'border-purple-500 bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 font-semibold'
+                ? 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                : 'border-purple-500 bg-purple-50 text-purple-700 font-semibold'
             }`}
           >
             {saveStatus === 'saving' ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-600" />
             ) : saveStatus === 'saved' ? (
-              <Check className="w-3.5 h-3.5 text-green-500" />
+              <Check className="w-3.5 h-3.5 text-emerald-600 font-bold" />
             ) : (
               <Save className="w-3.5 h-3.5 text-purple-600" />
             )}
@@ -462,15 +462,15 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
       </header>
 
       {/* Mobile Switcher (Chapters vs Editor) */}
-      <div className="md:hidden flex items-center justify-center p-2 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shrink-0">
-        <div className="flex rounded-xl bg-slate-200 dark:bg-slate-900 p-0.5 text-xs font-semibold w-full max-w-xs shadow-inner">
+      <div className="md:hidden flex items-center justify-center p-2 bg-slate-100 border-b border-slate-200 shrink-0">
+        <div className="flex rounded-xl bg-slate-200 p-0.5 text-xs font-semibold w-full max-w-xs shadow-inner">
           <button
             type="button"
             onClick={() => setMobileActiveView('chapters')}
             className={`flex-1 py-2 rounded-lg transition-all text-center ${
               mobileActiveView === 'chapters'
-                ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 font-bold shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                ? 'bg-white text-purple-700 font-bold shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Chapters ({currentBook.chapters.length})
@@ -480,8 +480,8 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
             onClick={() => setMobileActiveView('editor')}
             className={`flex-1 py-2 rounded-lg transition-all text-center ${
               mobileActiveView === 'editor'
-                ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 font-bold shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                ? 'bg-white text-purple-700 font-bold shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Writing Editor
@@ -515,12 +515,12 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
         )}
 
         {/* Right Panel - Editor Surface */}
-        <main className={`flex-1 flex flex-col h-full bg-gray-50/40 dark:bg-[#0f0f17] overflow-hidden ${mobileActiveView === 'editor' ? 'flex' : 'hidden md:flex'}`}>
+        <main className={`flex-1 flex flex-col h-full bg-slate-100/70 overflow-hidden ${mobileActiveView === 'editor' ? 'flex' : 'hidden md:flex'}`}>
           {/* Tiptap Toolbar */}
           <TiptapToolbar editor={editor} />
 
           {/* Chapter Title Editor Bar */}
-          <div className="px-6 py-3 bg-white dark:bg-[#1a1a2e] border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+          <div className="px-6 py-3 bg-white border-b border-slate-200 flex items-center justify-between shadow-2xs">
             <input
               id="input-chapter-active-title"
               type="text"
@@ -531,13 +531,13 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
               }}
               onBlur={handleSave}
               placeholder="Chapter Title..."
-              className="text-base sm:text-lg font-bold text-gray-900 dark:text-white bg-transparent border-b border-transparent hover:border-gray-300 dark:hover:border-gray-700 focus:border-purple-500 focus:outline-none w-full max-w-xl transition-colors"
+              className="text-base sm:text-lg font-bold text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-purple-500 focus:outline-none w-full max-w-xl transition-colors"
             />
           </div>
 
           {/* Editor Canvas Area */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-8 flex justify-center relative">
-            <div className="w-full max-w-3xl bg-white dark:bg-[#1a1a2e] rounded-xl shadow-xs border border-gray-200 dark:border-gray-800 min-h-[600px] flex flex-col relative">
+            <div className="w-full max-w-3xl bg-white rounded-2xl shadow-md border border-slate-200 min-h-[650px] flex flex-col relative my-2">
               <EditorContent editor={editor} className="flex-1" />
 
               {/* Floating AI Improvement Bubble */}
@@ -560,23 +560,23 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
           </div>
 
           {/* Bottom Editor Status Bar */}
-          <footer className="h-9 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1a1a2e] px-6 flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400 shrink-0">
+          <footer className="h-9 border-t border-slate-200 bg-white px-6 flex items-center justify-between text-[11px] text-slate-500 shrink-0">
             <div className="flex items-center gap-4">
-              <span>
+              <span className="font-semibold text-slate-700">
                 {activeChapter?.title || 'Chapter'}
               </span>
-              <span className="hidden sm:inline text-gray-300 dark:text-gray-700">|</span>
-              <span className="hidden sm:inline">
+              <span className="hidden sm:inline text-slate-300">|</span>
+              <span className="hidden sm:inline text-slate-500">
                 Auto-saved: {lastSavedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
 
             <div className="flex items-center gap-4 font-mono">
-              <span className="font-semibold text-gray-700 dark:text-gray-300">
+              <span className="font-semibold text-purple-700">
                 {liveWordCount.toLocaleString()} words
               </span>
-              <span className="text-gray-300 dark:text-gray-700">|</span>
-              <span>
+              <span className="text-slate-300">|</span>
+              <span className="text-slate-600">
                 ~{Math.max(1, Math.ceil(liveWordCount / 250))} book pages ({currentBook.trimSize})
               </span>
             </div>

@@ -10,7 +10,6 @@ import {
   Check,
   CornerDownLeft,
   Loader2,
-  ChevronDown,
   Wand2,
 } from 'lucide-react';
 import { callGemini, streamGemini } from '../../lib/gemini';
@@ -45,35 +44,35 @@ export const StudioAiCopilot: React.FC<StudioAiCopilotProps> = ({
       id: 'expand' as const,
       label: 'Expand Scene',
       icon: Wand2,
-      desc: 'Add sensory details, atmosphere & depth',
+      desc: 'Add sensory details & atmosphere',
       placeholder: 'E.g., Describe the thunderstorm outside the tavern in vivid detail...',
     },
     {
       id: 'dialogue' as const,
       label: 'Polish Dialogue',
       icon: MessageSquare,
-      desc: 'Sharpen subtext, banter & character voice',
+      desc: 'Sharpen subtext & character voice',
       placeholder: 'E.g., Make the argument between the two detectives more intense...',
     },
     {
       id: 'show_dont_tell' as const,
       label: 'Show, Don\'t Tell',
       icon: Eye,
-      desc: 'Convert passive exposition into active scenes',
-      placeholder: 'E.g., Show his panic through physical actions instead of stating he was scared...',
+      desc: 'Convert passive exposition into scenes',
+      placeholder: 'E.g., Show his panic through physical actions...',
     },
     {
       id: 'twist' as const,
       label: 'Plot Twister',
       icon: Shuffle,
-      desc: 'Generate surprising cliffhangers & turns',
+      desc: 'Surprising cliffhangers & turns',
       placeholder: 'E.g., Suggest 3 unexpected revelations to end this chapter...',
     },
     {
       id: 'summary' as const,
       label: 'Chapter Beats',
       icon: FileText,
-      desc: 'Extract key plot points & continuity notes',
+      desc: 'Extract key plot points & arcs',
       placeholder: 'Summarize the core character arc and decisions in this scene...',
     },
   ];
@@ -173,18 +172,18 @@ Output clean formatted HTML for the manuscript.`;
   };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-[#131320] text-xs">
+    <div className="flex flex-col h-full bg-white text-xs text-slate-800">
       {/* Preset Action Grid */}
-      <div className="p-3 border-b border-gray-200 dark:border-gray-800 space-y-2">
+      <div className="p-3 border-b border-slate-200 space-y-2 bg-white">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
+            <Sparkles className="w-3.5 h-3.5 text-purple-600" />
             <span>AI Author Actions</span>
           </span>
           <select
             value={tone}
             onChange={(e) => setTone(e.target.value)}
-            className="text-[11px] px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 focus:outline-none"
+            className="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 focus:outline-none"
           >
             <option value="Vivid & Engaging">Vivid & Engaging</option>
             <option value="Fast-Paced & Tense">Fast-Paced & Tense</option>
@@ -203,13 +202,13 @@ Output clean formatted HTML for the manuscript.`;
                 key={p.id}
                 type="button"
                 onClick={() => setActivePreset(p.id)}
-                className={`flex items-start gap-1.5 p-2 rounded-lg text-left border transition-all ${
+                className={`flex items-start gap-1.5 p-2 rounded-xl text-left border transition-all ${
                   isSelected
-                    ? 'bg-purple-50 dark:bg-purple-950/60 border-purple-500 text-purple-950 dark:text-purple-200 shadow-xs'
-                    : 'bg-gray-50/50 dark:bg-[#1a1a2e] border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 text-gray-700 dark:text-gray-300'
+                    ? 'bg-purple-50 border-purple-400 text-purple-950 shadow-2xs font-semibold'
+                    : 'bg-slate-50/80 border-slate-200 hover:border-slate-300 text-slate-700'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${isSelected ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400'}`} />
+                <Icon className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${isSelected ? 'text-purple-600' : 'text-slate-400'}`} />
                 <div className="min-w-0">
                   <div className="font-semibold text-[11px] truncate">{p.label}</div>
                 </div>
@@ -220,17 +219,17 @@ Output clean formatted HTML for the manuscript.`;
       </div>
 
       {/* Input / Customization Box */}
-      <div className="p-3 border-b border-gray-200 dark:border-gray-800 space-y-2 bg-gray-50/30 dark:bg-[#16162a]">
+      <div className="p-3 border-b border-slate-200 space-y-2 bg-slate-50/50">
         {selectedText ? (
-          <div className="p-2 rounded bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-[11px]">
-            <span className="font-bold text-purple-700 dark:text-purple-300">Selected in Editor:</span>
-            <p className="text-gray-600 dark:text-gray-400 line-clamp-2 italic mt-0.5">
+          <div className="p-2 rounded-lg bg-purple-50 border border-purple-200 text-[11px]">
+            <span className="font-bold text-purple-700">Selected in Editor:</span>
+            <p className="text-slate-600 line-clamp-2 italic mt-0.5">
               "{selectedText}"
             </p>
           </div>
         ) : (
-          <div className="text-[11px] text-gray-500 dark:text-gray-400">
-            Targeting: <span className="font-medium text-gray-700 dark:text-gray-300">{activeChapter?.title || 'Current Chapter'}</span>
+          <div className="text-[11px] text-slate-500">
+            Targeting: <span className="font-medium text-slate-800">{activeChapter?.title || 'Current Chapter'}</span>
           </div>
         )}
 
@@ -239,14 +238,14 @@ Output clean formatted HTML for the manuscript.`;
           value={customPrompt}
           onChange={(e) => setCustomPrompt(e.target.value)}
           placeholder={presets.find((p) => p.id === activePreset)?.placeholder || 'Additional instructions...'}
-          className="w-full p-2 bg-white dark:bg-[#131320] border border-gray-200 dark:border-gray-700 rounded-lg text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-purple-500 resize-none"
+          className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500 resize-none"
         />
 
         <button
           type="button"
           onClick={handleGenerate}
           disabled={isGenerating}
-          className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-lg font-semibold text-xs shadow-xs transition-colors"
+          className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-xl font-semibold text-xs shadow-xs transition-colors"
         >
           {isGenerating ? (
             <>
@@ -263,25 +262,25 @@ Output clean formatted HTML for the manuscript.`;
       </div>
 
       {/* Output / Insertion Panel */}
-      <div className="flex-1 overflow-y-auto p-3 flex flex-col justify-between">
+      <div className="flex-1 overflow-y-auto p-3 flex flex-col justify-between bg-white">
         {generatedOutput ? (
           <div className="space-y-3">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-gray-500 dark:text-gray-400">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500">
               <span>Generated Draft</span>
               <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={handleCopy}
-                  className="p-1 hover:text-gray-900 dark:hover:text-white rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="p-1 hover:text-slate-900 rounded hover:bg-slate-100 transition-colors"
                   title="Copy text"
                 >
-                  {hasCopied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                  {hasCopied ? <Check className="w-3.5 h-3.5 text-emerald-600 font-bold" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
               </div>
             </div>
 
             <div
-              className="p-3 bg-gray-50 dark:bg-[#18182c] border border-gray-200 dark:border-gray-800 rounded-lg text-xs leading-relaxed text-gray-800 dark:text-gray-200 max-h-56 overflow-y-auto select-text prose prose-xs dark:prose-invert"
+              className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs leading-relaxed text-slate-800 max-h-56 overflow-y-auto select-text prose prose-xs"
               dangerouslySetInnerHTML={{ __html: generatedOutput }}
             />
 
@@ -290,7 +289,7 @@ Output clean formatted HTML for the manuscript.`;
               <button
                 type="button"
                 onClick={() => onInsertContent(generatedOutput)}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 bg-purple-100 dark:bg-purple-950/80 hover:bg-purple-200 dark:hover:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-lg font-semibold text-[11px] transition-colors border border-purple-300 dark:border-purple-700"
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-xl font-semibold text-[11px] transition-colors border border-purple-300"
               >
                 <CornerDownLeft className="w-3.5 h-3.5" />
                 <span>Insert at Cursor</span>
@@ -300,7 +299,7 @@ Output clean formatted HTML for the manuscript.`;
                 <button
                   type="button"
                   onClick={() => onReplaceSelection(generatedOutput)}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 bg-emerald-100 dark:bg-emerald-950/80 hover:bg-emerald-200 dark:hover:bg-emerald-900 text-emerald-800 dark:text-emerald-200 rounded-lg font-semibold text-[11px] transition-colors border border-emerald-300 dark:border-emerald-700"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-xl font-semibold text-[11px] transition-colors border border-emerald-300"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>Replace Selection</span>
@@ -309,10 +308,10 @@ Output clean formatted HTML for the manuscript.`;
             </div>
           </div>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-center text-gray-400 p-4">
+          <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 p-4">
             <Sparkles className="w-8 h-8 text-purple-400/40 mb-2" />
-            <p className="font-semibold text-gray-600 dark:text-gray-300 text-xs">Your AI Co-Writer is Ready</p>
-            <p className="text-[11px] text-gray-400 mt-1 max-w-xs">
+            <p className="font-semibold text-slate-700 text-xs">Your AI Co-Writer is Ready</p>
+            <p className="text-[11px] text-slate-500 mt-1 max-w-xs">
               Select an action above to expand scenes, polish dialogue, or generate plot twists directly into your manuscript.
             </p>
           </div>
