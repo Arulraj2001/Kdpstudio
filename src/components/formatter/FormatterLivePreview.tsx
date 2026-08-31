@@ -357,7 +357,7 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-[640px] max-h-[78vh] bg-slate-100/80 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="flex flex-col h-[720px] max-h-[82vh] bg-slate-100/80 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       {/* Top Preview Control Bar */}
       <div className="h-12 bg-white border-b border-slate-200 px-4 flex items-center justify-between z-10 shrink-0 shadow-2xs">
         <div className="flex items-center gap-2">
