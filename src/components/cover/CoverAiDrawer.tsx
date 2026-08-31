@@ -343,7 +343,10 @@ export const CoverAiDrawer: React.FC<CoverAiDrawerProps> = ({
               {variations.map((url, idx) => (
                 <div
                   key={idx}
-                  onClick={() => setSelectedVariation(url)}
+                  onClick={() => {
+                    setSelectedVariation(url);
+                    onApplyImageToCanvas(url, placement);
+                  }}
                   className={`group relative rounded-xl overflow-hidden border-2 cursor-pointer transition-all aspect-3/4 bg-slate-100 ${
                     selectedVariation === url
                       ? 'border-purple-600 ring-2 ring-purple-600/40 shadow-md'
@@ -352,8 +355,8 @@ export const CoverAiDrawer: React.FC<CoverAiDrawerProps> = ({
                 >
                   <img src={url} alt={`Variation ${idx + 1}`} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span className="px-2.5 py-1 bg-white text-slate-900 rounded-lg text-[10px] font-bold shadow-md">
-                      Click to Place
+                    <span className="px-2.5 py-1 bg-white text-slate-900 rounded-lg text-[10px] font-bold shadow-md flex items-center gap-1">
+                      <Check className="w-3 h-3 text-purple-600" /> Click to Place
                     </span>
                   </div>
                 </div>
@@ -363,6 +366,7 @@ export const CoverAiDrawer: React.FC<CoverAiDrawerProps> = ({
             {selectedVariation && (
               <button
                 type="button"
+                id="btn-place-selected-ai-image"
                 onClick={() => onApplyImageToCanvas(selectedVariation, placement)}
                 className="w-full py-2.5 rounded-xl bg-purple-600 text-white font-bold text-xs hover:bg-purple-700 transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer"
               >

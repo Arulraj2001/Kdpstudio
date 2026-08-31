@@ -648,52 +648,67 @@ export const CoverBuilderView: React.FC = () => {
     if (!canvas) return;
 
     const imgElement = new Image();
-    imgElement.crossOrigin = 'anonymous';
-    imgElement.src = imageUrl;
+    if (!imageUrl.startsWith('data:')) {
+      imgElement.crossOrigin = 'anonymous';
+    }
     imgElement.onload = () => {
-      const frontCenterX = bleedPx + trimWidthPx + spineWidthPx + trimWidthPx / 2;
+      try {
+        const frontCenterX = bleedPx + trimWidthPx + spineWidthPx + trimWidthPx / 2;
+        let fabricImg: fabric.FabricImage;
 
-      let fabricImg: fabric.FabricImage;
+        if (placement === 'full') {
+          fabricImg = new fabric.FabricImage(imgElement, {
+            left: 0,
+            top: 0,
+            originX: 'left',
+            originY: 'top',
+          });
+          fabricImg.scaleX = canvasWidthPx / (fabricImg.width || 1);
+          fabricImg.scaleY = canvasHeightPx / (fabricImg.height || 1);
+          canvas.add(fabricImg);
+          if (typeof canvas.sendObjectToBack === 'function') {
+            canvas.sendObjectToBack(fabricImg);
+          }
+        } else if (placement === 'front') {
+          const frontWidth = trimWidthPx + bleedPx;
+          fabricImg = new fabric.FabricImage(imgElement, {
+            left: bleedPx + trimWidthPx + spineWidthPx,
+            top: 0,
+            originX: 'left',
+            originY: 'top',
+          });
+          fabricImg.scaleX = frontWidth / (fabricImg.width || 1);
+          fabricImg.scaleY = canvasHeightPx / (fabricImg.height || 1);
+          canvas.add(fabricImg);
+          if (typeof canvas.sendObjectToBack === 'function') {
+            canvas.sendObjectToBack(fabricImg);
+          }
+        } else {
+          fabricImg = new fabric.FabricImage(imgElement, {
+            left: frontCenterX,
+            top: canvasHeightPx / 2,
+            originX: 'center',
+            originY: 'center',
+          });
+          const maxDim = Math.min(trimWidthPx * 0.85, canvasHeightPx * 0.65);
+          const scale = maxDim / Math.max(fabricImg.width || 1, fabricImg.height || 1);
+          fabricImg.scale(scale);
+          canvas.add(fabricImg);
+          canvas.setActiveObject(fabricImg);
+        }
 
-      if (placement === 'full') {
-        fabricImg = new fabric.FabricImage(imgElement, {
-          left: 0,
-          top: 0,
-          originX: 'left',
-          originY: 'top',
-        });
-        fabricImg.scaleX = canvasWidthPx / fabricImg.width!;
-        fabricImg.scaleY = canvasHeightPx / fabricImg.height!;
-        canvas.insertAt(0, fabricImg); // Send to background
-      } else if (placement === 'front') {
-        const frontWidth = trimWidthPx + bleedPx;
-        fabricImg = new fabric.FabricImage(imgElement, {
-          left: bleedPx + trimWidthPx + spineWidthPx,
-          top: 0,
-          originX: 'left',
-          originY: 'top',
-        });
-        fabricImg.scaleX = frontWidth / fabricImg.width!;
-        fabricImg.scaleY = canvasHeightPx / fabricImg.height!;
-        canvas.insertAt(0, fabricImg);
-      } else {
-        fabricImg = new fabric.FabricImage(imgElement, {
-          left: frontCenterX,
-          top: canvasHeightPx / 2,
-          originX: 'center',
-          originY: 'center',
-        });
-        const maxDim = Math.min(trimWidthPx * 0.8, canvasHeightPx * 0.6);
-        const scale = maxDim / Math.max(fabricImg.width!, fabricImg.height!);
-        fabricImg.scale(scale);
-        canvas.add(fabricImg);
+        canvas.renderAll();
+        saveStateToHistory();
+        setIsSaved(false);
+        setIsAiDrawerOpen(false);
+      } catch (err) {
+        console.error('Error applying AI image to canvas:', err);
       }
-
-      canvas.renderAll();
-      saveStateToHistory();
-      setIsSaved(false);
-      setIsAiDrawerOpen(false);
     };
+    imgElement.onerror = (err) => {
+      console.error('Error loading image source:', err);
+    };
+    imgElement.src = imageUrl;
   };
 
   // Apply AI Style Suggestion
