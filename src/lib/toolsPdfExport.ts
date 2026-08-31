@@ -13,6 +13,8 @@ import { CalculationResult, CalculationInput, KDP_MARKETPLACES } from './kdpCalc
 import { AsinCompetitorData } from './asinSpyEngine';
 import { generateMaze, MazeDifficulty, MazeShape } from './puzzles/mazeEngine';
 import { generateCryptogram, CRYPTOGRAM_QUOTE_BANKS } from './puzzles/cryptogramEngine';
+import { generateSudoku, SudokuDifficulty } from './puzzles/sudokuEngine';
+import { generateCrossword, CROSSWORD_THEMES } from './puzzles/crosswordEngine';
 
 // Standard KDP trim dimensions in inches
 export const TRIM_SIZES_INCHES: Record<string, { width: number; height: number }> = {
@@ -532,3 +534,340 @@ export async function exportCryptogramBookPdf(
 
   doc.save(`kdp_cryptogram_book_${batchCount}_puzzles_${trimSize}.pdf`);
 }
+
+/**
+ * 5. Exports Complete Multi-Page 9x9 Sudoku Book PDF + 4-per-page Answer Keys
+ */
+export async function exportSudokuBookPdf(
+  batchCount: number = 20,
+  difficulty: SudokuDifficulty = 'medium',
+  trimSize: string = '8.5x11'
+): Promise<void> {
+  const dims = TRIM_SIZES_INCHES[trimSize] || TRIM_SIZES_INCHES['8.5x11'];
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'in',
+    format: [dims.width, dims.height],
+    compress: true,
+  });
+
+  const marginL = 0.75;
+  const marginR = 0.6;
+  const marginT = 0.75;
+  const marginB = 0.75;
+  const contentW = dims.width - marginL - marginR;
+  const contentH = dims.height - marginT - marginB;
+
+  // 1. Cover / Title Page
+  doc.setFont('times', 'bold');
+  doc.setFontSize(28);
+  doc.setTextColor(15, 23, 42);
+  doc.text('THE ULTIMATE', dims.width / 2, dims.height / 2 - 1.2, { align: 'center' });
+  doc.setFontSize(36);
+  doc.text('SUDOKU BOOK', dims.width / 2, dims.height / 2 - 0.5, { align: 'center' });
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139);
+  doc.text(`${batchCount} ${difficulty.toUpperCase()} Puzzles with Complete Solutions`, dims.width / 2, dims.height / 2 + 0.2, { align: 'center' });
+
+  // Generate Sudokus
+  const puzzles = Array.from({ length: batchCount }, () => generateSudoku(difficulty));
+
+  // 2. Puzzle Pages (1 per page)
+  puzzles.forEach((p, idx) => {
+    doc.addPage([dims.width, dims.height], 'portrait');
+
+    // Page Header
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.setTextColor(15, 23, 42);
+    doc.text(`Sudoku #${idx + 1}`, marginL + contentW / 2, marginT + 0.3, { align: 'center' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Difficulty: ${difficulty.toUpperCase()} • ${p.clueCount} Clues`, marginL + contentW / 2, marginT + 0.55, { align: 'center' });
+
+    // Draw 9x9 Sudoku Grid
+    const boardSize = Math.min(contentW - 0.5, contentH - 2.0);
+    const startX = marginL + (contentW - boardSize) / 2;
+    const startY = marginT + 0.9;
+    const step = boardSize / 9;
+
+    // Draw Numbers & Cells
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(trimSize === '8.5x11' ? 18 : 13);
+    doc.setTextColor(15, 23, 42);
+
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        const val = p.puzzleGrid[r][c];
+        if (val !== null) {
+          doc.text(
+            val.toString(),
+            startX + c * step + step / 2,
+            startY + r * step + step * 0.7,
+            { align: 'center' }
+          );
+        }
+      }
+    }
+
+    // Draw Grid Lines
+    for (let i = 0; i <= 9; i++) {
+      const isThick = i % 3 === 0;
+      doc.setDrawColor(15, 23, 42);
+      doc.setLineWidth(isThick ? 0.025 : 0.008);
+
+      // Horizontal
+      doc.line(startX, startY + i * step, startX + boardSize, startY + i * step);
+      // Vertical
+      doc.line(startX + i * step, startY, startX + i * step, startY + boardSize);
+    }
+
+    // Page Number
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(148, 163, 184);
+    doc.text(`Page ${idx + 1}`, dims.width / 2, dims.height - 0.4, { align: 'center' });
+  });
+
+  // 3. Solutions Section Header
+  doc.addPage([dims.width, dims.height], 'portrait');
+  doc.setFont('times', 'bold');
+  doc.setFontSize(28);
+  doc.setTextColor(15, 23, 42);
+  doc.text('SOLUTIONS', dims.width / 2, dims.height / 2, { align: 'center' });
+
+  // 4. Solutions Grids (4 per page)
+  const solutionsPerPage = 4;
+  const numSolutionPages = Math.ceil(puzzles.length / solutionsPerPage);
+
+  for (let sPage = 0; sPage < numSolutionPages; sPage++) {
+    doc.addPage([dims.width, dims.height], 'portrait');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(15, 23, 42);
+    doc.text(`Solutions — Part ${sPage + 1}`, dims.width / 2, marginT + 0.2, { align: 'center' });
+
+    const pagePuzzles = puzzles.slice(sPage * solutionsPerPage, (sPage + 1) * solutionsPerPage);
+    const subW = (contentW - 0.4) / 2;
+    const subH = (contentH - 1.0) / 2;
+
+    pagePuzzles.forEach((p, subIdx) => {
+      const col = subIdx % 2;
+      const row = Math.floor(subIdx / 2);
+      const bx = marginL + col * (subW + 0.4);
+      const by = marginT + 0.5 + row * (subH + 0.5);
+
+      const realIdx = sPage * solutionsPerPage + subIdx + 1;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(15, 23, 42);
+      doc.text(`Sudoku #${realIdx} Solution`, bx + subW / 2, by, { align: 'center' });
+
+      const miniSize = Math.min(subW - 0.2, subH - 0.3);
+      const mStartX = bx + (subW - miniSize) / 2;
+      const mStartY = by + 0.15;
+      const mStep = miniSize / 9;
+
+      // Fill Solution Numbers
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(miniSize > 3.0 ? 9 : 7);
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          const val = p.solutionGrid[r][c];
+          doc.text(
+            val.toString(),
+            mStartX + c * mStep + mStep / 2,
+            mStartY + r * mStep + mStep * 0.75,
+            { align: 'center' }
+          );
+        }
+      }
+
+      // Draw Grid
+      for (let i = 0; i <= 9; i++) {
+        const isThick = i % 3 === 0;
+        doc.setDrawColor(15, 23, 42);
+        doc.setLineWidth(isThick ? 0.015 : 0.005);
+        doc.line(mStartX, mStartY + i * mStep, mStartX + miniSize, mStartY + i * mStep);
+        doc.line(mStartX + i * mStep, mStartY, mStartX + i * mStep, mStartY + miniSize);
+      }
+    });
+  }
+
+  doc.save(`kdp_sudoku_book_${batchCount}_${difficulty}_${trimSize}.pdf`);
+}
+
+/**
+ * 6. Exports Complete Multi-Page Clued Crossword Book PDF + Answer Keys
+ */
+export async function exportCrosswordBookPdf(
+  batchCount: number = 10,
+  theme: string = 'science',
+  trimSize: string = '8.5x11'
+): Promise<void> {
+  const dims = TRIM_SIZES_INCHES[trimSize] || TRIM_SIZES_INCHES['8.5x11'];
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'in',
+    format: [dims.width, dims.height],
+    compress: true,
+  });
+
+  const marginL = 0.75;
+  const marginR = 0.6;
+  const marginT = 0.75;
+  const marginB = 0.75;
+  const contentW = dims.width - marginL - marginR;
+  const contentH = dims.height - marginT - marginB;
+
+  // Title Page
+  doc.setFont('times', 'bold');
+  doc.setFontSize(28);
+  doc.setTextColor(15, 23, 42);
+  doc.text('THE ULTIMATE', dims.width / 2, dims.height / 2 - 1.2, { align: 'center' });
+  doc.setFontSize(36);
+  doc.text('CROSSWORD BOOK', dims.width / 2, dims.height / 2 - 0.5, { align: 'center' });
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139);
+  doc.text(`${batchCount} Themed Crosswords with Clues & Complete Solutions`, dims.width / 2, dims.height / 2 + 0.2, { align: 'center' });
+
+  // Generate Crosswords
+  const themesList = Object.keys(CROSSWORD_THEMES);
+  const puzzles = Array.from({ length: batchCount }, (_, idx) => {
+    const chosenTheme = themesList[idx % themesList.length];
+    return generateCrossword(chosenTheme, 13);
+  });
+
+  // Puzzle Pages (1 per page)
+  puzzles.forEach((p, idx) => {
+    doc.addPage([dims.width, dims.height], 'portrait');
+
+    // Header
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.setTextColor(15, 23, 42);
+    doc.text(`Crossword #${idx + 1}: ${p.theme}`, marginL + contentW / 2, marginT + 0.3, { align: 'center' });
+
+    // Grid Layout (Top)
+    const gridSize = Math.min(contentW, 4.5);
+    const startX = marginL + (contentW - gridSize) / 2;
+    const startY = marginT + 0.6;
+    const step = gridSize / p.gridSize;
+
+    // Draw Crossword Grid
+    for (let r = 0; r < p.gridSize; r++) {
+      for (let c = 0; c < p.gridSize; c++) {
+        const cell = p.grid[r][c];
+        const cx = startX + c * step;
+        const cy = startY + r * step;
+
+        if (cell.isBlocked) {
+          doc.setFillColor(15, 23, 42);
+          doc.rect(cx, cy, step, step, 'F');
+        } else {
+          doc.setFillColor(255, 255, 255);
+          doc.rect(cx, cy, step, step, 'F');
+          doc.setDrawColor(15, 23, 42);
+          doc.setLineWidth(0.008);
+          doc.rect(cx, cy, step, step, 'S');
+
+          // Number in top-left corner
+          if (cell.number !== null) {
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(6);
+            doc.setTextColor(15, 23, 42);
+            doc.text(cell.number.toString(), cx + 0.03, cy + 0.08);
+          }
+        }
+      }
+    }
+
+    // Clues Columns (Bottom)
+    let clueY = startY + gridSize + 0.35;
+    const colW = (contentW - 0.4) / 2;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(15, 23, 42);
+    doc.text('ACROSS', marginL, clueY);
+    doc.text('DOWN', marginL + colW + 0.4, clueY);
+
+    clueY += 0.2;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(51, 65, 85);
+
+    // Across Clues
+    let curAcrossY = clueY;
+    p.acrossClues.forEach(c => {
+      const line = `${c.number}. ${c.clue}`;
+      const split = doc.splitTextToSize(line, colW);
+      doc.text(split, marginL, curAcrossY);
+      curAcrossY += split.length * 0.14 + 0.04;
+    });
+
+    // Down Clues
+    let curDownY = clueY;
+    p.downClues.forEach(c => {
+      const line = `${c.number}. ${c.clue}`;
+      const split = doc.splitTextToSize(line, colW);
+      doc.text(split, marginL + colW + 0.4, curDownY);
+      curDownY += split.length * 0.14 + 0.04;
+    });
+
+    // Page number
+    doc.setFontSize(9);
+    doc.setTextColor(148, 163, 184);
+    doc.text(`Page ${idx + 1}`, dims.width / 2, dims.height - 0.4, { align: 'center' });
+  });
+
+  // Solutions Section
+  doc.addPage([dims.width, dims.height], 'portrait');
+  doc.setFont('times', 'bold');
+  doc.setFontSize(28);
+  doc.text('SOLUTIONS', dims.width / 2, dims.height / 2, { align: 'center' });
+
+  puzzles.forEach((p, idx) => {
+    doc.addPage([dims.width, dims.height], 'portrait');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text(`Solution #${idx + 1}: ${p.theme}`, dims.width / 2, marginT + 0.3, { align: 'center' });
+
+    const gridSize = Math.min(contentW, 5.0);
+    const startX = marginL + (contentW - gridSize) / 2;
+    const startY = marginT + 0.7;
+    const step = gridSize / p.gridSize;
+
+    for (let r = 0; r < p.gridSize; r++) {
+      for (let c = 0; c < p.gridSize; c++) {
+        const cell = p.grid[r][c];
+        const cx = startX + c * step;
+        const cy = startY + r * step;
+
+        if (cell.isBlocked) {
+          doc.setFillColor(15, 23, 42);
+          doc.rect(cx, cy, step, step, 'F');
+        } else {
+          doc.setFillColor(255, 255, 255);
+          doc.rect(cx, cy, step, step, 'F');
+          doc.setDrawColor(15, 23, 42);
+          doc.setLineWidth(0.008);
+          doc.rect(cx, cy, step, step, 'S');
+
+          // Letter
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(10);
+          doc.setTextColor(16, 185, 129); // emerald green
+          doc.text(cell.letter, cx + step / 2, cy + step * 0.7, { align: 'center' });
+        }
+      }
+    }
+  });
+
+  doc.save(`kdp_crossword_book_${batchCount}_puzzles_${trimSize}.pdf`);
+}
+

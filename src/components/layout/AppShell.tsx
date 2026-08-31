@@ -110,6 +110,8 @@ import { ReviewPainPointMinerView } from '../tools/ReviewPainPointMinerView';
 import { LeadMagnetQrStudioView } from '../tools/LeadMagnetQrStudioView';
 import { MazeGeneratorView } from '../puzzles/MazeGeneratorView';
 import { CryptogramGeneratorView } from '../puzzles/CryptogramGeneratorView';
+import { SudokuGeneratorView } from '../puzzles/SudokuGeneratorView';
+import { CrosswordGeneratorView } from '../puzzles/CrosswordGeneratorView';
 import { useGeoStore } from '../../lib/geoStore';
 import { useAuthStore } from '../../lib/authStore';
 import { useBookStore } from '../../lib/store';
@@ -141,6 +143,8 @@ export const ROUTE_PATH_MAP: Record<PageRoute, string> = {
   puzzles: '/puzzles',
   'maze-generator': '/puzzles/mazes',
   'cryptogram-generator': '/puzzles/cryptograms',
+  'sudoku-generator': '/puzzles/sudoku',
+  'crossword-generator': '/puzzles/crosswords',
   'word-search': '/word-search',
   'word-search-generating': '/word-search-generating',
   'word-search-detail': '/word-search-detail',
@@ -243,9 +247,11 @@ export function parsePathToRoute(pathname: string): PageRoute | null {
   if (clean === 'puzzles/coloring/detail' || clean === 'coloring-detail') return 'coloring-detail';
   if (clean === 'puzzles/color-by-number' || clean === 'color-by-number') return 'color-by-number';
   if (clean === 'puzzles/color-by-number/generating' || clean === 'color-by-number-generating') return 'color-by-number-generating';
-  if (clean === 'puzzles/mazes' || clean === 'puzzles/maze' || clean === 'maze-generator' || clean === 'mazes') return 'maze-generator';
-  if (clean === 'puzzles/cryptograms' || clean === 'puzzles/cryptogram' || clean === 'cryptogram-generator' || clean === 'cryptograms') return 'cryptogram-generator';
-  if (clean === 'tools/royalty-calculator' || clean === 'royalty-calculator' || clean === 'calculator') return 'royalty-calculator';
+  if (clean === 'puzzles/mazes' || clean === 'mazes') return 'maze-generator';
+  if (clean === 'puzzles/cryptograms' || clean === 'cryptograms') return 'cryptogram-generator';
+  if (clean === 'puzzles/sudoku' || clean === 'sudoku') return 'sudoku-generator';
+  if (clean === 'puzzles/crosswords' || clean === 'crosswords') return 'crossword-generator';
+  if (clean === 'tools/royalty-calculator' || clean === 'royalty-calculator') return 'royalty-calculator';
   if (clean === 'tools/asin-spy' || clean === 'asin-spy' || clean === 'spy') return 'asin-spy';
   if (clean === 'tools/review-miner' || clean === 'review-miner' || clean === 'miner') return 'review-miner';
   if (clean === 'tools/lead-magnet' || clean === 'lead-magnet' || clean === 'qr-studio' || clean === 'qr') return 'lead-magnet';
@@ -422,7 +428,7 @@ export const AppShell: React.FC = () => {
 
     const isPublicMarketingRoute = [
       'home', 'features', 'pricing', 'tools', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'blog-detail', 'launch', 'payment-success',
-      'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator'
+      'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator', 'sudoku-generator', 'crossword-generator'
     ].includes(currentRoute);
 
     const isAuth = ['login', 'signup', 'forgot-password', 'verify-email'].includes(currentRoute);
@@ -533,7 +539,7 @@ export const AppShell: React.FC = () => {
 
   const isPublicMarketingRoute = [
     'home', 'features', 'pricing', 'tools', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'blog-detail', 'launch', 'payment-success',
-    'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator'
+    'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator', 'sudoku-generator', 'crossword-generator'
   ].includes(currentRoute);
 
   const isAuthRoute = ['login', 'signup', 'forgot-password', 'verify-email'].includes(currentRoute);
@@ -615,6 +621,8 @@ export const AppShell: React.FC = () => {
           {currentRoute === 'lead-magnet' && <LeadMagnetQrStudioView onNavigate={handleNavigate} />}
           {currentRoute === 'maze-generator' && <MazeGeneratorView onNavigate={handleNavigate} />}
           {currentRoute === 'cryptogram-generator' && <CryptogramGeneratorView onNavigate={handleNavigate} />}
+          {currentRoute === 'sudoku-generator' && <SudokuGeneratorView onNavigate={handleNavigate} />}
+          {currentRoute === 'crossword-generator' && <CrosswordGeneratorView onNavigate={handleNavigate} />}
         </PublicLayout>
       ) : isOnboardingRoute ? (
         /* ─────────────────────────────────────────
@@ -1170,6 +1178,8 @@ export const AppShell: React.FC = () => {
               {currentRoute === 'lead-magnet' && <LeadMagnetQrStudioView onNavigate={handleNavigate} />}
               {currentRoute === 'maze-generator' && <MazeGeneratorView onNavigate={handleNavigate} />}
               {currentRoute === 'cryptogram-generator' && <CryptogramGeneratorView onNavigate={handleNavigate} />}
+              {currentRoute === 'sudoku-generator' && <SudokuGeneratorView onNavigate={handleNavigate} />}
+              {currentRoute === 'crossword-generator' && <CrosswordGeneratorView onNavigate={handleNavigate} />}
               {currentRoute === 'billing' && <BillingPageView onNavigate={handleNavigate} />}
 
               {currentRoute === 'geo-test' && <GeoTestView />}

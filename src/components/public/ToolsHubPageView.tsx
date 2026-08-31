@@ -253,7 +253,49 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
                 </span>
               </div>
 
-              {/* Tool Item 1: Algorithmic Mazes */}
+              {/* Tool Item 1: Sudoku 9x9 Studio */}
+              <div 
+                onClick={() => onNavigate('sudoku-generator')}
+                className="group p-4 rounded-2xl border border-slate-200 hover:border-purple-500 bg-slate-50/60 hover:bg-purple-50/40 transition-all cursor-pointer space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Grid3X3 size={18} className="text-purple-600" />
+                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-purple-700 transition-colors">
+                      Classic 9×9 Sudoku Generator Studio
+                    </h3>
+                  </div>
+                  <span className="text-xs font-bold text-purple-600 group-hover:translate-x-1 transition-transform">
+                    Open Studio →
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Generate 100% unique 9×9 Sudoku puzzle books across 4 difficulty levels with ready-to-publish vector PDF book exports and 4-per-page answer keys.
+                </p>
+              </div>
+
+              {/* Tool Item 2: Clued Crossword Studio */}
+              <div 
+                onClick={() => onNavigate('crossword-generator')}
+                className="group p-4 rounded-2xl border border-slate-200 hover:border-indigo-500 bg-slate-50/60 hover:bg-indigo-50/40 transition-all cursor-pointer space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Grid3X3 size={18} className="text-indigo-600" />
+                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-indigo-700 transition-colors">
+                      Clued Crossword Puzzle Studio
+                    </h3>
+                  </div>
+                  <span className="text-xs font-bold text-indigo-600 group-hover:translate-x-1 transition-transform">
+                    Open Studio →
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Create intersecting crossword puzzles with authentic Across &amp; Down numbered clues, themed vocabulary banks, and answer key grids.
+                </p>
+              </div>
+
+              {/* Tool Item 3: Algorithmic Mazes */}
               <div 
                 onClick={() => onNavigate('maze-generator')}
                 className="group p-4 rounded-2xl border border-slate-200 hover:border-indigo-500 bg-slate-50/60 hover:bg-indigo-50/40 transition-all cursor-pointer space-y-2"
@@ -274,7 +316,7 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
                 </p>
               </div>
 
-              {/* Tool Item 2: Cryptograms & Ciphers */}
+              {/* Tool Item 4: Cryptograms & Ciphers */}
               <div 
                 onClick={() => onNavigate('cryptogram-generator')}
                 className="group p-4 rounded-2xl border border-slate-200 hover:border-purple-500 bg-slate-50/60 hover:bg-purple-50/40 transition-all cursor-pointer space-y-2"
@@ -292,27 +334,6 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
                 </div>
                 <p className="text-xs text-slate-600 leading-relaxed">
                   Monoalphabetic cipher generator with quote libraries, letter frequency analysis, adjustable hints, and formatted answer sheets.
-                </p>
-              </div>
-
-              {/* Tool Item 3: Word Search Studio */}
-              <div 
-                onClick={() => onNavigate('puzzles')}
-                className="group p-4 rounded-2xl border border-slate-200 hover:border-purple-500 bg-slate-50/60 hover:bg-purple-50/40 transition-all cursor-pointer space-y-2"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Grid3X3 size={18} className="text-purple-600" />
-                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-purple-700 transition-colors">
-                      Word Search Puzzle Studio
-                    </h3>
-                  </div>
-                  <span className="text-xs font-bold text-purple-600 group-hover:translate-x-1 transition-transform">
-                    Open Studio →
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Generate themed word search grids with diagonal/reverse placement, automatic word banks, and solution pages.
                 </p>
               </div>
             </div>

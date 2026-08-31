@@ -11,7 +11,9 @@ import {
   Compass,
   AlertOctagon,
   QrCode,
-  KeyRound
+  KeyRound,
+  Grid3X3,
+  Grid
 } from 'lucide-react';
 import { useAuthStore } from '../../lib/authStore';
 import { PageRoute } from '../../types';
@@ -129,7 +131,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
               <button
                 onClick={() => handleNav('tools')}
                 className={`hover:text-purple-600 transition-colors cursor-pointer inline-flex items-center gap-1 py-2 ${
-                  ['tools', 'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator'].includes(currentRoute)
+                  ['tools', 'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator', 'sudoku-generator', 'crossword-generator'].includes(currentRoute)
                     ? 'text-purple-600 font-bold'
                     : ''
                 }`}
@@ -237,7 +239,35 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
                         <span>Cryptogram &amp; Cipher Studio</span>
                       </div>
                       <p className="text-[11px] text-slate-500 line-clamp-2">
-                        Substitution cipher puzzles with quotes, letter frequencies, and solution keys.
+                        Substitution cipher puzzles with quotes and solution keys.
+                      </p>
+                    </div>
+
+                    {/* Tool 7: Sudoku */}
+                    <div 
+                      onClick={() => handleNav('sudoku-generator')}
+                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
+                    >
+                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
+                        <Grid3X3 size={16} className="text-blue-600 shrink-0" />
+                        <span>Classic 9×9 Sudoku Studio</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 line-clamp-2">
+                        100% unique commercial Sudoku books with 4-per-page answer keys.
+                      </p>
+                    </div>
+
+                    {/* Tool 8: Crosswords */}
+                    <div 
+                      onClick={() => handleNav('crossword-generator')}
+                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
+                    >
+                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
+                        <Grid size={16} className="text-indigo-600 shrink-0" />
+                        <span>Clued Crossword Studio</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 line-clamp-2">
+                        Themed Across &amp; Down intersecting word puzzles with solutions.
                       </p>
                     </div>
 

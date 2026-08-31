@@ -32,6 +32,8 @@ export type PageRoute =
   | 'lead-magnet'
   | 'maze-generator'
   | 'cryptogram-generator'
+  | 'sudoku-generator'
+  | 'crossword-generator'
   | 'kdp'
   | 'research'
   | 'research-detail'

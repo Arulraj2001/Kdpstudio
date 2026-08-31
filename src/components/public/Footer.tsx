@@ -167,6 +167,22 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               </li>
               <li>
                 <button
+                  onClick={() => handleNav('sudoku-generator')}
+                  className="hover:text-white transition-colors text-left cursor-pointer"
+                >
+                  Classic 9×9 Sudoku
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => handleNav('crossword-generator')}
+                  className="hover:text-white transition-colors text-left cursor-pointer"
+                >
+                  Clued Crosswords
+                </button>
+              </li>
+              <li>
+                <button
                   onClick={() => handleNav('maze-generator')}
                   className="hover:text-white transition-colors text-left cursor-pointer"
                 >
