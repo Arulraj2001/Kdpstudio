@@ -280,7 +280,19 @@ export async function getUserDocument(uid: string): Promise<UserDocument | null>
     return inMemoryUserDocs.get(uid)!;
   }
 
-  // Check live Firestore if available
+  // 1. Instant check in localStorage for zero-latency hydration
+  if (typeof window !== 'undefined') {
+    try {
+      const cached = localStorage.getItem(LOCAL_USER_PREFIX + uid);
+      if (cached) {
+        const parsed = JSON.parse(cached) as UserDocument;
+        inMemoryUserDocs.set(uid, parsed);
+        return parsed;
+      }
+    } catch {}
+  }
+
+  // Check live Firestore if available in Server Runtime
   if (isServerRuntime()) {
     const adminDb = await getServerAdminDb();
     if (adminDb) {
@@ -297,12 +309,17 @@ export async function getUserDocument(uid: string): Promise<UserDocument | null>
     }
   }
 
-  // Check live Firestore if available
+  // Check live Firestore with 2-second timeout safeguard to avoid infinite hanging
   if (isFirebaseConfigured && db) {
     try {
       const userRef = doc(db, 'users', uid);
-      const snapshot = await getDoc(userRef);
-      if (snapshot.exists()) {
+      const snapshot = await Promise.race([
+        getDoc(userRef),
+        new Promise<any>((_, reject) =>
+          setTimeout(() => reject(new Error('Firestore getDoc timeout')), 2000)
+        ),
+      ]);
+      if (snapshot?.exists?.()) {
         const data = snapshot.data() as UserDocument;
         inMemoryUserDocs.set(uid, data);
         // Update local cache
@@ -314,20 +331,8 @@ export async function getUserDocument(uid: string): Promise<UserDocument | null>
         return data;
       }
     } catch (err) {
-      console.warn('Could not read user document from Firestore:', err);
+      console.warn('Could not read user document from Firestore (or timed out):', err);
     }
-  }
-
-  // Fallback to local storage
-  if (typeof window !== 'undefined') {
-    try {
-      const cached = localStorage.getItem(LOCAL_USER_PREFIX + uid);
-      if (cached) {
-        const parsed = JSON.parse(cached) as UserDocument;
-        inMemoryUserDocs.set(uid, parsed);
-        return parsed;
-      }
-    } catch {}
   }
 
   return null;

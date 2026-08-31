@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BookOpen } from 'lucide-react';
 import { useAuthStore } from '../../lib/authStore';
 import { useBrandStore } from '../../lib/brandStore';
@@ -12,6 +12,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { user, isInitialized } = useAuthStore();
   const { loadBrandKit } = useBrandStore();
   const { initPricingListener, fetchPricing } = useGeoStore();
+  const [timedOut, setTimedOut] = useState(false);
+
+  useEffect(() => {
+    // Safety timeout: Never keep the user on the splash screen for more than 1.2 seconds
+    const timer = setTimeout(() => {
+      setTimedOut(true);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     initPricingListener?.();
@@ -24,7 +33,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [user?.uid, loadBrandKit]);
 
-  if (!isInitialized) {
+  if (!isInitialized && !timedOut) {
     return (
       <div 
         id="auth-provider-loading"

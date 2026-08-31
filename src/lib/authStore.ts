@@ -185,45 +185,61 @@ export const useAuthStore = create<AuthState>((set, get) => {
           const currency = geo.currency || 'USD';
           const country = geo.location?.country || 'US';
 
-          // Get or create Firestore user doc
-          let userDoc = await getUserDocument(fbUser.uid);
-          if (!userDoc) {
-            userDoc = await createUserDocument(
-              fbUser.uid,
-              fbUser.email || '',
-              fbUser.displayName || '',
-              fbUser.photoURL,
-              currency,
-              country,
-              fbUser.emailVerified
-            );
-          }
-
           const authUser: AuthUser = {
             uid: fbUser.uid,
             email: fbUser.email || '',
-            displayName: fbUser.displayName || userDoc?.name || 'Kindle Author',
-            photoURL: fbUser.photoURL || userDoc?.photoURL || null,
+            displayName: fbUser.displayName || 'Kindle Author',
+            photoURL: fbUser.photoURL || null,
             emailVerified: fbUser.emailVerified || false,
-            plan: userDoc?.plan || 'free',
-            currency: userDoc?.currency || currency,
-            country: userDoc?.country || country,
-            onboardingComplete: userDoc?.onboardingComplete ?? false,
+            plan: 'free',
+            currency,
+            country,
+            onboardingComplete: false,
           };
 
-          // Inform server of active token
-          try {
-            const token = await fbUser.getIdToken();
-            await notifyServerSession(token);
-          } catch {}
-
+          // Optimistically unblock UI with basic user info immediately
           set({
             user: authUser,
-            userDoc,
             isLoading: false,
             isInitialized: true,
             authError: null,
           });
+
+          // Fetch full user doc from cache/Firestore in non-blocking manner
+          try {
+            let userDoc = await getUserDocument(fbUser.uid);
+            if (!userDoc) {
+              userDoc = await createUserDocument(
+                fbUser.uid,
+                fbUser.email || '',
+                fbUser.displayName || '',
+                fbUser.photoURL,
+                currency,
+                country,
+                fbUser.emailVerified
+              );
+            }
+
+            if (userDoc) {
+              set((state) => ({
+                userDoc,
+                user: state.user ? {
+                  ...state.user,
+                  displayName: userDoc.name || state.user.displayName,
+                  photoURL: userDoc.photoURL || state.user.photoURL,
+                  plan: userDoc.plan || state.user.plan,
+                  currency: userDoc.currency || state.user.currency,
+                  country: userDoc.country || state.user.country,
+                  onboardingComplete: userDoc.onboardingComplete ?? state.user.onboardingComplete,
+                } : null,
+              }));
+            }
+
+            const token = await fbUser.getIdToken();
+            await notifyServerSession(token);
+          } catch (docErr) {
+            console.debug('Background user doc load note:', docErr);
+          }
 
           // Attach real-time Firestore document listener
           setupUserDocListener(fbUser.uid);
