@@ -122,7 +122,7 @@ export function analyzeReadability(input: string, isHtml = true): ReadabilityRes
     return emptyResult();
   }
 
-  const words = text.match(/\b[a-zA-Z']+\b/g) || [];
+  const words: string[] = (text.match(/\b[a-zA-Z']+\b/g) as string[]) || [];
   const wordCount = words.length;
   const sentenceCount = Math.max(1, countSentences(text));
   

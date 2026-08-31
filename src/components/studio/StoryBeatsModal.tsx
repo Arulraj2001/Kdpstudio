@@ -58,7 +58,7 @@ export const StoryBeatsModal: React.FC<StoryBeatsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
       <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 shrink-0">
@@ -83,23 +83,25 @@ export const StoryBeatsModal: React.FC<StoryBeatsModalProps> = ({
         <div className="flex border-b border-slate-200 shrink-0 bg-slate-50">
           <button
             onClick={() => setStep('pick')}
-            className={`flex-1 py-3 text-sm font-semibold transition-colors border-b-2 ${step === 'pick' ? 'border-violet-600 text-violet-700 bg-white' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+            className={`flex-1 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold transition-colors border-b-2 px-2 ${step === 'pick' ? 'border-violet-600 text-violet-700 bg-white' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
           >
-            1. Choose Framework
+            <span className="hidden sm:inline">1. Choose Framework</span>
+            <span className="sm:hidden">Choose</span>
           </button>
           <button
             onClick={() => { if (selectedFramework) setStep('preview'); }}
             disabled={!selectedFramework}
-            className={`flex-1 py-3 text-sm font-semibold transition-colors border-b-2 ${step === 'preview' ? 'border-violet-600 text-violet-700 bg-white' : 'border-transparent text-slate-500 hover:text-slate-700'} disabled:opacity-40 disabled:cursor-not-allowed`}
+            className={`flex-1 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold transition-colors border-b-2 px-2 ${step === 'preview' ? 'border-violet-600 text-violet-700 bg-white' : 'border-transparent text-slate-500 hover:text-slate-700'} disabled:opacity-40 disabled:cursor-not-allowed`}
           >
-            2. Preview & Apply
+            <span className="hidden sm:inline">2. Preview &amp; Apply</span>
+            <span className="sm:hidden">Preview</span>
           </button>
         </div>
 
         <div className="flex-1 overflow-hidden">
           {step === 'pick' && (
-            <div className="h-full overflow-y-auto p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="h-full overflow-y-auto p-3 sm:p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {ALL_FRAMEWORKS.map((fw) => (
                   <button
                     key={fw.id}
@@ -244,7 +246,7 @@ export const StoryBeatsModal: React.FC<StoryBeatsModalProps> = ({
                   <button
                     onClick={handleApply}
                     disabled={confirmed}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold shadow transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold shadow transition-all min-w-0 ${
                       confirmed
                         ? 'bg-emerald-600 text-white'
                         : 'bg-violet-600 hover:bg-violet-700 text-white'
@@ -253,7 +255,10 @@ export const StoryBeatsModal: React.FC<StoryBeatsModalProps> = ({
                     {confirmed ? (
                       <><Check className="w-4 h-4" /> Framework Applied!</>
                     ) : (
-                      <>Apply {selectedFramework.shortName} Framework to "{bookTitle}"</>
+                      <span className="truncate px-1">
+                        Apply {selectedFramework.shortName}
+                        <span className="hidden sm:inline"> to "{bookTitle}"</span>
+                      </span>
                     )}
                   </button>
                 </div>

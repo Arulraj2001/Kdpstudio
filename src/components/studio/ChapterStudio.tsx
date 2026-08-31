@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
+import { TextStyle } from '@tiptap/extension-text-style';
+import { DropCapMark, StyledParagraph } from '../../lib/tiptapExtensions';
 import {
   Sparkles,
   FileText,
@@ -144,6 +146,9 @@ export const ChapterStudio: React.FC<ChapterStudioProps> = ({
         },
       }),
       Underline,
+      TextStyle,
+      DropCapMark,
+      StyledParagraph,
     ],
     content: activeChapter?.content || '<p>Start writing your chapter here...</p>',
     editorProps: {
