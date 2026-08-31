@@ -91,6 +91,8 @@ const SortableChapterItem: React.FC<SortableChapterItemProps> = ({
       style={style}
       id={`chapter-item-${chapter.id}`}
       className={`group relative flex items-center justify-between p-2.5 rounded-lg border transition-all ${
+        menuOpen ? 'z-30' : isActive ? 'z-10' : 'z-0'
+      } ${
         isActive
           ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-500/60 dark:border-purple-600 shadow-xs'
           : 'bg-white dark:bg-[#1a1a2e] border-gray-200/80 dark:border-gray-800/80 hover:border-gray-300 dark:hover:border-gray-700'
