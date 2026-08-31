@@ -11,7 +11,6 @@ import {
   AdConfig,
   AdPositionConfig,
 } from '../types/blog';
-import { getAdminDb } from './firebase-admin';
 import { db } from './firebase';
 import {
   collection,

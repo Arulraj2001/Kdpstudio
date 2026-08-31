@@ -78,6 +78,12 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [paymentNotice, setPaymentNotice] = useState<{ type: 'success' | 'cancelled' | 'error'; message: string } | null>(null);
+  const [selectedPlanForCheckout, setSelectedPlanForCheckout] = useState<{
+    plan: PlanName;
+    amount: number;
+    currency: Currency;
+  } | null>(null);
+  const [activeGatewayTab, setActiveGatewayTab] = useState<'paypal' | 'razorpay' | 'upi'>('paypal');
 
   // Initialize and refresh real-time pricing on page mount
   useEffect(() => {
@@ -140,6 +146,26 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
   const proPrice = billingCycle === 'monthly' ? proMonthly : proAnnual;
   const agencyPrice = billingCycle === 'monthly' ? agencyMonthly : agencyAnnual;
 
+  const handleSelectPlan = (plan: PlanName) => {
+    if (plan === 'free') {
+      if (onNavigate) onNavigate('dashboard');
+      return;
+    }
+
+    const amount =
+      plan === 'starter'
+        ? starterPrice
+        : plan === 'pro'
+        ? proPrice
+        : agencyPrice;
+
+    setSelectedPlanForCheckout({
+      plan,
+      amount,
+      currency: currKey,
+    });
+  };
+
   const faqs = [
     {
       q: 'Can I cancel anytime?',
@@ -177,21 +203,6 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
 
   const toggleFaq = (index: number) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
-  };
-
-  const handleSelectPlan = (planKey: string) => {
-    if (planKey === 'free') {
-      if (user) onNavigate('dashboard');
-      else onNavigate('signup');
-      return;
-    }
-
-    if (!user) {
-      onNavigate('signup');
-      return;
-    }
-
-    useCheckoutStore.getState().open(planKey as PlanName, billingCycle);
   };
 
   return (

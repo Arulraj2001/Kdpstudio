@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { PublicNavbar } from './PublicNavbar';
-import { Footer } from './Footer';
 import { AdsenseLoader } from '../blog/AdsenseLoader';
 import { PageRoute } from '../../types';
+import { getAdConfigClient } from '../../lib/blog';
 
 interface PublicLayoutProps {
   currentRoute?: PageRoute;
@@ -19,12 +17,11 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({
   const [autoAds, setAutoAds] = useState<boolean>(false);
 
   useEffect(() => {
-    fetch('/api/blog/ads')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.config?.adsensePublisherId && data.config.globalAdsEnabled) {
-          setPublisherId(data.config.adsensePublisherId);
-          setAutoAds(Boolean(data.config.autoAdsEnabled));
+    getAdConfigClient()
+      .then((config) => {
+        if (config?.adsensePublisherId && config.globalAdsEnabled) {
+          setPublisherId(config.adsensePublisherId);
+          setAutoAds(Boolean(config.autoAdsEnabled));
         }
       })
       .catch(() => {});

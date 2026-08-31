@@ -61,27 +61,27 @@ export const BlogPageView: React.FC<BlogPageViewProps> = ({
     }
   }, []);
 
-  // Fetch live blog posts and ad configuration from Firestore
+  // Load blog posts and ad configuration
   useEffect(() => {
     let isMounted = true;
 
-    fetch('/api/blog/posts')
-      .then((res) => res.json())
-      .then((data) => {
-        if (isMounted && Array.isArray(data?.posts) && data.posts.length > 0) {
-          setPosts(data.posts);
-        }
-      })
-      .catch(() => {});
+    import('../../lib/blog').then(({ getPublishedBlogPostsClient, getAdConfigClient }) => {
+      getPublishedBlogPostsClient()
+        .then((fetchedPosts) => {
+          if (isMounted && Array.isArray(fetchedPosts) && fetchedPosts.length > 0) {
+            setPosts(fetchedPosts as any);
+          }
+        })
+        .catch(() => {});
 
-    fetch('/api/blog/ads')
-      .then((res) => res.json())
-      .then((data) => {
-        if (isMounted && data?.config) {
-          setAdConfig(data.config);
-        }
-      })
-      .catch(() => {});
+      getAdConfigClient()
+        .then((config) => {
+          if (isMounted && config) {
+            setAdConfig(config);
+          }
+        })
+        .catch(() => {});
+    });
 
     return () => {
       isMounted = false;

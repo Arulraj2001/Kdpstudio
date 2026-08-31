@@ -515,3 +515,18 @@ export function getAllTags(): string[] {
   SEED_BLOG_POSTS.forEach((p) => p.tags.forEach((t) => tags.add(t)));
   return Array.from(tags);
 }
+
+export async function getAdConfigClient(): Promise<any> {
+  return {
+    adsensePublisherId: '',
+    globalAdsEnabled: false,
+    autoAdsEnabled: false,
+    txtRecordConfigured: false,
+    positions: [],
+  };
+}
+
+export async function getPublishedBlogPostsClient(): Promise<BlogPost[]> {
+  return getAllBlogPosts();
+}
+

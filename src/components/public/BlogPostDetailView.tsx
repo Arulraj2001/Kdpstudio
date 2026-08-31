@@ -67,44 +67,27 @@ export const BlogPostDetailView: React.FC<BlogPostDetailViewProps> = ({
     setPost(initialSeed);
     window.scrollTo({ top: 0, behavior: 'instant' });
 
-    // Fetch ad settings
-    fetch('/api/blog/ads')
-      .then((res) => res.json())
-      .then((data) => {
-        if (isMounted && data?.config) {
-          setAdConfig(data.config);
-        }
-      })
-      .catch(() => {});
+    // Fetch live post, related posts, and ad settings
+    import('../../lib/blog').then(async ({ getBlogPost, getAllBlogPosts, getAdConfigClient }) => {
+      if (!isMounted) return;
 
-    // Fetch all posts for related posts & sidebar
-    fetch('/api/blog/posts')
-      .then((res) => res.json())
-      .then((data) => {
-        if (isMounted && Array.isArray(data?.posts)) {
-          setAllPosts(data.posts);
-        }
-      })
-      .catch(() => {});
+      try {
+        const config = await getAdConfigClient();
+        if (isMounted && config) setAdConfig(config);
+      } catch {}
 
-    // Fetch specific post from Firestore
-    const fetchUrl = isPreview ? `/api/blog/posts/${slug}?preview=true` : `/api/blog/posts/${slug}`;
-    fetch(fetchUrl)
-      .then((res) => res.json())
-      .then((data) => {
-        if (isMounted && data?.post) {
-          setPost(data.post);
-          // Only increment view count in production/live mode, not in preview
-          if (data.post.id && !isPreview) {
-            fetch('/api/blog/view', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ postId: data.post.id }),
-            }).catch(() => {});
-          }
+      try {
+        const posts = getAllBlogPosts();
+        if (isMounted && Array.isArray(posts)) setAllPosts(posts as any);
+      } catch {}
+
+      try {
+        const loadedPost = getBlogPost(slug);
+        if (isMounted && loadedPost) {
+          setPost(loadedPost as any);
         }
-      })
-      .catch(() => {});
+      } catch {}
+    });
 
     return () => {
       isMounted = false;
