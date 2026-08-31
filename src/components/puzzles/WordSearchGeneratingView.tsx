@@ -74,8 +74,22 @@ export const WordSearchGeneratingView: React.FC<WordSearchGeneratingViewProps> =
           });
 
           if (isMounted) {
-            const updated = await getPuzzleBook(bookId);
-            if (updated) setBook(updated);
+            let updated = await getPuzzleBook(bookId);
+            if (updated) {
+              updated = { ...updated, pages: generatedPages, status: 'complete' };
+              setBook(updated);
+            } else {
+              setBook({
+                id: bookId,
+                uid: 'user',
+                settings: b.settings,
+                pages: generatedPages,
+                status: 'complete',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                totalPages: generatedPages.length + 3,
+              });
+            }
             setIsComplete(true);
             setProgress(1.0);
             setCompletedCount(generatedPages.length);
@@ -97,10 +111,15 @@ export const WordSearchGeneratingView: React.FC<WordSearchGeneratingViewProps> =
 
   // Export PDF directly with 300 DPI client engine
   const handleExportPdf = async () => {
-    if (!book) return;
+    let bookToExport = book;
+    if (!bookToExport || !bookToExport.pages || bookToExport.pages.length === 0) {
+      bookToExport = await getPuzzleBook(bookId);
+    }
+    if (!bookToExport) return;
+
     setIsExporting(true);
     try {
-      await exportPuzzleBookPdfClient(book);
+      await exportPuzzleBookPdfClient(bookToExport);
     } catch (err) {
       console.error('PDF export error:', err);
       alert('Could not export PDF. Please try again.');

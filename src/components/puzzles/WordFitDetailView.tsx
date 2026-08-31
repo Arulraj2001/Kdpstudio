@@ -46,8 +46,13 @@ export const WordFitDetailView: React.FC<WordFitDetailViewProps> = ({
   const loadBook = async () => {
     setLoading(true);
     try {
-      const b = await getPuzzleBook(bookId);
+      let b = await getPuzzleBook(bookId);
       if (b) {
+        if (!b.pages || b.pages.length === 0) {
+          const { runPuzzleBookGeneration } = await import('../../lib/puzzles/puzzleGenerationEngine');
+          const genPages = await runPuzzleBookGeneration(bookId, b.settings);
+          b = { ...b, pages: genPages, status: 'complete' };
+        }
         setBook(b);
       }
     } catch (err) {

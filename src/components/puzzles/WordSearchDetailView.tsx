@@ -51,8 +51,13 @@ export const WordSearchDetailView: React.FC<WordSearchDetailViewProps> = ({
   const loadBook = async () => {
     setLoading(true);
     try {
-      const b = await getPuzzleBook(bookId);
+      let b = await getPuzzleBook(bookId);
       if (b) {
+        if (!b.pages || b.pages.length === 0) {
+          const { runPuzzleBookGeneration } = await import('../../lib/puzzles/puzzleGenerationEngine');
+          const genPages = await runPuzzleBookGeneration(bookId, b.settings);
+          b = { ...b, pages: genPages, status: 'complete' };
+        }
         setBook(b);
       }
     } catch (err) {
@@ -350,11 +355,16 @@ export const WordSearchDetailView: React.FC<WordSearchDetailViewProps> = ({
                 <div className="my-auto">
                   <table className="border-collapse select-none">
                     <tbody>
-                      {(showAnswerKey ? selectedPage.answerData?.grid || pageData?.grid : pageData?.grid)?.map(
+                      {(showAnswerKey
+                        ? (Array.isArray(selectedPage.answerData)
+                            ? selectedPage.answerData
+                            : (selectedPage.answerData as any)?.grid || pageData?.grid)
+                        : pageData?.grid
+                      )?.map(
                         (row: string[], rIdx: number) => (
                           <tr key={rIdx}>
                             {row.map((cell: string, cIdx: number) => {
-                              const isDot = cell === '·';
+                              const isDot = cell === '·' || cell === '.';
                               return (
                                 <td
                                   key={cIdx}

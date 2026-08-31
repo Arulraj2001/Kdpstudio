@@ -14,7 +14,14 @@ import { getTrimDimensions } from './puzzlePdfRenderer';
  */
 export async function exportPuzzleBookPdfClient(book: PuzzleBook): Promise<void> {
   const settings = book.settings;
-  const pages = book.pages || [];
+  let pages = book.pages || [];
+
+  // Guarantee that pages are populated
+  if (!pages || pages.length === 0) {
+    const { runPuzzleBookGeneration } = await import('./puzzleGenerationEngine');
+    pages = await runPuzzleBookGeneration(book.id, settings);
+  }
+
   const { width: pageW, height: pageH } = getTrimDimensions(settings.trimSize || '8.5x11');
 
   // Initialize jsPDF document with exact physical dimensions in inches

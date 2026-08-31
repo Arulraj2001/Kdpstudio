@@ -90,21 +90,28 @@ export async function updatePuzzleBook(
     updatedAt: nowIso,
   };
 
+  // 1. Update in-memory & local cache immediately
+  const local = getLocalPuzzleBooks();
+  const idx = local.findIndex((b) => b.id === bookId);
+  let updatedBook: PuzzleBook;
+  if (idx !== -1) {
+    updatedBook = { ...local[idx], ...updates };
+    local[idx] = updatedBook;
+  } else {
+    const existing = inMemoryPuzzleBooks.get(bookId) || ({} as any);
+    updatedBook = { ...existing, ...updates, id: bookId };
+    local.unshift(updatedBook);
+  }
+  setLocalPuzzleBooks(local);
+
+  // 2. Persist to Firestore if available
   if (isFirebaseConfigured && db) {
     try {
       const docRef = doc(db, 'puzzleBooks', bookId);
-      await updateDoc(docRef, updates);
+      await setDoc(docRef, updatedBook, { merge: true });
     } catch (err) {
       console.warn('Firestore updatePuzzleBook error:', err);
     }
-  }
-
-  // Update local cache
-  const local = getLocalPuzzleBooks();
-  const idx = local.findIndex((b) => b.id === bookId);
-  if (idx !== -1) {
-    local[idx] = { ...local[idx], ...updates };
-    setLocalPuzzleBooks(local);
   }
 }
 
@@ -117,7 +124,7 @@ export async function updatePuzzlePage(
   data: Partial<PuzzlePage>
 ): Promise<void> {
   const book = await getPuzzleBook(bookId);
-  if (!book) return;
+  if (!book || !book.pages) return;
 
   const updatedPages = book.pages.map((p) => {
     if (p.id === pageId) {
@@ -135,6 +142,7 @@ export async function updatePuzzlePage(
 export async function getUserPuzzleBooks(uid: string): Promise<PuzzleBook[]> {
   if (!uid) return [];
 
+  let firestoreBooks: PuzzleBook[] = [];
   if (isFirebaseConfigured && db) {
     try {
       const q = query(
@@ -143,39 +151,44 @@ export async function getUserPuzzleBooks(uid: string): Promise<PuzzleBook[]> {
       );
       const snap = await getDocs(q);
       if (!snap.empty) {
-        const books = snap.docs.map((docSnap) => docSnap.data() as PuzzleBook);
-        return books.sort((a, b) => {
-          const tA = new Date(a.createdAt || 0).getTime();
-          const tB = new Date(b.createdAt || 0).getTime();
-          return tB - tA;
-        });
+        firestoreBooks = snap.docs.map((docSnap) => docSnap.data() as PuzzleBook);
       }
     } catch (err) {
       console.warn('Firestore getUserPuzzleBooks query error, reading from local fallback:', err);
     }
   }
 
-  return getLocalPuzzleBooks()
-    .filter((b) => b.uid === uid || !b.uid)
-    .sort((a, b) => {
-      const tA = new Date(a.createdAt || 0).getTime();
-      const tB = new Date(b.createdAt || 0).getTime();
-      return tB - tA;
-    });
+  const localBooks = getLocalPuzzleBooks().filter((b) => b.uid === uid || !b.uid);
+  
+  // Merge books, giving preference to the version with more pages
+  const bookMap = new Map<string, PuzzleBook>();
+  [...localBooks, ...firestoreBooks].forEach((b) => {
+    const existing = bookMap.get(b.id);
+    if (!existing || (b.pages && b.pages.length > (existing.pages?.length || 0))) {
+      bookMap.set(b.id, b);
+    }
+  });
+
+  return Array.from(bookMap.values()).sort((a, b) => {
+    const tA = new Date(a.createdAt || 0).getTime();
+    const tB = new Date(b.createdAt || 0).getTime();
+    return tB - tA;
+  });
 }
 
 /**
- * Retrieves a single puzzle book by ID
+ * Retrieves a single puzzle book by ID with full pages preservation
  */
 export async function getPuzzleBook(bookId: string): Promise<PuzzleBook | null> {
   if (!bookId) return null;
 
+  let firestoreBook: PuzzleBook | null = null;
   if (isFirebaseConfigured && db) {
     try {
       const docRef = doc(db, 'puzzleBooks', bookId);
       const snap = await getDoc(docRef);
       if (snap.exists()) {
-        return snap.data() as PuzzleBook;
+        firestoreBook = snap.data() as PuzzleBook;
       }
     } catch (err) {
       console.warn('Firestore getPuzzleBook error:', err);
@@ -183,7 +196,22 @@ export async function getPuzzleBook(bookId: string): Promise<PuzzleBook | null> 
   }
 
   const local = getLocalPuzzleBooks();
-  return local.find((b) => b.id === bookId) || null;
+  const localBook = local.find((b) => b.id === bookId) || inMemoryPuzzleBooks.get(bookId) || null;
+
+  if (firestoreBook && localBook) {
+    const firestorePages = firestoreBook.pages || [];
+    const localPages = localBook.pages || [];
+    const bestPages = localPages.length >= firestorePages.length ? localPages : firestorePages;
+    return {
+      ...firestoreBook,
+      ...localBook,
+      pages: bestPages,
+      status: bestPages.length > 0 ? 'complete' : (localBook.status || firestoreBook.status),
+      totalPages: bestPages.length > 0 ? bestPages.length + 3 : (localBook.totalPages || firestoreBook.totalPages),
+    };
+  }
+
+  return firestoreBook || localBook;
 }
 
 /**
