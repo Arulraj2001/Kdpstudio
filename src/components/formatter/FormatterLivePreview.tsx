@@ -227,7 +227,7 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
           paddingTop,
           paddingBottom,
         }}
-        className={`w-full ${viewMode === 'spread' ? 'max-w-[280px] max-h-[420px]' : 'max-w-[340px] max-h-[480px]'} rounded-sm shadow-md flex flex-col justify-between relative transition-all select-none border ${
+        className={`w-full ${viewMode === 'spread' ? 'max-w-[310px] max-h-[460px]' : 'max-w-[380px] max-h-[540px]'} rounded-sm shadow-md flex flex-col justify-between relative transition-all select-none border ${
           isCream
             ? 'bg-[#fbf7ee] text-[#1c1813] border-amber-200/70 shadow-amber-950/10'
             : 'bg-white text-slate-900 border-slate-200 shadow-slate-400/20'
@@ -357,7 +357,7 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-[560px] max-h-[70vh] bg-slate-100/80 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="flex flex-col h-[640px] max-h-[78vh] bg-slate-100/80 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       {/* Top Preview Control Bar */}
       <div className="h-12 bg-white border-b border-slate-200 px-4 flex items-center justify-between z-10 shrink-0 shadow-2xs">
         <div className="flex items-center gap-2">
