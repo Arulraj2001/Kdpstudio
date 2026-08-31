@@ -20,6 +20,7 @@ import {
   BookOpen
 } from 'lucide-react';
 import { useAuthStore } from '../../lib/authStore';
+import { requireAuth } from '../../lib/authModalStore';
 import { useCheckoutStore } from '../../lib/checkoutStore';
 import { getUserPuzzleBooks, deletePuzzleBook, savePuzzleBook } from '../../lib/puzzleService';
 import { PuzzleBook, PuzzleBookType } from '../../types/puzzle';
@@ -71,84 +72,90 @@ export const PuzzlesDashboardView: React.FC<PuzzlesDashboardViewProps> = ({
   };
 
   const handleCreateSampleBook = async (type: PuzzleBookType) => {
-    if (!canAccessPuzzles) {
-      open('starter');
-      return;
-    }
+    requireAuth(async () => {
+      if (!canAccessPuzzles) {
+        open('starter');
+        return;
+      }
 
-    if (onOpenGenerator) {
-      onOpenGenerator(type);
-      return;
-    }
+      if (onOpenGenerator) {
+        onOpenGenerator(type);
+        return;
+      }
 
-    // Quick starter demo generation
-    setQuickGenerating(true);
-    try {
-      const sampleWords = [
-        'AMAZON', 'KINDLE', 'AUTHOR', 'PUBLISH', 'MANUSCRIPT',
-        'CHAPTER', 'FORMAT', 'COVER', 'PRINT', 'PAPERBACK',
-        'ROYALTY', 'BESTSELLER', 'KEYWORD', 'READER', 'FICTION'
-      ];
+      // Quick starter demo generation
+      setQuickGenerating(true);
+      try {
+        const sampleWords = [
+          'AMAZON', 'KINDLE', 'AUTHOR', 'PUBLISH', 'MANUSCRIPT',
+          'CHAPTER', 'FORMAT', 'COVER', 'PRINT', 'PAPERBACK',
+          'ROYALTY', 'BESTSELLER', 'KEYWORD', 'READER', 'FICTION'
+        ];
 
-      const pages = Array.from({ length: 5 }, (_, i) => {
-        const pageNum = i + 1;
-        if (type === 'word-search') {
-          const ws = generateWordSearchGrid(sampleWords, 12);
-          return {
-            id: `p_${pageNum}`,
-            pageNumber: pageNum,
+        const pages = Array.from({ length: 5 }, (_, i) => {
+          const pageNum = i + 1;
+          if (type === 'word-search') {
+            const ws = generateWordSearchGrid(sampleWords, 12);
+            return {
+              id: `p_${pageNum}`,
+              pageNumber: pageNum,
+              type,
+              title: `Publishing Terms #${pageNum}`,
+              puzzleData: ws,
+              answerData: generateAnswerGrid(ws.grid, ws.placedWords),
+              status: 'done' as const,
+            };
+          } else {
+            const wf = generateWordFitGrid(sampleWords, 13);
+            return {
+              id: `p_${pageNum}`,
+              pageNumber: pageNum,
+              type: 'word-fit' as const,
+              title: `Author Fit #${pageNum}`,
+              puzzleData: wf,
+              status: 'done' as const,
+            };
+          }
+        });
+
+        const newBook: PuzzleBook = {
+          id: `puz_${Date.now()}`,
+          uid: user?.uid || 'guest',
+          settings: {
             type,
-            title: `Publishing Terms #${pageNum}`,
-            puzzleData: ws,
-            answerData: generateAnswerGrid(ws.grid, ws.placedWords),
-            status: 'done' as const,
-          };
-        } else {
-          const wf = generateWordFitGrid(sampleWords, 13);
-          return {
-            id: `p_${pageNum}`,
-            pageNumber: pageNum,
-            type: 'word-fit' as const,
-            title: `Author Fit #${pageNum}`,
-            puzzleData: wf,
-            status: 'done' as const,
-          };
-        }
-      });
+            title: `${type === 'word-search' ? 'Themed Word Search' : 'Word Fit Master'} Vol. 1`,
+            subtitle: '50 Challenging Puzzles for Authors & Book Lovers',
+            author: userDoc?.name || 'Kindle Creator',
+            theme: 'Book Publishing & Writing',
+            difficulty: 'medium',
+            pageCount: 5,
+            trimSize: '8.5x11',
+            includeAnswers: true,
+            includeCoverPage: true,
+            includeInstructions: true,
+            paperType: 'white',
+          },
+          pages,
+          status: 'complete',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          totalPages: 7,
+        };
 
-      const newBook: PuzzleBook = {
-        id: `puz_${Date.now()}`,
-        uid: user?.uid || 'guest',
-        settings: {
-          type,
-          title: `${type === 'word-search' ? 'Themed Word Search' : 'Word Fit Master'} Vol. 1`,
-          subtitle: '50 Challenging Puzzles for Authors & Book Lovers',
-          author: userDoc?.name || 'Kindle Creator',
-          theme: 'Book Publishing & Writing',
-          difficulty: 'medium',
-          pageCount: 5,
-          trimSize: '8.5x11',
-          includeAnswers: true,
-          includeCoverPage: true,
-          includeInstructions: true,
-          paperType: 'white',
-        },
-        pages,
-        status: 'complete',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        totalPages: 7,
-      };
-
-      await savePuzzleBook(newBook);
-      setSuccessMessage(`🎉 Created "${newBook.settings.title}" successfully!`);
-      setTimeout(() => setSuccessMessage(null), 3500);
-      await loadBooks();
-    } catch (err) {
-      console.error('Quick generation error:', err);
-    } finally {
-      setQuickGenerating(false);
-    }
+        await savePuzzleBook(newBook);
+        setSuccessMessage(`🎉 Created "${newBook.settings.title}" successfully!`);
+        setTimeout(() => setSuccessMessage(null), 3500);
+        await loadBooks();
+      } catch (err) {
+        console.error('Quick generation error:', err);
+      } finally {
+        setQuickGenerating(false);
+      }
+    }, {
+      title: 'Puzzle Book Generator',
+      description: 'Sign in or create a free account to generate complete puzzle and activity books for Amazon KDP.',
+      view: 'signup',
+    });
   };
 
   const handleDelete = async (bookId: string) => {
@@ -226,7 +233,11 @@ export const PuzzlesDashboardView: React.FC<PuzzlesDashboardViewProps> = ({
             </div>
           </div>
           <button
-            onClick={() => open('starter')}
+            onClick={() => requireAuth(() => open('starter'), {
+              title: 'Unlock Puzzle Studio with Starter',
+              description: 'Sign in or create an account to subscribe and generate high-converting puzzle books.',
+              view: 'signup',
+            })}
             className="w-full md:w-auto px-6 py-3 rounded-2xl bg-white hover:bg-slate-100 text-purple-900 font-extrabold text-xs shadow-lg transition-all active:scale-95 shrink-0 cursor-pointer"
           >
             Upgrade to Starter ($9/mo)
@@ -245,8 +256,12 @@ export const PuzzlesDashboardView: React.FC<PuzzlesDashboardViewProps> = ({
                 <div className="text-xs font-bold text-slate-900">Word Search Studio Locked</div>
                 <div className="text-[11px] text-slate-500">Available on Starter plan and above.</div>
                 <button
-                  onClick={() => open('starter')}
-                  className="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs"
+                  onClick={() => requireAuth(() => open('starter'), {
+                    title: 'Unlock Word Search Studio',
+                    description: 'Sign in or create an account to subscribe to Starter.',
+                    view: 'signup',
+                  })}
+                  className="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs cursor-pointer"
                 >
                   Unlock Generator
                 </button>
@@ -288,7 +303,11 @@ export const PuzzlesDashboardView: React.FC<PuzzlesDashboardViewProps> = ({
               <ChevronRight size={14} />
             </button>
             <button
-              onClick={() => onNavigate?.('bulk-template-new', { type: 'word-search' })}
+              onClick={() => requireAuth(() => onNavigate?.('bulk-template-new', { type: 'word-search' }), {
+                title: 'Bulk Word Search Generator',
+                description: 'Sign in to generate batches of word search books simultaneously.',
+                view: 'signup',
+              })}
               className="py-3 px-3.5 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1 transition-all cursor-pointer shadow-xs"
               title="Bulk Generate Word Search Batch"
             >
@@ -306,8 +325,12 @@ export const PuzzlesDashboardView: React.FC<PuzzlesDashboardViewProps> = ({
                 <div className="text-xs font-bold text-slate-900">Word Fit Studio Locked</div>
                 <div className="text-[11px] text-slate-500">Available on Starter plan and above.</div>
                 <button
-                  onClick={() => open('starter')}
-                  className="w-full py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs"
+                  onClick={() => requireAuth(() => open('starter'), {
+                    title: 'Unlock Word Fit Studio',
+                    description: 'Sign in or create an account to subscribe to Starter.',
+                    view: 'signup',
+                  })}
+                  className="w-full py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs cursor-pointer"
                 >
                   Unlock Generator
                 </button>
@@ -349,7 +372,11 @@ export const PuzzlesDashboardView: React.FC<PuzzlesDashboardViewProps> = ({
               <ChevronRight size={14} />
             </button>
             <button
-              onClick={() => onNavigate?.('bulk-template-new', { type: 'word-fit' })}
+              onClick={() => requireAuth(() => onNavigate?.('bulk-template-new', { type: 'word-fit' }), {
+                title: 'Bulk Word Fit Generator',
+                description: 'Sign in to generate batches of word fit puzzle books simultaneously.',
+                view: 'signup',
+              })}
               className="py-3 px-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-1 transition-all cursor-pointer shadow-xs"
               title="Bulk Generate Word Fit Batch"
             >
@@ -367,8 +394,12 @@ export const PuzzlesDashboardView: React.FC<PuzzlesDashboardViewProps> = ({
                 <div className="text-xs font-bold text-slate-900">Coloring Studio Locked</div>
                 <div className="text-[11px] text-slate-500">Available on Starter plan and above.</div>
                 <button
-                  onClick={() => open('starter')}
-                  className="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs"
+                  onClick={() => requireAuth(() => open('starter'), {
+                    title: 'Unlock Coloring Book Studio',
+                    description: 'Sign in or create an account to subscribe to Starter.',
+                    view: 'signup',
+                  })}
+                  className="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs cursor-pointer"
                 >
                   Unlock Generator
                 </button>
@@ -411,7 +442,11 @@ export const PuzzlesDashboardView: React.FC<PuzzlesDashboardViewProps> = ({
               <ChevronRight size={14} />
             </button>
             <button
-              onClick={() => onNavigate?.('bulk-template-new', { type: 'coloring-book' })}
+              onClick={() => requireAuth(() => onNavigate?.('bulk-template-new', { type: 'coloring-book' }), {
+                title: 'Bulk Coloring Book Generator',
+                description: 'Sign in to generate batches of AI coloring books simultaneously.',
+                view: 'signup',
+              })}
               className="py-3 px-3.5 rounded-2xl bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs flex items-center gap-1 transition-all cursor-pointer shadow-xs"
               title="Bulk Generate Coloring Batch"
             >
@@ -429,8 +464,12 @@ export const PuzzlesDashboardView: React.FC<PuzzlesDashboardViewProps> = ({
                 <div className="text-xs font-bold text-slate-900">Color by Number Locked</div>
                 <div className="text-[11px] text-slate-500">Available on Starter plan and above.</div>
                 <button
-                  onClick={() => open('starter')}
-                  className="w-full py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs"
+                  onClick={() => requireAuth(() => open('starter'), {
+                    title: 'Unlock Color by Number Studio',
+                    description: 'Sign in or create an account to subscribe to Starter.',
+                    view: 'signup',
+                  })}
+                  className="w-full py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs cursor-pointer"
                 >
                   Unlock Generator
                 </button>

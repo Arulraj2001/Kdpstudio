@@ -27,6 +27,7 @@ import { showPaymentSuccessToast } from '../../lib/postPayment';
 import { CurrencySelector } from '../ui/CurrencySelector';
 
 import { useCheckoutStore } from '../../lib/checkoutStore';
+import { useAuthModalStore } from '../../lib/authModalStore';
 import { PageRoute } from '../../types';
 
 interface CheckoutModalProps {
@@ -117,8 +118,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
       // Restore last used payment tab if still available, otherwise default to first available tab
       const savedTab = typeof window !== 'undefined' ? localStorage.getItem('kdp_last_payment_tab') : null;
-      if (savedTab && availableTabs.includes(savedTab)) {
-        setActivePaymentTab(savedTab);
+      if (savedTab && availableTabs.includes(savedTab as any)) {
+        setActivePaymentTab(savedTab as any);
       } else {
         setActivePaymentTab(availableTabs[0] || 'bmac');
       }
@@ -127,7 +128,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   if (!isOpen) return null;
 
-  const currentActiveTab = availableTabs.includes(activePaymentTab) ? activePaymentTab : (availableTabs[0] || 'bmac');
+  const currentActiveTab = availableTabs.includes(activePaymentTab as any) ? activePaymentTab : (availableTabs[0] || 'bmac');
 
   // Calculate pricing dynamically
   const currentTable = pricingTable || PRICING_TABLE;
@@ -227,18 +228,28 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               </p>
             </div>
             <div className="flex items-center justify-center gap-3 pt-2">
-              <a
-                href="/signup"
-                className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs transition-colors"
+              <button
+                type="button"
+                onClick={() => useAuthModalStore.getState().open({
+                  title: 'Sign Up to Continue',
+                  description: 'Create an account to bind your subscription and credits to your author profile.',
+                  view: 'signup',
+                })}
+                className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
               >
                 Sign Up First
-              </a>
-              <a
-                href="/login"
-                className="px-5 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors"
+              </button>
+              <button
+                type="button"
+                onClick={() => useAuthModalStore.getState().open({
+                  title: 'Sign In to Continue',
+                  description: 'Log in to bind your subscription and credits to your author profile.',
+                  view: 'login',
+                })}
+                className="px-5 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
               >
                 Log In
-              </a>
+              </button>
             </div>
           </div>
         )}

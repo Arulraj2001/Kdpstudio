@@ -13,6 +13,7 @@ import {
 import { useUpgradeModal } from '../../lib/upgradeModalStore';
 import { useGeoStore } from '../../lib/geoStore';
 import { useAuthStore } from '../../lib/authStore';
+import { requireAuth } from '../../lib/authModalStore';
 import { useCheckoutStore } from '../../lib/checkoutStore';
 import { PlanTier } from '../../lib/planLimits';
 import { PlanName } from '../../types/payment';
@@ -66,7 +67,11 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onNavigateToPricing 
 
   const handleUpgradeClick = () => {
     close();
-    openCheckout(targetPlan as PlanName);
+    requireAuth(() => openCheckout(targetPlan as PlanName), {
+      title: `Upgrade to ${targetPlanName}`,
+      description: `Create an account or sign in to complete your ${targetPlanName} subscription and unlock all features.`,
+      view: 'signup',
+    });
   };
 
 

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { PageRoute } from '../../types';
 import { useAuthStore } from '../../lib/authStore';
+import { requireAuth } from '../../lib/authModalStore';
 import { useGeoStore } from '../../lib/geoStore';
 import { formatPrice } from '../../lib/geo';
 import { SEOHead } from '../seo/SEOHead';
@@ -103,11 +104,11 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
   }, [initPricingListener, fetchPricing]);
 
   const handleStart = () => {
-    if (user) {
-      onNavigate('dashboard');
-    } else {
-      onNavigate('signup');
-    }
+    requireAuth(() => onNavigate('dashboard'), {
+      title: 'Start Publishing with AI',
+      description: 'Create your free account to write, format, and publish bestseller manuscripts on Amazon KDP.',
+      view: 'signup',
+    });
   };
 
   const handleScrollTo = (elementId: string) => {
@@ -546,7 +547,11 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
                 </li>
               </ul>
               <button 
-                onClick={() => onNavigate('formatter')}
+                onClick={() => requireAuth(() => onNavigate('formatter'), {
+                  title: 'Open Interior Formatter',
+                  description: 'Create a free account or sign in to configure trim sizes, calculate gutters, and export print-ready PDFs.',
+                  view: 'signup',
+                })}
                 className="pt-2 text-indigo-600 hover:text-indigo-700 font-bold text-sm sm:text-base inline-flex items-center gap-1.5 group cursor-pointer"
               >
                 <span>Try the Formatter</span>
@@ -582,7 +587,11 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
                 </li>
               </ul>
               <button 
-                onClick={() => onNavigate('cover')}
+                onClick={() => requireAuth(() => onNavigate('cover'), {
+                  title: 'Open Cover Designer',
+                  description: 'Create a free account or sign in to build front, spine, and back covers with AI image generation.',
+                  view: 'signup',
+                })}
                 className="pt-2 text-purple-600 hover:text-purple-700 font-bold text-sm sm:text-base inline-flex items-center gap-1.5 group cursor-pointer"
               >
                 <span>Design a Cover</span>
@@ -673,7 +682,11 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
                 </li>
               </ul>
               <button 
-                onClick={() => onNavigate('puzzles')}
+                onClick={() => requireAuth(() => onNavigate('puzzles'), {
+                  title: 'Puzzle Book Generator',
+                  description: 'Create a free account or sign in to generate and export complete word search, coloring, and puzzle books.',
+                  view: 'signup',
+                })}
                 className="pt-2 text-purple-600 hover:text-purple-700 font-bold text-sm sm:text-base inline-flex items-center gap-1.5 group cursor-pointer"
               >
                 <span>Generate Puzzle Books</span>

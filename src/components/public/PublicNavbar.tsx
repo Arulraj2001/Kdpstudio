@@ -8,6 +8,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useAuthStore } from '../../lib/authStore';
+import { requireAuth } from '../../lib/authModalStore';
 import { PageRoute } from '../../types';
 
 interface PublicNavbarProps {
@@ -63,7 +64,11 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
       {currentRoute === 'home' && !isAnnouncementDismissed && (
         <div
           id="announcement-bar"
-          onClick={() => handleNav('puzzles')}
+          onClick={() => requireAuth(() => handleNav('puzzles'), {
+            title: 'Puzzle Book Generator',
+            description: 'Create an account or sign in to explore and generate 20+ low-content puzzle book niches.',
+            view: 'signup',
+          })}
           className="bg-gradient-to-r from-violet-700 via-purple-600 to-indigo-700 text-white text-xs sm:text-sm font-semibold py-2 px-4 flex items-center justify-between cursor-pointer hover:brightness-105 transition-all shadow-xs"
         >
           <div className="flex-1 text-center flex items-center justify-center gap-1.5 truncate">
@@ -265,7 +270,14 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
               Contact
             </button>
             <button
-              onClick={() => handleNav('puzzles')}
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                requireAuth(() => onNavigate('puzzles'), {
+                  title: 'Puzzle Book Generator',
+                  description: 'Create an account or sign in to explore and generate 20+ low-content puzzle book niches.',
+                  view: 'signup',
+                });
+              }}
               className="text-2xl font-bold text-purple-400 flex items-center gap-2"
             >
               <span>Puzzle Generator</span>

@@ -79,6 +79,7 @@ import { BlogNewsletterPage } from '../admin/blog/BlogNewsletterPage';
 import { GeoTestView } from '../geo/GeoTestView';
 import { NewBookModal } from '../modals/NewBookModal';
 import { AuthPages } from '../auth/AuthPages';
+import { AuthModal } from '../auth/AuthModal';
 import { AuthProvider } from '../auth/AuthProvider';
 import { OnboardingView } from '../onboarding/OnboardingView';
 import { UsageBanner } from '../ui/UsageBanner';
@@ -100,6 +101,7 @@ import { BlogPostDetailView } from '../public/BlogPostDetailView';
 import { LaunchPageView } from '../public/LaunchPageView';
 import { useGeoStore } from '../../lib/geoStore';
 import { useAuthStore } from '../../lib/authStore';
+import { requireAuth } from '../../lib/authModalStore';
 import { useBookStore } from '../../lib/store';
 import { useSeriesStore } from '../../lib/seriesStore';
 import { trackFeatureUse } from '../../lib/featureTracker';
@@ -444,6 +446,13 @@ export const AppShell: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleOpenNewBook = () => {
+    requireAuth(() => setIsNewBookModalOpen(true), {
+      title: 'Create a New Manuscript',
+      description: 'Sign in or create your free account to start writing, formatting, and saving your books.',
+    });
+  };
+
   const handleCreateBook = (bookData: { 
     title: string; 
     genre: string; 
@@ -659,7 +668,7 @@ export const AppShell: React.FC = () => {
             <TopBar
               currentRoute={currentRoute}
               onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
-              onNewBook={() => setIsNewBookModalOpen(true)}
+              onNewBook={handleOpenNewBook}
               onNavigate={handleNavigate}
               isSidebarCollapsed={isSidebarCollapsed}
             />
@@ -686,7 +695,7 @@ export const AppShell: React.FC = () => {
               {currentRoute === 'dashboard' && (
                 <DashboardView
                   onNavigate={handleNavigate}
-                  onNewBook={() => setIsNewBookModalOpen(true)}
+                  onNewBook={handleOpenNewBook}
                 />
               )}
 
@@ -1015,7 +1024,7 @@ export const AppShell: React.FC = () => {
 
               {currentRoute === 'books' && (
                 <MyBooksView
-                  onNewBook={() => setIsNewBookModalOpen(true)}
+                  onNewBook={handleOpenNewBook}
                   onNavigateToRoute={handleNavigate}
                   onOpenPublishChecklist={handleOpenPublishChecklist}
                 />
@@ -1071,6 +1080,9 @@ export const AppShell: React.FC = () => {
 
       {/* Global Unified Checkout Modal */}
       <CheckoutModal onNavigate={handleNavigate} />
+
+      {/* Global Auth Modal for in-place sign-in/sign-up prompts */}
+      <AuthModal />
 
       {/* Global Impersonation Banner — shown on ALL pages when admin is impersonating */}
       <ImpersonationBanner />
