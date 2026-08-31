@@ -36,6 +36,7 @@ import { generateSlug } from '../../../lib/blogUtils';
 import { AiDraftGenerator } from './AiDraftGenerator';
 import { executeAiEditorAction } from '../../../lib/aiBlogGenerator';
 import { InternalLinksPanel } from './InternalLinksPanel';
+import { getBlogPost, createBlogPost, updateBlogPost } from '../../../lib/blogService';
 
 interface BlogPostEditorProps {
   postId?: string; // If provided -> edit mode, if undefined -> create mode
@@ -163,10 +164,8 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
     }
 
     setLoading(true);
-    fetch(`/api/admin/blog/posts`)
-      .then((res) => res.json())
-      .then((data) => {
-        const found = data?.posts?.find((p: BlogPost) => p.id === postId);
+    getBlogPost(postId)
+      .then((found) => {
         if (found) {
           setTitle(found.title || '');
           setSlug(found.slug || '');
@@ -487,29 +486,22 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
     try {
       if (postId) {
         // Update
-        const res = await fetch(`/api/admin/blog/posts/${postId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error('Update failed');
+        await updateBlogPost(postId, payload, 'admin@kdpstudio.io');
         setStatus(targetStatus);
         setOriginalStatus(targetStatus);
         showToast(targetStatus === 'published' ? '🎉 Post published!' : '💾 Draft updated!');
       } else {
         // Create
-        const res = await fetch('/api/admin/blog/posts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.error || 'Creation failed');
+        const newId = await createBlogPost(payload, 'admin@kdpstudio.io');
         localStorage.removeItem('kdp_blog_draft_new');
+        setStatus(targetStatus);
+        setOriginalStatus(targetStatus);
         showToast(targetStatus === 'published' ? '🎉 Post published!' : '💾 Draft saved!');
-        setTimeout(() => {
-          onNavigate('admin-blog');
-        }, 1000);
+        if (newId) {
+          setTimeout(() => {
+            onNavigate('admin-blog');
+          }, 900);
+        }
       }
     } catch (err: any) {
       console.error('Save error:', err);

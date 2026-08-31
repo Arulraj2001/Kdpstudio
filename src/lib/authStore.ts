@@ -38,6 +38,7 @@ export interface AuthUser {
   currency: string;
   country: string;
   onboardingComplete?: boolean;
+  isDemo?: boolean;
 }
 
 interface AuthState {
@@ -633,6 +634,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
         currency,
         country,
         onboardingComplete: isOnboardingComplete,
+        isDemo: true,
       };
 
       if (typeof window !== 'undefined') {
@@ -642,7 +644,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
 
       set({
         user: authUser,
-        userDoc,
+        userDoc: { ...userDoc, isDemo: true },
         isLoading: false,
         isInitialized: true,
         authError: null,
@@ -693,3 +695,37 @@ export const useAuthStore = create<AuthState>((set, get) => {
     },
   };
 });
+
+/**
+ * Helper to determine if current session is running in View-Only Demo Mode
+ */
+export function isDemoUser(): boolean {
+  if (typeof window === 'undefined') return false;
+  const state = useAuthStore.getState();
+  const user = state.user;
+  const userDoc = state.userDoc;
+  return Boolean(
+    user?.isDemo ||
+    userDoc?.isDemo ||
+    user?.email === 'demo.author@kdpstudio.io' ||
+    (user?.uid && user.uid.startsWith('kdp_author_'))
+  );
+}
+
+/**
+ * Helper to display a consistent View-Only notice for demo users attempting restricted actions
+ */
+export function notifyDemoRestricted(actionText?: string, onNavigate?: (route: any) => void): void {
+  import('./toastStore').then(({ useToastStore }) => {
+    useToastStore.getState().addToast({
+      type: 'warning',
+      title: 'Demo Mode (View-Only)',
+      message: `You are exploring in Demo Mode. Create a free account or sign in to ${actionText || 'perform this action'} and save your work.`,
+      duration: 6000,
+      action: onNavigate ? {
+        label: 'Create Free Account',
+        onClick: () => onNavigate('signup'),
+      } : undefined,
+    });
+  });
+}

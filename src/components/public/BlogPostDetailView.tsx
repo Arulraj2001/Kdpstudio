@@ -68,7 +68,7 @@ export const BlogPostDetailView: React.FC<BlogPostDetailViewProps> = ({
     window.scrollTo({ top: 0, behavior: 'instant' });
 
     // Fetch live post, related posts, and ad settings
-    import('../../lib/blog').then(async ({ getBlogPost, getAllBlogPosts, getAdConfigClient }) => {
+    import('../../lib/blog').then(async ({ getBlogPost, getAllBlogPosts, getPublishedBlogPostsClient, getAdConfigClient }) => {
       if (!isMounted) return;
 
       try {
@@ -77,7 +77,7 @@ export const BlogPostDetailView: React.FC<BlogPostDetailViewProps> = ({
       } catch {}
 
       try {
-        const posts = getAllBlogPosts();
+        const posts = await getPublishedBlogPostsClient();
         if (isMounted && Array.isArray(posts)) setAllPosts(posts as any);
       } catch {}
 
@@ -85,6 +85,13 @@ export const BlogPostDetailView: React.FC<BlogPostDetailViewProps> = ({
         const loadedPost = getBlogPost(slug);
         if (isMounted && loadedPost) {
           setPost(loadedPost as any);
+        } else {
+          // Fallback to direct slug fetch from blogService
+          const { getBlogPostBySlug } = await import('../../lib/blogService');
+          const directPost = await getBlogPostBySlug(slug);
+          if (isMounted && directPost) {
+            setPost(directPost as any);
+          }
         }
       } catch {}
     });

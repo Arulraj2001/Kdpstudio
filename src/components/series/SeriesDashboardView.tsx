@@ -47,6 +47,21 @@ export const SeriesDashboardView: React.FC<SeriesDashboardViewProps> = ({ onNavi
       onNavigate('signup');
       return;
     }
+    if (user?.isDemo) {
+      import('../../lib/toastStore').then(({ useToastStore }) => {
+        useToastStore.getState().addToast({
+          type: 'warning',
+          title: 'Demo Mode (View-Only)',
+          message: 'You are exploring in Demo Mode. Create a free account or sign in to build and manage book series.',
+          duration: 6000,
+          action: {
+            label: 'Sign Up Free',
+            onClick: () => onNavigate('signup'),
+          },
+        });
+      });
+      return;
+    }
     if (isFree) {
       openCheckout('starter');
       return;

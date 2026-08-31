@@ -26,6 +26,12 @@ import {
 import { BlogPost, BlogStatus } from '../../../types/blog';
 import { PageRoute } from '../../../types';
 import { calculateSeoScore } from '../../../lib/seoScorer';
+import {
+  getAllAdminPosts,
+  createBlogPost,
+  updateBlogPost,
+  deleteBlogPost,
+} from '../../../lib/blogService';
 
 interface BlogPostsListPageProps {
   onNavigate: (route: PageRoute, params?: Record<string, any>) => void;
@@ -46,10 +52,9 @@ export const BlogPostsListPage: React.FC<BlogPostsListPageProps> = ({ onNavigate
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/blog/posts');
-      const data = await res.json();
-      if (Array.isArray(data?.posts)) {
-        setPosts(data.posts);
+      const livePosts = await getAllAdminPosts();
+      if (Array.isArray(livePosts)) {
+        setPosts(livePosts);
       }
     } catch (err) {
       console.error('Failed to fetch admin blog posts:', err);
@@ -182,13 +187,8 @@ export const BlogPostsListPage: React.FC<BlogPostsListPageProps> = ({ onNavigate
         status: 'draft' as BlogStatus,
         publishedAt: null,
       };
-      const res = await fetch('/api/admin/blog/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dupData),
-      });
-      const data = await res.json();
-      if (data?.id) {
+      const newId = await createBlogPost(dupData as any, 'admin@kdpstudio.io');
+      if (newId) {
         showToast('✅ Post duplicated as draft');
         fetchPosts();
       }
@@ -199,7 +199,7 @@ export const BlogPostsListPage: React.FC<BlogPostsListPageProps> = ({ onNavigate
 
   const handleArchive = async (id: string) => {
     try {
-      await fetch(`/api/admin/blog/posts/${id}`, { method: 'DELETE' });
+      await deleteBlogPost(id);
       showToast('📦 Post archived');
       fetchPosts();
     } catch {
@@ -211,11 +211,7 @@ export const BlogPostsListPage: React.FC<BlogPostsListPageProps> = ({ onNavigate
   const handleBulkStatusChange = async (newStatus: BlogStatus) => {
     try {
       for (const id of Array.from(selectedIds)) {
-        await fetch(`/api/admin/blog/posts/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: newStatus }),
-        });
+        await updateBlogPost(id, { status: newStatus }, 'admin@kdpstudio.io');
       }
       showToast(`✅ Updated status for ${selectedIds.size} posts`);
       setSelectedIds(new Set());
@@ -229,7 +225,7 @@ export const BlogPostsListPage: React.FC<BlogPostsListPageProps> = ({ onNavigate
     if (!confirm(`Archive ${selectedIds.size} selected posts?`)) return;
     try {
       for (const id of Array.from(selectedIds)) {
-        await fetch(`/api/admin/blog/posts/${id}`, { method: 'DELETE' });
+        await deleteBlogPost(id);
       }
       showToast(`📦 ${selectedIds.size} posts archived`);
       setSelectedIds(new Set());

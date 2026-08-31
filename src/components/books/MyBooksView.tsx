@@ -123,8 +123,13 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({
 
   const handleDuplicate = (book: Book, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!useAuthStore.getState().user) {
+    const currentUser = useAuthStore.getState().user;
+    if (!currentUser) {
       onNavigateToRoute('signup');
+      return;
+    }
+    if (currentUser?.isDemo) {
+      showToast('⚠️ Demo Mode is view-only. Please sign up to duplicate or edit books.');
       return;
     }
     const dup = duplicateBook(book.id);
@@ -134,6 +139,16 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({
   };
 
   const confirmDelete = () => {
+    const currentUser = useAuthStore.getState().user;
+    if (!currentUser) {
+      onNavigateToRoute('signup');
+      return;
+    }
+    if (currentUser?.isDemo) {
+      showToast('⚠️ Demo Mode is view-only. Sample books cannot be deleted.');
+      setBookToDelete(null);
+      return;
+    }
     if (bookToDelete) {
       deleteBook(bookToDelete.id);
       showToast(`Deleted "${bookToDelete.title}".`);

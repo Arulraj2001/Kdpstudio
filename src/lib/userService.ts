@@ -102,6 +102,7 @@ export interface UserDocument {
   lastExpiryWarningDate?: string | null;
 
   settings: UserSettings;
+  isDemo?: boolean;
 }
 
 export function generateReferralCode(uid: string): string {

@@ -247,22 +247,22 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
   };
 
   return (
-    <div id="auth-container" className="w-full flex items-center justify-center p-2 sm:p-4 my-auto">
-      <div className="relative w-full max-w-4xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden grid grid-cols-1 lg:grid-cols-12 max-h-[92vh] overflow-y-auto">
+    <div id="auth-container" className="w-full flex items-center justify-center p-3 sm:p-6 my-auto">
+      <div className="relative w-full max-w-4xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden grid grid-cols-1 lg:grid-cols-12 max-h-[94vh] overflow-y-auto">
         
         {/* Close button at top right */}
         <button
           type="button"
           onClick={() => onNavigate ? onNavigate('home') : (window.location.href = '/')}
-          className="absolute top-3 right-3 z-30 w-7 h-7 rounded-full bg-slate-100/90 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+          className="absolute top-3.5 right-3.5 z-30 w-8 h-8 rounded-full bg-slate-100/90 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
           title="Close and return to site"
           aria-label="Close"
         >
-          <X size={15} />
+          <X size={16} />
         </button>
 
         {/* Left Half: Brand & Hero Showcase (5 cols) */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-purple-900 via-indigo-950 to-slate-950 p-5 sm:p-7 text-white flex flex-col justify-between relative overflow-hidden">
+        <div className="lg:col-span-5 bg-gradient-to-br from-purple-900 via-indigo-950 to-slate-950 p-6 sm:p-8 text-white flex flex-col justify-between relative overflow-hidden">
           {/* Subtle ambient lighting */}
           <div className="absolute -top-24 -left-24 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
@@ -270,8 +270,8 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
           {/* Brand Header */}
           <div className="relative">
             {/* Logo */}
-            <div className="flex items-center gap-2.5 mb-2">
-              <div className="w-9 h-9 rounded-xl bg-slate-900 border border-purple-400/40 p-1 flex items-center justify-center shadow-md shadow-purple-500/30 overflow-hidden shrink-0">
+            <div className="flex items-center gap-3 mb-2.5">
+              <div className="w-10 h-10 rounded-xl bg-slate-900 border border-purple-400/40 p-1 flex items-center justify-center shadow-md shadow-purple-500/30 overflow-hidden shrink-0">
                 <img
                   src="/brand-icon.png?v=20260830"
                   alt="KDP Studio"
@@ -279,7 +279,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                 />
               </div>
               <div>
-                <span className="text-lg font-black tracking-tight text-white flex items-center gap-1.5 leading-none">
+                <span className="text-lg sm:text-xl font-black tracking-tight text-white flex items-center gap-1.5 leading-none">
                   KDP Studio
                   <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-purple-500/30 border border-purple-400/30 text-purple-200">
                     Pro
@@ -289,47 +289,47 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
               </div>
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white mt-4 leading-snug">
+            <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white mt-5 leading-snug">
               Create, format and publish books with AI
             </h2>
-            <p className="text-xs text-purple-200/90 mt-1 leading-relaxed">
+            <p className="text-xs text-purple-200/90 mt-1.5 leading-relaxed">
               From blank page to bestselling Amazon paperback in hours, not weeks.
             </p>
           </div>
 
           {/* 3 Value Pillars */}
-          <div className="relative z-10 my-4 space-y-2.5">
-            <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
+          <div className="relative z-10 my-5 space-y-3">
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
               <div className="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-300 flex items-center justify-center shrink-0 mt-0.5">
-                <BookOpen size={14} />
+                <BookOpen size={15} />
               </div>
               <div>
                 <h4 className="text-xs font-bold text-white leading-tight">AI-Powered Book Writing</h4>
-                <p className="text-[10px] text-purple-200/70 mt-0.5">
+                <p className="text-[11px] text-purple-200/70 mt-0.5">
                   Outline, draft & refine multi-chapter fiction and non-fiction.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
               <div className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-300 flex items-center justify-center shrink-0 mt-0.5">
-                <Layers size={14} />
+                <Layers size={15} />
               </div>
               <div>
                 <h4 className="text-xs font-bold text-white leading-tight">Cover Design & 300 DPI Engine</h4>
-                <p className="text-[10px] text-purple-200/70 mt-0.5">
+                <p className="text-[11px] text-purple-200/70 mt-0.5">
                   Automated spine calculation, barcodes, and Imagen 3 generation.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
               <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 mt-0.5">
-                <ShieldCheck size={14} />
+                <ShieldCheck size={15} />
               </div>
               <div>
                 <h4 className="text-xs font-bold text-white leading-tight">KDP-Ready PDF Export</h4>
-                <p className="text-[10px] text-purple-200/70 mt-0.5">
+                <p className="text-[11px] text-purple-200/70 mt-0.5">
                   Pass Amazon pre-flight check with guaranteed gutter & trim sizes.
                 </p>
               </div>
@@ -337,9 +337,9 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
           </div>
 
           {/* Footer Trust Stat */}
-          <div className="relative z-10 pt-3 border-t border-white/10 flex items-center justify-between text-[10px] text-purple-300">
+          <div className="relative z-10 pt-3.5 border-t border-white/10 flex items-center justify-between text-[11px] text-purple-300">
             <span className="flex items-center gap-1">
-              <CheckCircle2 size={12} className="text-emerald-400" />
+              <CheckCircle2 size={13} className="text-emerald-400" />
               100% Amazon Print Compliant
             </span>
             <span>Worldwide Multi-Currency</span>
@@ -347,20 +347,20 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
         </div>
 
         {/* Right Half: Dynamic Forms (7 cols) */}
-        <div className="lg:col-span-7 p-5 sm:p-7 sm:py-6 flex flex-col justify-center">
+        <div className="lg:col-span-7 p-6 sm:p-8 sm:py-7 flex flex-col justify-center">
           
           {/* Top Navigation: Back to Home */}
-          <div className="flex items-center justify-between mb-3.5 pr-8">
+          <div className="flex items-center justify-between mb-4 pr-8">
             <button
               type="button"
               onClick={() => onNavigate ? onNavigate('home') : (window.location.href = '/')}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-purple-700 transition-colors cursor-pointer group py-1 px-2 rounded-lg hover:bg-slate-100/80 -ml-2"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-purple-700 transition-colors cursor-pointer group py-1 px-2.5 rounded-lg hover:bg-slate-100/80 -ml-2"
             >
               <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform text-purple-600" />
               <span>Back to Home</span>
             </button>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200/80">
+              <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200/80">
                 {view === 'login' ? 'Author Sign In' : view === 'signup' ? 'New Registration' : view === 'forgot-password' ? 'Password Reset' : 'Email Verification'}
               </span>
             </div>
@@ -368,7 +368,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
 
           {/* Quick Notice / Error Alert */}
           {authError && (
-            <div className="mb-3 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2 animate-in fade-in duration-200">
+            <div className="mb-3.5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5 animate-in fade-in duration-200">
               <AlertCircle size={15} className="text-rose-600 shrink-0 mt-0.5" />
               <div className="flex-1">
                 <span className="font-semibold">Authentication Notice: </span>
@@ -379,12 +379,12 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
 
           {/* ================= 1. LOGIN VIEW ================= */}
           {view === 'login' && (
-            <div className="space-y-3.5">
+            <div className="space-y-4">
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                   Welcome back to KDP Studio
                 </h1>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-500 mt-1">
                   Sign in to access your manuscript workspace and published books.
                 </p>
               </div>
@@ -397,17 +397,17 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   type="button"
                   onClick={handleDemoLogin}
                   disabled={submitting || isLoading}
-                  className="relative w-full flex items-center justify-between p-2.5 rounded-xl bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-900 border border-purple-400/40 text-white shadow-md hover:shadow-purple-500/25 transition-all duration-200 cursor-pointer overflow-hidden text-left"
+                  className="relative w-full flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-900 border border-purple-400/40 text-white shadow-md hover:shadow-purple-500/25 transition-all duration-200 cursor-pointer overflow-hidden text-left"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-purple-500/30 border border-purple-400/40 flex items-center justify-center text-purple-300 shrink-0 shadow-inner">
-                      <Sparkles size={15} className="text-amber-300" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-purple-500/30 border border-purple-400/40 flex items-center justify-center text-purple-300 shrink-0 shadow-inner">
+                      <Sparkles size={16} className="text-amber-300" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-black tracking-tight text-white">One-Click Instant Demo Login</span>
                         <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-xs">
-                          Pro Author
+                          Pro Author (Preview Only)
                         </span>
                       </div>
                       <p className="text-[10px] text-purple-200/80 leading-tight">Explore full workspace with sample books & Pro features</p>
@@ -415,7 +415,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   </div>
                   <div className="flex items-center gap-1 text-purple-300 font-bold text-xs shrink-0 group-hover:translate-x-1 transition-transform pl-1">
                     <span>Enter</span>
-                    <ArrowRight size={13} />
+                    <ArrowRight size={14} />
                   </div>
                 </button>
               </div>
@@ -426,7 +426,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={submitting || isLoading}
-                className="w-full flex items-center justify-center gap-2.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-xs hover:shadow transition-all duration-150 disabled:opacity-60 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-xs hover:shadow transition-all duration-150 disabled:opacity-60 cursor-pointer"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path
@@ -450,7 +450,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
               </button>
 
               {/* 2. Divider */}
-              <div className="relative flex items-center justify-center my-0.5">
+              <div className="relative flex items-center justify-center my-1">
                 <div className="border-t border-slate-200 w-full" />
                 <span className="bg-white px-2.5 text-[10px] uppercase tracking-wider text-slate-400 font-semibold absolute">
                   or sign in with email
@@ -458,9 +458,9 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
               </div>
 
               {/* 3. Email & Password Form */}
-              <form onSubmit={handleEmailSignIn} className="space-y-2.5">
+              <form onSubmit={handleEmailSignIn} className="space-y-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
                     Email address
                   </label>
                   <div className="relative">
@@ -472,20 +472,20 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="author@example.com"
-                      className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-0.5">
+                  <div className="flex items-center justify-between mb-1">
                     <label className="block text-[11px] font-bold text-slate-700">
                       Password
                     </label>
                     <button
                       type="button"
                       onClick={() => setView('forgot-password')}
-                      className="text-[10px] font-semibold text-purple-600 hover:text-purple-700 hover:underline"
+                      className="text-[11px] font-semibold text-purple-600 hover:text-purple-700 hover:underline"
                     >
                       Forgot password?
                     </button>
@@ -499,14 +499,14 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-9 pr-9 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
+                      className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
                     >
-                      {showPassword ? <EyeOff size={13} /> : <Eye size={13} />}
+                      {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                     </button>
                   </div>
                 </div>
@@ -516,24 +516,24 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   id="submit-signin-btn"
                   type="submit"
                   disabled={submitting || isLoading}
-                  className="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-99 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
+                  className="w-full py-2.5 sm:py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-99 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
                 >
                   {submitting ? (
                     <>
-                      <RefreshCw size={13} className="animate-spin" />
+                      <RefreshCw size={14} className="animate-spin" />
                       <span>Signing in...</span>
                     </>
                   ) : (
                     <>
                       <span>Sign In to Dashboard</span>
-                      <ArrowRight size={13} />
+                      <ArrowRight size={14} />
                     </>
                   )}
                 </button>
               </form>
 
               {/* Bottom Switch to Sign up & Back to home */}
-              <div className="flex items-center justify-between pt-0.5 text-xs text-slate-500">
+              <div className="flex items-center justify-between pt-1 text-xs text-slate-500">
                 <div>
                   Don't have an account?{' '}
                   <button
@@ -549,7 +549,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   onClick={() => onNavigate ? onNavigate('home') : (window.location.href = '/')}
                   className="text-[11px] font-semibold text-slate-400 hover:text-slate-700 flex items-center gap-1 transition-colors cursor-pointer"
                 >
-                  <Home size={11} />
+                  <Home size={12} />
                   <span>Return to Home</span>
                 </button>
               </div>
@@ -558,12 +558,12 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
 
           {/* ================= 2. SIGNUP VIEW ================= */}
           {view === 'signup' && (
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                   Create your KDP Studio account
                 </h1>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-500 mt-1">
                   Start drafting and formatting Amazon Kindle & Paperback books.
                 </p>
               </div>
@@ -576,17 +576,17 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   type="button"
                   onClick={handleDemoLogin}
                   disabled={submitting || isLoading}
-                  className="relative w-full flex items-center justify-between p-2.5 rounded-xl bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-900 border border-purple-400/40 text-white shadow-md hover:shadow-purple-500/25 transition-all duration-200 cursor-pointer overflow-hidden text-left"
+                  className="relative w-full flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-900 border border-purple-400/40 text-white shadow-md hover:shadow-purple-500/25 transition-all duration-200 cursor-pointer overflow-hidden text-left"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-purple-500/30 border border-purple-400/40 flex items-center justify-center text-purple-300 shrink-0 shadow-inner">
-                      <Sparkles size={15} className="text-amber-300" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-purple-500/30 border border-purple-400/40 flex items-center justify-center text-purple-300 shrink-0 shadow-inner">
+                      <Sparkles size={16} className="text-amber-300" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-black tracking-tight text-white">One-Click Instant Demo Login</span>
                         <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-xs">
-                          Pro Author
+                          Pro Author (Preview Only)
                         </span>
                       </div>
                       <p className="text-[10px] text-purple-200/80 leading-tight">Skip registration & explore all features instantly</p>
@@ -594,7 +594,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   </div>
                   <div className="flex items-center gap-1 text-purple-300 font-bold text-xs shrink-0 group-hover:translate-x-1 transition-transform pl-1">
                     <span>Enter</span>
-                    <ArrowRight size={13} />
+                    <ArrowRight size={14} />
                   </div>
                 </button>
               </div>
@@ -605,7 +605,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={submitting || isLoading}
-                className="w-full flex items-center justify-center gap-2.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-xs transition-all disabled:opacity-60 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-xs transition-all disabled:opacity-60 cursor-pointer"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path
@@ -628,7 +628,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                 <span>Continue with Google</span>
               </button>
 
-              <div className="relative flex items-center justify-center my-0.5">
+              <div className="relative flex items-center justify-center my-1">
                 <div className="border-t border-slate-200 w-full" />
                 <span className="bg-white px-2.5 text-[10px] uppercase tracking-wider text-slate-400 font-semibold absolute">
                   or register with email
@@ -636,10 +636,10 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
               </div>
 
               {/* Form */}
-              <form onSubmit={handleEmailSignUp} className="space-y-2">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <form onSubmit={handleEmailSignUp} className="space-y-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
                       Full Name
                     </label>
                     <div className="relative">
@@ -651,13 +651,13 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="e.g. J. K. Morrison"
-                        className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 outline-none"
+                        className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 outline-none"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
                       Email address
                     </label>
                     <div className="relative">
@@ -669,15 +669,15 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="author@example.com"
-                        className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 outline-none"
+                        className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 outline-none"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
                       Password
                     </label>
                     <div className="relative">
@@ -689,20 +689,20 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Min. 6 chars"
-                        className="w-full pl-9 pr-8 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 outline-none"
+                        className="w-full pl-9 pr-8 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 outline-none"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 p-0.5"
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 p-0.5"
                       >
-                        {showPassword ? <EyeOff size={13} /> : <Eye size={13} />}
+                        {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                       </button>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
                       Confirm Password
                     </label>
                     <div className="relative">
@@ -714,7 +714,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="Repeat password"
-                        className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 outline-none"
+                        className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 outline-none"
                       />
                     </div>
                   </div>
@@ -761,23 +761,23 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   id="submit-signup-btn"
                   type="submit"
                   disabled={submitting || isLoading || !agreeTerms || (password !== confirmPassword && Boolean(confirmPassword))}
-                  className="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-99 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                  className="w-full py-2.5 sm:py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-99 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                 >
                   {submitting ? (
                     <>
-                      <RefreshCw size={13} className="animate-spin" />
+                      <RefreshCw size={14} className="animate-spin" />
                       <span>Creating Account...</span>
                     </>
                   ) : (
                     <>
                       <span>Create Account</span>
-                      <ArrowRight size={13} />
+                      <ArrowRight size={14} />
                     </>
                   )}
                 </button>
               </form>
 
-              <div className="flex items-center justify-between pt-0.5 text-xs text-slate-500">
+              <div className="flex items-center justify-between pt-1 text-xs text-slate-500">
                 <div>
                   Already have an account?{' '}
                   <button
@@ -793,7 +793,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   onClick={() => onNavigate ? onNavigate('home') : (window.location.href = '/')}
                   className="text-[11px] font-semibold text-slate-400 hover:text-slate-700 flex items-center gap-1 transition-colors cursor-pointer"
                 >
-                  <Home size={11} />
+                  <Home size={12} />
                   <span>Return to Home</span>
                 </button>
               </div>
@@ -807,21 +807,21 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                 <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                   Reset your password
                 </h1>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-500 mt-1">
                   Enter your account email and we'll send a secure password reset link.
                 </p>
               </div>
 
               {resetSent ? (
-                <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-2.5">
-                  <div className="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
-                    <Check size={20} className="stroke-[3]" />
+                <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-3">
+                  <div className="w-11 h-11 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
+                    <Check size={22} className="stroke-[3]" />
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-emerald-900">
                       Check your inbox
                     </h3>
-                    <p className="text-xs text-emerald-700 mt-0.5">
+                    <p className="text-xs text-emerald-700 mt-1">
                       We've sent password reset instructions to <span className="font-bold">{email}</span>.
                     </p>
                   </div>
@@ -836,9 +836,9 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleResetPassword} className="space-y-3">
+                <form onSubmit={handleResetPassword} className="space-y-3.5">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
                       Account Email
                     </label>
                     <div className="relative">
@@ -849,7 +849,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="author@example.com"
-                        className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 outline-none"
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 outline-none"
                       />
                     </div>
                   </div>
@@ -857,11 +857,11 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
+                    className="w-full py-2.5 sm:py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
                   >
                     {submitting ? (
                       <>
-                        <RefreshCw size={13} className="animate-spin" />
+                        <RefreshCw size={14} className="animate-spin" />
                         <span>Sending reset link...</span>
                       </>
                     ) : (
@@ -885,29 +885,29 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
 
           {/* ================= 4. VERIFY EMAIL VIEW ================= */}
           {view === 'verify-email' && (
-            <div className="text-center space-y-4 max-w-md mx-auto py-2">
-              <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center mx-auto shadow-inner">
-                <Mail size={24} />
+            <div className="text-center space-y-4 max-w-md mx-auto py-3">
+              <div className="w-14 h-14 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center mx-auto shadow-inner">
+                <Mail size={28} />
               </div>
 
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                   Check your inbox
                 </h1>
-                <p className="text-xs text-slate-600 mt-0.5">
+                <p className="text-xs text-slate-600 mt-1">
                   We've sent a verification link to{' '}
                   <span className="font-bold text-slate-900">{email || user?.email || 'your email'}</span>.
                 </p>
-                <p className="text-[11px] text-slate-500 mt-0.5">
+                <p className="text-[11px] text-slate-500 mt-1">
                   Please click the link inside to verify your account and activate cloud sync.
                 </p>
               </div>
 
-              <div className="space-y-2 pt-1">
+              <div className="space-y-2.5 pt-2">
                 {/* Inline verification error */}
                 {verifyError && (
-                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-start gap-2 animate-in fade-in duration-200">
-                    <AlertCircle size={14} className="text-amber-600 shrink-0 mt-0.5" />
+                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-start gap-2 animate-in fade-in duration-200">
+                    <AlertCircle size={15} className="text-amber-600 shrink-0 mt-0.5" />
                     <span>{verifyError}</span>
                   </div>
                 )}
@@ -917,16 +917,16 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   type="button"
                   onClick={handleCheckVerified}
                   disabled={submitting}
-                  className="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
+                  className="w-full py-2.5 sm:py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
                 >
                   {submitting ? (
                     <>
-                      <RefreshCw size={13} className="animate-spin" />
+                      <RefreshCw size={14} className="animate-spin" />
                       <span>Checking...</span>
                     </>
                   ) : (
                     <>
-                      <CheckCircle2 size={14} />
+                      <CheckCircle2 size={15} />
                       <span>I've verified my email</span>
                     </>
                   )}
@@ -936,7 +936,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   type="button"
                   onClick={handleResendVerification}
                   disabled={resendCooldown > 0}
-                  className="w-full py-2 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold disabled:opacity-50 transition-all cursor-pointer"
+                  className="w-full py-2.5 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold disabled:opacity-50 transition-all cursor-pointer"
                 >
                   {resendCooldown > 0 ? (
                     <span>Resend email in {resendCooldown}s</span>
@@ -946,7 +946,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                 </button>
               </div>
 
-              <div className="pt-1">
+              <div className="pt-1.5">
                 <button
                   type="button"
                   onClick={() => setView('signup')}

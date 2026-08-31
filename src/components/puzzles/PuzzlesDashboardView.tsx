@@ -75,6 +75,21 @@ export const PuzzlesDashboardView: React.FC<PuzzlesDashboardViewProps> = ({
       onNavigate?.('signup');
       return;
     }
+    if (user?.isDemo) {
+      import('../../lib/toastStore').then(({ useToastStore }) => {
+        useToastStore.getState().addToast({
+          type: 'warning',
+          title: 'Demo Mode (View-Only)',
+          message: 'You are exploring in Demo Mode. Create a free account or sign in to generate and download puzzle books.',
+          duration: 6000,
+          action: {
+            label: 'Sign Up Free',
+            onClick: () => onNavigate?.('signup'),
+          },
+        });
+      });
+      return;
+    }
 
     if (!canAccessPuzzles) {
       open('starter');

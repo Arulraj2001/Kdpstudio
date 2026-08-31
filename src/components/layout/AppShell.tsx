@@ -449,6 +449,19 @@ export const AppShell: React.FC = () => {
       handleNavigate('signup');
       return;
     }
+    if (user?.isDemo) {
+      useToastStore.getState().addToast({
+        type: 'warning',
+        title: 'Demo Mode (View-Only)',
+        message: 'You are exploring in Demo Mode. Create a free account or sign in to draft and save your own books.',
+        duration: 6000,
+        action: {
+          label: 'Sign Up Free',
+          onClick: () => handleNavigate('signup'),
+        },
+      });
+      return;
+    }
     setIsNewBookModalOpen(true);
   };
 
@@ -693,6 +706,36 @@ export const AppShell: React.FC = () => {
 
             {/* PWA Notification Permission & System Banners */}
             <div className={`transition-all duration-300 ${isSidebarCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
+              {/* Demo Mode Notice Banner */}
+              {user?.isDemo && (
+                <div className="bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-900 text-white px-4 py-2.5 sm:py-2 flex flex-wrap items-center justify-between gap-2 shadow-sm border-b border-purple-500/30 animate-in fade-in duration-200">
+                  <div className="flex items-center gap-2.5 text-xs">
+                    <span className="px-2 py-0.5 rounded-md bg-amber-400 text-slate-950 font-black text-[10px] uppercase tracking-wider shadow-xs shrink-0">
+                      Demo Mode (View-Only)
+                    </span>
+                    <span className="text-purple-200 font-medium hidden md:inline">
+                      You are exploring KDP Studio in preview mode. Create a free account or sign in to draft, edit, and export your books.
+                    </span>
+                    <span className="text-purple-200 font-medium md:hidden">
+                      Preview mode (view-only). Sign up to edit & export.
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 ml-auto shrink-0">
+                    <button
+                      onClick={() => handleNavigate('signup')}
+                      className="px-3 py-1 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white text-xs font-bold rounded-lg shadow-sm transition-all cursor-pointer"
+                    >
+                      Sign Up Free
+                    </button>
+                    <button
+                      onClick={() => handleNavigate('login')}
+                      className="px-2.5 py-1 text-purple-200 hover:text-white text-xs font-semibold rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                    >
+                      Sign In
+                    </button>
+                  </div>
+                </div>
+              )}
               <NotificationPermission />
               <PendingPaymentBanner onContactSupport={() => handleNavigate('contact')} />
               <UsageBanner onNavigateToPricing={() => handleNavigate('pricing')} />

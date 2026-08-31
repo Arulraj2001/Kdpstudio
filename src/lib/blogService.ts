@@ -28,6 +28,11 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 
+// Browser-safe fallback: In client environment, delegate all operations to Web Firestore SDK (db)
+function getAdminDb(): any {
+  return null;
+}
+
 // ── Default Ad Placements ──
 export const DEFAULT_AD_POSITIONS: AdPositionConfig[] = [
   {
@@ -294,22 +299,9 @@ export async function createBlogPost(
     }
   }
 
-  // Trigger ISR Revalidation & Auto-send Newsletter if published
+  // Trigger ISR Revalidation if published
   if (isPublished) {
     revalidateBlogPost(slug).catch(console.error);
-    import('./newsletterService')
-      .then(({ getNewsletterConfig, sendNewsletterForPost }) => {
-        getNewsletterConfig()
-          .then((cfg) => {
-            if (cfg.autoSendOnPublish) {
-              sendNewsletterForPost(postId).catch((err) =>
-                console.warn('[Newsletter AutoSend]', err)
-              );
-            }
-          })
-          .catch(() => {});
-      })
-      .catch(() => {});
   }
 
   return postId;
@@ -362,25 +354,9 @@ export async function updateBlogPost(
     });
   }
 
-  // Revalidate ISR & Auto-send Newsletter if published
+  // Revalidate ISR if published
   if (data.slug || updateData.slug) {
     revalidateBlogPost(data.slug || updateData.slug).catch(console.error);
-  }
-
-  if (data.status === 'published') {
-    import('./newsletterService')
-      .then(({ getNewsletterConfig, sendNewsletterForPost }) => {
-        getNewsletterConfig()
-          .then((cfg) => {
-            if (cfg.autoSendOnPublish) {
-              sendNewsletterForPost(id).catch((err) =>
-                console.warn('[Newsletter AutoSend]', err)
-              );
-            }
-          })
-          .catch(() => {});
-      })
-      .catch(() => {});
   }
 }
 
@@ -443,6 +419,96 @@ export async function getAllSlugs(): Promise<string[]> {
   return [];
 }
 
+// ─────────────────────────────────────────
+// Dynamic Database Auto-Seeding & Retrieval
+// ─────────────────────────────────────────
+
+export async function seedBlogPostsIfEmpty(): Promise<BlogPost[]> {
+  try {
+    const { SEED_BLOG_POSTS } = await import('./blog');
+    if (!SEED_BLOG_POSTS || !SEED_BLOG_POSTS.length) return [];
+
+    const admin = getAdminDb();
+    if (admin) {
+      const snap = await admin.collection('blogPosts').limit(1).get();
+      if (snap.empty) {
+        const seeded: BlogPost[] = [];
+        const batch = admin.batch();
+        for (const post of SEED_BLOG_POSTS) {
+          const docRef = admin.collection('blogPosts').doc(post.slug);
+          const fullPost: BlogPost = {
+            id: post.slug,
+            title: post.title,
+            slug: post.slug,
+            excerpt: post.excerpt || generateExcerpt(post.content, 155),
+            content: post.content,
+            status: 'published',
+            category: post.category || 'Publishing Strategy',
+            tags: post.tags || ['KDP', 'Publishing'],
+            authorName: post.author || 'KDP Studio Team',
+            readingTimeMinutes: calculateReadingTime(post.content),
+            wordCount: countWords(post.content),
+            tableOfContents: generateTableOfContents(post.content),
+            featuredImage: null,
+            viewCount: 120,
+            publishedAt: post.date ? new Date(post.date).toISOString() : new Date().toISOString(),
+            createdAt: post.date ? new Date(post.date).toISOString() : new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            schemaType: 'Article',
+            faqItems: [],
+            howToSteps: [],
+            sources: [],
+            adsEnabled: true,
+          } as any;
+          batch.set(docRef, fullPost);
+          seeded.push(fullPost);
+        }
+        await batch.commit();
+        return seeded;
+      }
+    } else if (db) {
+      const q = query(collection(db, 'blogPosts'), firestoreLimit(1));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        const seeded: BlogPost[] = [];
+        for (const post of SEED_BLOG_POSTS) {
+          const docRef = doc(db, 'blogPosts', post.slug);
+          const fullPost: BlogPost = {
+            id: post.slug,
+            title: post.title,
+            slug: post.slug,
+            excerpt: post.excerpt || generateExcerpt(post.content, 155),
+            content: post.content,
+            status: 'published',
+            category: post.category || 'Publishing Strategy',
+            tags: post.tags || ['KDP', 'Publishing'],
+            authorName: post.author || 'KDP Studio Team',
+            readingTimeMinutes: calculateReadingTime(post.content),
+            wordCount: countWords(post.content),
+            tableOfContents: generateTableOfContents(post.content),
+            featuredImage: null,
+            viewCount: 120,
+            publishedAt: post.date ? new Date(post.date).toISOString() : new Date().toISOString(),
+            createdAt: post.date ? new Date(post.date).toISOString() : new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            schemaType: 'Article',
+            faqItems: [],
+            howToSteps: [],
+            sources: [],
+            adsEnabled: true,
+          } as any;
+          await setDoc(docRef, fullPost);
+          seeded.push(fullPost);
+        }
+        return seeded;
+      }
+    }
+  } catch (err) {
+    console.warn('[BlogService] Auto-seeding check notice:', err);
+  }
+  return [];
+}
+
 export async function getPublishedPosts(options?: {
   limit?: number;
   cursor?: string;
@@ -475,6 +541,11 @@ export async function getPublishedPosts(options?: {
     const snap = await q.get();
     let posts = snap.docs.map((d: any) => d.data() as BlogPost);
 
+    if (posts.length === 0 && (!options || options.category === 'All')) {
+      const seeded = await seedBlogPostsIfEmpty();
+      if (seeded.length > 0) posts = seeded;
+    }
+
     if (options?.excludeId) {
       posts = posts.filter((p) => p.id !== options.excludeId);
     }
@@ -506,6 +577,11 @@ export async function getPublishedPosts(options?: {
     const q = query(collection(db, 'blogPosts'), ...constraints);
     const snap = await getDocs(q);
     let posts = snap.docs.map((d) => d.data() as BlogPost);
+
+    if (posts.length === 0 && (!options || options.category === 'All')) {
+      const seeded = await seedBlogPostsIfEmpty();
+      if (seeded.length > 0) posts = seeded;
+    }
 
     if (options?.excludeId) {
       posts = posts.filter((p) => p.id !== options.excludeId);
@@ -557,6 +633,11 @@ export async function getAllAdminPosts(options?: {
     posts = snap.docs.map((d) => d.data() as BlogPost);
   }
 
+  if (posts.length === 0 && (!options?.status || options.status === 'published')) {
+    const seeded = await seedBlogPostsIfEmpty();
+    if (seeded.length > 0) posts = seeded;
+  }
+
   if (options?.search) {
     const s = options.search.toLowerCase();
     posts = posts.filter(
@@ -569,6 +650,40 @@ export async function getAllAdminPosts(options?: {
   }
 
   return posts;
+}
+
+export async function getLiveCategories(): Promise<string[]> {
+  try {
+    const posts = await getAllAdminPosts();
+    const categoriesSet = new Set<string>();
+    categoriesSet.add('All');
+    posts.forEach((p) => {
+      if (p.category && p.category.trim()) {
+        categoriesSet.add(p.category.trim());
+      }
+    });
+    return Array.from(categoriesSet);
+  } catch {
+    return ['All', 'Publishing Strategy', 'Cover Design', 'KDP Formatting', 'Keywords & SEO'];
+  }
+}
+
+export async function getLiveTags(): Promise<string[]> {
+  try {
+    const posts = await getAllAdminPosts();
+    const tagsSet = new Set<string>();
+    tagsSet.add('All');
+    posts.forEach((p) => {
+      if (Array.isArray(p.tags)) {
+        p.tags.forEach((t) => {
+          if (t && t.trim()) tagsSet.add(t.trim());
+        });
+      }
+    });
+    return Array.from(tagsSet);
+  } catch {
+    return ['All', 'KDP', 'Self-Publishing', 'Amazon'];
+  }
 }
 
 // ─────────────────────────────────────────

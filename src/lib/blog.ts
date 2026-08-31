@@ -486,17 +486,28 @@ export const SEED_BLOG_POSTS: BlogPost[] = [
   }
 ];
 
+// In-memory runtime cache of dynamic posts
+let cachedLivePosts: BlogPost[] | null = null;
+
 export function getAllBlogPosts(): BlogPost[] {
+  if (cachedLivePosts && cachedLivePosts.length > 0) {
+    return cachedLivePosts;
+  }
   return [...SEED_BLOG_POSTS].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
 export function getBlogPost(slug: string): BlogPost | null {
+  if (cachedLivePosts && cachedLivePosts.length > 0) {
+    const found = cachedLivePosts.find((p) => p.slug === slug);
+    if (found) return found;
+  }
   return SEED_BLOG_POSTS.find((p) => p.slug === slug) || null;
 }
 
 export function getBlogPostsByCategory(category: string): BlogPost[] {
-  if (!category || category === 'All') return getAllBlogPosts();
-  return getAllBlogPosts().filter((p) => p.category.toLowerCase() === category.toLowerCase());
+  const all = getAllBlogPosts();
+  if (!category || category === 'All') return all;
+  return all.filter((p) => (p.category || '').toLowerCase() === category.toLowerCase());
 }
 
 export function getFeaturedPosts(): BlogPost[] {
@@ -506,13 +517,24 @@ export function getFeaturedPosts(): BlogPost[] {
 export function getAllCategories(): string[] {
   const cats = new Set<string>();
   cats.add('All');
-  SEED_BLOG_POSTS.forEach((p) => cats.add(p.category));
+  const all = getAllBlogPosts();
+  all.forEach((p) => {
+    if (p.category && p.category.trim()) cats.add(p.category.trim());
+  });
   return Array.from(cats);
 }
 
 export function getAllTags(): string[] {
   const tags = new Set<string>();
-  SEED_BLOG_POSTS.forEach((p) => p.tags.forEach((t) => tags.add(t)));
+  tags.add('All');
+  const all = getAllBlogPosts();
+  all.forEach((p) => {
+    if (Array.isArray(p.tags)) {
+      p.tags.forEach((t) => {
+        if (t && t.trim()) tags.add(t.trim());
+      });
+    }
+  });
   return Array.from(tags);
 }
 
@@ -527,6 +549,31 @@ export async function getAdConfigClient(): Promise<any> {
 }
 
 export async function getPublishedBlogPostsClient(): Promise<BlogPost[]> {
+  try {
+    const { getPublishedPosts } = await import('./blogService');
+    const { posts } = await getPublishedPosts({ limit: 50 });
+    if (Array.isArray(posts) && posts.length > 0) {
+      // Map Firestore posts to client BlogPost shape if needed
+      const mapped: BlogPost[] = posts.map((p: any) => ({
+        slug: p.slug,
+        title: p.title,
+        description: p.description || p.excerpt || '',
+        date: p.publishedAt ? p.publishedAt.slice(0, 10) : (p.date || '2026-08-15'),
+        author: p.authorName || p.author || 'KDP Studio Team',
+        category: p.category || 'Publishing Strategy',
+        tags: p.tags || ['KDP', 'Self-Publishing'],
+        readTime: `${p.readingTimeMinutes || 6} min read`,
+        featured: Boolean(p.featured),
+        content: p.content,
+        excerpt: p.excerpt || '',
+        ...p,
+      }));
+      cachedLivePosts = mapped;
+      return mapped;
+    }
+  } catch (err) {
+    console.warn('[Blog] Falling back to local posts:', err);
+  }
   return getAllBlogPosts();
 }
 
