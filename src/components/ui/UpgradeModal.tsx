@@ -14,33 +14,12 @@ import { useUpgradeModal } from '../../lib/upgradeModalStore';
 import { useGeoStore } from '../../lib/geoStore';
 import { useAuthStore } from '../../lib/authStore';
 import { useCheckoutStore } from '../../lib/checkoutStore';
-import { PlanTier } from '../../lib/planLimits';
+import { PlanTier, getLivePlanLimits } from '../../lib/planLimits';
 import { PlanName } from '../../types/payment';
 
 interface UpgradeModalProps {
   onNavigateToPricing?: () => void;
 }
-
-const PLAN_FEATURES_MAP: Record<string, string[]> = {
-  starter: [
-    '20 AI generations / day (300/mo)',
-    '10 PDF interior & 5 Cover exports',
-    'Puzzle & Coloring Book engines',
-    'Up to 10 active book projects',
-  ],
-  pro: [
-    'Unlimited AI writing & PDF exports',
-    '50 AI Imagen 3 cover arts / day',
-    'KDP Niche & Keyword Analysis',
-    'Multilingual book translation',
-  ],
-  agency: [
-    'Unlimited AI, covers & PDF exports',
-    '3 Team seats with role permissions',
-    'Bulk interior & cover generator',
-    'White-label copyright & branding',
-  ],
-};
 
 export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onNavigateToPricing }) => {
   const { isOpen, config, close } = useUpgradeModal();
@@ -62,7 +41,23 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onNavigateToPricing 
   const targetPlanName = targetPlan === 'starter' ? 'Starter' : targetPlan === 'pro' ? 'Pro' : 'Agency';
 
   const priceFormatted = getFormattedPrice(targetPlan as any);
-  const planFeatures = PLAN_FEATURES_MAP[targetPlan] || PLAN_FEATURES_MAP.pro;
+  const targetLimits = getLivePlanLimits(targetPlan);
+  const planFeatures = targetPlan === 'starter' ? [
+    `${targetLimits.daily.aiGenerations} AI generations / day`,
+    `${targetLimits.daily.pdfExports} PDF interior & ${targetLimits.daily.coverExports || 5} Cover exports / day`,
+    `Puzzle & Coloring Book engines (${targetLimits.daily.puzzleGenerations}/day)`,
+    `Up to ${targetLimits.total.bookProjects} active book projects`,
+  ] : targetPlan === 'pro' ? [
+    'Unlimited AI writing & PDF exports',
+    `${targetLimits.daily.imageGenerations > 0 ? targetLimits.daily.imageGenerations : '50'} AI Imagen 3 cover arts / day`,
+    'KDP Niche & Keyword Analysis',
+    'Multilingual book translation',
+  ] : [
+    'Unlimited AI, covers & PDF exports',
+    `${targetLimits.total.teamSeats || 5} Team seats with role permissions`,
+    'Bulk interior & cover generator',
+    'White-label copyright & branding',
+  ];
 
   const handleUpgradeClick = () => {
     close();

@@ -14,6 +14,7 @@ import { PageRoute } from '../../types';
 import { useAuthStore } from '../../lib/authStore';
 import { useGeoStore } from '../../lib/geoStore';
 import { formatPrice } from '../../lib/geo';
+import { getLivePlanLimits, getLiveFeatureAccess } from '../../lib/planLimits';
 import { SEOHead } from '../seo/SEOHead';
 import { JsonLd } from '../seo/JsonLd';
 
@@ -1098,10 +1099,13 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
                   <p className="text-xs text-slate-500">Free forever, no credit card required</p>
                 </div>
                 <ul className="space-y-2.5 text-xs text-slate-600 font-medium pt-4 border-t border-slate-100">
-                  <li className="flex items-center gap-2">✅ 1 active book project</li>
-                  <li className="flex items-center gap-2">✅ 3 AI generation runs / day</li>
-                  <li className="flex items-center gap-2">✅ Standard KDP margin calculations</li>
-                  <li className="flex items-center gap-2">✅ Basic cover layout presets</li>
+                  <li className="flex items-center gap-2">✅ <strong>{getLivePlanLimits('free').total.bookProjects}</strong> active book project{getLivePlanLimits('free').total.bookProjects > 1 ? 's' : ''}</li>
+                  <li className="flex items-center gap-2">✅ <strong>{getLivePlanLimits('free').daily.aiGenerations}</strong> AI generation runs / day</li>
+                  <li className="flex items-center gap-2">✅ <strong>{getLivePlanLimits('free').daily.pdfExports}</strong> PDF exports / day</li>
+                  {getLiveFeatureAccess('puzzleGenerator') === 'free' && (
+                    <li className="flex items-center gap-2">✅ <strong>{getLivePlanLimits('free').daily.puzzleGenerations}</strong> puzzle generations / day</li>
+                  )}
+                  <li className="flex items-center gap-2">✅ Cover layout presets & spine calculator</li>
                   <li className="flex items-center gap-2">✅ Watermarked PDF export</li>
                 </ul>
               </div>

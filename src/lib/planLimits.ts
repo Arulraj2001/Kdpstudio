@@ -365,3 +365,102 @@ export async function saveDynamicPlanLimits(
     throw err;
   }
 }
+
+export interface PlanBulletItem {
+  text: string;
+  strong?: string;
+  included: boolean;
+}
+
+/**
+ * Returns dynamic marketing bullet points for any plan tier based on live limits
+ */
+export function getDynamicPlanFeatures(plan: PlanTier): PlanBulletItem[] {
+  const limits = getLivePlanLimits(plan);
+  const isPuzzleFree = getLiveFeatureAccess('puzzleGenerator') === 'free';
+  const isEpubFree = getLiveFeatureAccess('epubExport') === 'free';
+  const isNicheFree = getLiveFeatureAccess('nicheResearch') === 'free';
+  const isArtStarter = getLiveFeatureAccess('aiCoverImage') === 'starter' || getLiveFeatureAccess('aiCoverImage') === 'free';
+
+  if (plan === 'free') {
+    const bullets: PlanBulletItem[] = [
+      { text: ` Book Project${limits.total.bookProjects > 1 ? 's' : ''}`, strong: `${limits.total.bookProjects}`, included: true },
+      { text: ` AI Generations / day`, strong: `${limits.daily.aiGenerations}`, included: true },
+      { text: ` PDF Interior Export${limits.daily.pdfExports > 1 ? 's' : ''} / day`, strong: `${limits.daily.pdfExports}`, included: true },
+      { text: ` Cover Exports / day`, strong: `${limits.daily.coverExports || 1}`, included: true },
+    ];
+
+    if (isPuzzleFree && limits.daily.puzzleGenerations > 0) {
+      bullets.push({ text: ` Puzzle & Coloring Generations / day`, strong: `${limits.daily.puzzleGenerations}`, included: true });
+    } else {
+      bullets.push({ text: `Puzzle & Activity Books`, included: false });
+    }
+
+    if (isNicheFree && (limits.daily.nicheSearches ?? 0) > 0) {
+      bullets.push({ text: ` KDP Niche Searches / day`, strong: `${limits.daily.nicheSearches}`, included: true });
+    }
+
+    if (isEpubFree && limits.daily.epubExports > 0) {
+      bullets.push({ text: ` EPUB Kindle Export / day`, strong: `${limits.daily.epubExports}`, included: true });
+    } else {
+      bullets.push({ text: `EPUB Kindle Export`, included: false });
+    }
+
+    bullets.push({ text: `AI Image Art Generation`, included: false });
+    bullets.push({ text: `Watermark-free Exports`, included: false });
+    return bullets;
+  }
+
+  if (plan === 'starter') {
+    return [
+      { text: ` Book Projects`, strong: `${limits.total.bookProjects}`, included: true },
+      { text: ` AI Generations / day`, strong: `${limits.daily.aiGenerations}`, included: true },
+      { text: ` PDF Exports / day`, strong: `${limits.daily.pdfExports}`, included: true },
+      { text: ` Cover Builder (Full Spread)`, strong: '', included: true },
+      { text: `EPUB Kindle Export`, strong: '', included: true },
+      { text: ` Puzzle Generations / day`, strong: `${limits.daily.puzzleGenerations}`, included: true },
+      { text: `Watermark-free 300 DPI Exports`, strong: '', included: true },
+      { text: `Google Imagen 3 AI Art`, strong: '', included: isArtStarter },
+    ];
+  }
+
+  if (plan === 'pro') {
+    return [
+      { text: ` Book Projects`, strong: `Unlimited`, included: true },
+      { text: ` AI Generations`, strong: `Unlimited`, included: true },
+      { text: ` PDF Exports`, strong: `Unlimited`, included: true },
+      { text: `Cover Builder (Full Spread + Spine)`, strong: '', included: true },
+      { text: ` AI Cover Arts / day (Google Imagen 3)`, strong: `${limits.daily.imageGenerations > 0 ? limits.daily.imageGenerations : 'Unlimited'}`, included: true },
+      { text: `KDP Niche & Keyword Analysis`, strong: '', included: true },
+      { text: `AI Multilingual Book Translator`, strong: '', included: true },
+      { text: `Priority Author Support`, strong: '', included: true },
+    ];
+  }
+
+  if (plan === 'agency') {
+    return [
+      { text: ` Team Member Seats`, strong: `${limits.total.teamSeats || 5}`, included: true },
+      { text: `Everything in Pro Unlimited`, strong: '', included: true },
+      { text: `Bulk Batch Book Generator`, strong: '', included: true },
+      { text: `Brand Kit & Shared Style Guide`, strong: '', included: true },
+      { text: `White-Label PDF & Watermark Removal`, strong: '', included: true },
+      { text: `Dedicated VIP Account Manager`, strong: '', included: true },
+    ];
+  }
+
+  return [];
+}
+
+/**
+ * Returns growth promo banner if enabled
+ */
+export function getGrowthPromo(): { enabled: boolean; bannerText: string } | null {
+  if (inMemoryDynamicConfig?.growthPromo?.enabled && inMemoryDynamicConfig.growthPromo.bannerText) {
+    return {
+      enabled: true,
+      bannerText: inMemoryDynamicConfig.growthPromo.bannerText,
+    };
+  }
+  return null;
+}
+

@@ -24,6 +24,7 @@ import { useAuthStore } from '../../lib/authStore';
 import { BmacButton } from '../payment/BmacButton';
 import { showPaymentSuccessToast } from '../../lib/postPayment';
 import { useCheckoutStore } from '../../lib/checkoutStore';
+import { getDynamicPlanFeatures, getGrowthPromo } from '../../lib/planLimits';
 import { SEOHead } from '../seo/SEOHead';
 import { JsonLd } from '../seo/JsonLd';
 
@@ -282,6 +283,16 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
         </div>
       </section>
 
+      {/* Growth Promotion Banner if Active */}
+      {growthPromo && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-3.5 rounded-2xl shadow-md flex items-center justify-center gap-2.5 text-center text-xs sm:text-sm font-bold animate-in fade-in duration-300">
+            <Sparkles size={18} className="text-amber-300 shrink-0 animate-pulse" />
+            <span>{growthPromo.bannerText}</span>
+          </div>
+        </div>
+      )}
+
       {/* 4 Plan Cards */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
@@ -304,38 +315,19 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
               <div className="space-y-3 pt-4 border-t border-slate-100 text-xs">
                 <div className="font-bold text-slate-700">Included Features:</div>
                 <ul className="space-y-2.5">
-                  <li className="flex items-center gap-2 text-slate-700">
-                    <Check size={14} className="text-emerald-600 shrink-0" />
-                    <span><strong>1</strong> Book Project</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-700">
-                    <Check size={14} className="text-emerald-600 shrink-0" />
-                    <span><strong>3</strong> AI Generations / day</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-700">
-                    <Check size={14} className="text-emerald-600 shrink-0" />
-                    <span><strong>1</strong> PDF Export / day</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-700">
-                    <Check size={14} className="text-emerald-600 shrink-0" />
-                    <span>Cover Builder (View only)</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-400 line-through">
-                    <XIcon size={14} className="text-slate-300 shrink-0" />
-                    <span>AI Image Generation</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-400 line-through">
-                    <XIcon size={14} className="text-slate-300 shrink-0" />
-                    <span>EPUB Kindle Export</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-400 line-through">
-                    <XIcon size={14} className="text-slate-300 shrink-0" />
-                    <span>Puzzle & Activity Books</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-400 line-through">
-                    <XIcon size={14} className="text-slate-300 shrink-0" />
-                    <span>Watermark-free Exports</span>
-                  </li>
+                  {getDynamicPlanFeatures('free').map((feat, idx) => (
+                    <li key={idx} className={`flex items-center gap-2 ${feat.included ? 'text-slate-700' : 'text-slate-400 line-through'}`}>
+                      {feat.included ? (
+                        <Check size={14} className="text-emerald-600 shrink-0" />
+                      ) : (
+                        <XIcon size={14} className="text-slate-300 shrink-0" />
+                      )}
+                      <span>
+                        {feat.strong ? <strong>{feat.strong}</strong> : null}
+                        {feat.text}
+                      </span>
+                    </li>
+                  ))}
                 </ul>
               </div>
             </div>
@@ -343,7 +335,7 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
             <div className="pt-6">
               <button
                 onClick={() => handleSelectPlan('free')}
-                className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-800 font-bold text-xs hover:bg-slate-50 transition-colors"
+                className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-800 font-bold text-xs hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 Start Free
               </button>
@@ -370,38 +362,19 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
               <div className="space-y-3 pt-4 border-t border-slate-100 text-xs">
                 <div className="font-bold text-slate-700">Included Features:</div>
                 <ul className="space-y-2.5">
-                  <li className="flex items-center gap-2 text-slate-700">
-                    <Check size={14} className="text-emerald-600 shrink-0" />
-                    <span><strong>10</strong> Book Projects</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-700">
-                    <Check size={14} className="text-emerald-600 shrink-0" />
-                    <span><strong>20</strong> AI Generations / day</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-700">
-                    <Check size={14} className="text-emerald-600 shrink-0" />
-                    <span><strong>10</strong> PDF Exports / day</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-700">
-                    <Check size={14} className="text-emerald-600 shrink-0" />
-                    <span>Cover Builder (Basic)</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-700">
-                    <Check size={14} className="text-emerald-600 shrink-0" />
-                    <span>EPUB Kindle Export</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-700">
-                    <Check size={14} className="text-emerald-600 shrink-0" />
-                    <span>Puzzle & Activity Books</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-700">
-                    <Check size={14} className="text-emerald-600 shrink-0" />
-                    <span>Watermark-free Exports</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-400 line-through">
-                    <XIcon size={14} className="text-slate-300 shrink-0" />
-                    <span>AI Image Generation</span>
-                  </li>
+                  {getDynamicPlanFeatures('starter').map((feat, idx) => (
+                    <li key={idx} className={`flex items-center gap-2 ${feat.included ? 'text-slate-700' : 'text-slate-400 line-through'}`}>
+                      {feat.included ? (
+                        <Check size={14} className="text-emerald-600 shrink-0" />
+                      ) : (
+                        <XIcon size={14} className="text-slate-300 shrink-0" />
+                      )}
+                      <span>
+                        {feat.strong ? <strong>{feat.strong}</strong> : null}
+                        {feat.text}
+                      </span>
+                    </li>
+                  ))}
                 </ul>
               </div>
             </div>
@@ -409,7 +382,7 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
             <div className="pt-6">
               <button
                 onClick={() => handleSelectPlan('starter')}
-                className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors shadow-sm"
+                className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors shadow-sm cursor-pointer"
               >
                 Start with Starter
               </button>
@@ -440,34 +413,19 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
               <div className="space-y-3 pt-4 border-t border-slate-100 text-xs">
                 <div className="font-bold text-purple-700">Everything in Starter +</div>
                 <ul className="space-y-2.5">
-                  <li className="flex items-center gap-2 text-slate-900 font-semibold">
-                    <Check size={14} className="text-purple-600 shrink-0" />
-                    <span><strong>Unlimited</strong> Book Projects</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-900 font-semibold">
-                    <Check size={14} className="text-purple-600 shrink-0" />
-                    <span><strong>Unlimited</strong> AI Generations</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-900 font-semibold">
-                    <Check size={14} className="text-purple-600 shrink-0" />
-                    <span><strong>Unlimited</strong> PDF Exports</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-700">
-                    <Check size={14} className="text-purple-600 shrink-0" />
-                    <span>Cover Builder (Full Spread)</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-700">
-                    <Check size={14} className="text-purple-600 shrink-0" />
-                    <span><strong>Google Imagen 3</strong> AI Art</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-700">
-                    <Check size={14} className="text-purple-600 shrink-0" />
-                    <span>AI Language Translator</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-700">
-                    <Check size={14} className="text-purple-600 shrink-0" />
-                    <span>Priority Support Response</span>
-                  </li>
+                  {getDynamicPlanFeatures('pro').map((feat, idx) => (
+                    <li key={idx} className={`flex items-center gap-2 ${feat.included ? 'text-slate-900 font-semibold' : 'text-slate-400 line-through'}`}>
+                      {feat.included ? (
+                        <Check size={14} className="text-purple-600 shrink-0" />
+                      ) : (
+                        <XIcon size={14} className="text-slate-300 shrink-0" />
+                      )}
+                      <span>
+                        {feat.strong ? <strong>{feat.strong}</strong> : null}
+                        {feat.text}
+                      </span>
+                    </li>
+                  ))}
                 </ul>
               </div>
             </div>
@@ -475,7 +433,7 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
             <div className="pt-6">
               <button
                 onClick={() => handleSelectPlan('pro')}
-                className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md shadow-purple-600/30 transition-all"
+                className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md shadow-purple-600/30 transition-all cursor-pointer"
               >
                 Start with Pro
               </button>
@@ -502,26 +460,19 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
               <div className="space-y-3 pt-4 border-t border-slate-100 text-xs">
                 <div className="font-bold text-slate-700">Included Features:</div>
                 <ul className="space-y-2.5">
-                  <li className="flex items-center gap-2 text-slate-900 font-semibold">
-                    <Check size={14} className="text-emerald-600 shrink-0" />
-                    <span><strong>3</strong> Team Member Seats</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-700">
-                    <Check size={14} className="text-emerald-600 shrink-0" />
-                    <span>Everything in Pro Unlimited</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-700">
-                    <Check size={14} className="text-emerald-600 shrink-0" />
-                    <span>Brand Kit & Shared Style Guide</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-700">
-                    <Check size={14} className="text-emerald-600 shrink-0" />
-                    <span>Dedicated Account Manager</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-700">
-                    <Check size={14} className="text-emerald-600 shrink-0" />
-                    <span>Custom Trim & Spine Profiles</span>
-                  </li>
+                  {getDynamicPlanFeatures('agency').map((feat, idx) => (
+                    <li key={idx} className={`flex items-center gap-2 ${feat.included ? 'text-slate-700' : 'text-slate-400 line-through'}`}>
+                      {feat.included ? (
+                        <Check size={14} className="text-emerald-600 shrink-0" />
+                      ) : (
+                        <XIcon size={14} className="text-slate-300 shrink-0" />
+                      )}
+                      <span>
+                        {feat.strong ? <strong>{feat.strong}</strong> : null}
+                        {feat.text}
+                      </span>
+                    </li>
+                  ))}
                 </ul>
               </div>
             </div>
@@ -529,7 +480,7 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
             <div className="pt-6">
               <button
                 onClick={() => handleSelectPlan('agency')}
-                className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-800 font-bold text-xs hover:bg-slate-50 transition-colors"
+                className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-800 font-bold text-xs hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 Contact Us
               </button>
