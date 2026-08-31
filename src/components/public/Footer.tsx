@@ -127,7 +127,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <ul className="space-y-2.5 text-xs sm:text-sm font-medium">
               <li>
                 <button
-                  onClick={() => handleNav('home', 'features')}
+                  onClick={() => handleNav('features')}
                   className="hover:text-white transition-colors text-left cursor-pointer"
                 >
                   Features

@@ -91,6 +91,7 @@ import { PaymentSuccessPageView } from '../public/PaymentSuccessPageView';
 import { ToastContainer } from '../ui/ToastContainer';
 import { PublicLayout } from '../public/PublicLayout';
 import { HomePageView } from '../public/HomePageView';
+import { FeaturesPageView } from '../public/FeaturesPageView';
 import { PricingPageView } from '../public/PricingPageView';
 import { AboutPageView } from '../public/AboutPageView';
 import { TermsPageView } from '../public/TermsPageView';
@@ -108,6 +109,7 @@ import { trackFeatureUse } from '../../lib/featureTracker';
 
 export const ROUTE_PATH_MAP: Record<PageRoute, string> = {
   home: '/',
+  features: '/features',
   pricing: '/pricing',
   about: '/about',
   terms: '/terms',
@@ -191,7 +193,8 @@ export function parsePathToRoute(pathname: string): PageRoute | null {
   const clean = pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
   if (!clean) return null;
 
-  if (clean === 'home' || clean === '') return 'home';
+  if (clean === '' || clean === 'home') return 'home';
+  if (clean === 'features') return 'features';
   if (clean === 'payment/success' || clean === 'payment-success') return 'payment-success';
   if (clean === 'pricing') return 'pricing';
   if (clean === 'about') return 'about';
@@ -503,7 +506,7 @@ export const AppShell: React.FC = () => {
   };
 
   const isPublicMarketingRoute = [
-    'home', 'pricing', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'blog-detail', 'launch', 'payment-success'
+    'home', 'features', 'pricing', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'blog-detail', 'launch', 'payment-success'
   ].includes(currentRoute);
 
   const isAuthRoute = ['login', 'signup', 'forgot-password', 'verify-email'].includes(currentRoute);
@@ -545,6 +548,7 @@ export const AppShell: React.FC = () => {
       {isPublicMarketingRoute ? (
         <PublicLayout currentRoute={currentRoute} onNavigate={handleNavigate}>
           {currentRoute === 'home' && <HomePageView onNavigate={handleNavigate} />}
+          {currentRoute === 'features' && <FeaturesPageView onNavigate={handleNavigate} />}
           {currentRoute === 'pricing' && <PricingPageView onNavigate={handleNavigate} />}
           {currentRoute === 'about' && <AboutPageView onNavigate={handleNavigate} />}
           {currentRoute === 'terms' && <TermsPageView onNavigate={handleNavigate} />}

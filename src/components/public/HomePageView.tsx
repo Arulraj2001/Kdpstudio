@@ -5,33 +5,29 @@ import {
   Sparkles, 
   ArrowRight, 
   Check, 
-  Star, 
-  ChevronDown, 
-  ChevronUp,
   ShieldCheck, 
-  CheckCircle2,
-  BookOpen,
-  FileCheck,
-  Layers,
-  Zap,
-  Gift,
-  Download,
-  Palette,
-  Search,
-  PenTool,
+  BookOpen, 
+  FileCheck, 
+  Layers, 
+  Gift, 
+  Download, 
+  Palette, 
+  Search, 
+  FileText, 
+  BadgeCheck, 
+  ChevronDown, 
+  ChevronUp, 
   Grid,
-  FileText,
-  BadgeCheck,
-  Award,
-  Clock,
-  ArrowUpRight,
-  TrendingUp
+  TrendingUp,
+  Cpu,
+  CheckCircle2,
+  FolderZip
 } from 'lucide-react';
 import { PageRoute } from '../../types';
 import { useAuthStore } from '../../lib/authStore';
 import { useGeoStore } from '../../lib/geoStore';
 import { formatPrice } from '../../lib/geo';
-import { getLivePlanLimits, getLiveFeatureAccess, getDynamicPlanFeatures } from '../../lib/planLimits';
+import { getLivePlanLimits, getLiveFeatureAccess } from '../../lib/planLimits';
 import { SEOHead } from '../seo/SEOHead';
 import { JsonLd } from '../seo/JsonLd';
 
@@ -138,7 +134,6 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
   const { currency, getFormattedPrice, initPricingListener, fetchPricing } = useGeoStore();
   const [ideaInput, setIdeaInput] = useState('');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<'interior' | 'cover' | 'puzzles' | 'keywords'>('interior');
 
   // Initialize and refresh dynamic pricing on mount
   useEffect(() => {
@@ -164,33 +159,90 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
     handleStart();
   };
 
-  const handleScrollTo = (elementId: string) => {
-    const el = document.getElementById(elementId);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   const toggleFaq = (idx: number) => {
     setOpenFaqIndex(openFaqIndex === idx ? null : idx);
   };
 
   const freeLimits = getLivePlanLimits('free');
 
+  // Real Photographic Books Built with KDP Studio
+  const flagshipBooks = [
+    {
+      id: 'fiction',
+      title: 'High Plains Mercy',
+      subtitle: 'A Modern Western Mystery',
+      genre: 'Fiction / Mystery',
+      pages: '390 pages',
+      trim: '7″ × 10″ Paperback Wrap',
+      quality: '100/100',
+      description: 'A 390-page modern western thriller with a complete 18-chapter plotted arc, voice-consistent prose, and spine-calculated wrap.',
+      imageUrl: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80',
+      badgeColor: 'text-indigo-700 bg-indigo-50 border-indigo-200'
+    },
+    {
+      id: 'nonfiction',
+      title: 'Digital Boundaries',
+      subtitle: 'For Remote & Hybrid Leaders',
+      genre: 'Nonfiction Framework',
+      pages: '174 pages',
+      trim: '5.5″ × 8.5″ Digest',
+      quality: '99/100',
+      description: 'Actionable productivity masterclass with chaptered framework summary boxes, shutdown rituals, and typeset running headers.',
+      imageUrl: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=800&q=80',
+      badgeColor: 'text-amber-700 bg-amber-50 border-amber-200'
+    },
+    {
+      id: 'cookbook',
+      title: 'The Artisanal Sourdough',
+      subtitle: '85 Heritage Flour Formulas',
+      genre: 'Cookbook & Culinary',
+      pages: '182 pages',
+      trim: '8.25″ × 11″ Gloss',
+      quality: '98/100',
+      description: '85 structured recipe spreads with ingredient tables, step-by-step methods, and glossy full-color paperback spread.',
+      imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80',
+      badgeColor: 'text-orange-700 bg-orange-50 border-orange-200'
+    },
+    {
+      id: 'wordsearch',
+      title: 'True Crime Word Search',
+      subtitle: '100 Themed Puzzles',
+      genre: 'Activity / Puzzles',
+      pages: '140 pages',
+      trim: '8.5″ × 11″ Large Print',
+      quality: '100/100',
+      description: '100 large-print crime-themed word searches with theme-pure word banks, calculated gutters, and complete answer keys.',
+      imageUrl: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=800&q=80',
+      badgeColor: 'text-rose-700 bg-rose-50 border-rose-200'
+    },
+    {
+      id: 'coloring',
+      title: 'Mindful Forest Mandalas',
+      subtitle: '60 Vector Line Illustrations',
+      genre: 'Adult Coloring Book',
+      pages: '124 pages',
+      trim: '8.5″ × 11″ Premium',
+      quality: '97/100',
+      description: '60 crisp 300 DPI vector line-art pages with single-sided bleed protection and print-ready PDF export.',
+      imageUrl: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=800&q=80',
+      badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200'
+    }
+  ];
+
   // 12 Showcase Genre Book Covers for Infinite Marquee
   const marqueeCovers = [
-    { title: 'The Midnight Antiquarian', genre: 'Gothic Thriller', pages: '340p', gradient: 'from-slate-900 via-indigo-950 to-slate-900', accent: 'text-indigo-400', border: 'border-indigo-500/30' },
-    { title: 'Atomic Focus Framework', genre: 'Productivity Nonfiction', pages: '180p', gradient: 'from-amber-950 via-slate-900 to-amber-950', accent: 'text-amber-400', border: 'border-amber-500/30' },
-    { title: 'Artisanal Sourdough Secrets', genre: 'Culinary & Baking', pages: '182p', gradient: 'from-orange-950 via-stone-900 to-amber-950', accent: 'text-orange-300', border: 'border-orange-500/30' },
-    { title: 'True Crime Word Search', genre: 'Low-Content Puzzle', pages: '140p', gradient: 'from-red-950 via-slate-950 to-red-900', accent: 'text-rose-400', border: 'border-rose-500/30' },
-    { title: 'Mindful Forest Mandalas', genre: 'Adult Coloring Book', pages: '124p', gradient: 'from-emerald-950 via-teal-950 to-slate-900', accent: 'text-emerald-300', border: 'border-emerald-500/30' },
-    { title: 'Shadows Over Oxford', genre: 'Dark Academia', pages: '310p', gradient: 'from-purple-950 via-slate-950 to-purple-900', accent: 'text-purple-300', border: 'border-purple-500/30' },
-    { title: 'The 90-Day Author Planner', genre: 'Guided Journal', pages: '200p', gradient: 'from-cyan-950 via-slate-900 to-blue-950', accent: 'text-cyan-300', border: 'border-cyan-500/30' },
-    { title: 'Quantum Horizons 2088', genre: 'Hard Sci-Fi', pages: '410p', gradient: 'from-blue-950 via-indigo-950 to-slate-950', accent: 'text-blue-400', border: 'border-blue-500/30' },
-    { title: 'Little Star Bedtime Tales', genre: "Children's Storybook", pages: '48p', gradient: 'from-yellow-950 via-indigo-950 to-purple-950', accent: 'text-yellow-300', border: 'border-yellow-500/30' },
-    { title: 'Calm Senior Sudoku 300', genre: 'Large Print Puzzle', pages: '160p', gradient: 'from-teal-950 via-slate-900 to-teal-900', accent: 'text-teal-300', border: 'border-teal-500/30' },
-    { title: 'Letters to the Rose Garden', genre: 'Historical Romance', pages: '290p', gradient: 'from-pink-950 via-slate-900 to-rose-950', accent: 'text-pink-300', border: 'border-pink-500/30' },
-    { title: 'SaaS Bootstrapping Bible', genre: 'Business & Startup', pages: '220p', gradient: 'from-slate-900 via-emerald-950 to-slate-950', accent: 'text-emerald-400', border: 'border-emerald-500/30' },
+    { title: 'The Midnight Antiquarian', genre: 'Gothic Thriller', pages: '340p', imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80' },
+    { title: 'Atomic Focus Framework', genre: 'Nonfiction Guide', pages: '180p', imageUrl: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=600&q=80' },
+    { title: 'Artisanal Sourdough Secrets', genre: 'Cookbook', pages: '182p', imageUrl: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=600&q=80' },
+    { title: 'True Crime Word Search', genre: 'Word Search', pages: '140p', imageUrl: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=600&q=80' },
+    { title: 'Mindful Forest Mandalas', genre: 'Coloring Book', pages: '124p', imageUrl: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=600&q=80' },
+    { title: 'Shadows Over Oxford', genre: 'Dark Academia', pages: '310p', imageUrl: 'https://images.unsplash.com/photo-1463320726281-696a485928c7?auto=format&fit=crop&w=600&q=80' },
+    { title: 'The 90-Day Author Planner', genre: 'Journal', pages: '200p', imageUrl: 'https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=600&q=80' },
+    { title: 'Quantum Horizons 2088', genre: 'Sci-Fi Novel', pages: '410p', imageUrl: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=600&q=80' },
+    { title: 'Little Star Bedtime Tales', genre: "Children's Book", pages: '48p', imageUrl: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80' },
+    { title: 'Calm Senior Sudoku 300', genre: 'Sudoku Book', pages: '160p', imageUrl: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=600&q=80' },
+    { title: 'Letters to the Rose Garden', genre: 'Romance Novel', pages: '290p', imageUrl: 'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=600&q=80' },
+    { title: 'SaaS Bootstrapping Bible', genre: 'Business Book', pages: '220p', imageUrl: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=600&q=80' },
   ];
 
   return (
@@ -209,7 +261,7 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
       {/* ─────────────────────────────────────────────────────────────────────────────
           1. HERO SECTION (Dark Obsidian + Violet/Indigo Ambient Lighting + Interactive Prompt)
          ───────────────────────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-slate-950 text-white pt-16 pb-24 sm:pt-24 sm:pb-32">
+      <section className="relative overflow-hidden bg-slate-950 text-white pt-16 pb-20 sm:pt-24 sm:pb-32">
         {/* Ambient Glows */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-purple-600/20 rounded-full blur-[140px] pointer-events-none" />
         <div className="absolute top-1/3 left-1/4 w-[400px] h-[300px] bg-indigo-600/15 rounded-full blur-[120px] pointer-events-none" />
@@ -292,6 +344,67 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
               <span>Guaranteed zero Amazon bleed rejections</span>
             </div>
           </div>
+
+          {/* ── 3D Hero Product Composite Preview ── */}
+          <div className="pt-10 max-w-5xl mx-auto">
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-purple-950/80 border border-white/15 bg-slate-900/90 p-4 sm:p-8">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                
+                {/* Left: Open Interior Spread */}
+                <div className="md:col-span-7 rounded-2xl overflow-hidden shadow-lg border border-white/10 relative group">
+                  <img
+                    src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1000&q=80"
+                    alt="Open book interior formatting spread with drop caps"
+                    className="w-full h-64 sm:h-80 object-cover rounded-2xl transition-transform duration-500 group-hover:scale-103"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent flex flex-col justify-end p-4 text-left">
+                    <span className="text-[10px] font-mono uppercase font-bold text-purple-300">
+                      Typeset Interior PDF
+                    </span>
+                    <span className="text-xs sm:text-sm font-bold text-white">
+                      Drop caps, chapter fleurons & mathematically calculated 0.750″ binding gutters
+                    </span>
+                  </div>
+                </div>
+
+                {/* Right: Spine-Calculated Wrap Cover */}
+                <div className="md:col-span-5 rounded-2xl overflow-hidden shadow-lg border border-white/10 relative group">
+                  <img
+                    src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80"
+                    alt="Print ready paperback wrap book cover"
+                    className="w-full h-64 sm:h-80 object-cover rounded-2xl transition-transform duration-500 group-hover:scale-103"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent flex flex-col justify-end p-4 text-left">
+                    <span className="text-[10px] font-mono uppercase font-bold text-emerald-300">
+                      300 DPI Wrap Cover
+                    </span>
+                    <span className="text-xs sm:text-sm font-bold text-white">
+                      Front artwork, calculated spine width & barcode safe zone
+                    </span>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Floating Feature Pills */}
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-6 text-[11px] font-bold">
+                <span className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-400/30">
+                  ✓ 0.125″ Bleed Safe
+                </span>
+                <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                  ✓ 300 DPI High-Res PDF
+                </span>
+                <span className="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
+                  ✓ Google Gemini 2.0 Core
+                </span>
+                <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                  ✓ Amazon 7-Keywords Included
+                </span>
+              </div>
+
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -314,169 +427,55 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
             </p>
           </div>
 
-          {/* 5 Tangible Real Book Cards */}
+          {/* 5 Real Photographic Book Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-            
-            {/* 1. Fiction */}
-            <div className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl hover:border-purple-300 transition-all flex flex-col justify-between">
-              <div>
-                <div className="relative aspect-[2/3] bg-gradient-to-b from-slate-950 via-slate-900 to-indigo-950 p-4 flex flex-col justify-between text-white overflow-hidden">
-                  <div className="book-spine-highlight" />
-                  <div className="text-[10px] uppercase font-black tracking-widest text-indigo-400">Gothic Thriller</div>
-                  <div className="my-auto text-center space-y-1">
-                    <div className="text-base font-black leading-tight tracking-tight">The Midnight Antiquarian</div>
-                    <div className="text-[10px] text-slate-400 italic">A Paris Mystery Arc</div>
+            {flagshipBooks.map((book) => (
+              <div 
+                key={book.id} 
+                className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-2xl hover:border-purple-400 transition-all flex flex-col justify-between"
+              >
+                <div>
+                  {/* Real Photographic Cover with 3D Spine Crease */}
+                  <div className="relative aspect-[2/3] overflow-hidden bg-slate-900">
+                    <img
+                      src={book.imageUrl}
+                      alt={`${book.title} cover`}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    <div className="book-spine-highlight" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent flex flex-col justify-end p-3 text-white">
+                      <div className="text-[9px] font-black uppercase tracking-wider text-purple-300">
+                        {book.genre}
+                      </div>
+                      <div className="text-sm font-black leading-tight text-white drop-shadow-md">
+                        {book.title}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-right text-[9px] font-mono text-slate-400">KDP Studio Edition</div>
+
+                  <div className="p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${book.badgeColor}`}>
+                        {book.genre.split('/')[0]}
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        <BadgeCheck size={12} /> {book.quality}
+                      </span>
+                    </div>
+                    <h3 className="text-sm font-bold text-slate-900 leading-snug">{book.title}</h3>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      {book.description}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-purple-700">Fiction</span>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                      <BadgeCheck size={12} /> Quality 100/100
-                    </span>
-                  </div>
-                  <h3 className="text-sm font-bold text-slate-900 leading-snug">The Midnight Antiquarian</h3>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    A 340-page modern gothic thriller with a complete 18-chapter plotted arc, voice-consistent prose, and spine-calculated wrap.
-                  </p>
+                <div className="p-4 pt-0 border-t border-slate-100 mt-2 text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
+                  <BookOpen size={13} className="text-purple-600" />
+                  <span>{book.pages} • {book.trim}</span>
                 </div>
               </div>
-              <div className="p-4 pt-0 border-t border-slate-100 mt-2 text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
-                <BookOpen size={13} className="text-purple-600" />
-                <span>340 pages • 6″ × 9″ Trade</span>
-              </div>
-            </div>
-
-            {/* 2. Nonfiction */}
-            <div className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl hover:border-purple-300 transition-all flex flex-col justify-between">
-              <div>
-                <div className="relative aspect-[2/3] bg-gradient-to-b from-slate-950 via-slate-900 to-amber-950 p-4 flex flex-col justify-between text-white overflow-hidden">
-                  <div className="book-spine-highlight" />
-                  <div className="text-[10px] uppercase font-black tracking-widest text-amber-400">Framework</div>
-                  <div className="my-auto text-center space-y-1">
-                    <div className="text-base font-black leading-tight tracking-tight">Atomic Focus Framework</div>
-                    <div className="text-[10px] text-slate-400 italic">Daily Shutdown Rituals</div>
-                  </div>
-                  <div className="text-right text-[9px] font-mono text-slate-400">KDP Studio Edition</div>
-                </div>
-
-                <div className="p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-700">Nonfiction</span>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                      <BadgeCheck size={12} /> Quality 99/100
-                    </span>
-                  </div>
-                  <h3 className="text-sm font-bold text-slate-900 leading-snug">Atomic Focus Framework</h3>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    Actionable blueprint with chaptered framework boxes, callouts, and typeset running headers.
-                  </p>
-                </div>
-              </div>
-              <div className="p-4 pt-0 border-t border-slate-100 mt-2 text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
-                <BookOpen size={13} className="text-amber-600" />
-                <span>174 pages • 5.5″ × 8.5″ Digest</span>
-              </div>
-            </div>
-
-            {/* 3. Cookbook */}
-            <div className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl hover:border-purple-300 transition-all flex flex-col justify-between">
-              <div>
-                <div className="relative aspect-[2/3] bg-gradient-to-b from-orange-950 via-stone-900 to-amber-950 p-4 flex flex-col justify-between text-white overflow-hidden">
-                  <div className="book-spine-highlight" />
-                  <div className="text-[10px] uppercase font-black tracking-widest text-orange-400">Culinary</div>
-                  <div className="my-auto text-center space-y-1">
-                    <div className="text-base font-black leading-tight tracking-tight">Artisanal Sourdough</div>
-                    <div className="text-[10px] text-slate-400 italic">85 Master Recipes</div>
-                  </div>
-                  <div className="text-right text-[9px] font-mono text-slate-400">KDP Studio Edition</div>
-                </div>
-
-                <div className="p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-orange-700">Cookbook</span>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                      <BadgeCheck size={12} /> Quality 98/100
-                    </span>
-                  </div>
-                  <h3 className="text-sm font-bold text-slate-900 leading-snug">Artisanal Sourdough</h3>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    85 formatted recipe spreads with structured ingredient tables, method steps, and gloss wrap.
-                  </p>
-                </div>
-              </div>
-              <div className="p-4 pt-0 border-t border-slate-100 mt-2 text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
-                <BookOpen size={13} className="text-orange-600" />
-                <span>182 pages • 8.25″ × 11″</span>
-              </div>
-            </div>
-
-            {/* 4. Puzzle Book */}
-            <div className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl hover:border-purple-300 transition-all flex flex-col justify-between">
-              <div>
-                <div className="relative aspect-[2/3] bg-gradient-to-b from-rose-950 via-slate-950 to-red-950 p-4 flex flex-col justify-between text-white overflow-hidden">
-                  <div className="book-spine-highlight" />
-                  <div className="text-[10px] uppercase font-black tracking-widest text-rose-400">Puzzles</div>
-                  <div className="my-auto text-center space-y-1">
-                    <div className="text-base font-black leading-tight tracking-tight">True Crime Word Search</div>
-                    <div className="text-[10px] text-slate-400 italic">100 Themed Grids</div>
-                  </div>
-                  <div className="text-right text-[9px] font-mono text-slate-400">KDP Studio Edition</div>
-                </div>
-
-                <div className="p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-rose-700">Word Search</span>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                      <BadgeCheck size={12} /> Quality 100/100
-                    </span>
-                  </div>
-                  <h3 className="text-sm font-bold text-slate-900 leading-snug">True Crime Word Search</h3>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    100 large-print crime puzzles with theme-pure word banks, calculated gutters, and answer keys.
-                  </p>
-                </div>
-              </div>
-              <div className="p-4 pt-0 border-t border-slate-100 mt-2 text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
-                <BookOpen size={13} className="text-rose-600" />
-                <span>140 pages • 8.5″ × 11″</span>
-              </div>
-            </div>
-
-            {/* 5. Kids Coloring */}
-            <div className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl hover:border-purple-300 transition-all flex flex-col justify-between">
-              <div>
-                <div className="relative aspect-[2/3] bg-gradient-to-b from-emerald-950 via-teal-950 to-slate-950 p-4 flex flex-col justify-between text-white overflow-hidden">
-                  <div className="book-spine-highlight" />
-                  <div className="text-[10px] uppercase font-black tracking-widest text-emerald-400">Coloring</div>
-                  <div className="my-auto text-center space-y-1">
-                    <div className="text-base font-black leading-tight tracking-tight">Mindful Mandalas</div>
-                    <div className="text-[10px] text-slate-400 italic">60 Vector Line Arts</div>
-                  </div>
-                  <div className="text-right text-[9px] font-mono text-slate-400">KDP Studio Edition</div>
-                </div>
-
-                <div className="p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700">Coloring Book</span>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                      <BadgeCheck size={12} /> Quality 97/100
-                    </span>
-                  </div>
-                  <h3 className="text-sm font-bold text-slate-900 leading-snug">Mindful Mandalas</h3>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    60 crisp 300 DPI vector line-art pages with single-sided bleed protection and print-ready PDF export.
-                  </p>
-                </div>
-              </div>
-              <div className="p-4 pt-0 border-t border-slate-100 mt-2 text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
-                <BookOpen size={13} className="text-emerald-600" />
-                <span>124 pages • 8.5″ × 11″</span>
-              </div>
-            </div>
-
+            ))}
           </div>
 
           <div className="mt-12 text-center">
@@ -492,7 +491,7 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────────────────────
-          3. INFINITE GENRE COVER MARQUEE (12+ Realistic Covers with Hover Lift)
+          3. INFINITE GENRE COVER MARQUEE (12+ Real Covers with Hover Lift)
          ───────────────────────────────────────────────────────────────────────────── */}
       <section className="py-20 bg-slate-950 text-white overflow-hidden relative">
         <div className="max-w-4xl mx-auto px-4 text-center mb-10 space-y-2">
@@ -517,19 +516,27 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
                 className="w-44 sm:w-52 shrink-0 group select-none transition-all duration-300 hover:-translate-y-2 cursor-pointer"
                 onClick={handleStart}
               >
-                <div className={`relative aspect-[2/3] rounded-2xl bg-gradient-to-b ${cover.gradient} p-4 border ${cover.border} book-shadow flex flex-col justify-between overflow-hidden`}>
+                <div className="relative aspect-[2/3] rounded-2xl overflow-hidden border border-white/10 book-shadow flex flex-col justify-between">
+                  <img
+                    src={cover.imageUrl}
+                    alt={cover.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                  />
                   <div className="book-spine-highlight" />
-                  <div className={`text-[10px] font-black uppercase tracking-wider ${cover.accent}`}>
-                    {cover.genre}
-                  </div>
-                  <div className="my-auto text-center space-y-1">
-                    <div className="text-sm sm:text-base font-black text-white leading-tight">
-                      {cover.title}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent p-3 flex flex-col justify-between text-white">
+                    <div className="text-[9px] font-black uppercase tracking-wider text-purple-300">
+                      {cover.genre}
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between text-[9px] font-mono text-slate-400 pt-2 border-t border-white/10">
-                    <span>{cover.pages}</span>
-                    <span>300 DPI</span>
+                    <div>
+                      <div className="text-xs sm:text-sm font-black leading-tight text-white">
+                        {cover.title}
+                      </div>
+                      <div className="flex items-center justify-between text-[9px] font-mono text-slate-300 pt-1.5 border-t border-white/15 mt-1">
+                        <span>{cover.pages}</span>
+                        <span>300 DPI</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <p className="text-center text-xs font-bold text-slate-300 mt-2.5 group-hover:text-purple-400 transition-colors">
@@ -688,7 +695,6 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            
             {[
               { num: '1', title: 'Pick Your Book Format', desc: 'Select from Fiction, Nonfiction, Word Search, Sudoku, Coloring Books, or Planners — each with its specialized generator workflow.' },
               { num: '2', title: 'AI Niche & Market Research', desc: 'Discover profitable Amazon KDP keywords, analyze competitor sales ranks, and identify audience demand before writing.' },
@@ -705,7 +711,16 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
                 <p className="text-xs text-slate-600 leading-relaxed">{step.desc}</p>
               </div>
             ))}
+          </div>
 
+          <div className="text-center">
+            <button
+              onClick={() => onNavigate('features')}
+              className="px-8 py-3.5 rounded-2xl bg-purple-100 hover:bg-purple-200 text-purple-900 font-bold text-xs sm:text-sm transition-all cursor-pointer inline-flex items-center gap-2"
+            >
+              <span>Explore All Studio Features in Depth</span>
+              <ArrowRight size={16} />
+            </button>
           </div>
 
         </div>

@@ -118,8 +118,10 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
           {/* Desktop Nav Links */}
           <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
             <button
-              onClick={() => handleNav('home', 'features')}
-              className="hover:text-purple-600 transition-colors cursor-pointer"
+              onClick={() => handleNav('features')}
+              className={`hover:text-purple-600 transition-colors cursor-pointer ${
+                currentRoute === 'features' ? 'text-purple-600 font-bold' : ''
+              }`}
             >
               Features
             </button>
@@ -235,7 +237,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
           {/* Centered Large Navigation Links */}
           <div className="flex flex-col items-center justify-center space-y-6 py-8">
             <button
-              onClick={() => handleNav('home', 'features')}
+              onClick={() => handleNav('features')}
               className="text-2xl font-bold text-slate-200 hover:text-purple-400 transition-colors"
             >
               Features
