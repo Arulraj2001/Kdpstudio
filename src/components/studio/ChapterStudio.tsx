@@ -93,7 +93,6 @@ export const ChapterStudio: React.FC<ChapterStudioProps> = ({
   const [isDividerOpen, setIsDividerOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [showReadabilityPanel, setShowReadabilityPanel] = useState(false);
-  const [isToolsDropdownOpen, setIsToolsDropdownOpen] = useState(false);
 
   // Save states
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
@@ -378,16 +377,16 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
 
         {/* Action Buttons */}
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Desktop Direct Buttons (Visible on 2XL+ screens) */}
-          <div className="hidden 2xl:flex items-center gap-1.5">
+          {/* All Suite Action Buttons - Placed directly outside */}
+          <div className="flex items-center gap-1 sm:gap-1.5 flex-nowrap overflow-x-auto no-scrollbar py-0.5">
             <button
               type="button"
               id="btn-open-manuscript-import"
               onClick={() => setIsImportOpen(true)}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+              className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-purple-300 transition-colors shrink-0"
               title="Import Manuscript (.txt, .md)"
             >
-              <Upload className="w-3.5 h-3.5 text-purple-600" />
+              <Upload className="w-3.5 h-3.5 text-purple-600 shrink-0" />
               <span>Import</span>
             </button>
 
@@ -395,10 +394,10 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
               type="button"
               id="btn-open-story-beats"
               onClick={() => setIsStoryBeatsOpen(true)}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+              className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-purple-300 transition-colors shrink-0"
               title="Story Beat Frameworks"
             >
-              <Layers className="w-3.5 h-3.5 text-purple-600" />
+              <Layers className="w-3.5 h-3.5 text-purple-600 shrink-0" />
               <span>Beats</span>
             </button>
 
@@ -406,10 +405,10 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
               type="button"
               id="btn-open-writing-sprint"
               onClick={() => setIsSprintOpen(true)}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+              className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-purple-300 transition-colors shrink-0"
               title="Writing Sprint Timer"
             >
-              <Timer className="w-3.5 h-3.5 text-purple-600" />
+              <Timer className="w-3.5 h-3.5 text-purple-600 shrink-0" />
               <span>Sprint</span>
             </button>
 
@@ -417,10 +416,10 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
               type="button"
               id="btn-open-zen-mode"
               onClick={() => setIsZenModeOpen(true)}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+              className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-purple-300 transition-colors shrink-0"
               title="Zen Focus Mode"
             >
-              <Moon className="w-3.5 h-3.5 text-purple-600" />
+              <Moon className="w-3.5 h-3.5 text-purple-600 shrink-0" />
               <span>Zen</span>
             </button>
 
@@ -428,10 +427,10 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
               type="button"
               id="btn-open-dividers"
               onClick={() => setIsDividerOpen(true)}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+              className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-purple-300 transition-colors shrink-0"
               title="Ornamental Dividers & Drop Caps"
             >
-              <Flower2 className="w-3.5 h-3.5 text-purple-600" />
+              <Flower2 className="w-3.5 h-3.5 text-purple-600 shrink-0" />
               <span>Ornaments</span>
             </button>
 
@@ -439,9 +438,10 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
               type="button"
               id="btn-open-front-matter"
               onClick={() => setIsFrontMatterOpen(true)}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+              className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-purple-300 transition-colors shrink-0"
+              title="Configure Front Matter"
             >
-              <FileText className="w-3.5 h-3.5 text-purple-600" />
+              <FileText className="w-3.5 h-3.5 text-purple-600 shrink-0" />
               <span>Front</span>
             </button>
 
@@ -449,9 +449,10 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
               type="button"
               id="btn-open-back-matter"
               onClick={() => setIsBackMatterOpen(true)}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+              className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-purple-300 transition-colors shrink-0"
+              title="Configure Back Matter"
             >
-              <BookmarkCheck className="w-3.5 h-3.5 text-purple-600" />
+              <BookmarkCheck className="w-3.5 h-3.5 text-purple-600 shrink-0" />
               <span>Back</span>
             </button>
 
@@ -459,14 +460,14 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
               type="button"
               id="btn-open-version-history"
               onClick={() => toggleDrawer('history')}
-              className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+              className={`inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-colors shrink-0 ${
                 activeDrawer === 'history'
                   ? 'bg-purple-100 border-purple-400 text-purple-700'
-                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-purple-300'
               }`}
               title="View Version History & Snapshots"
             >
-              <History className="w-3.5 h-3.5 text-purple-600" />
+              <History className="w-3.5 h-3.5 text-purple-600 shrink-0" />
               <span>History</span>
             </button>
 
@@ -474,143 +475,16 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
               type="button"
               id="btn-open-content-audit"
               onClick={() => toggleDrawer('audit')}
-              className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+              className={`inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-colors shrink-0 ${
                 activeDrawer === 'audit'
                   ? 'bg-purple-100 border-purple-400 text-purple-700'
-                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-purple-300'
               }`}
               title="Content Quality & KDP Policy Audit"
             >
-              <Search className="w-3.5 h-3.5 text-purple-600" />
+              <Search className="w-3.5 h-3.5 text-purple-600 shrink-0" />
               <span>Audit</span>
             </button>
-          </div>
-
-          {/* Responsive Studio Tools Dropdown (Visible on < 2XL screens) */}
-          <div className="relative 2xl:hidden">
-            <button
-              type="button"
-              id="btn-studio-tools-dropdown"
-              onClick={() => setIsToolsDropdownOpen(!isToolsDropdownOpen)}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-              <span>Tools</span>
-              <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${isToolsDropdownOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {isToolsDropdownOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setIsToolsDropdownOpen(false)}
-                />
-                <div className="absolute right-0 top-full mt-1.5 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 animate-fade-in text-xs">
-                  <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
-                    Studio Suite Tools
-                  </div>
-                  <div className="py-1">
-                    <button
-                      type="button"
-                      onClick={() => { setIsImportOpen(true); setIsToolsDropdownOpen(false); }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition-colors text-left"
-                    >
-                      <Upload className="w-4 h-4 text-purple-600 shrink-0" />
-                      <div>
-                        <p className="font-semibold">Import Manuscript</p>
-                        <p className="text-[10px] text-slate-400">Import .txt or .md with chapter splitting</p>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => { setIsStoryBeatsOpen(true); setIsToolsDropdownOpen(false); }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition-colors text-left"
-                    >
-                      <Layers className="w-4 h-4 text-purple-600 shrink-0" />
-                      <div>
-                        <p className="font-semibold">Story Beat Frameworks</p>
-                        <p className="text-[10px] text-slate-400">Save the Cat, Hero's Journey, 3-Act</p>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => { setIsSprintOpen(true); setIsToolsDropdownOpen(false); }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition-colors text-left"
-                    >
-                      <Timer className="w-4 h-4 text-purple-600 shrink-0" />
-                      <div>
-                        <p className="font-semibold">Writing Sprint Timer</p>
-                        <p className="text-[10px] text-slate-400">Pomodoro timers, WPM & streaks</p>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => { setIsZenModeOpen(true); setIsToolsDropdownOpen(false); }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition-colors text-left"
-                    >
-                      <Moon className="w-4 h-4 text-purple-600 shrink-0" />
-                      <div>
-                        <p className="font-semibold">Zen Focus Mode</p>
-                        <p className="text-[10px] text-slate-400">Distraction-free typewriter screen</p>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => { setIsDividerOpen(true); setIsToolsDropdownOpen(false); }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition-colors text-left"
-                    >
-                      <Flower2 className="w-4 h-4 text-purple-600 shrink-0" />
-                      <div>
-                        <p className="font-semibold">Dividers & Drop Caps</p>
-                        <p className="text-[10px] text-slate-400">Scene breaks, ornaments, initial caps</p>
-                      </div>
-                    </button>
-
-                    <div className="border-t border-slate-100 my-1"></div>
-
-                    <button
-                      type="button"
-                      onClick={() => { setIsFrontMatterOpen(true); setIsToolsDropdownOpen(false); }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition-colors text-left"
-                    >
-                      <FileText className="w-4 h-4 text-purple-600 shrink-0" />
-                      <span>Front Matter (Title, Copyright, Dedication)</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => { setIsBackMatterOpen(true); setIsToolsDropdownOpen(false); }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition-colors text-left"
-                    >
-                      <BookmarkCheck className="w-4 h-4 text-purple-600 shrink-0" />
-                      <span>Back Matter (About Author, Resources)</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => { toggleDrawer('history'); setIsToolsDropdownOpen(false); }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition-colors text-left"
-                    >
-                      <History className="w-4 h-4 text-purple-600 shrink-0" />
-                      <span>Version History & Snapshots</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => { toggleDrawer('audit'); setIsToolsDropdownOpen(false); }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition-colors text-left"
-                    >
-                      <Search className="w-4 h-4 text-purple-600 shrink-0" />
-                      <span>KDP Policy & Content Audit</span>
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
           </div>
 
           {/* AI Write Button */}
