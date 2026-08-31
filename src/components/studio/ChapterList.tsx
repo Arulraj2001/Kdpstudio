@@ -65,16 +65,17 @@ const SortableChapterItem: React.FC<SortableChapterItemProps> = ({
     isDragging,
   } = useSortable({ id: chapter.id });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 20 : 1,
-    opacity: isDragging ? 0.7 : 1,
-  };
-
   const [menuOpen, setMenuOpen] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(chapter.title);
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: menuOpen ? 9999 : isDragging ? 999 : isActive ? 2 : 1,
+    opacity: isDragging ? 0.7 : 1,
+    position: 'relative',
+  };
 
   const handleTitleSubmit = () => {
     if (titleDraft.trim()) {

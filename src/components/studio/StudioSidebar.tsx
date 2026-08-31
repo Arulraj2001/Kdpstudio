@@ -85,16 +85,17 @@ const SortableChapterRow: React.FC<SortableChapterRowProps> = ({
     isDragging,
   } = useSortable({ id: chapter.id });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 30 : 1,
-    opacity: isDragging ? 0.6 : 1,
-  };
-
   const [menuOpen, setMenuOpen] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(chapter.title);
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: menuOpen ? 9999 : isDragging ? 999 : isActive ? 2 : 1,
+    opacity: isDragging ? 0.6 : 1,
+    position: 'relative',
+  };
 
   const status: 'draft' | 'review' | 'final' = (chapter as any).status || 'draft';
 
