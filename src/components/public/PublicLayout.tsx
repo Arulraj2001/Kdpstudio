@@ -1,3 +1,6 @@
+import React, { useState, useEffect } from 'react';
+import { PublicNavbar } from './PublicNavbar';
+import { Footer } from './Footer';
 import { AdsenseLoader } from '../blog/AdsenseLoader';
 import { PageRoute } from '../../types';
 import { getAdConfigClient } from '../../lib/blog';
