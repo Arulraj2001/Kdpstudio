@@ -28,6 +28,13 @@ import { CoverPropertiesPanel } from './CoverPropertiesPanel';
 import { CoverSetupModal } from './CoverSetupModal';
 import { CoverAiDrawer } from './CoverAiDrawer';
 import { CoverExportModal } from './CoverExportModal';
+import { CoverElementsDrawer } from './CoverElementsDrawer';
+import { CoverTemplatesDrawer } from './CoverTemplatesDrawer';
+import { CoverBackgroundDrawer } from './CoverBackgroundDrawer';
+import { Cover3DMockupModal } from './Cover3DMockupModal';
+import { CoverPreflightModal } from './CoverPreflightModal';
+import { GraphicElementItem, GenreTemplatePreset, MeshGradient } from '../../lib/coverTemplates';
+import { generateIsbnBarcodeSvg } from '../../lib/kdpBarcode';
 import { CoverStyleSuggestion } from '../../lib/imagen';
 import { useBrandStore } from '../../lib/brandStore';
 
@@ -47,7 +54,13 @@ export const CoverBuilderView: React.FC = () => {
   const [activeTool, setActiveTool] = useState<CoverToolType>('select');
   const [isSetupModalOpen, setIsSetupModalOpen] = useState<boolean>(false);
   const [isAiDrawerOpen, setIsAiDrawerOpen] = useState<boolean>(false);
+  const [isTemplatesDrawerOpen, setIsTemplatesDrawerOpen] = useState<boolean>(false);
+  const [isElementsDrawerOpen, setIsElementsDrawerOpen] = useState<boolean>(false);
+  const [isBackgroundDrawerOpen, setIsBackgroundDrawerOpen] = useState<boolean>(false);
+  const [is3DMockupModalOpen, setIs3DMockupModalOpen] = useState<boolean>(false);
+  const [isPreflightModalOpen, setIsPreflightModalOpen] = useState<boolean>(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
+  const [canvasDataUrl, setCanvasDataUrl] = useState<string | null>(null);
   const [showGuides, setShowGuides] = useState<boolean>(true);
   const [isSaved, setIsSaved] = useState<boolean>(false);
 
@@ -975,6 +988,200 @@ export const CoverBuilderView: React.FC = () => {
     setIsSaved(false);
   };
 
+  // Add Vector SVG Element (Badges, Flourishes, Silhouettes) to Canvas
+  const handleAddSvgElementToCanvas = (el: GraphicElementItem) => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+
+    const dataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(el.svgString);
+    const imgElement = new Image();
+    imgElement.crossOrigin = 'anonymous';
+    imgElement.src = dataUrl;
+    imgElement.onload = () => {
+      const frontCenterX = bleedPx + trimWidthPx + spineWidthPx + trimWidthPx / 2;
+      const fabricImg = new fabric.FabricImage(imgElement, {
+        left: frontCenterX,
+        top: canvasHeightPx * 0.48,
+        originX: 'center',
+        originY: 'center',
+      });
+      if (el.defaultWidth) {
+        fabricImg.scaleToWidth(Math.min(el.defaultWidth, trimWidthPx * 0.7));
+      }
+      canvas.add(fabricImg);
+      canvas.setActiveObject(fabricImg);
+      canvas.renderAll();
+      saveStateToHistory();
+      setIsSaved(false);
+    };
+  };
+
+  // Add EAN-13 ISBN Barcode Box to back cover
+  const handleAddBarcodeToCanvas = (svgString: string) => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+
+    const dataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgString);
+    const imgElement = new Image();
+    imgElement.crossOrigin = 'anonymous';
+    imgElement.src = dataUrl;
+    imgElement.onload = () => {
+      const backLeft = bleedPx + Math.round(0.25 * DPI_SCREEN);
+      const barcodeWidth = Math.round(2.0 * DPI_SCREEN);
+      const barcodeHeight = Math.round(1.2 * DPI_SCREEN);
+      const barcodeBottom = canvasHeightPx - bleedPx - Math.round(0.25 * DPI_SCREEN) - barcodeHeight;
+
+      const fabricImg = new fabric.FabricImage(imgElement, {
+        left: backLeft,
+        top: barcodeBottom,
+        originX: 'left',
+        originY: 'top',
+      });
+      fabricImg.scaleToWidth(barcodeWidth);
+      (fabricImg as any).isBarcode = true;
+      canvas.add(fabricImg);
+      canvas.setActiveObject(fabricImg);
+      canvas.renderAll();
+      saveStateToHistory();
+      setIsSaved(false);
+    };
+  };
+
+  // Apply Mesh Gradient Preset
+  const handleApplyMeshGradient = (gradient: MeshGradient) => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+
+    // Linear gradient across canvas
+    const grad = new fabric.Gradient({
+      type: 'linear',
+      gradientUnits: 'pixels',
+      coords: { x1: 0, y1: 0, x2: canvasWidthPx, y2: canvasHeightPx },
+      colorStops: gradient.stops.map((color, i) => ({
+        color,
+        offset: i / (gradient.stops.length - 1),
+      })),
+    });
+
+    canvas.backgroundColor = grad as any;
+    setCanvasBgColor(gradient.stops[0]);
+    canvas.renderAll();
+    saveStateToHistory();
+    setIsSaved(false);
+    setIsBackgroundDrawerOpen(false);
+  };
+
+  // 1-Click Apply Genre Cover Template
+  const handleApplyGenreTemplate = (tmpl: GenreTemplatePreset) => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+
+    canvas.clear();
+    canvas.backgroundColor = tmpl.bgColor;
+    setCanvasBgColor(tmpl.bgColor);
+
+    const frontCenterX = bleedPx + trimWidthPx + spineWidthPx + trimWidthPx / 2;
+    const backCenterX = bleedPx + trimWidthPx / 2;
+    const spineCenterX = bleedPx + trimWidthPx + spineWidthPx / 2;
+
+    // 1. Front Title
+    const titleObj = new fabric.IText(tmpl.titleText, {
+      left: frontCenterX,
+      top: canvasHeightPx * 0.32,
+      originX: 'center',
+      originY: 'center',
+      fontFamily: tmpl.titleFont,
+      fontSize: tmpl.titleSize,
+      fontWeight: 'bold',
+      fill: tmpl.titleColor,
+      textAlign: 'center',
+      shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.6)', blur: 10, offsetX: 2, offsetY: 2 }),
+    });
+    canvas.add(titleObj);
+
+    // 2. Subtitle
+    const subtitleObj = new fabric.IText(tmpl.subtitleText, {
+      left: frontCenterX,
+      top: canvasHeightPx * 0.44,
+      originX: 'center',
+      originY: 'center',
+      fontFamily: tmpl.subtitleFont,
+      fontSize: 14,
+      fill: tmpl.subtitleColor,
+      textAlign: 'center',
+    });
+    canvas.add(subtitleObj);
+
+    // 3. Author Name
+    const authorObj = new fabric.IText(tmpl.authorText, {
+      left: frontCenterX,
+      top: canvasHeightPx * 0.84,
+      originX: 'center',
+      originY: 'center',
+      fontFamily: tmpl.authorFont,
+      fontSize: 20,
+      fontWeight: 'bold',
+      fill: tmpl.authorColor,
+      textAlign: 'center',
+      letterSpacing: 2,
+    });
+    canvas.add(authorObj);
+
+    // 4. Spine Text
+    if (pageCount >= 79) {
+      const spineObj = new fabric.IText(tmpl.spineText, {
+        left: spineCenterX,
+        top: canvasHeightPx * 0.5,
+        originX: 'center',
+        originY: 'center',
+        angle: 90,
+        fontFamily: tmpl.titleFont,
+        fontSize: Math.min(13, Math.max(8, Math.round(spineWidthPx * 0.45))),
+        fontWeight: 'bold',
+        fill: tmpl.titleColor,
+        textAlign: 'center',
+      });
+      canvas.add(spineObj);
+    }
+
+    // 5. Back Cover Blurb
+    const blurbObj = new fabric.Textbox(tmpl.blurbText, {
+      left: backCenterX,
+      top: canvasHeightPx * 0.35,
+      originX: 'center',
+      originY: 'center',
+      width: trimWidthPx * 0.75,
+      fontFamily: tmpl.subtitleFont,
+      fontSize: 12,
+      fill: '#f8fafc',
+      textAlign: 'left',
+      lineHeight: 1.4,
+    });
+    canvas.add(blurbObj);
+
+    // 6. Default KDP Barcode Box
+    const barcodeSvg = generateIsbnBarcodeSvg('9781234567890');
+    handleAddBarcodeToCanvas(barcodeSvg);
+
+    canvas.renderAll();
+    saveStateToHistory();
+    setIsSaved(false);
+    setIsTemplatesDrawerOpen(false);
+  };
+
+  // Open 3D Mockup Modal with snapshot
+  const handleOpen3DMockupModal = () => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+    try {
+      const dataUrl = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 1.5 });
+      setCanvasDataUrl(dataUrl);
+    } catch (e) {
+      console.warn('Could not capture canvas data URL for 3D mockup:', e);
+    }
+    setIs3DMockupModalOpen(true);
+  };
+
   return (
     <div className="flex flex-col h-full bg-slate-100/70 text-slate-900 overflow-hidden select-none">
       {/* Hidden File Input for Image Upload */}
@@ -995,15 +1202,32 @@ export const CoverBuilderView: React.FC = () => {
           onAddText={handleAddText}
           onAddShape={handleAddShape}
           onTriggerImageUpload={() => fileInputRef.current?.click()}
-          onOpenAiDrawer={() => setIsAiDrawerOpen(true)}
-          onApplyKdpTemplate={() => {
-            const canvas = fabricCanvasRef.current;
-            if (canvas) {
-              createDefaultKdpLayout(canvas);
-              saveStateToHistory();
-              setIsSaved(false);
-            }
+          onOpenAiDrawer={() => {
+            setIsAiDrawerOpen(true);
+            setIsTemplatesDrawerOpen(false);
+            setIsElementsDrawerOpen(false);
+            setIsBackgroundDrawerOpen(false);
           }}
+          onOpenTemplatesDrawer={() => {
+            setIsTemplatesDrawerOpen(!isTemplatesDrawerOpen);
+            setIsAiDrawerOpen(false);
+            setIsElementsDrawerOpen(false);
+            setIsBackgroundDrawerOpen(false);
+          }}
+          onOpenElementsDrawer={() => {
+            setIsElementsDrawerOpen(!isElementsDrawerOpen);
+            setIsAiDrawerOpen(false);
+            setIsTemplatesDrawerOpen(false);
+            setIsBackgroundDrawerOpen(false);
+          }}
+          onOpenBackgroundDrawer={() => {
+            setIsBackgroundDrawerOpen(!isBackgroundDrawerOpen);
+            setIsAiDrawerOpen(false);
+            setIsTemplatesDrawerOpen(false);
+            setIsElementsDrawerOpen(false);
+          }}
+          onOpen3DMockupModal={handleOpen3DMockupModal}
+          onOpenPreflightModal={() => setIsPreflightModalOpen(true)}
           onApplyBrandKit={handleApplyBrandKit}
           onOpenSetupModal={() => setIsSetupModalOpen(true)}
         />
@@ -1314,6 +1538,62 @@ export const CoverBuilderView: React.FC = () => {
           setPageCount(cfg.pageCount);
           setPaperType(cfg.paperType);
         }}
+      />
+
+      {/* 1-Click Genre Templates Drawer */}
+      <CoverTemplatesDrawer
+        isOpen={isTemplatesDrawerOpen}
+        onClose={() => setIsTemplatesDrawerOpen(false)}
+        onApplyTemplate={handleApplyGenreTemplate}
+      />
+
+      {/* Graphic Elements & Badges Drawer */}
+      <CoverElementsDrawer
+        isOpen={isElementsDrawerOpen}
+        onClose={() => setIsElementsDrawerOpen(false)}
+        onAddElementToCanvas={handleAddSvgElementToCanvas}
+      />
+
+      {/* Backgrounds & Mesh Gradients Drawer */}
+      <CoverBackgroundDrawer
+        isOpen={isBackgroundDrawerOpen}
+        onClose={() => setIsBackgroundDrawerOpen(false)}
+        onApplyGradient={handleApplyMeshGradient}
+        onApplySolidColor={handleSetCanvasBgColor}
+        currentBgColor={canvasBgColor}
+      />
+
+      {/* 3D Book Mockup Studio Modal */}
+      <Cover3DMockupModal
+        isOpen={is3DMockupModalOpen}
+        onClose={() => setIs3DMockupModalOpen(false)}
+        canvasDataUrl={canvasDataUrl}
+        bookTitle={book?.title || 'Book Title'}
+        spineWidthInch={coverDims.spineWidth}
+      />
+
+      {/* KDP Pre-Flight Inspector & ISBN Barcode Modal */}
+      <CoverPreflightModal
+        isOpen={isPreflightModalOpen}
+        onClose={() => setIsPreflightModalOpen(false)}
+        coverDimensions={{
+          totalWidth: coverDims.totalWidth,
+          totalHeight: coverDims.totalHeight,
+          spineWidth: coverDims.spineWidth,
+          trimSize,
+          pageCount,
+          paperType,
+        }}
+        hasSpineText={Boolean(
+          fabricCanvasRef.current
+            ?.getObjects()
+            .some(
+              (o: any) =>
+                (o.type === 'i-text' || o.type === 'text') &&
+                (o.angle === 90 || o.angle === 270 || Math.abs(o.left - (bleedPx + trimWidthPx + spineWidthPx / 2)) < spineWidthPx / 2)
+            )
+        )}
+        onAddBarcodeToCanvas={handleAddBarcodeToCanvas}
       />
 
       {/* AI Cover Generation Drawer */}

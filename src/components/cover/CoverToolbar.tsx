@@ -12,9 +12,12 @@ import {
   Settings2,
   BookText,
   AlignVerticalSpaceAround,
+  Award,
+  Box,
+  ShieldCheck,
 } from 'lucide-react';
 
-export type CoverToolType = 'select' | 'text' | 'shape' | 'image' | 'ai' | 'template';
+export type CoverToolType = 'select' | 'text' | 'shape' | 'image' | 'ai' | 'template' | 'elements' | 'backgrounds';
 
 interface CoverToolbarProps {
   activeTool: CoverToolType;
@@ -23,7 +26,11 @@ interface CoverToolbarProps {
   onAddShape: (type: 'rect' | 'circle' | 'line' | 'barcode_placeholder') => void;
   onTriggerImageUpload: () => void;
   onOpenAiDrawer: () => void;
-  onApplyKdpTemplate: () => void;
+  onOpenTemplatesDrawer: () => void;
+  onOpenElementsDrawer: () => void;
+  onOpenBackgroundDrawer: () => void;
+  onOpen3DMockupModal: () => void;
+  onOpenPreflightModal: () => void;
   onApplyBrandKit?: () => void;
   onOpenSetupModal: () => void;
 }
@@ -35,7 +42,11 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
   onAddShape,
   onTriggerImageUpload,
   onOpenAiDrawer,
-  onApplyKdpTemplate,
+  onOpenTemplatesDrawer,
+  onOpenElementsDrawer,
+  onOpenBackgroundDrawer,
+  onOpen3DMockupModal,
+  onOpenPreflightModal,
   onApplyBrandKit,
   onOpenSetupModal,
 }) => {
@@ -45,9 +56,9 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
   return (
     <aside
       id="cover-left-toolbar"
-      className="w-20 bg-white border-r border-slate-200 flex flex-col items-center py-4 gap-2 z-30 select-none shrink-0 shadow-2xs"
+      className="w-20 bg-white border-r border-slate-200 flex flex-col items-center py-3 gap-1.5 z-30 select-none shrink-0 shadow-2xs overflow-y-auto"
     >
-      {/* Select Tool */}
+      {/* 1. Select Tool */}
       <button
         type="button"
         id="tool-btn-select"
@@ -57,17 +68,33 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
           setShapeMenuOpen(false);
         }}
         title="Select & Move Objects (V)"
-        className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+        className={`w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
           activeTool === 'select'
             ? 'bg-purple-600 text-white shadow-md shadow-purple-600/25 font-bold'
             : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
         }`}
       >
-        <MousePointer className="w-5 h-5" />
+        <MousePointer className="w-4 h-4" />
         <span className="text-[10px] font-semibold">Select</span>
       </button>
 
-      {/* Text Tool with Submenu */}
+      {/* 2. Genre Templates */}
+      <button
+        type="button"
+        id="tool-btn-templates-drawer"
+        onClick={() => {
+          onOpenTemplatesDrawer();
+          setTextMenuOpen(false);
+          setShapeMenuOpen(false);
+        }}
+        title="Browse 1-Click KDP Genre Cover Presets"
+        className="w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:bg-purple-50 hover:text-purple-700 transition-all cursor-pointer"
+      >
+        <LayoutTemplate className="w-4 h-4 text-purple-600" />
+        <span className="text-[10px] font-semibold text-center leading-tight">Presets</span>
+      </button>
+
+      {/* 3. Text Tool with Submenu */}
       <div className="relative">
         <button
           type="button"
@@ -78,13 +105,13 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
             setShapeMenuOpen(false);
           }}
           title="Add Text Elements (T)"
-          className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+          className={`w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
             activeTool === 'text'
               ? 'bg-purple-600 text-white shadow-md shadow-purple-600/25 font-bold'
               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
         >
-          <Type className="w-5 h-5" />
+          <Type className="w-4 h-4" />
           <span className="text-[10px] font-semibold">Text</span>
         </button>
 
@@ -150,7 +177,23 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
         )}
       </div>
 
-      {/* Shape Tool with Submenu */}
+      {/* 4. Elements & Badges Library */}
+      <button
+        type="button"
+        id="tool-btn-elements-drawer"
+        onClick={() => {
+          onOpenElementsDrawer();
+          setTextMenuOpen(false);
+          setShapeMenuOpen(false);
+        }}
+        title="Bestseller Badges, Ornaments & Silhouettes"
+        className="w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:bg-amber-50 hover:text-amber-700 transition-all cursor-pointer"
+      >
+        <Award className="w-4 h-4 text-amber-600" />
+        <span className="text-[10px] font-semibold">Elements</span>
+      </button>
+
+      {/* 5. Shapes Tool with Submenu */}
       <div className="relative">
         <button
           type="button"
@@ -161,19 +204,19 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
             setTextMenuOpen(false);
           }}
           title="Add Geometric Shapes (S)"
-          className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+          className={`w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
             activeTool === 'shape'
               ? 'bg-purple-600 text-white shadow-md shadow-purple-600/25 font-bold'
               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
         >
-          <Square className="w-5 h-5" />
+          <Square className="w-4 h-4" />
           <span className="text-[10px] font-semibold">Shapes</span>
         </button>
 
         {shapeMenuOpen && (
           <div className="absolute left-16 top-0 ml-2 w-52 bg-white rounded-2xl border border-slate-200 shadow-xl p-2 z-50 space-y-1 animate-in fade-in zoom-in-95">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 py-1">Shapes & Badges</div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 py-1">Shapes & Lines</div>
             <button
               type="button"
               onClick={() => {
@@ -207,22 +250,27 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
               <Minus className="w-4 h-4 text-purple-600" />
               <span>Divider Line</span>
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                onAddShape('barcode_placeholder');
-                setShapeMenuOpen(false);
-              }}
-              className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-50 hover:text-amber-800 text-xs font-medium text-amber-700 flex items-center gap-2 transition-colors cursor-pointer"
-            >
-              <LayoutTemplate className="w-4 h-4 text-amber-600" />
-              <span>KDP Barcode Box</span>
-            </button>
           </div>
         )}
       </div>
 
-      {/* Image Upload */}
+      {/* 6. Backgrounds & Mesh Gradients */}
+      <button
+        type="button"
+        id="tool-btn-backgrounds"
+        onClick={() => {
+          onOpenBackgroundDrawer();
+          setTextMenuOpen(false);
+          setShapeMenuOpen(false);
+        }}
+        title="Mesh Gradients & Solid Palettes"
+        className="w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:bg-blue-50 hover:text-blue-700 transition-all cursor-pointer"
+      >
+        <Palette className="w-4 h-4 text-blue-600" />
+        <span className="text-[10px] font-semibold">Gradients</span>
+      </button>
+
+      {/* 7. Image Upload */}
       <button
         type="button"
         id="tool-btn-image-upload"
@@ -232,13 +280,13 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
           setShapeMenuOpen(false);
         }}
         title="Upload Image from Computer (I)"
-        className="w-14 h-14 rounded-2xl flex flex-col items-center justify-center gap-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer"
+        className="w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer"
       >
-        <ImageIcon className="w-5 h-5" />
+        <ImageIcon className="w-4 h-4" />
         <span className="text-[10px] font-semibold">Image</span>
       </button>
 
-      {/* AI Cover Generation */}
+      {/* 8. AI Cover Generation */}
       <button
         type="button"
         id="tool-btn-ai-drawer"
@@ -248,29 +296,45 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
           setShapeMenuOpen(false);
         }}
         title="Generate AI Art with Imagen / Gemini"
-        className="w-14 h-14 rounded-2xl flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-purple-50 to-indigo-50 text-purple-700 hover:from-purple-100 hover:to-indigo-100 border border-purple-200 transition-all shadow-2xs cursor-pointer"
+        className="w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 bg-gradient-to-br from-purple-50 to-indigo-50 text-purple-700 hover:from-purple-100 hover:to-indigo-100 border border-purple-200 transition-all shadow-2xs cursor-pointer"
       >
-        <Sparkles className="w-5 h-5 text-purple-600" />
+        <Sparkles className="w-4 h-4 text-purple-600" />
         <span className="text-[10px] font-bold">AI Cover</span>
       </button>
 
       {/* Divider */}
-      <div className="w-8 h-[1px] bg-slate-200 my-1" />
+      <div className="w-8 h-[1px] bg-slate-200 my-0.5" />
 
-      {/* KDP Template Auto-Generator */}
+      {/* 9. 3D Book Mockup Studio */}
       <button
         type="button"
-        id="tool-btn-kdp-template"
+        id="tool-btn-3d-mockup"
         onClick={() => {
-          onApplyKdpTemplate();
+          onOpen3DMockupModal();
           setTextMenuOpen(false);
           setShapeMenuOpen(false);
         }}
-        title="Generate Complete KDP Wrap-Around Layout Template"
-        className="w-14 h-14 rounded-2xl flex flex-col items-center justify-center gap-1 text-slate-600 hover:bg-purple-50 hover:text-purple-700 transition-all cursor-pointer"
+        title="Generate Photorealistic 3D Paperback Mockups"
+        className="w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-700 hover:from-emerald-100 hover:to-teal-100 border border-emerald-200 transition-all shadow-2xs cursor-pointer"
       >
-        <LayoutTemplate className="w-5 h-5" />
-        <span className="text-[10px] font-semibold text-center leading-tight">Template</span>
+        <Box className="w-4 h-4 text-emerald-600" />
+        <span className="text-[10px] font-bold">3D View</span>
+      </button>
+
+      {/* 10. KDP Barcode & Pre-Flight Inspector */}
+      <button
+        type="button"
+        id="tool-btn-preflight-audit"
+        onClick={() => {
+          onOpenPreflightModal();
+          setTextMenuOpen(false);
+          setShapeMenuOpen(false);
+        }}
+        title="KDP ISBN Barcode & Pre-Flight Compliance Inspector"
+        className="w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition-all cursor-pointer"
+      >
+        <ShieldCheck className="w-4 h-4 text-emerald-600" />
+        <span className="text-[10px] font-semibold text-center leading-tight">Barcode</span>
       </button>
 
       {/* Brand Kit Auto-Apply */}
@@ -284,14 +348,14 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
             setShapeMenuOpen(false);
           }}
           title="Apply Author Brand Kit Colors & Fonts"
-          className="w-14 h-14 rounded-2xl flex flex-col items-center justify-center gap-1 text-slate-600 hover:bg-purple-50 hover:text-purple-700 transition-all cursor-pointer"
+          className="w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:bg-purple-50 hover:text-purple-700 transition-all cursor-pointer"
         >
-          <Palette className="w-5 h-5 text-purple-600" />
-          <span className="text-[10px] font-semibold text-center leading-tight">Brand Kit</span>
+          <Palette className="w-4 h-4 text-purple-600" />
+          <span className="text-[10px] font-semibold text-center leading-tight">Brand</span>
         </button>
       )}
 
-      {/* Dimensions / Cover Setup */}
+      {/* 11. Dimensions / Cover Setup */}
       <button
         type="button"
         id="tool-btn-setup-modal"
@@ -301,9 +365,9 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
           setShapeMenuOpen(false);
         }}
         title="Adjust Trim Size, Pages & Paper Stock"
-        className="w-14 h-14 rounded-2xl flex flex-col items-center justify-center gap-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer mt-auto"
+        className="w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer mt-auto"
       >
-        <Settings2 className="w-5 h-5" />
+        <Settings2 className="w-4 h-4" />
         <span className="text-[10px] font-semibold">Setup</span>
       </button>
     </aside>
