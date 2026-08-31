@@ -187,9 +187,9 @@ export const FormatterView: React.FC = () => {
       </div>
 
       {/* Main Two-Panel Layout: Left 35% Settings | Right 65% Live Preview */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[750px]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Settings Panel (35% -> lg:col-span-4 or 5) */}
-        <aside className="lg:col-span-5 xl:col-span-4 h-full">
+        <aside className="lg:col-span-5 xl:col-span-4">
           <FormatterSettingsPanel
             books={books}
             selectedBookId={selectedBookId}
@@ -209,7 +209,7 @@ export const FormatterView: React.FC = () => {
         </aside>
 
         {/* Right Live Preview (65% -> lg:col-span-7 or 8) */}
-        <main className="lg:col-span-7 xl:col-span-8 min-h-[650px] flex flex-col">
+        <main className="lg:col-span-7 xl:col-span-8 flex flex-col">
           <FormatterLivePreview
             book={previewBook}
             settings={{

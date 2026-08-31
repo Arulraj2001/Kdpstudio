@@ -227,10 +227,10 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
           paddingTop,
           paddingBottom,
         }}
-        className={`w-full max-w-[420px] rounded-sm shadow-xl flex flex-col justify-between relative transition-all select-none border ${
+        className={`w-full ${viewMode === 'spread' ? 'max-w-[280px] max-h-[420px]' : 'max-w-[340px] max-h-[480px]'} rounded-sm shadow-md flex flex-col justify-between relative transition-all select-none border ${
           isCream
             ? 'bg-[#fbf7ee] text-[#1c1813] border-amber-200/70 shadow-amber-950/10'
-            : 'bg-white text-gray-900 border-gray-200 shadow-gray-400/20'
+            : 'bg-white text-slate-900 border-slate-200 shadow-slate-400/20'
         }`}
       >
         {/* Running Header (Odd/Even header) */}
@@ -357,15 +357,15 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-100 dark:bg-[#0f0f17] rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+    <div className="flex flex-col h-[560px] max-h-[70vh] bg-slate-100/80 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       {/* Top Preview Control Bar */}
-      <div className="h-12 bg-white dark:bg-[#1a1a2e] border-b border-gray-200 dark:border-gray-800 px-4 flex items-center justify-between z-10 shrink-0">
+      <div className="h-12 bg-white border-b border-slate-200 px-4 flex items-center justify-between z-10 shrink-0 shadow-2xs">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+          <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
             <Eye className="w-3.5 h-3.5 text-purple-600" />
             <span>Interactive KDP Preview</span>
           </span>
-          <span className="text-xs text-gray-400 font-mono">
+          <span className="text-xs text-slate-400 font-mono">
             ({trimDimensions.width}" × {trimDimensions.height}", {settings.paperType})
           </span>
         </div>
@@ -373,14 +373,14 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
         {/* View Mode & Zoom controls */}
         <div className="flex items-center gap-2">
           {/* Spread toggle */}
-          <div className="hidden sm:flex rounded-lg bg-gray-100 dark:bg-gray-800 p-0.5 text-xs">
+          <div className="hidden sm:flex rounded-lg bg-slate-100 p-0.5 text-xs">
             <button
               type="button"
               onClick={() => setViewMode('single')}
-              className={`px-2 py-1 rounded flex items-center gap-1 ${
+              className={`px-2 py-1 rounded-md flex items-center gap-1 ${
                 viewMode === 'single'
-                  ? 'bg-white dark:bg-[#131320] text-purple-600 font-bold shadow-xs'
-                  : 'text-gray-500'
+                  ? 'bg-white text-purple-700 font-bold shadow-2xs'
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
               title="Single Page View"
             >
@@ -390,10 +390,10 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
             <button
               type="button"
               onClick={() => setViewMode('spread')}
-              className={`px-2 py-1 rounded flex items-center gap-1 ${
+              className={`px-2 py-1 rounded-md flex items-center gap-1 ${
                 viewMode === 'spread'
-                  ? 'bg-white dark:bg-[#131320] text-purple-600 font-bold shadow-xs'
-                  : 'text-gray-500'
+                  ? 'bg-white text-purple-700 font-bold shadow-2xs'
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
               title="Two-Page Spread View"
             >
@@ -403,22 +403,22 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
           </div>
 
           {/* Zoom controls */}
-          <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5">
+          <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
             <button
               type="button"
               onClick={() => setZoomLevel((prev) => Math.max(75, prev - 15))}
-              className="p-1 text-gray-500 hover:text-gray-900 dark:hover:text-white"
+              className="p-1 text-slate-500 hover:text-slate-900 rounded"
               title="Zoom Out"
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
-            <span className="text-[11px] font-mono px-1 font-semibold text-gray-700 dark:text-gray-300">
+            <span className="text-[11px] font-mono px-1 font-semibold text-slate-700">
               {zoomLevel}%
             </span>
             <button
               type="button"
               onClick={() => setZoomLevel((prev) => Math.min(130, prev + 15))}
-              className="p-1 text-gray-500 hover:text-gray-900 dark:hover:text-white"
+              className="p-1 text-slate-500 hover:text-slate-900 rounded"
               title="Zoom In"
             >
               <ZoomIn className="w-3.5 h-3.5" />
@@ -428,10 +428,10 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
       </div>
 
       {/* Main Preview Canvas */}
-      <div className="flex-1 overflow-auto p-4 sm:p-8 flex items-center justify-center relative">
+      <div className="flex-1 overflow-auto p-4 sm:p-6 flex items-center justify-center relative bg-slate-100/60">
         <div
           style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'center center' }}
-          className="flex items-center justify-center gap-6 transition-transform duration-150"
+          className="flex items-center justify-center gap-6 transition-transform duration-150 py-2"
         >
           {/* Left Page (in spread mode, or single active page) */}
           {renderSingleBookPage(activePage, false)}
@@ -442,24 +442,24 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
       </div>
 
       {/* Bottom Page Navigation Bar */}
-      <div className="h-12 bg-white dark:bg-[#1a1a2e] border-t border-gray-200 dark:border-gray-800 px-4 flex items-center justify-between shrink-0">
+      <div className="h-12 bg-white border-t border-slate-200 px-4 flex items-center justify-between shrink-0">
         <button
           type="button"
           id="btn-preview-prev-page"
           onClick={() => setCurrentPage((prev) => Math.max(1, viewMode === 'spread' ? prev - 2 : prev - 1))}
           disabled={currentPage <= 1}
-          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#131320] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 transition-colors"
+          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors shadow-2xs"
         >
           <ChevronLeft className="w-3.5 h-3.5" />
           <span>Previous Page</span>
         </button>
 
         <div className="flex items-center gap-2 text-xs font-mono">
-          <span className="font-bold text-gray-900 dark:text-white">
+          <span className="font-bold text-slate-900">
             Page {viewMode === 'spread' && secondPage ? `${activePage.pageNumber}–${secondPage.pageNumber}` : activePage.pageNumber}
           </span>
-          <span className="text-gray-400">/</span>
-          <span className="text-gray-500">
+          <span className="text-slate-300">/</span>
+          <span className="text-slate-500">
             {totalPreviewPages} preview pages ({estimatedPages} estimated total)
           </span>
         </div>
@@ -473,7 +473,7 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
             )
           }
           disabled={currentPage >= totalPreviewPages || (viewMode === 'spread' && !secondPage)}
-          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#131320] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 transition-colors"
+          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors shadow-2xs"
         >
           <span>Next Page</span>
           <ChevronRight className="w-3.5 h-3.5" />
