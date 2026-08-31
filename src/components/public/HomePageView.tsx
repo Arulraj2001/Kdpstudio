@@ -423,17 +423,17 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────────────────────
-          2. REAL BOOK PROOF: "Books We Actually Built With KDP Studio"
+          2. REAL BOOK PROOF: "Books We Actually Built With KDP Studio" (Single Compact Row)
          ───────────────────────────────────────────────────────────────────────────── */}
-      <section className="py-16 sm:py-20 bg-slate-50 border-b border-slate-200">
+      <section className="py-12 sm:py-16 bg-slate-50 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className="text-center max-w-3xl mx-auto mb-12 space-y-2.5">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-black uppercase tracking-wider">
-              <BadgeCheck size={14} className="text-emerald-600" />
+          <div className="text-center max-w-3xl mx-auto mb-8 space-y-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-800 text-[11px] font-black uppercase tracking-wider">
+              <BadgeCheck size={13} className="text-emerald-600" />
               <span>Real Builds, Not Generic Mockups</span>
             </div>
-            <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
               Books We Actually Built With It
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl mx-auto">
@@ -441,61 +441,61 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
             </p>
           </div>
 
-          {/* Flagship Books Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Flagship Books - 1 Compact Horizontal Row */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 items-stretch">
             {flagshipBooks.map((book) => (
               <div
                 key={book.id}
-                className="bg-white rounded-3xl border border-slate-200 shadow-xs hover:shadow-xl hover:border-purple-300 transition-all duration-300 overflow-hidden flex flex-col justify-between group"
+                className="bg-white rounded-2xl border border-slate-200 shadow-2xs hover:shadow-lg hover:border-purple-300 transition-all duration-300 overflow-hidden flex flex-col justify-between group"
               >
                 <div>
-                  <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
+                  <div className="relative aspect-[4/3] overflow-hidden bg-slate-900">
                     <img
                       src={book.imageUrl}
                       alt={book.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                     />
-                    <div className="absolute top-3 left-3">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border backdrop-blur-md ${book.badgeColor}`}>
-                        {book.genre}
+                    <div className="absolute top-2 left-2">
+                      <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border backdrop-blur-md ${book.badgeColor}`}>
+                        {book.genre.split('/')[0]}
                       </span>
                     </div>
-                    <div className="absolute top-3 right-3">
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 backdrop-blur-md">
-                        Quality {book.quality}
+                    <div className="absolute top-2 right-2">
+                      <span className="px-2 py-0.5 rounded-md text-[9px] font-black bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 backdrop-blur-md">
+                        {book.quality}
                       </span>
                     </div>
                   </div>
 
-                  <div className="p-6 space-y-2">
-                    <h3 className="text-lg font-black text-slate-900 group-hover:text-purple-600 transition-colors">
+                  <div className="p-3.5 space-y-1">
+                    <h3 className="text-xs sm:text-sm font-black text-slate-900 group-hover:text-purple-600 transition-colors truncate">
                       {book.title}
                     </h3>
-                    <p className="text-xs font-semibold text-purple-600">
+                    <p className="text-[10px] font-bold text-purple-600 truncate">
                       {book.subtitle}
                     </p>
-                    <p className="text-xs text-slate-600 leading-relaxed pt-1">
+                    <p className="text-[11px] text-slate-500 leading-snug line-clamp-2 pt-0.5">
                       {book.description}
                     </p>
                   </div>
                 </div>
 
-                <div className="p-4 pt-0 border-t border-slate-100 mt-2 text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
-                  <BookOpen size={13} className="text-purple-600" />
-                  <span>{book.pages} • {book.trim}</span>
+                <div className="p-3 pt-0 border-t border-slate-100 mt-1 text-[10px] font-bold text-slate-500 flex items-center justify-between">
+                  <span className="truncate">{book.trim}</span>
+                  <span className="text-purple-600 shrink-0 font-mono">{book.pages}</span>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="mt-10 text-center">
+          <div className="mt-8 text-center">
             <button
               onClick={handleStart}
-              className="px-7 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm shadow-md transition-all cursor-pointer inline-flex items-center gap-2"
+              className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition-all cursor-pointer inline-flex items-center gap-2"
             >
               <span>Build Your Own Book Now</span>
-              <ArrowRight size={15} />
+              <ArrowRight size={14} />
             </button>
           </div>
         </div>
@@ -716,9 +716,98 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────────────────────
-          5. SIX STEPS FROM IDEA TO PUBLISHED BOOK (Redesigned Interactive Workflow)
+          5. HOW IT WORKS SECTION (Classic 3-Step Dark Section - Linked from Footer)
          ───────────────────────────────────────────────────────────────────────────── */}
-      <section id="how-it-works" className="py-16 sm:py-24 bg-slate-50 border-b border-slate-200">
+      <section id="how-it-works" className="py-20 sm:py-28 bg-[#0f0f1a] text-white border-b border-purple-900/40 scroll-mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+          
+          {/* Header */}
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="text-purple-400 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-purple-950/60 border border-purple-800/40">
+              SIMPLE PUBLISHING PIPELINE
+            </span>
+            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
+              From Idea to Published <br />
+              <span className="text-purple-400">In Three Steps</span>
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto">
+              Follow our proven 3-phase automated engine to launch your bestselling books on Amazon KDP in record time.
+            </p>
+          </div>
+
+          {/* 3 Step Cards Horizontal Row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+            
+            {/* Step 1 */}
+            <div className="bg-[#16162a] rounded-3xl p-8 border border-white/10 space-y-4 relative group hover:border-purple-500/50 transition-all">
+              <span className="text-6xl sm:text-7xl font-black text-purple-900/40 absolute top-4 right-6 pointer-events-none group-hover:text-purple-800/40 transition-colors">
+                01
+              </span>
+              <div className="w-12 h-12 rounded-2xl bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-xl shadow-lg">
+                💡
+              </div>
+              <h3 className="text-xl font-bold text-white">Describe Your Book</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                Tell us the topic, genre, audience, and style. Takes 30 seconds.
+              </p>
+              <p className="text-xs text-purple-300 font-medium pt-2 border-t border-white/10">
+                Works for fiction, non-fiction, coloring books, puzzle books, and more.
+              </p>
+            </div>
+
+            {/* Step 2 */}
+            <div className="bg-[#16162a] rounded-3xl p-8 border border-white/10 space-y-4 relative group hover:border-purple-500/50 transition-all">
+              <span className="text-6xl sm:text-7xl font-black text-purple-900/40 absolute top-4 right-6 pointer-events-none group-hover:text-purple-800/40 transition-colors">
+                02
+              </span>
+              <div className="w-12 h-12 rounded-2xl bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-xl shadow-lg">
+                ⚡
+              </div>
+              <h3 className="text-xl font-bold text-white">AI Builds Everything</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                Gemini writes your chapters. Imagen creates illustrations. We format the interior and design the layout.
+              </p>
+              <p className="text-xs text-purple-300 font-medium pt-2 border-t border-white/10">
+                Real-time preview with automated KDP margins & spine calculation.
+              </p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="bg-[#16162a] rounded-3xl p-8 border border-white/10 space-y-4 relative group hover:border-purple-500/50 transition-all">
+              <span className="text-6xl sm:text-7xl font-black text-purple-900/40 absolute top-4 right-6 pointer-events-none group-hover:text-purple-800/40 transition-colors">
+                03
+              </span>
+              <div className="w-12 h-12 rounded-2xl bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-xl shadow-lg">
+                📤
+              </div>
+              <h3 className="text-xl font-bold text-white">Export & Publish</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                Download your KDP-ready interior PDF and cover. Upload directly to Amazon. Start earning.
+              </p>
+              <p className="text-xs text-purple-300 font-medium pt-2 border-t border-white/10">
+                Includes keyword optimizer and SEO book description tags.
+              </p>
+            </div>
+
+          </div>
+
+          {/* Mini Testimonial Callout */}
+          <div className="max-w-2xl mx-auto text-center p-6 rounded-2xl bg-purple-950/40 border border-purple-500/30 shadow-lg">
+            <p className="text-slate-200 text-sm sm:text-base font-serif italic">
+              "I published my first book in one evening. The whole process took less than 2 hours."
+            </p>
+            <p className="text-purple-400 text-xs font-semibold mt-2">
+              — Priya M., Chennai · Non-Fiction Author
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────────────────────
+          6. SIX STEPS FROM IDEA TO PUBLISHED BOOK (Studio Pipeline)
+         ───────────────────────────────────────────────────────────────────────────── */}
+      <section id="studio-pipeline" className="py-16 sm:py-24 bg-slate-50 border-b border-slate-200 scroll-mt-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
           <div className="text-center max-w-3xl mx-auto space-y-3">
