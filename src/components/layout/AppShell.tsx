@@ -563,17 +563,36 @@ export const AppShell: React.FC = () => {
         <OnboardingView onNavigate={handleNavigate} />
       ) : isAuthRoute ? (
         /* ─────────────────────────────────────────
-            3. Auth Route Group
+            3. Auth Route Group (Overlaid on blurred website)
            ───────────────────────────────────────── */
-        <AuthPages
-          initialView={currentRoute as any}
-          onNavigate={handleNavigate}
-          onSuccess={() => {
-            // BUG 5: Read fresh userDoc from store at call-time, not stale closure
-            const freshDoc = useAuthStore.getState().userDoc;
-            handleNavigate(freshDoc?.onboardingComplete === false ? 'onboarding' : 'dashboard');
-          }}
-        />
+        <div className="relative min-h-screen">
+          {/* Website Content in Background (Blurred) */}
+          <div className="filter blur-[5px] opacity-80 pointer-events-none select-none transition-all duration-300" aria-hidden="true">
+            <PublicLayout currentRoute="home" onNavigate={() => {}}>
+              <HomePageView onNavigate={() => {}} />
+            </PublicLayout>
+          </div>
+
+          {/* Auth Card Overlay */}
+          <div 
+            className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/40 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 md:p-6 animate-in fade-in duration-200"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                handleNavigate('home');
+              }
+            }}
+          >
+            <AuthPages
+              initialView={currentRoute as any}
+              onNavigate={handleNavigate}
+              onSuccess={() => {
+                // BUG 5: Read fresh userDoc from store at call-time, not stale closure
+                const freshDoc = useAuthStore.getState().userDoc;
+                handleNavigate(freshDoc?.onboardingComplete === false ? 'onboarding' : 'dashboard');
+              }}
+            />
+          </div>
+        </div>
       ) : isAdminRoute ? (
         /* ─────────────────────────────────────────
             4. Isolated Admin Console Command Center

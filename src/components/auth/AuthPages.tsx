@@ -16,7 +16,8 @@ import {
   Zap,
   Check,
   ArrowLeft,
-  Home
+  Home,
+  X
 } from 'lucide-react';
 import { useAuthStore } from '../../lib/authStore';
 import { isFirebaseConfigured, auth } from '../../lib/firebase';
@@ -246,11 +247,22 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
   };
 
   return (
-    <div id="auth-container" className="min-h-[85vh] flex items-center justify-center p-4">
-      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[640px]">
+    <div id="auth-container" className="w-full flex items-center justify-center p-2 sm:p-4 my-auto">
+      <div className="relative w-full max-w-4xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden grid grid-cols-1 lg:grid-cols-12 max-h-[92vh] overflow-y-auto">
         
+        {/* Close button at top right */}
+        <button
+          type="button"
+          onClick={() => onNavigate ? onNavigate('home') : (window.location.href = '/')}
+          className="absolute top-3 right-3 z-30 w-7 h-7 rounded-full bg-slate-100/90 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+          title="Close and return to site"
+          aria-label="Close"
+        >
+          <X size={15} />
+        </button>
+
         {/* Left Half: Brand & Hero Showcase (5 cols) */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-purple-900 via-indigo-950 to-slate-950 p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">
+        <div className="lg:col-span-5 bg-gradient-to-br from-purple-900 via-indigo-950 to-slate-950 p-5 sm:p-7 text-white flex flex-col justify-between relative overflow-hidden">
           {/* Subtle ambient lighting */}
           <div className="absolute -top-24 -left-24 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
@@ -258,8 +270,8 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
           {/* Brand Header */}
           <div className="relative">
             {/* Logo */}
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-11 h-11 rounded-xl bg-slate-900 border border-purple-400/40 p-1 flex items-center justify-center shadow-lg shadow-purple-500/30 overflow-hidden">
+            <div className="flex items-center gap-2.5 mb-2">
+              <div className="w-9 h-9 rounded-xl bg-slate-900 border border-purple-400/40 p-1 flex items-center justify-center shadow-md shadow-purple-500/30 overflow-hidden shrink-0">
                 <img
                   src="/brand-icon.png?v=20260830"
                   alt="KDP Studio"
@@ -267,57 +279,57 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                 />
               </div>
               <div>
-                <span className="text-xl font-black tracking-tight text-white flex items-center gap-1.5">
+                <span className="text-lg font-black tracking-tight text-white flex items-center gap-1.5 leading-none">
                   KDP Studio
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/30 border border-purple-400/30 text-purple-200">
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-purple-500/30 border border-purple-400/30 text-purple-200">
                     Pro
                   </span>
                 </span>
-                <p className="text-xs text-purple-200/80">AI Publishing Platform</p>
+                <p className="text-[11px] text-purple-200/80 mt-0.5">AI Publishing Platform</p>
               </div>
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mt-8 leading-tight">
+            <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white mt-4 leading-snug">
               Create, format and publish books with AI
             </h2>
-            <p className="text-sm text-purple-200/90 mt-2 leading-relaxed">
+            <p className="text-xs text-purple-200/90 mt-1 leading-relaxed">
               From blank page to bestselling Amazon paperback in hours, not weeks.
             </p>
           </div>
 
           {/* 3 Value Pillars */}
-          <div className="relative z-10 my-8 space-y-4">
-            <div className="flex items-start gap-3.5 p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs">
-              <div className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-300 flex items-center justify-center shrink-0 mt-0.5">
-                <BookOpen size={16} />
+          <div className="relative z-10 my-4 space-y-2.5">
+            <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
+              <div className="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-300 flex items-center justify-center shrink-0 mt-0.5">
+                <BookOpen size={14} />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-white">AI-Powered Book Writing</h4>
-                <p className="text-[11px] text-purple-200/70 mt-0.5">
+                <h4 className="text-xs font-bold text-white leading-tight">AI-Powered Book Writing</h4>
+                <p className="text-[10px] text-purple-200/70 mt-0.5">
                   Outline, draft & refine multi-chapter fiction and non-fiction.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-start gap-3.5 p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs">
-              <div className="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center shrink-0 mt-0.5">
-                <Layers size={16} />
+            <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
+              <div className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-300 flex items-center justify-center shrink-0 mt-0.5">
+                <Layers size={14} />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-white">Cover Design & 300 DPI Engine</h4>
-                <p className="text-[11px] text-purple-200/70 mt-0.5">
+                <h4 className="text-xs font-bold text-white leading-tight">Cover Design & 300 DPI Engine</h4>
+                <p className="text-[10px] text-purple-200/70 mt-0.5">
                   Automated spine calculation, barcodes, and Imagen 3 generation.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-start gap-3.5 p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 mt-0.5">
-                <ShieldCheck size={16} />
+            <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
+              <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 mt-0.5">
+                <ShieldCheck size={14} />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-white">KDP-Ready PDF Export</h4>
-                <p className="text-[11px] text-purple-200/70 mt-0.5">
+                <h4 className="text-xs font-bold text-white leading-tight">KDP-Ready PDF Export</h4>
+                <p className="text-[10px] text-purple-200/70 mt-0.5">
                   Pass Amazon pre-flight check with guaranteed gutter & trim sizes.
                 </p>
               </div>
@@ -325,9 +337,9 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
           </div>
 
           {/* Footer Trust Stat */}
-          <div className="relative z-10 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] text-purple-300">
+          <div className="relative z-10 pt-3 border-t border-white/10 flex items-center justify-between text-[10px] text-purple-300">
             <span className="flex items-center gap-1">
-              <CheckCircle2 size={13} className="text-emerald-400" />
+              <CheckCircle2 size={12} className="text-emerald-400" />
               100% Amazon Print Compliant
             </span>
             <span>Worldwide Multi-Currency</span>
@@ -335,20 +347,20 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
         </div>
 
         {/* Right Half: Dynamic Forms (7 cols) */}
-        <div className="lg:col-span-7 p-8 sm:p-12 flex flex-col justify-center">
+        <div className="lg:col-span-7 p-5 sm:p-7 sm:py-6 flex flex-col justify-center">
           
           {/* Top Navigation: Back to Home */}
-          <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center justify-between mb-3.5 pr-8">
             <button
               type="button"
               onClick={() => onNavigate ? onNavigate('home') : (window.location.href = '/')}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-purple-700 transition-colors cursor-pointer group py-1 px-2.5 rounded-lg hover:bg-slate-100/80 -ml-2.5"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-purple-700 transition-colors cursor-pointer group py-1 px-2 rounded-lg hover:bg-slate-100/80 -ml-2"
             >
-              <ArrowLeft size={15} className="group-hover:-translate-x-1 transition-transform text-purple-600" />
+              <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform text-purple-600" />
               <span>Back to Home</span>
             </button>
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold text-purple-700 uppercase tracking-wider bg-purple-50 px-2.5 py-1 rounded-full border border-purple-200/80">
+              <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200/80">
                 {view === 'login' ? 'Author Sign In' : view === 'signup' ? 'New Registration' : view === 'forgot-password' ? 'Password Reset' : 'Email Verification'}
               </span>
             </div>
@@ -356,8 +368,8 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
 
           {/* Quick Notice / Error Alert */}
           {authError && (
-            <div className="mb-5 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5 animate-in fade-in duration-200">
-              <AlertCircle size={16} className="text-rose-600 shrink-0 mt-0.5" />
+            <div className="mb-3 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2 animate-in fade-in duration-200">
+              <AlertCircle size={15} className="text-rose-600 shrink-0 mt-0.5" />
               <div className="flex-1">
                 <span className="font-semibold">Authentication Notice: </span>
                 {authError}
@@ -367,43 +379,43 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
 
           {/* ================= 1. LOGIN VIEW ================= */}
           {view === 'login' && (
-            <div className="space-y-5">
+            <div className="space-y-3.5">
               <div>
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                   Welcome back to KDP Studio
                 </h1>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-500 mt-0.5">
                   Sign in to access your manuscript workspace and published books.
                 </p>
               </div>
 
               {/* 🌟 Prominent One-Click Instant Demo Login (Pro Author) */}
               <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 rounded-2xl blur-[2px] opacity-75 group-hover:opacity-100 transition duration-300 animate-pulse" />
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 rounded-xl blur-[2px] opacity-75 group-hover:opacity-100 transition duration-300 animate-pulse" />
                 <button
                   id="instant-demo-login-btn"
                   type="button"
                   onClick={handleDemoLogin}
                   disabled={submitting || isLoading}
-                  className="relative w-full flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-900 border border-purple-400/40 text-white shadow-lg hover:shadow-purple-500/25 transition-all duration-200 cursor-pointer overflow-hidden text-left"
+                  className="relative w-full flex items-center justify-between p-2.5 rounded-xl bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-900 border border-purple-400/40 text-white shadow-md hover:shadow-purple-500/25 transition-all duration-200 cursor-pointer overflow-hidden text-left"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-purple-500/30 border border-purple-400/40 flex items-center justify-center text-purple-300 shrink-0 shadow-inner">
-                      <Sparkles size={18} className="text-amber-300" />
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-purple-500/30 border border-purple-400/40 flex items-center justify-center text-purple-300 shrink-0 shadow-inner">
+                      <Sparkles size={15} className="text-amber-300" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-black tracking-tight text-white">One-Click Instant Demo Login</span>
-                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-xs">
+                        <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-xs">
                           Pro Author
                         </span>
                       </div>
-                      <p className="text-[11px] text-purple-200/80 mt-0.5">Explore full workspace with sample books & Pro features</p>
+                      <p className="text-[10px] text-purple-200/80 leading-tight">Explore full workspace with sample books & Pro features</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 text-purple-300 font-bold text-xs shrink-0 group-hover:translate-x-1 transition-transform pl-2">
+                  <div className="flex items-center gap-1 text-purple-300 font-bold text-xs shrink-0 group-hover:translate-x-1 transition-transform pl-1">
                     <span>Enter</span>
-                    <ArrowRight size={14} />
+                    <ArrowRight size={13} />
                   </div>
                 </button>
               </div>
@@ -414,7 +426,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={submitting || isLoading}
-                className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-xs hover:shadow transition-all duration-150 disabled:opacity-60"
+                className="w-full flex items-center justify-center gap-2.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-xs hover:shadow transition-all duration-150 disabled:opacity-60 cursor-pointer"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path
@@ -438,21 +450,21 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
               </button>
 
               {/* 2. Divider */}
-              <div className="relative flex items-center justify-center">
+              <div className="relative flex items-center justify-center my-0.5">
                 <div className="border-t border-slate-200 w-full" />
-                <span className="bg-white px-3 text-[11px] uppercase tracking-wider text-slate-400 font-semibold absolute">
+                <span className="bg-white px-2.5 text-[10px] uppercase tracking-wider text-slate-400 font-semibold absolute">
                   or sign in with email
                 </span>
               </div>
 
               {/* 3. Email & Password Form */}
-              <form onSubmit={handleEmailSignIn} className="space-y-3.5">
+              <form onSubmit={handleEmailSignIn} className="space-y-2.5">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
                     Email address
                   </label>
                   <div className="relative">
-                    <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
                       id="login-email-input"
                       type="email"
@@ -460,26 +472,26 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="author@example.com"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
+                      className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-bold text-slate-700">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <label className="block text-[11px] font-bold text-slate-700">
                       Password
                     </label>
                     <button
                       type="button"
                       onClick={() => setView('forgot-password')}
-                      className="text-[11px] font-semibold text-purple-600 hover:text-purple-700 hover:underline"
+                      className="text-[10px] font-semibold text-purple-600 hover:text-purple-700 hover:underline"
                     >
                       Forgot password?
                     </button>
                   </div>
                   <div className="relative">
-                    <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
                       id="login-password-input"
                       type={showPassword ? 'text' : 'password'}
@@ -487,14 +499,14 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
+                      className="w-full pl-9 pr-9 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
                     >
-                      {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                      {showPassword ? <EyeOff size={13} /> : <Eye size={13} />}
                     </button>
                   </div>
                 </div>
@@ -504,24 +516,24 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   id="submit-signin-btn"
                   type="submit"
                   disabled={submitting || isLoading}
-                  className="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-99 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
+                  className="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-99 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
                 >
                   {submitting ? (
                     <>
-                      <RefreshCw size={14} className="animate-spin" />
+                      <RefreshCw size={13} className="animate-spin" />
                       <span>Signing in...</span>
                     </>
                   ) : (
                     <>
                       <span>Sign In to Dashboard</span>
-                      <ArrowRight size={14} />
+                      <ArrowRight size={13} />
                     </>
                   )}
                 </button>
               </form>
 
               {/* Bottom Switch to Sign up & Back to home */}
-              <div className="flex flex-col items-center gap-2 pt-1 text-xs text-slate-500">
+              <div className="flex items-center justify-between pt-0.5 text-xs text-slate-500">
                 <div>
                   Don't have an account?{' '}
                   <button
@@ -537,8 +549,8 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   onClick={() => onNavigate ? onNavigate('home') : (window.location.href = '/')}
                   className="text-[11px] font-semibold text-slate-400 hover:text-slate-700 flex items-center gap-1 transition-colors cursor-pointer"
                 >
-                  <Home size={12} />
-                  <span>Return to Homepage</span>
+                  <Home size={11} />
+                  <span>Return to Home</span>
                 </button>
               </div>
             </div>
@@ -546,43 +558,43 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
 
           {/* ================= 2. SIGNUP VIEW ================= */}
           {view === 'signup' && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div>
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                   Create your KDP Studio account
                 </h1>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-500 mt-0.5">
                   Start drafting and formatting Amazon Kindle & Paperback books.
                 </p>
               </div>
 
               {/* 🌟 Prominent One-Click Instant Demo Login (Pro Author) in Signup Form */}
               <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 rounded-2xl blur-[2px] opacity-75 group-hover:opacity-100 transition duration-300 animate-pulse" />
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 rounded-xl blur-[2px] opacity-75 group-hover:opacity-100 transition duration-300 animate-pulse" />
                 <button
                   id="signup-instant-demo-login-btn"
                   type="button"
                   onClick={handleDemoLogin}
                   disabled={submitting || isLoading}
-                  className="relative w-full flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-900 border border-purple-400/40 text-white shadow-lg hover:shadow-purple-500/25 transition-all duration-200 cursor-pointer overflow-hidden text-left"
+                  className="relative w-full flex items-center justify-between p-2.5 rounded-xl bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-900 border border-purple-400/40 text-white shadow-md hover:shadow-purple-500/25 transition-all duration-200 cursor-pointer overflow-hidden text-left"
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-purple-500/30 border border-purple-400/40 flex items-center justify-center text-purple-300 shrink-0 shadow-inner">
-                      <Sparkles size={16} className="text-amber-300" />
+                    <div className="w-7 h-7 rounded-lg bg-purple-500/30 border border-purple-400/40 flex items-center justify-center text-purple-300 shrink-0 shadow-inner">
+                      <Sparkles size={15} className="text-amber-300" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-black tracking-tight text-white">One-Click Instant Demo Login</span>
-                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-xs">
+                        <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-xs">
                           Pro Author
                         </span>
                       </div>
-                      <p className="text-[10px] text-purple-200/80">Skip registration & explore all features instantly</p>
+                      <p className="text-[10px] text-purple-200/80 leading-tight">Skip registration & explore all features instantly</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 text-purple-300 font-bold text-xs shrink-0 group-hover:translate-x-1 transition-transform pl-2">
+                  <div className="flex items-center gap-1 text-purple-300 font-bold text-xs shrink-0 group-hover:translate-x-1 transition-transform pl-1">
                     <span>Enter</span>
-                    <ArrowRight size={14} />
+                    <ArrowRight size={13} />
                   </div>
                 </button>
               </div>
@@ -593,7 +605,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={submitting || isLoading}
-                className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-xs transition-all disabled:opacity-60 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-xs transition-all disabled:opacity-60 cursor-pointer"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path
@@ -616,115 +628,120 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                 <span>Continue with Google</span>
               </button>
 
-              <div className="relative flex items-center justify-center">
+              <div className="relative flex items-center justify-center my-0.5">
                 <div className="border-t border-slate-200 w-full" />
-                <span className="bg-white px-3 text-[11px] uppercase tracking-wider text-slate-400 font-semibold absolute">
+                <span className="bg-white px-2.5 text-[10px] uppercase tracking-wider text-slate-400 font-semibold absolute">
                   or register with email
                 </span>
               </div>
 
               {/* Form */}
-              <form onSubmit={handleEmailSignUp} className="space-y-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Full Name
-                  </label>
-                  <div className="relative">
-                    <User size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      id="signup-name-input"
-                      type="text"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="e.g. J. K. Morrison"
-                      className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Email address
-                  </label>
-                  <div className="relative">
-                    <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      id="signup-email-input"
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="author@example.com"
-                      className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      id="signup-password-input"
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="At least 6 characters"
-                      className="w-full pl-10 pr-10 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
-                    >
-                      {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                    </button>
-                  </div>
-
-                  {/* Password Strength Indicator */}
-                  {password && (
-                    <div className="mt-1.5 space-y-1">
-                      <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full ${strength.color} transition-all duration-300`}
-                          style={{ width: strength.width }}
-                        />
-                      </div>
-                      <div className="flex justify-between items-center text-[10px]">
-                        <span className="text-slate-500">Strength: <span className="font-bold text-slate-700">{strength.label}</span></span>
-                        <span className="text-slate-400">Min. 6 chars</span>
-                      </div>
+              <form onSubmit={handleEmailSignUp} className="space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                      Full Name
+                    </label>
+                    <div className="relative">
+                      <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        id="signup-name-input"
+                        type="text"
+                        required
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="e.g. J. K. Morrison"
+                        className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 outline-none"
+                      />
                     </div>
-                  )}
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                      Email address
+                    </label>
+                    <div className="relative">
+                      <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        id="signup-email-input"
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="author@example.com"
+                        className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 outline-none"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Confirm Password
-                  </label>
-                  <div className="relative">
-                    <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      id="signup-confirm-password-input"
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Repeat password"
-                      className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 outline-none"
-                    />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        id="signup-password-input"
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Min. 6 chars"
+                        className="w-full pl-9 pr-8 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 p-0.5"
+                      >
+                        {showPassword ? <EyeOff size={13} /> : <Eye size={13} />}
+                      </button>
+                    </div>
                   </div>
-                  {confirmPassword && password !== confirmPassword && (
-                    <p className="text-[11px] text-rose-500 mt-1 font-medium">Passwords do not match</p>
-                  )}
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                      Confirm Password
+                    </label>
+                    <div className="relative">
+                      <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        id="signup-confirm-password-input"
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Repeat password"
+                        className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 outline-none"
+                      />
+                    </div>
+                  </div>
                 </div>
+
+                {/* Password Strength Indicator & Match Feedback */}
+                {password && (
+                  <div className="space-y-0.5">
+                    <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${strength.color} transition-all duration-300`}
+                        style={{ width: strength.width }}
+                      />
+                    </div>
+                    <div className="flex justify-between items-center text-[10px]">
+                      <span className="text-slate-500">Strength: <span className="font-bold text-slate-700">{strength.label}</span></span>
+                      {confirmPassword && password !== confirmPassword ? (
+                        <span className="text-rose-500 font-medium">Passwords do not match</span>
+                      ) : (
+                        <span className="text-slate-400">Min. 6 chars</span>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Terms Checkbox */}
-                <div className="flex items-start gap-2 pt-1">
+                <div className="flex items-start gap-2 pt-0.5">
                   <input
                     type="checkbox"
                     id="terms-checkbox"
@@ -732,7 +749,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                     onChange={(e) => setAgreeTerms(e.target.checked)}
                     className="mt-0.5 rounded text-purple-600 focus:ring-purple-400"
                   />
-                  <label htmlFor="terms-checkbox" className="text-[11px] text-slate-600 leading-tight">
+                  <label htmlFor="terms-checkbox" className="text-[10px] text-slate-600 leading-tight">
                     I agree to the{' '}
                     <a href="#terms" className="text-purple-600 hover:underline">Terms of Service</a>
                     {' '}and{' '}
@@ -748,19 +765,19 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                 >
                   {submitting ? (
                     <>
-                      <RefreshCw size={14} className="animate-spin" />
+                      <RefreshCw size={13} className="animate-spin" />
                       <span>Creating Account...</span>
                     </>
                   ) : (
                     <>
                       <span>Create Account</span>
-                      <ArrowRight size={14} />
+                      <ArrowRight size={13} />
                     </>
                   )}
                 </button>
               </form>
 
-              <div className="flex flex-col items-center gap-2 pt-1 text-xs text-slate-500">
+              <div className="flex items-center justify-between pt-0.5 text-xs text-slate-500">
                 <div>
                   Already have an account?{' '}
                   <button
@@ -776,8 +793,8 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   onClick={() => onNavigate ? onNavigate('home') : (window.location.href = '/')}
                   className="text-[11px] font-semibold text-slate-400 hover:text-slate-700 flex items-center gap-1 transition-colors cursor-pointer"
                 >
-                  <Home size={12} />
-                  <span>Return to Homepage</span>
+                  <Home size={11} />
+                  <span>Return to Home</span>
                 </button>
               </div>
             </div>
@@ -785,26 +802,26 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
 
           {/* ================= 3. FORGOT PASSWORD VIEW ================= */}
           {view === 'forgot-password' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div>
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                   Reset your password
                 </h1>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-500 mt-0.5">
                   Enter your account email and we'll send a secure password reset link.
                 </p>
               </div>
 
               {resetSent ? (
-                <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-3">
-                  <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
-                    <Check size={22} className="stroke-[3]" />
+                <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-2.5">
+                  <div className="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
+                    <Check size={20} className="stroke-[3]" />
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-emerald-900">
                       Check your inbox
                     </h3>
-                    <p className="text-xs text-emerald-700 mt-1">
+                    <p className="text-xs text-emerald-700 mt-0.5">
                       We've sent password reset instructions to <span className="font-bold">{email}</span>.
                     </p>
                   </div>
@@ -813,26 +830,26 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                       setResetSent(false);
                       setView('login');
                     }}
-                    className="mt-2 px-4 py-2 rounded-xl bg-emerald-700 text-white text-xs font-bold hover:bg-emerald-800"
+                    className="mt-1 px-4 py-2 rounded-xl bg-emerald-700 text-white text-xs font-bold hover:bg-emerald-800 cursor-pointer"
                   >
                     Back to Sign In
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleResetPassword} className="space-y-4">
+                <form onSubmit={handleResetPassword} className="space-y-3">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
                       Account Email
                     </label>
                     <div className="relative">
-                      <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                       <input
                         type="email"
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="author@example.com"
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 outline-none"
+                        className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-400 outline-none"
                       />
                     </div>
                   </div>
@@ -840,11 +857,11 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                    className="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
                   >
                     {submitting ? (
                       <>
-                        <RefreshCw size={14} className="animate-spin" />
+                        <RefreshCw size={13} className="animate-spin" />
                         <span>Sending reset link...</span>
                       </>
                     ) : (
@@ -852,11 +869,11 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                     )}
                   </button>
 
-                  <div className="text-center pt-2">
+                  <div className="text-center pt-1">
                     <button
                       type="button"
                       onClick={() => setView('login')}
-                      className="text-xs font-semibold text-slate-500 hover:text-slate-800"
+                      className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
                     >
                       ← Back to Sign In
                     </button>
@@ -868,29 +885,29 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
 
           {/* ================= 4. VERIFY EMAIL VIEW ================= */}
           {view === 'verify-email' && (
-            <div className="text-center space-y-5 max-w-md mx-auto">
-              <div className="w-16 h-16 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center mx-auto shadow-inner">
-                <Mail size={32} />
+            <div className="text-center space-y-4 max-w-md mx-auto py-2">
+              <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center mx-auto shadow-inner">
+                <Mail size={24} />
               </div>
 
               <div>
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                   Check your inbox
                 </h1>
-                <p className="text-xs text-slate-600 mt-1">
+                <p className="text-xs text-slate-600 mt-0.5">
                   We've sent a verification link to{' '}
                   <span className="font-bold text-slate-900">{email || user?.email || 'your email'}</span>.
                 </p>
-                <p className="text-[11px] text-slate-500 mt-1">
+                <p className="text-[11px] text-slate-500 mt-0.5">
                   Please click the link inside to verify your account and activate cloud sync.
                 </p>
               </div>
 
-              <div className="space-y-2.5 pt-2">
+              <div className="space-y-2 pt-1">
                 {/* Inline verification error */}
                 {verifyError && (
-                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-start gap-2 animate-in fade-in duration-200">
-                    <AlertCircle size={15} className="text-amber-600 shrink-0 mt-0.5" />
+                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-start gap-2 animate-in fade-in duration-200">
+                    <AlertCircle size={14} className="text-amber-600 shrink-0 mt-0.5" />
                     <span>{verifyError}</span>
                   </div>
                 )}
@@ -900,16 +917,16 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   type="button"
                   onClick={handleCheckVerified}
                   disabled={submitting}
-                  className="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                  className="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
                 >
                   {submitting ? (
                     <>
-                      <RefreshCw size={14} className="animate-spin" />
+                      <RefreshCw size={13} className="animate-spin" />
                       <span>Checking...</span>
                     </>
                   ) : (
                     <>
-                      <CheckCircle2 size={15} />
+                      <CheckCircle2 size={14} />
                       <span>I've verified my email</span>
                     </>
                   )}
@@ -919,7 +936,7 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                   type="button"
                   onClick={handleResendVerification}
                   disabled={resendCooldown > 0}
-                  className="w-full py-2.5 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold disabled:opacity-50 transition-all"
+                  className="w-full py-2 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold disabled:opacity-50 transition-all cursor-pointer"
                 >
                   {resendCooldown > 0 ? (
                     <span>Resend email in {resendCooldown}s</span>
@@ -929,11 +946,11 @@ export const AuthPages: React.FC<AuthPagesProps> = ({
                 </button>
               </div>
 
-              <div className="pt-2">
+              <div className="pt-1">
                 <button
                   type="button"
                   onClick={() => setView('signup')}
-                  className="text-xs font-semibold text-slate-500 hover:text-purple-600 hover:underline"
+                  className="text-xs font-semibold text-slate-500 hover:text-purple-600 hover:underline cursor-pointer"
                 >
                   Use a different email address
                 </button>
