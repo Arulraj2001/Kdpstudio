@@ -26,7 +26,6 @@ import {
 import { PageRoute, Book } from '../../types';
 import { useBookStore } from '../../lib/store';
 import { useAuthStore } from '../../lib/authStore';
-import { requireAuth } from '../../lib/authModalStore';
 import { useCheckoutStore } from '../../lib/checkoutStore';
 import { useUpgradeModal } from '../../lib/upgradeModalStore';
 import { UsageWidget } from './UsageWidget';
@@ -40,7 +39,7 @@ interface DashboardViewProps {
 
 export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewBook }) => {
   const { books, setCurrentBook } = useBookStore();
-  const { userDoc } = useAuthStore();
+  const { user, userDoc } = useAuthStore();
   const plan = userDoc?.plan || 'free';
   const isPro = ['pro', 'agency', 'lifetime'].includes(plan);
 
@@ -166,14 +165,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
   ];
 
   const handleSelectBook = (book: Book, route: PageRoute) => {
-    requireAuth(() => {
-      setCurrentBook(book);
-      onNavigate(route);
-    }, {
-      title: 'Open Manuscript Workspace',
-      description: 'Sign in or create a free account to edit, format, and save your manuscripts.',
-      view: 'signup',
-    });
+    if (!user) {
+      onNavigate('signup');
+      return;
+    }
+    setCurrentBook(book);
+    onNavigate(route);
   };
 
   return (
@@ -211,11 +208,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
             </button>
             <button
               id="banner-explore-formatter-btn"
-              onClick={() => requireAuth(() => onNavigate('publish'), {
-                title: 'Publish Checklist',
-                description: 'Sign in or create an account to inspect your manuscript formatting against Amazon KDP requirements.',
-                view: 'signup',
-              })}
+              onClick={() => onNavigate(user ? 'publish' : 'signup')}
               className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-slate-100 text-xs sm:text-sm font-semibold border border-white/15 flex items-center gap-2 transition-all cursor-pointer backdrop-blur-xs"
             >
               <ShieldCheck size={16} />
@@ -289,11 +282,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
               <div
                 key={action.id}
                 id={action.id}
-                onClick={() => requireAuth(() => onNavigate(action.route), {
-                  title: `Open ${action.title}`,
-                  description: action.description,
-                  view: 'signup',
-                })}
+                onClick={() => onNavigate(user ? action.route : 'signup')}
                 className="group relative bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 hover:border-indigo-300 shadow-xs hover:shadow-md hover:-translate-y-1 cursor-pointer transition-all duration-200 flex flex-col justify-between h-full"
               >
                 <div>
@@ -338,11 +327,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => requireAuth(() => onNavigate('books'), {
-                  title: 'Book Library',
-                  description: 'Sign in or create a free account to access and organize your library of titles.',
-                  view: 'signup',
-                })}
+                onClick={() => onNavigate(user ? 'books' : 'signup')}
                 className="text-xs font-bold text-indigo-600 hover:text-indigo-700 px-2 py-1 cursor-pointer"
               >
                 View Library ({books.length})
@@ -530,11 +515,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
                   </p>
                 </div>
                 <button
-                  onClick={() => requireAuth(() => useCheckoutStore.getState().open('pro', 'annual'), {
-                    title: 'Unlock Niche Research with Pro',
-                    description: 'Create an account or sign in to analyze Amazon niches, sales velocity, and competitor gaps.',
-                    view: 'signup',
-                  })}
+                  onClick={() => {
+                    if (!user) {
+                      onNavigate('signup');
+                    } else {
+                      useCheckoutStore.getState().open('pro', 'annual');
+                    }
+                  }}
                   className="w-full py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-2xs transition-colors cursor-pointer"
                 >
                   Upgrade to Pro
@@ -573,11 +560,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
 
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                 <button
-                  onClick={() => requireAuth(() => onNavigate('analytics'), {
-                    title: 'Publishing Analytics & Royalties',
-                    description: 'Sign in to view real-time Amazon sales, estimated royalties, and performance metrics.',
-                    view: 'signup',
-                  })}
+                  onClick={() => onNavigate(user ? 'analytics' : 'signup')}
                   className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer"
                 >
                   <span>View Full Analytics</span>

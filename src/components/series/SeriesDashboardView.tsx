@@ -19,7 +19,6 @@ import {
 } from 'lucide-react';
 import { useSeriesStore } from '../../lib/seriesStore';
 import { useAuthStore } from '../../lib/authStore';
-import { requireAuth } from '../../lib/authModalStore';
 import { useCheckoutStore } from '../../lib/checkoutStore';
 import { PageRoute } from '../../types';
 
@@ -44,21 +43,19 @@ export const SeriesDashboardView: React.FC<SeriesDashboardViewProps> = ({ onNavi
   }, [user?.uid, loadUserSeries]);
 
   const handleCreateClick = () => {
-    requireAuth(() => {
-      if (isFree) {
-        openCheckout('starter');
-        return;
-      }
-      if (isStarter && seriesList.length >= 1) {
-        openCheckout('pro');
-        return;
-      }
-      onNavigate('series-new');
-    }, {
-      title: 'Create Book Series',
-      description: 'Sign in or create an account to organize and publish multi-volume book series.',
-      view: 'signup',
-    });
+    if (!user) {
+      onNavigate('signup');
+      return;
+    }
+    if (isFree) {
+      openCheckout('starter');
+      return;
+    }
+    if (isStarter && seriesList.length >= 1) {
+      openCheckout('pro');
+      return;
+    }
+    onNavigate('series-new');
   };
 
   const handleManageSeries = async (seriesId: string) => {

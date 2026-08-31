@@ -27,7 +27,6 @@ import { showPaymentSuccessToast } from '../../lib/postPayment';
 import { CurrencySelector } from '../ui/CurrencySelector';
 
 import { useCheckoutStore } from '../../lib/checkoutStore';
-import { useAuthModalStore } from '../../lib/authModalStore';
 import { PageRoute } from '../../types';
 
 interface CheckoutModalProps {
@@ -230,22 +229,24 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <div className="flex items-center justify-center gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => useAuthModalStore.getState().open({
-                  title: 'Sign Up to Continue',
-                  description: 'Create an account to bind your subscription and credits to your author profile.',
-                  view: 'signup',
-                })}
+                onClick={() => {
+                  onClose?.();
+                  useCheckoutStore.getState().close();
+                  if (onNavigate) onNavigate('signup');
+                  else window.location.href = '/signup';
+                }}
                 className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
               >
                 Sign Up First
               </button>
               <button
                 type="button"
-                onClick={() => useAuthModalStore.getState().open({
-                  title: 'Sign In to Continue',
-                  description: 'Log in to bind your subscription and credits to your author profile.',
-                  view: 'login',
-                })}
+                onClick={() => {
+                  onClose?.();
+                  useCheckoutStore.getState().close();
+                  if (onNavigate) onNavigate('login');
+                  else window.location.href = '/login';
+                }}
                 className="px-5 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
               >
                 Log In

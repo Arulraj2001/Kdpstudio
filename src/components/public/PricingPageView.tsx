@@ -21,7 +21,6 @@ import { PageRoute } from '../../types';
 import { PlanName, BillingCycle } from '../../types/payment';
 import { CurrencySelector } from '../ui/CurrencySelector';
 import { useAuthStore } from '../../lib/authStore';
-import { requireAuth } from '../../lib/authModalStore';
 import { BmacButton } from '../payment/BmacButton';
 import { showPaymentSuccessToast } from '../../lib/postPayment';
 import { useCheckoutStore } from '../../lib/checkoutStore';
@@ -142,20 +141,17 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
   const agencyPrice = billingCycle === 'monthly' ? agencyMonthly : agencyAnnual;
 
   const handleSelectPlan = (planKey: string) => {
-    if (planKey === 'free') {
-      requireAuth(() => onNavigate('dashboard'), {
-        title: 'Start with Free Plan',
-        description: 'Create your free account to write, format, and publish your books.',
-        view: 'signup',
-      });
+    if (!user) {
+      onNavigate('signup');
       return;
     }
 
-    requireAuth(() => useCheckoutStore.getState().open(planKey as PlanName, billingCycle), {
-      title: `Upgrade to ${planKey.toUpperCase()}`,
-      description: `Create an account or sign in to complete your ${planKey.toUpperCase()} subscription and unlock all premium tools.`,
-      view: 'signup',
-    });
+    if (planKey === 'free') {
+      onNavigate('dashboard');
+      return;
+    }
+
+    useCheckoutStore.getState().open(planKey as PlanName, billingCycle);
   };
 
   const faqs = [

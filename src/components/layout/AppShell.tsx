@@ -79,7 +79,6 @@ import { BlogNewsletterPage } from '../admin/blog/BlogNewsletterPage';
 import { GeoTestView } from '../geo/GeoTestView';
 import { NewBookModal } from '../modals/NewBookModal';
 import { AuthPages } from '../auth/AuthPages';
-import { AuthModal } from '../auth/AuthModal';
 import { AuthProvider } from '../auth/AuthProvider';
 import { OnboardingView } from '../onboarding/OnboardingView';
 import { UsageBanner } from '../ui/UsageBanner';
@@ -101,7 +100,6 @@ import { BlogPostDetailView } from '../public/BlogPostDetailView';
 import { LaunchPageView } from '../public/LaunchPageView';
 import { useGeoStore } from '../../lib/geoStore';
 import { useAuthStore } from '../../lib/authStore';
-import { requireAuth } from '../../lib/authModalStore';
 import { useBookStore } from '../../lib/store';
 import { useSeriesStore } from '../../lib/seriesStore';
 import { trackFeatureUse } from '../../lib/featureTracker';
@@ -447,10 +445,11 @@ export const AppShell: React.FC = () => {
   };
 
   const handleOpenNewBook = () => {
-    requireAuth(() => setIsNewBookModalOpen(true), {
-      title: 'Create a New Manuscript',
-      description: 'Sign in or create your free account to start writing, formatting, and saving your books.',
-    });
+    if (!user) {
+      handleNavigate('signup');
+      return;
+    }
+    setIsNewBookModalOpen(true);
   };
 
   const handleCreateBook = (bookData: { 
@@ -1080,9 +1079,6 @@ export const AppShell: React.FC = () => {
 
       {/* Global Unified Checkout Modal */}
       <CheckoutModal onNavigate={handleNavigate} />
-
-      {/* Global Auth Modal for in-place sign-in/sign-up prompts */}
-      <AuthModal />
 
       {/* Global Impersonation Banner — shown on ALL pages when admin is impersonating */}
       <ImpersonationBanner />

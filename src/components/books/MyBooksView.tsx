@@ -25,7 +25,7 @@ import {
   History,
 } from 'lucide-react';
 import { useBookStore } from '../../lib/store';
-import { requireAuth } from '../../lib/authModalStore';
+import { useAuthStore } from '../../lib/authStore';
 import { Book, BookStatus, PageRoute } from '../../types';
 import { VersionHistoryDrawer } from '../versions/VersionHistoryDrawer';
 
@@ -109,32 +109,28 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({
   }, [books]);
 
   const handleAction = (book: Book, route: PageRoute) => {
-    requireAuth(() => {
-      setCurrentBook(book);
-      if (route === 'publish' && onOpenPublishChecklist) {
-        onOpenPublishChecklist(book.id);
-      } else {
-        onNavigateToRoute(route);
-      }
-    }, {
-      title: 'Open Manuscript',
-      description: 'Sign in or create a free account to edit, format, and save your manuscripts.',
-      view: 'signup',
-    });
+    if (!useAuthStore.getState().user) {
+      onNavigateToRoute('signup');
+      return;
+    }
+    setCurrentBook(book);
+    if (route === 'publish' && onOpenPublishChecklist) {
+      onOpenPublishChecklist(book.id);
+    } else {
+      onNavigateToRoute(route);
+    }
   };
 
   const handleDuplicate = (book: Book, e: React.MouseEvent) => {
     e.stopPropagation();
-    requireAuth(() => {
-      const dup = duplicateBook(book.id);
-      if (dup) {
-        showToast(`Duplicated "${book.title}" successfully.`);
-      }
-    }, {
-      title: 'Duplicate Manuscript',
-      description: 'Sign in to duplicate and manage manuscript variations.',
-      view: 'signup',
-    });
+    if (!useAuthStore.getState().user) {
+      onNavigateToRoute('signup');
+      return;
+    }
+    const dup = duplicateBook(book.id);
+    if (dup) {
+      showToast(`Duplicated "${book.title}" successfully.`);
+    }
   };
 
   const confirmDelete = () => {
@@ -487,11 +483,11 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            requireAuth(() => setActiveHistoryBook(book), {
-                              title: 'Version History & Snapshots',
-                              description: 'Sign in to access automatic cloud snapshots and restore previous revisions.',
-                              view: 'signup',
-                            });
+                            if (!useAuthStore.getState().user) {
+                              onNavigateToRoute('signup');
+                              return;
+                            }
+                            setActiveHistoryBook(book);
                           }}
                           className="text-[11px] text-slate-500 hover:text-purple-600 flex items-center gap-1 font-medium transition-colors cursor-pointer"
                           title="Version History & Snapshots"

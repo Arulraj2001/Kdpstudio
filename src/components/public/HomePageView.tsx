@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import { PageRoute } from '../../types';
 import { useAuthStore } from '../../lib/authStore';
-import { requireAuth } from '../../lib/authModalStore';
 import { useGeoStore } from '../../lib/geoStore';
 import { formatPrice } from '../../lib/geo';
 import { SEOHead } from '../seo/SEOHead';
@@ -26,13 +25,13 @@ const SOFTWARE_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "KDP Studio",
-  "description": "AI-powered book publishing suite for Amazon KDP",
+  "description": "All-in-one Amazon KDP publishing platform. AI writing studio, print interior formatter, cover generator, and low-content puzzle creator.",
   "url": "https://kdpstudio-aio.web.app",
-  "applicationCategory": "ProductivityApplication",
-  "operatingSystem": "Web",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "All",
   "offers": {
     "@type": "Offer",
-    "price": "0.00",
+    "price": "0",
     "priceCurrency": "USD"
   },
   "featureList": [
@@ -104,11 +103,11 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
   }, [initPricingListener, fetchPricing]);
 
   const handleStart = () => {
-    requireAuth(() => onNavigate('dashboard'), {
-      title: 'Start Publishing with AI',
-      description: 'Create your free account to write, format, and publish bestseller manuscripts on Amazon KDP.',
-      view: 'signup',
-    });
+    if (user) {
+      onNavigate('dashboard');
+    } else {
+      onNavigate('signup');
+    }
   };
 
   const handleScrollTo = (elementId: string) => {
@@ -547,11 +546,7 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
                 </li>
               </ul>
               <button 
-                onClick={() => requireAuth(() => onNavigate('formatter'), {
-                  title: 'Open Interior Formatter',
-                  description: 'Create a free account or sign in to configure trim sizes, calculate gutters, and export print-ready PDFs.',
-                  view: 'signup',
-                })}
+                onClick={() => onNavigate(user ? 'formatter' : 'signup')}
                 className="pt-2 text-indigo-600 hover:text-indigo-700 font-bold text-sm sm:text-base inline-flex items-center gap-1.5 group cursor-pointer"
               >
                 <span>Try the Formatter</span>
@@ -587,11 +582,7 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
                 </li>
               </ul>
               <button 
-                onClick={() => requireAuth(() => onNavigate('cover'), {
-                  title: 'Open Cover Designer',
-                  description: 'Create a free account or sign in to build front, spine, and back covers with AI image generation.',
-                  view: 'signup',
-                })}
+                onClick={() => onNavigate(user ? 'cover' : 'signup')}
                 className="pt-2 text-purple-600 hover:text-purple-700 font-bold text-sm sm:text-base inline-flex items-center gap-1.5 group cursor-pointer"
               >
                 <span>Design a Cover</span>
@@ -682,11 +673,7 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
                 </li>
               </ul>
               <button 
-                onClick={() => requireAuth(() => onNavigate('puzzles'), {
-                  title: 'Puzzle Book Generator',
-                  description: 'Create a free account or sign in to generate and export complete word search, coloring, and puzzle books.',
-                  view: 'signup',
-                })}
+                onClick={() => onNavigate(user ? 'puzzles' : 'signup')}
                 className="pt-2 text-purple-600 hover:text-purple-700 font-bold text-sm sm:text-base inline-flex items-center gap-1.5 group cursor-pointer"
               >
                 <span>Generate Puzzle Books</span>

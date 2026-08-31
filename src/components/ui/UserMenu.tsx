@@ -14,7 +14,6 @@ import {
   Home
 } from 'lucide-react';
 import { useAuthStore } from '../../lib/authStore';
-import { useAuthModalStore } from '../../lib/authModalStore';
 import { PageRoute } from '../../types';
 
 interface UserMenuProps {
@@ -48,7 +47,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onNavigate }) => {
         <button
           id="nav-login-btn"
           type="button"
-          onClick={() => useAuthModalStore.getState().open({ view: 'login' })}
+          onClick={() => onNavigate('login')}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all cursor-pointer"
         >
           <LogIn size={13} />
@@ -58,7 +57,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onNavigate }) => {
         <button
           id="nav-signup-btn"
           type="button"
-          onClick={() => useAuthModalStore.getState().open({ view: 'signup' })}
+          onClick={() => onNavigate('signup')}
           className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-98 text-white text-xs font-bold shadow-xs shadow-purple-500/20 transition-all cursor-pointer"
         >
           <UserPlus size={13} />
