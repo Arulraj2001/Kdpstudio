@@ -139,8 +139,6 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
         id="tool-btn-backgrounds"
         onClick={() => {
           onOpenBackgroundDrawer();
-          setTextMenuOpen(false);
-          setShapeMenuOpen(false);
         }}
         title="Mesh Gradients & Solid Palettes"
         className="w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:bg-blue-50 hover:text-blue-700 transition-all cursor-pointer"
@@ -155,8 +153,6 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
         id="tool-btn-image-upload"
         onClick={() => {
           onTriggerImageUpload();
-          setTextMenuOpen(false);
-          setShapeMenuOpen(false);
         }}
         title="Upload Image from Computer (I)"
         className="w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer"
@@ -171,8 +167,6 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
         id="tool-btn-ai-drawer"
         onClick={() => {
           onOpenAiDrawer();
-          setTextMenuOpen(false);
-          setShapeMenuOpen(false);
         }}
         title="Generate AI Art with Imagen / Gemini"
         className="w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 bg-gradient-to-br from-purple-50 to-indigo-50 text-purple-700 hover:from-purple-100 hover:to-indigo-100 border border-purple-200 transition-all shadow-2xs cursor-pointer"
@@ -190,8 +184,6 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
         id="tool-btn-3d-mockup"
         onClick={() => {
           onOpen3DMockupModal();
-          setTextMenuOpen(false);
-          setShapeMenuOpen(false);
         }}
         title="Generate Photorealistic 3D Paperback Mockups"
         className="w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-700 hover:from-emerald-100 hover:to-teal-100 border border-emerald-200 transition-all shadow-2xs cursor-pointer"
@@ -206,8 +198,6 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
         id="tool-btn-preflight-audit"
         onClick={() => {
           onOpenPreflightModal();
-          setTextMenuOpen(false);
-          setShapeMenuOpen(false);
         }}
         title="KDP ISBN Barcode & Pre-Flight Compliance Inspector"
         className="w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition-all cursor-pointer"
@@ -223,8 +213,6 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
           id="tool-btn-brand-kit"
           onClick={() => {
             onApplyBrandKit();
-            setTextMenuOpen(false);
-            setShapeMenuOpen(false);
           }}
           title="Apply Author Brand Kit Colors & Fonts"
           className="w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:bg-purple-50 hover:text-purple-700 transition-all cursor-pointer"
@@ -240,8 +228,6 @@ export const CoverToolbar: React.FC<CoverToolbarProps> = ({
         id="tool-btn-setup-modal"
         onClick={() => {
           onOpenSetupModal();
-          setTextMenuOpen(false);
-          setShapeMenuOpen(false);
         }}
         title="Adjust Trim Size, Pages & Paper Stock"
         className="w-14 h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer mt-auto"

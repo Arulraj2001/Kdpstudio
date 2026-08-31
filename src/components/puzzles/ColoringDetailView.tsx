@@ -15,6 +15,7 @@ import {
 import { getPuzzleBook, updatePuzzleBook, updatePuzzlePage } from '../../lib/puzzleService';
 import { PuzzleBook, PuzzlePage, ColoringSettings } from '../../types/puzzle';
 import { generateColoringLineArtFallback } from '../../lib/puzzles/coloringHelper';
+import { exportPuzzleBookPdfClient } from '../../lib/puzzles/puzzleClientExport';
 import { useBookStore } from '../../lib/store';
 
 interface ColoringDetailViewProps {
@@ -129,25 +130,10 @@ export const ColoringDetailView: React.FC<ColoringDetailViewProps> = ({
     if (!book) return;
     setIsExporting(true);
     try {
-      const res = await fetch('/api/puzzles/coloring/export-pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookId: book.id }),
-      });
-
-      if (!res.ok) throw new Error('PDF export failed');
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${book.settings.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_interior.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      await exportPuzzleBookPdfClient(book);
     } catch (err) {
       console.error('PDF export error:', err);
+      alert('Could not export PDF. Please try again.');
     } finally {
       setIsExporting(false);
     }

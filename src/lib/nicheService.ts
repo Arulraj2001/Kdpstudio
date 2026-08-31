@@ -205,9 +205,7 @@ export async function getUserSearchHistory(uid: string): Promise<NicheSearchHist
     try {
       const q = query(
         collection(db, 'nicheSearchHistory'),
-        where('uid', '==', uid),
-        orderBy('createdAt', 'desc'),
-        limit(20)
+        where('uid', '==', uid)
       );
       const snapshot = await getDocs(q);
       if (!snapshot.empty) {
@@ -215,15 +213,19 @@ export async function getUserSearchHistory(uid: string): Promise<NicheSearchHist
         snapshot.forEach((d) => {
           list.push({ id: d.id, ...(d.data() as any) });
         });
-        setLocalSearchHistory(uid, list);
-        return list;
+        list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+        const trimmed = list.slice(0, 20);
+        setLocalSearchHistory(uid, trimmed);
+        return trimmed;
       }
     } catch (err) {
       console.warn('Firebase getUserSearchHistory error, using local fallback:', err);
     }
   }
 
-  return getLocalSearchHistory(uid).slice(0, 20);
+  return getLocalSearchHistory(uid)
+    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+    .slice(0, 20);
 }
 
 /**
@@ -317,8 +319,7 @@ export async function getUserSavedNiches(uid: string): Promise<SavedNiche[]> {
     try {
       const q = query(
         collection(db, 'savedNiches'),
-        where('uid', '==', uid),
-        orderBy('savedAt', 'desc')
+        where('uid', '==', uid)
       );
       const snapshot = await getDocs(q);
       if (!snapshot.empty) {
@@ -326,6 +327,7 @@ export async function getUserSavedNiches(uid: string): Promise<SavedNiche[]> {
         snapshot.forEach((d) => {
           list.push({ id: d.id, ...(d.data() as any) });
         });
+        list.sort((a, b) => new Date(b.savedAt || 0).getTime() - new Date(a.savedAt || 0).getTime());
         setLocalSavedNiches(uid, list);
         return list;
       }
@@ -334,7 +336,9 @@ export async function getUserSavedNiches(uid: string): Promise<SavedNiche[]> {
     }
   }
 
-  return getLocalSavedNiches(uid);
+  return getLocalSavedNiches(uid).sort(
+    (a, b) => new Date(b.savedAt || 0).getTime() - new Date(a.savedAt || 0).getTime()
+  );
 }
 
 /**

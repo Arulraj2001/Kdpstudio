@@ -139,19 +139,29 @@ export async function getUserPuzzleBooks(uid: string): Promise<PuzzleBook[]> {
     try {
       const q = query(
         collection(db, 'puzzleBooks'),
-        where('uid', '==', uid),
-        orderBy('createdAt', 'desc')
+        where('uid', '==', uid)
       );
       const snap = await getDocs(q);
       if (!snap.empty) {
-        return snap.docs.map((docSnap) => docSnap.data() as PuzzleBook);
+        const books = snap.docs.map((docSnap) => docSnap.data() as PuzzleBook);
+        return books.sort((a, b) => {
+          const tA = new Date(a.createdAt || 0).getTime();
+          const tB = new Date(b.createdAt || 0).getTime();
+          return tB - tA;
+        });
       }
     } catch (err) {
       console.warn('Firestore getUserPuzzleBooks query error, reading from local fallback:', err);
     }
   }
 
-  return getLocalPuzzleBooks().filter((b) => b.uid === uid || !b.uid);
+  return getLocalPuzzleBooks()
+    .filter((b) => b.uid === uid || !b.uid)
+    .sort((a, b) => {
+      const tA = new Date(a.createdAt || 0).getTime();
+      const tB = new Date(b.createdAt || 0).getTime();
+      return tB - tA;
+    });
 }
 
 /**

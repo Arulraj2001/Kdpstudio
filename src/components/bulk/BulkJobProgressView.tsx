@@ -121,7 +121,7 @@ export const BulkJobProgressView: React.FC<BulkJobProgressViewProps> = ({
     try {
       const token = (await auth.currentUser?.getIdToken()) || '';
 
-      // Direct POST trigger to backend processor
+      // Attempt server-side trigger first, then fallback seamlessly to client-side processor
       fetch(`/api/bulk/process/${jobId}`, {
         method: 'POST',
         headers: {
@@ -131,7 +131,12 @@ export const BulkJobProgressView: React.FC<BulkJobProgressViewProps> = ({
           'x-user-id': uid,
         },
       }).then(async (response) => {
-        if (!response.ok || !response.body) return;
+        if (!response.ok || !response.body) {
+          // Trigger client-side bulk generator processor
+          const { processBulkJobClient } = await import('../../lib/bulkProcessor');
+          await processBulkJobClient(jobId, (event) => handleStreamEvent(event));
+          return;
+        }
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
@@ -152,13 +157,15 @@ export const BulkJobProgressView: React.FC<BulkJobProgressViewProps> = ({
             }
           }
         }
-      }).catch((err) => {
-        console.warn('SSE stream error, falling back to background polling:', err);
-        setIsReconnecting(true);
-        setTimeout(() => setIsReconnecting(false), 3000);
+      }).catch(async (err) => {
+        console.warn('SSE stream error, running client bulk processor:', err);
+        const { processBulkJobClient } = await import('../../lib/bulkProcessor');
+        await processBulkJobClient(jobId, (event) => handleStreamEvent(event));
       });
     } catch (err) {
-      console.warn('Failed to start stream:', err);
+      console.warn('Failed to start stream, running client bulk processor:', err);
+      const { processBulkJobClient } = await import('../../lib/bulkProcessor');
+      await processBulkJobClient(jobId, (event) => handleStreamEvent(event));
     }
   };
 

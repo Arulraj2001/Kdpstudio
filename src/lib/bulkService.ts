@@ -116,8 +116,7 @@ export async function getUserBulkTemplates(uid: string): Promise<BulkTemplate[]>
     try {
       const q = query(
         collection(db, TEMPLATES_COLLECTION),
-        where('uid', '==', uid),
-        orderBy('updatedAt', 'desc')
+        where('uid', '==', uid)
       );
       const snapshot = await getDocs(q);
       list = snapshot.docs.map((d) => d.data() as BulkTemplate);
@@ -131,7 +130,7 @@ export async function getUserBulkTemplates(uid: string): Promise<BulkTemplate[]>
     list = local;
   }
 
-  return list;
+  return list.sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
 }
 
 /**
@@ -284,9 +283,7 @@ export async function getUserBulkJobs(uid: string): Promise<BulkJob[]> {
     try {
       const q = query(
         collection(db, JOBS_COLLECTION),
-        where('uid', '==', uid),
-        orderBy('createdAt', 'desc'),
-        limit(50)
+        where('uid', '==', uid)
       );
       const snapshot = await getDocs(q);
       list = snapshot.docs.map((d) => d.data() as BulkJob);
@@ -300,7 +297,9 @@ export async function getUserBulkJobs(uid: string): Promise<BulkJob[]> {
     list = local;
   }
 
-  return list;
+  return list
+    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+    .slice(0, 50);
 }
 
 /**
@@ -336,6 +335,34 @@ export async function updateJobStatus(
       await updateDoc(docRef, payload);
     } catch (err) {
       console.warn('Firestore updateJobStatus error:', err);
+    }
+  }
+}
+
+/**
+ * Updates arbitrary fields of a bulk job
+ */
+export async function updateBulkJob(
+  jobId: string,
+  data: Partial<BulkJob>
+): Promise<void> {
+  const now = new Date().toISOString();
+  const payload: Partial<BulkJob> = {
+    ...data,
+    updatedAt: now,
+  };
+
+  const localList = getLocalJobs().map((j) =>
+    j.id === jobId ? { ...j, ...payload } : j
+  );
+  saveLocalJobs(localList);
+
+  if (isFirebaseConfigured && db) {
+    try {
+      const docRef = doc(db, JOBS_COLLECTION, jobId);
+      await updateDoc(docRef, payload);
+    } catch (err) {
+      console.warn('Firestore updateBulkJob error:', err);
     }
   }
 }

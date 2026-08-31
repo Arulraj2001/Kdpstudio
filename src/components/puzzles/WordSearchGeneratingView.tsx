@@ -13,6 +13,9 @@ import {
 import { getPuzzleBook } from '../../lib/puzzleService';
 import { PuzzleBook } from '../../types/puzzle';
 
+import { runPuzzleBookGeneration, GenerationProgressUpdate } from '../../lib/puzzles/puzzleGenerationEngine';
+import { exportPuzzleBookPdfClient } from '../../lib/puzzles/puzzleClientExport';
+
 interface WordSearchGeneratingViewProps {
   bookId: string;
   onPreviewBook: (bookId: string) => void;
@@ -31,98 +34,76 @@ export const WordSearchGeneratingView: React.FC<WordSearchGeneratingViewProps> =
   const [totalCount, setTotalCount] = useState(25);
   const [isComplete, setIsComplete] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const isGeneratingRef = React.useRef(false);
 
-  // 1. Initial fetch & SSE connection
+  // 1. Initial load & client generation engine execution
   useEffect(() => {
-    let sse: EventSource | null = null;
+    let isMounted = true;
 
-    // Load initial book meta
-    getPuzzleBook(bookId).then((b) => {
-      if (b) {
-        setBook(b);
-        const count = b.settings?.pageCount || 25;
-        setTotalCount(count);
-        if (b.status === 'complete') {
-          setIsComplete(true);
-          setProgress(1.0);
-          setCompletedCount(b.pages?.length || count);
-          setActionText('Your book is ready! 🎉');
-        }
+    const startOrPollGeneration = async () => {
+      const b = await getPuzzleBook(bookId);
+      if (!b || !isMounted) return;
+
+      setBook(b);
+      const count = b.settings?.pageCount || 25;
+      setTotalCount(count);
+
+      if (b.status === 'complete' && b.pages && b.pages.length > 0) {
+        setIsComplete(true);
+        setProgress(1.0);
+        setCompletedCount(b.pages.length);
+        setActionText('Your book is ready! 🎉');
+        return;
       }
-    });
 
-    try {
-      sse = new EventSource(`/api/puzzles/word-search/progress/${bookId}`);
-      sse.onmessage = (event) => {
+      // If not yet generated, run client-side puzzle generation engine
+      if (!isGeneratingRef.current && (b.status === 'generating' || !b.pages || b.pages.length === 0)) {
+        isGeneratingRef.current = true;
         try {
-          const data = JSON.parse(event.data);
-          if (data) {
-            if (data.progress !== undefined) setProgress(data.progress);
-            if (data.currentAction) setActionText(data.currentAction);
-            if (data.completedCount !== undefined) setCompletedCount(data.completedCount);
-            if (data.totalCount !== undefined) setTotalCount(data.totalCount);
-            if (data.status === 'complete') {
+          const generatedPages = await runPuzzleBookGeneration(bookId, b.settings, (update: GenerationProgressUpdate) => {
+            if (!isMounted) return;
+            setProgress(update.progress);
+            setActionText(update.currentAction);
+            setCompletedCount(update.completedCount);
+            setTotalCount(update.totalCount);
+            if (update.status === 'complete') {
               setIsComplete(true);
               setProgress(1.0);
               setActionText('Your book is ready! 🎉');
-              sse?.close();
             }
-          }
-        } catch {}
-      };
-      sse.onerror = () => {
-        sse?.close();
-      };
-    } catch {}
+          });
 
-    // 2. Fallback polling every 3 seconds
-    const interval = setInterval(async () => {
-      const b = await getPuzzleBook(bookId);
-      if (b) {
-        setBook(b);
-        const pagesLength = b.pages?.length || 0;
-        setCompletedCount(pagesLength);
-        if (b.status === 'complete') {
-          setIsComplete(true);
-          setProgress(1.0);
-          setActionText('Your book is ready! 🎉');
-          clearInterval(interval);
-        } else if (pagesLength > 0 && totalCount > 0) {
-          setProgress(Math.max(progress, pagesLength / totalCount));
+          if (isMounted) {
+            const updated = await getPuzzleBook(bookId);
+            if (updated) setBook(updated);
+            setIsComplete(true);
+            setProgress(1.0);
+            setCompletedCount(generatedPages.length);
+          }
+        } catch (err) {
+          console.error('Client generation error:', err);
+        } finally {
+          isGeneratingRef.current = false;
         }
       }
-    }, 3000);
+    };
+
+    startOrPollGeneration();
 
     return () => {
-      sse?.close();
-      clearInterval(interval);
+      isMounted = false;
     };
   }, [bookId]);
 
-  // Download PDF directly from API
+  // Export PDF directly with 300 DPI client engine
   const handleExportPdf = async () => {
+    if (!book) return;
     setIsExporting(true);
     try {
-      const response = await fetch('/api/puzzles/word-search/export-pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookId }),
-      });
-
-      if (!response.ok) throw new Error('PDF export request failed');
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${(book?.settings.title || 'word_search').toLowerCase().replace(/[^a-z0-9]/g, '_')}_interior.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      await exportPuzzleBookPdfClient(book);
     } catch (err) {
-      console.error('PDF download error:', err);
-      if (onExportPdf) onExportPdf(bookId);
+      console.error('PDF export error:', err);
+      alert('Could not export PDF. Please try again.');
     } finally {
       setIsExporting(false);
     }

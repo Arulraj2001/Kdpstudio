@@ -18,6 +18,7 @@ import {
 import { getPuzzleBook, updatePuzzleBook, updatePuzzlePage } from '../../lib/puzzleService';
 import { PuzzleBook, PuzzlePage, WordSearchSettings } from '../../types/puzzle';
 import { generateWordSearchGrid, generateAnswerGrid, WordSearchResult } from '../../lib/puzzles/wordSearch';
+import { exportPuzzleBookPdfClient } from '../../lib/puzzles/puzzleClientExport';
 import { useBookStore } from '../../lib/store';
 
 interface WordSearchDetailViewProps {
@@ -138,30 +139,15 @@ export const WordSearchDetailView: React.FC<WordSearchDetailViewProps> = ({
     setSelectedPageIndex(updatedPages.length - 1);
   };
 
-  // Export PDF
+  // Export PDF with client-side 300 DPI engine
   const handleExportPdf = async () => {
     if (!book) return;
     setIsExporting(true);
     try {
-      const res = await fetch('/api/puzzles/word-search/export-pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookId: book.id }),
-      });
-
-      if (!res.ok) throw new Error('PDF export failed');
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${book.settings.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_interior.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      await exportPuzzleBookPdfClient(book);
     } catch (err) {
       console.error('PDF export error:', err);
+      alert('Could not export PDF. Please try again.');
     } finally {
       setIsExporting(false);
     }

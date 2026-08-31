@@ -11,6 +11,9 @@ import {
 import { getPuzzleBook } from '../../lib/puzzleService';
 import { PuzzleBook } from '../../types/puzzle';
 
+import { runPuzzleBookGeneration, GenerationProgressUpdate } from '../../lib/puzzles/puzzleGenerationEngine';
+import { exportPuzzleBookPdfClient } from '../../lib/puzzles/puzzleClientExport';
+
 interface ColoringGeneratingViewProps {
   bookId: string;
   onPreviewBook: (bookId: string) => void;
@@ -29,94 +32,73 @@ export const ColoringGeneratingView: React.FC<ColoringGeneratingViewProps> = ({
   const [totalCount, setTotalCount] = useState(20);
   const [isComplete, setIsComplete] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const isGeneratingRef = React.useRef(false);
 
   useEffect(() => {
-    let sse: EventSource | null = null;
+    let isMounted = true;
 
-    getPuzzleBook(bookId).then((b) => {
-      if (b) {
-        setBook(b);
-        const count = b.settings?.pageCount || 20;
-        setTotalCount(count);
-        if (b.status === 'complete') {
-          setIsComplete(true);
-          setProgress(1.0);
-          setCompletedCount(b.pages?.length || count);
-          setActionText('Your Coloring Book is ready! 🎉');
-        }
+    const startOrPollGeneration = async () => {
+      const b = await getPuzzleBook(bookId);
+      if (!b || !isMounted) return;
+
+      setBook(b);
+      const count = b.settings?.pageCount || 20;
+      setTotalCount(count);
+
+      if (b.status === 'complete' && b.pages && b.pages.length > 0) {
+        setIsComplete(true);
+        setProgress(1.0);
+        setCompletedCount(b.pages.length);
+        setActionText('Your Coloring Book is ready! 🎉');
+        return;
       }
-    });
 
-    try {
-      sse = new EventSource(`/api/puzzles/coloring/progress/${bookId}`);
-      sse.onmessage = (event) => {
+      if (!isGeneratingRef.current && (b.status === 'generating' || !b.pages || b.pages.length === 0)) {
+        isGeneratingRef.current = true;
         try {
-          const data = JSON.parse(event.data);
-          if (data) {
-            if (data.progress !== undefined) setProgress(data.progress);
-            if (data.currentAction) setActionText(data.currentAction);
-            if (data.completedCount !== undefined) setCompletedCount(data.completedCount);
-            if (data.totalCount !== undefined) setTotalCount(data.totalCount);
-            if (data.status === 'complete') {
+          const generatedPages = await runPuzzleBookGeneration(bookId, b.settings, (update: GenerationProgressUpdate) => {
+            if (!isMounted) return;
+            setProgress(update.progress);
+            setActionText(update.currentAction);
+            setCompletedCount(update.completedCount);
+            setTotalCount(update.totalCount);
+            if (update.status === 'complete') {
               setIsComplete(true);
               setProgress(1.0);
               setActionText('Your Coloring Book is ready! 🎉');
-              sse?.close();
             }
-          }
-        } catch {}
-      };
-      sse.onerror = () => {
-        sse?.close();
-      };
-    } catch {}
+          });
 
-    const interval = setInterval(async () => {
-      const b = await getPuzzleBook(bookId);
-      if (b) {
-        setBook(b);
-        const pagesLength = b.pages?.length || 0;
-        setCompletedCount(pagesLength);
-        if (b.status === 'complete') {
-          setIsComplete(true);
-          setProgress(1.0);
-          setActionText('Your Coloring Book is ready! 🎉');
-          clearInterval(interval);
-        } else if (pagesLength > 0 && totalCount > 0) {
-          setProgress(Math.max(progress, pagesLength / totalCount));
+          if (isMounted) {
+            const updated = await getPuzzleBook(bookId);
+            if (updated) setBook(updated);
+            setIsComplete(true);
+            setProgress(1.0);
+            setCompletedCount(generatedPages.length);
+          }
+        } catch (err) {
+          console.error('Coloring book generation error:', err);
+        } finally {
+          isGeneratingRef.current = false;
         }
       }
-    }, 3000);
+    };
+
+    startOrPollGeneration();
 
     return () => {
-      sse?.close();
-      clearInterval(interval);
+      isMounted = false;
     };
   }, [bookId]);
 
   const handleExportPdf = async () => {
+    if (!book) return;
     setIsExporting(true);
     try {
-      const response = await fetch('/api/puzzles/coloring/export-pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookId }),
-      });
-
-      if (!response.ok) throw new Error('PDF export request failed');
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${(book?.settings.title || 'coloring_book').toLowerCase().replace(/[^a-z0-9]/g, '_')}_interior.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      await exportPuzzleBookPdfClient(book);
     } catch (err) {
       console.error('PDF download error:', err);
-      if (onExportPdf) onExportPdf(bookId);
+      alert('Could not export PDF. Please try again.');
     } finally {
       setIsExporting(false);
     }
