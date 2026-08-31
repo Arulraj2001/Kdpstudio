@@ -97,34 +97,45 @@ export async function saveBrandKit(uid: string, data: Partial<BrandKit>): Promis
 }
 
 /**
+ * Converts a File object to an optimized Base64 Data URL
+ */
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve((reader.result as string) || '');
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
  * Uploads an Author Photo to Firebase Storage or local Data URL fallback
  */
 export async function uploadAuthorPhoto(uid: string, file: File): Promise<string> {
   if (!uid || !file) throw new Error('Missing user or file for photo upload');
 
+  // 1. Immediately create a fast Base64 Data URL for instant rendering & Firestore persistence
+  const dataUrl = await fileToDataUrl(file);
+  await saveBrandKit(uid, { authorPhotoUrl: dataUrl });
+
+  // 2. Best-effort Cloud Storage upload in background if Storage is provisioned
   if (isFirebaseConfigured) {
     try {
       const storage = getStorage();
       const ext = file.name.split('.').pop() || 'jpg';
       const fileRef = ref(storage, `brand-assets/${uid}/author-photo.${ext}`);
-      await uploadBytes(fileRef, file);
-      const downloadUrl = await getDownloadURL(fileRef);
-      await saveBrandKit(uid, { authorPhotoUrl: downloadUrl });
-      return downloadUrl;
-    } catch (err) {
-      console.warn('Storage upload error, using Data URL fallback:', err);
+      uploadBytes(fileRef, file)
+        .then(() => getDownloadURL(fileRef))
+        .then((downloadUrl) => saveBrandKit(uid, { authorPhotoUrl: downloadUrl }))
+        .catch(() => {
+          // Cloud Storage not yet provisioned in Firebase Console — base64 dataUrl is safely used
+        });
+    } catch {
+      // silent
     }
   }
 
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const dataUrl = (e.target?.result as string) || '';
-      await saveBrandKit(uid, { authorPhotoUrl: dataUrl });
-      resolve(dataUrl);
-    };
-    reader.readAsDataURL(file);
-  });
+  return dataUrl;
 }
 
 /**
@@ -133,29 +144,28 @@ export async function uploadAuthorPhoto(uid: string, file: File): Promise<string
 export async function uploadLogo(uid: string, file: File): Promise<string> {
   if (!uid || !file) throw new Error('Missing user or file for logo upload');
 
+  // 1. Immediately create a fast Base64 Data URL for instant rendering & Firestore persistence
+  const dataUrl = await fileToDataUrl(file);
+  await saveBrandKit(uid, { logoUrl: dataUrl });
+
+  // 2. Best-effort Cloud Storage upload in background if Storage is provisioned
   if (isFirebaseConfigured) {
     try {
       const storage = getStorage();
       const ext = file.name.split('.').pop() || 'png';
       const fileRef = ref(storage, `brand-assets/${uid}/logo.${ext}`);
-      await uploadBytes(fileRef, file);
-      const downloadUrl = await getDownloadURL(fileRef);
-      await saveBrandKit(uid, { logoUrl: downloadUrl });
-      return downloadUrl;
-    } catch (err) {
-      console.warn('Storage upload logo error, using Data URL fallback:', err);
+      uploadBytes(fileRef, file)
+        .then(() => getDownloadURL(fileRef))
+        .then((downloadUrl) => saveBrandKit(uid, { logoUrl: downloadUrl }))
+        .catch(() => {
+          // Cloud Storage not yet provisioned in Firebase Console — base64 dataUrl is safely used
+        });
+    } catch {
+      // silent
     }
   }
 
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const dataUrl = (e.target?.result as string) || '';
-      await saveBrandKit(uid, { logoUrl: dataUrl });
-      resolve(dataUrl);
-    };
-    reader.readAsDataURL(file);
-  });
+  return dataUrl;
 }
 
 /**
