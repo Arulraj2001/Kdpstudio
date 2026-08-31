@@ -20,6 +20,12 @@ import {
   Search,
   PanelLeftClose,
   PanelLeft,
+  Timer,
+  Layers,
+  Flower2,
+  Upload,
+  Moon,
+  BarChart2,
 } from 'lucide-react';
 import { Book, Chapter, FrontMatter, BackMatter } from '../../types/index';
 import { ContentAuditReport } from '../../types/audit';
@@ -35,6 +41,12 @@ import { AuditPanel } from '../audit/AuditPanel';
 import { FullAuditReportView } from '../audit/FullAuditReportView';
 import { useStudioDrawerStore } from '../../lib/studioDrawerStore';
 import { callGemini } from '../../lib/gemini';
+import { StoryBeatsModal } from './StoryBeatsModal';
+import { WritingSprintModal } from './WritingSprintModal';
+import { ZenModeOverlay } from './ZenModeOverlay';
+import { OrnamentalDividerModal } from './OrnamentalDividerModal';
+import { ManuscriptImportModal } from './ManuscriptImportModal';
+import { analyzeReadability } from '../../lib/readabilityMetrics';
 
 interface ChapterStudioProps {
   bookId: string;
@@ -69,6 +81,14 @@ export const ChapterStudio: React.FC<ChapterStudioProps> = ({
   const [isAiWriteOpen, setIsAiWriteOpen] = useState(false);
   const [activeAuditReport, setActiveAuditReport] = useState<ContentAuditReport | null>(null);
   const { activeDrawer, openDrawer, closeDrawer, toggleDrawer } = useStudioDrawerStore();
+
+  // New feature modals
+  const [isStoryBeatsOpen, setIsStoryBeatsOpen] = useState(false);
+  const [isSprintOpen, setIsSprintOpen] = useState(false);
+  const [isZenModeOpen, setIsZenModeOpen] = useState(false);
+  const [isDividerOpen, setIsDividerOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [showReadabilityPanel, setShowReadabilityPanel] = useState(false);
 
   // Save states
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
@@ -350,6 +370,66 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
+          {/* Manuscript Import */}
+          <button
+            type="button"
+            id="btn-open-manuscript-import"
+            onClick={() => setIsImportOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+            title="Import Manuscript (.txt, .md)"
+          >
+            <Upload className="w-3.5 h-3.5 text-purple-600" />
+            <span className="hidden lg:inline">Import</span>
+          </button>
+
+          {/* Story Beats */}
+          <button
+            type="button"
+            id="btn-open-story-beats"
+            onClick={() => setIsStoryBeatsOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+            title="Story Beat Frameworks"
+          >
+            <Layers className="w-3.5 h-3.5 text-purple-600" />
+            <span className="hidden lg:inline">Beats</span>
+          </button>
+
+          {/* Writing Sprint */}
+          <button
+            type="button"
+            id="btn-open-writing-sprint"
+            onClick={() => setIsSprintOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+            title="Writing Sprint Timer"
+          >
+            <Timer className="w-3.5 h-3.5 text-purple-600" />
+            <span className="hidden lg:inline">Sprint</span>
+          </button>
+
+          {/* Zen Mode */}
+          <button
+            type="button"
+            id="btn-open-zen-mode"
+            onClick={() => setIsZenModeOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+            title="Zen Focus Mode"
+          >
+            <Moon className="w-3.5 h-3.5 text-purple-600" />
+            <span className="hidden lg:inline">Zen</span>
+          </button>
+
+          {/* Ornamental Dividers */}
+          <button
+            type="button"
+            id="btn-open-dividers"
+            onClick={() => setIsDividerOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+            title="Ornamental Dividers & Drop Caps"
+          >
+            <Flower2 className="w-3.5 h-3.5 text-purple-600" />
+            <span className="hidden lg:inline">Ornaments</span>
+          </button>
+
           {/* Front Matter Modal Button */}
           <button
             type="button"
@@ -358,7 +438,7 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
           >
             <FileText className="w-3.5 h-3.5 text-purple-600" />
-            <span className="hidden sm:inline">Front Matter</span>
+            <span className="hidden sm:inline">Front</span>
           </button>
 
           {/* Back Matter Modal Button */}
@@ -369,7 +449,7 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
           >
             <BookmarkCheck className="w-3.5 h-3.5 text-purple-600" />
-            <span className="hidden sm:inline">Back Matter</span>
+            <span className="hidden sm:inline">Back</span>
           </button>
 
           {/* Version History Button */}
@@ -412,7 +492,7 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 transition-colors"
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>AI Write Chapter</span>
+            <span>AI Write</span>
           </button>
 
           {/* AI Continue Button */}
@@ -560,26 +640,72 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
           </div>
 
           {/* Bottom Editor Status Bar */}
-          <footer className="h-9 border-t border-slate-200 bg-white px-6 flex items-center justify-between text-[11px] text-slate-500 shrink-0">
-            <div className="flex items-center gap-4">
-              <span className="font-semibold text-slate-700">
-                {activeChapter?.title || 'Chapter'}
-              </span>
-              <span className="hidden sm:inline text-slate-300">|</span>
-              <span className="hidden sm:inline text-slate-500">
-                Auto-saved: {lastSavedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </span>
+          <footer className="border-t border-slate-200 bg-white px-6 flex flex-col shrink-0">
+            <div className="h-9 flex items-center justify-between text-[11px] text-slate-500">
+              <div className="flex items-center gap-3">
+                <span className="font-semibold text-slate-700">
+                  {activeChapter?.title || 'Chapter'}
+                </span>
+                <span className="hidden sm:inline text-slate-300">|</span>
+                <span className="hidden sm:inline text-slate-500">
+                  Saved: {lastSavedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3 font-mono">
+                <span className="font-semibold text-purple-700">
+                  {liveWordCount.toLocaleString()} words
+                </span>
+                <span className="text-slate-300">|</span>
+                <span className="text-slate-600">
+                  ~{Math.max(1, Math.ceil(liveWordCount / 250))} pages
+                </span>
+                <button
+                  onClick={() => setShowReadabilityPanel((v) => !v)}
+                  title="Toggle Readability Analysis"
+                  className={`ml-1 flex items-center gap-1 px-2 py-0.5 rounded-md transition-colors text-[10px] font-semibold ${
+                    showReadabilityPanel ? 'bg-purple-100 text-purple-700' : 'text-slate-400 hover:text-purple-600 hover:bg-purple-50'
+                  }`}
+                >
+                  <BarChart2 className="w-3 h-3" />
+                  <span className="hidden sm:inline">Analytics</span>
+                </button>
+              </div>
             </div>
 
-            <div className="flex items-center gap-4 font-mono">
-              <span className="font-semibold text-purple-700">
-                {liveWordCount.toLocaleString()} words
-              </span>
-              <span className="text-slate-300">|</span>
-              <span className="text-slate-600">
-                ~{Math.max(1, Math.ceil(liveWordCount / 250))} book pages ({currentBook.trimSize})
-              </span>
-            </div>
+            {/* Readability Analytics Panel */}
+            {showReadabilityPanel && (() => {
+              const html = editor ? editor.getHTML() : '';
+              const metrics = analyzeReadability(html);
+              return (
+                <div className="border-t border-slate-100 py-2 px-1 grid grid-cols-4 sm:grid-cols-6 gap-3 text-[10px]">
+                  <div>
+                    <p className="text-slate-400">Readability</p>
+                    <p className="font-bold" style={{ color: metrics.readabilityColor }}>{metrics.readabilityLabel}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-400">Grade Level</p>
+                    <p className="font-bold text-slate-700">Grade {metrics.fleschKincaidGrade.toFixed(1)}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-400">Flesch Score</p>
+                    <p className="font-bold text-slate-700">{metrics.fleschReadingEase}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-400">Read Time</p>
+                    <p className="font-bold text-slate-700">{metrics.readingTimeMinutes.toFixed(0)}m</p>
+                  </div>
+                  <div className="hidden sm:block">
+                    <p className="text-slate-400">Audiobook</p>
+                    <p className="font-bold text-slate-700">{metrics.audiobookHours > 0 ? `${metrics.audiobookHours}h ` : ''}{metrics.audiobookMinutes}m</p>
+                  </div>
+                  <div className="hidden sm:block">
+                    <p className="text-slate-400">Dialogue</p>
+                    <p className="font-bold text-slate-700">{metrics.dialogueRatio}%</p>
+                  </div>
+                </div>
+              );
+            })()}
           </footer>
         </main>
       </div>
@@ -650,6 +776,64 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
           />
         </div>
       )}
+
+      {/* Story Beats Modal */}
+      <StoryBeatsModal
+        isOpen={isStoryBeatsOpen}
+        onClose={() => setIsStoryBeatsOpen(false)}
+        bookTitle={currentBook.title}
+        bookGenre={currentBook.genre}
+        currentWordTarget={60000}
+        onApplyFramework={(chapters) => {
+          if (!currentBook) return;
+          chapters.forEach((ch) => {
+            addChapter(currentBook.id, ch.title);
+          });
+        }}
+      />
+
+      {/* Writing Sprint Modal */}
+      <WritingSprintModal
+        isOpen={isSprintOpen}
+        onClose={() => setIsSprintOpen(false)}
+        currentWordCount={liveWordCount}
+        bookTitle={currentBook.title}
+      />
+
+      {/* Zen Mode Overlay */}
+      <ZenModeOverlay
+        isOpen={isZenModeOpen}
+        onClose={() => setIsZenModeOpen(false)}
+        wordCount={liveWordCount}
+        chapterTitle={activeChapter?.title || 'Chapter'}
+      >
+        <EditorContent editor={editor} />
+      </ZenModeOverlay>
+
+      {/* Ornamental Divider Modal */}
+      <OrnamentalDividerModal
+        isOpen={isDividerOpen}
+        onClose={() => setIsDividerOpen(false)}
+        editor={editor}
+      />
+
+      {/* Manuscript Import Modal */}
+      <ManuscriptImportModal
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
+        bookTitle={currentBook.title}
+        onImportChapters={(chapters) => {
+          if (!currentBook) return;
+          chapters.forEach((ch) => {
+            const newChap = addChapter(currentBook.id, ch.title);
+            updateChapter(currentBook.id, newChap.id, {
+              content: ch.content,
+              wordCount: ch.wordCount,
+            });
+          });
+          setIsImportOpen(false);
+        }}
+      />
     </div>
   );
 };
