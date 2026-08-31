@@ -186,6 +186,20 @@ export const FormatterView: React.FC = () => {
         </div>
       </div>
 
+      {/* Top Export Bar & Quality Audit Card */}
+      <section className="pt-1">
+        <FormatterExportBar
+          book={previewBook}
+          settings={{
+            ...settings,
+            customText: isCustomTextMode ? customText : undefined,
+          }}
+          margins={calculatedMargins}
+          trimDimensions={trimDimensions}
+          estimatedPages={estimatedPages}
+        />
+      </section>
+
       {/* Main Two-Panel Layout: Left 35% Settings | Right 65% Live Preview */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Settings Panel (35% -> lg:col-span-4 or 5) */}
@@ -222,20 +236,6 @@ export const FormatterView: React.FC = () => {
           />
         </main>
       </div>
-
-      {/* Bottom Export Bar */}
-      <footer className="pt-2">
-        <FormatterExportBar
-          book={previewBook}
-          settings={{
-            ...settings,
-            customText: isCustomTextMode ? customText : undefined,
-          }}
-          margins={calculatedMargins}
-          trimDimensions={trimDimensions}
-          estimatedPages={estimatedPages}
-        />
-      </footer>
     </div>
   );
 };

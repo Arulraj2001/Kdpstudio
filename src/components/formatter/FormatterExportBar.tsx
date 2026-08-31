@@ -162,24 +162,26 @@ export const FormatterExportBar: React.FC<FormatterExportBarProps> = ({
       {book && (
         <>
           {!auditReport ? (
-            <div className="p-3.5 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/60 rounded-xl flex items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2.5 text-blue-800 dark:text-blue-200">
-                <Search className="w-4 h-4 text-blue-500 shrink-0" />
-                <span>
-                  💡 <b>Pre-Export Quality Check:</b> Run a content audit before exporting to catch
-                  potential KDP policy flags &amp; formatting gaps.
+            <div className="p-3.5 bg-gradient-to-r from-indigo-50/90 via-purple-50/70 to-slate-50 border border-indigo-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-2xs">
+              <div className="flex items-center gap-2.5 text-slate-800">
+                <div className="p-1.5 rounded-lg bg-indigo-100 text-indigo-700 shrink-0">
+                  <Search className="w-4 h-4" />
+                </div>
+                <span className="leading-relaxed">
+                  <b className="text-indigo-950 font-bold">💡 Pre-Export Quality Check:</b>{' '}
+                  <span className="text-slate-700 font-medium">Run a content audit before exporting to catch potential KDP policy flags &amp; formatting gaps.</span>
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setIsAuditOpen(true)}
-                className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] shrink-0 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shrink-0 shadow-xs transition-colors cursor-pointer"
               >
                 Run Quick Audit
               </button>
             </div>
           ) : (
-            <div className="p-3.5 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between gap-3 text-xs">
+            <div className="p-3.5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-sm text-white">
               <div className="flex items-center gap-2.5">
                 {auditReport.overallScore >= 80 ? (
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -196,14 +198,14 @@ export const FormatterExportBar: React.FC<FormatterExportBarProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsFullReportOpen(true)}
-                  className="text-purple-400 hover:text-purple-300 font-bold text-[11px] cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 font-bold text-xs cursor-pointer transition-colors"
                 >
                   View Audit Report
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsAuditOpen(true)}
-                  className="text-slate-400 hover:text-white font-semibold text-[11px] ml-2 cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-xs ml-1 cursor-pointer transition-colors"
                 >
                   Re-Run
                 </button>
@@ -214,34 +216,34 @@ export const FormatterExportBar: React.FC<FormatterExportBarProps> = ({
       )}
 
       {/* Main Bottom Bar */}
-      <div className="bg-white dark:bg-[#1a1a2e] rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">
+      <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3 w-full lg:w-auto">
+          <div className="p-2.5 rounded-xl bg-purple-100 text-purple-700 shrink-0">
             <BookCheck className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-sm font-bold text-gray-900 dark:text-white">
+            <div className="text-sm font-bold text-slate-900">
               Ready for Amazon KDP Paperback Upload
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="text-xs text-slate-500">
               Formatted according to Amazon KDP bleed, gutter, and safety margin standards.
             </div>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+        <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-end">
           {/* Print Preview In New Tab */}
           <button
             type="button"
             id="btn-print-preview"
             onClick={handleOpenPrintPreview}
             disabled={!book}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#131320] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition-colors shadow-2xs"
             title="Open HTML print view in new browser tab"
           >
             <Printer className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">Print Preview</span>
+            <span>Print Preview</span>
           </button>
 
           {/* Export as DOCX */}
@@ -250,7 +252,7 @@ export const FormatterExportBar: React.FC<FormatterExportBarProps> = ({
             id="btn-export-docx"
             onClick={handleExportDocx}
             disabled={!book || isDocxExporting}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/60 disabled:opacity-50 transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 disabled:opacity-50 transition-colors shadow-2xs"
           >
             {isDocxExporting ? (
               <>
@@ -271,7 +273,7 @@ export const FormatterExportBar: React.FC<FormatterExportBarProps> = ({
             id="btn-export-pdf"
             onClick={handleExportPdf}
             disabled={!book || isPdfExporting}
-            className="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold rounded-lg bg-purple-600 hover:bg-purple-700 text-white shadow-md disabled:opacity-60 transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold rounded-xl bg-purple-600 hover:bg-purple-700 text-white shadow-sm disabled:opacity-60 transition-all cursor-pointer"
           >
             {isPdfExporting ? (
               <>
