@@ -79,6 +79,7 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [paymentNotice, setPaymentNotice] = useState<{ type: 'success' | 'cancelled' | 'error'; message: string } | null>(null);
+  const growthPromo = getGrowthPromo();
 
   // Initialize and refresh real-time pricing on page mount
   useEffect(() => {
