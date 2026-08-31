@@ -78,12 +78,6 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [paymentNotice, setPaymentNotice] = useState<{ type: 'success' | 'cancelled' | 'error'; message: string } | null>(null);
-  const [selectedPlanForCheckout, setSelectedPlanForCheckout] = useState<{
-    plan: PlanName;
-    amount: number;
-    currency: Currency;
-  } | null>(null);
-  const [activeGatewayTab, setActiveGatewayTab] = useState<'paypal' | 'razorpay' | 'upi'>('paypal');
 
   // Initialize and refresh real-time pricing on page mount
   useEffect(() => {
@@ -142,28 +136,19 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
     if (pricingOverrides.agencyAnnualInr) agencyAnnual = pricingOverrides.agencyAnnualInr;
   }
 
-  const starterPrice = billingCycle === 'monthly' ? starterMonthly : starterAnnual;
-  const proPrice = billingCycle === 'monthly' ? proMonthly : proAnnual;
-  const agencyPrice = billingCycle === 'monthly' ? agencyMonthly : agencyAnnual;
-
-  const handleSelectPlan = (plan: PlanName) => {
-    if (plan === 'free') {
-      if (onNavigate) onNavigate('dashboard');
+  const handleSelectPlan = (planKey: string) => {
+    if (planKey === 'free') {
+      if (user) onNavigate('dashboard');
+      else onNavigate('signup');
       return;
     }
 
-    const amount =
-      plan === 'starter'
-        ? starterPrice
-        : plan === 'pro'
-        ? proPrice
-        : agencyPrice;
+    if (!user) {
+      onNavigate('signup');
+      return;
+    }
 
-    setSelectedPlanForCheckout({
-      plan,
-      amount,
-      currency: currKey,
-    });
+    useCheckoutStore.getState().open(planKey as PlanName, billingCycle);
   };
 
   const faqs = [
@@ -672,172 +657,6 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
           })}
         </div>
       </section>
-
-      {/* Interactive Checkout Modal */}
-      {selectedPlanForCheckout && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-800 p-6 text-white relative">
-              <button
-                type="button"
-                onClick={() => setSelectedPlanForCheckout(null)}
-                className="absolute top-4 right-4 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-                aria-label="Close modal"
-              >
-                <X size={18} />
-              </button>
-
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-purple-200 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/15">
-                  Secure Checkout
-                </span>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-purple-100 bg-purple-900/40 px-2 py-0.5 rounded-full">
-                  {billingCycle}
-                </span>
-              </div>
-
-              <h3 className="text-2xl font-black text-white capitalize">
-                {selectedPlanForCheckout.plan} Plan
-              </h3>
-              <p className="text-xs text-purple-100 mt-1">
-                Instant activation of all premium publishing and AI generation tools.
-              </p>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6 space-y-5">
-              {/* Total summary */}
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-purple-50/70 border border-purple-100">
-                <div>
-                  <div className="text-xs font-bold text-purple-900">Total Subscription</div>
-                  <div className="text-[11px] text-purple-600">
-                    Billed in {selectedPlanForCheckout.currency}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-black text-purple-950">
-                    {formatPrice(selectedPlanForCheckout.amount, selectedPlanForCheckout.currency)}
-                  </div>
-                  <div className="text-[10px] text-slate-500 font-medium">
-                    {billingCycle === 'annual' ? 'for 12 months' : 'per month'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Payment Gateway Selector Tabs */}
-              <div className="space-y-1.5">
-                <div className="text-xs font-bold text-slate-700">Select Payment Method</div>
-                <div className="grid grid-cols-3 gap-1.5 bg-slate-100 p-1 rounded-xl">
-                  <button
-                    type="button"
-                    onClick={() => setActiveGatewayTab('paypal')}
-                    className={`flex items-center justify-center gap-1 py-2 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      activeGatewayTab === 'paypal'
-                        ? 'bg-white text-sky-900 shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.006.402 5.43 0 5.933 0h7.828c2.992 0 5.412.75 6.469 2.233.978 1.373.978 3.327.02 5.864-.139.37-.306.732-.501 1.082-.016.03-.033.06-.051.09-.916 1.488-2.316 2.502-4.161 3.016 1.956.494 3.019 1.83 2.593 4.025-.561 2.893-2.923 4.417-7.02 4.417H9.288a.641.641 0 0 0-.633.541l-.988 4.793a.64.64 0 0 1-.591.376z" fill="#003087" />
-                    </svg>
-                    <span className="truncate">PayPal</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveGatewayTab('razorpay')}
-                    className={`flex items-center justify-center gap-1 py-2 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      activeGatewayTab === 'razorpay'
-                        ? 'bg-white text-indigo-900 shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    <CreditCard size={13} className="text-indigo-600 shrink-0" />
-                    <span className="truncate">Razorpay</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveGatewayTab('upi')}
-                    className={`flex items-center justify-center gap-1 py-2 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      activeGatewayTab === 'upi'
-                        ? 'bg-white text-purple-900 shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    <span className="w-3.5 h-3.5 rounded bg-purple-600 text-white flex items-center justify-center text-[8px] font-black shrink-0">₹</span>
-                    <span className="truncate">UPI QR</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Active Gateway Checkout */}
-              {activeGatewayTab === 'paypal' ? (
-                <div className="space-y-2">
-                  <PayPalCheckout
-                    plan={selectedPlanForCheckout.plan}
-                    billingCycle={billingCycle}
-                    amount={selectedPlanForCheckout.amount}
-                    currency={selectedPlanForCheckout.currency}
-                    onError={(err) => {
-                      setPaymentNotice({
-                        type: 'error',
-                        message: err,
-                      });
-                      setSelectedPlanForCheckout(null);
-                    }}
-                  />
-                </div>
-              ) : activeGatewayTab === 'upi' ? (
-                <div className="space-y-2">
-                  <UpiPayment
-                    plan={selectedPlanForCheckout.plan}
-                    billingCycle={billingCycle}
-                    amount={selectedPlanForCheckout.currency === 'INR' 
-                      ? selectedPlanForCheckout.amount 
-                      : (selectedPlanForCheckout.plan === 'starter' 
-                          ? starterPrice
-                          : selectedPlanForCheckout.plan === 'agency'
-                          ? agencyPrice
-                          : proPrice)}
-                    onSubmitted={() => {
-                      setSelectedPlanForCheckout(null);
-                      setPaymentNotice({
-                        type: 'success',
-                        message: 'UPI payment submitted for manual verification. We will email you once approved!',
-                      });
-                    }}
-                    onBack={() => setSelectedPlanForCheckout(null)}
-                  />
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <RazorpayCheckout
-                    plan={selectedPlanForCheckout.plan}
-                    billingCycle={billingCycle}
-                    amount={selectedPlanForCheckout.currency === 'INR' 
-                      ? selectedPlanForCheckout.amount 
-                      : (selectedPlanForCheckout.plan === 'starter' 
-                          ? starterPrice
-                          : selectedPlanForCheckout.plan === 'agency'
-                          ? agencyPrice
-                          : proPrice)}
-                    onSuccess={() => {
-                      setSelectedPlanForCheckout(null);
-                      onNavigate('dashboard');
-                    }}
-                    onError={(err) => {
-                      console.warn('Checkout error:', err);
-                    }}
-                    onClose={() => setSelectedPlanForCheckout(null)}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
     </div>
   );
