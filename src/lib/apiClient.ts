@@ -1,6 +1,19 @@
 import { auth } from './firebase';
 
 /**
+ * API Base URL — points to the Express/Render backend.
+ * Set VITE_API_BASE_URL in .env.local when the frontend (Firebase)
+ * is served from a different origin than the API (Render).
+ * Leave empty when both are served from the same server (Render direct).
+ */
+const API_BASE =
+  (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_BASE_URL) || '';
+
+export function getApiUrl(path: string): string {
+  return `${API_BASE}${path}`;
+}
+
+/**
  * Universal Client API Helper
  * Automatically attaches Firebase ID Token in Authorization: Bearer <token> header.
  */
@@ -42,7 +55,7 @@ export async function apiPost(
   customHeaders?: Record<string, string>
 ): Promise<Response> {
   const headers = await getAuthHeaders();
-  return fetch(url, {
+  return fetch(getApiUrl(url), {
     method: 'POST',
     headers: { ...headers, ...customHeaders },
     body: JSON.stringify(body),
@@ -54,7 +67,7 @@ export async function apiGet(
   customHeaders?: Record<string, string>
 ): Promise<Response> {
   const headers = await getAuthHeaders();
-  return fetch(url, {
+  return fetch(getApiUrl(url), {
     method: 'GET',
     headers: { ...headers, ...customHeaders },
   });
@@ -65,7 +78,7 @@ export async function apiDelete(
   customHeaders?: Record<string, string>
 ): Promise<Response> {
   const headers = await getAuthHeaders();
-  return fetch(url, {
+  return fetch(getApiUrl(url), {
     method: 'DELETE',
     headers: { ...headers, ...customHeaders },
   });
@@ -77,7 +90,7 @@ export async function apiPut(
   customHeaders?: Record<string, string>
 ): Promise<Response> {
   const headers = await getAuthHeaders();
-  return fetch(url, {
+  return fetch(getApiUrl(url), {
     method: 'PUT',
     headers: { ...headers, ...customHeaders },
     body: JSON.stringify(body),

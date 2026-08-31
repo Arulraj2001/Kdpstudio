@@ -121,7 +121,7 @@ export const useGeoStore = create<GeoState>()(
       return {
         location: null,
         currency: 'USD',
-        paymentMethods: ['paypal', 'bmac'],
+        paymentMethods: ['stripe', 'bmac'],
         pricingTable: computeDynamicPricingTable(null),
         pricingOverrides: null,
         isDetecting: false,

@@ -15,27 +15,11 @@ const getEnv = (key: string, fallback = ''): string => {
 };
 
 /**
- * Checks if Razorpay has valid client credentials configured
+ * Checks if Stripe has valid client credentials configured
  */
-export function isRazorpayConfigured(): boolean {
-  const key_id = getEnv('NEXT_PUBLIC_RAZORPAY_KEY_ID', getEnv('RAZORPAY_KEY_ID', getEnv('VITE_RAZORPAY_KEY_ID', '')));
-  return Boolean(key_id && key_id.trim().length > 0 && !key_id.includes('placeholder'));
-}
-
-/**
- * Checks if PayPal has valid client credentials configured
- */
-export function isPayPalConfigured(): boolean {
-  const clientId = getEnv('NEXT_PUBLIC_PAYPAL_CLIENT_ID', getEnv('PAYPAL_CLIENT_ID', getEnv('VITE_PAYPAL_CLIENT_ID', '')));
-  return Boolean(clientId && clientId.trim().length > 0 && !clientId.includes('placeholder'));
-}
-
-/**
- * Checks if Buy Me a Coffee URL is configured
- */
-export function isBmacConfigured(): boolean {
-  const url = getEnv('NEXT_PUBLIC_BMAC_URL', getEnv('VITE_BMAC_URL', ''));
-  return Boolean(url && url.trim().length > 0);
+export function isStripeConfigured(): boolean {
+  const key = getEnv('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY', getEnv('VITE_STRIPE_PUBLISHABLE_KEY', ''));
+  return Boolean(key && key.trim().length > 0 && !key.includes('placeholder'));
 }
 
 /**
@@ -47,24 +31,19 @@ export function isUpiConfigured(): boolean {
   return Boolean((upiId && upiId.trim().length > 0) || (qr && qr.trim().length > 0));
 }
 
-export type PaymentTab = 'razorpay' | 'upi' | 'bmac' | 'paypal';
+export type PaymentTab = 'stripe' | 'upi' | 'bmac';
 
 /**
  * Returns the payment tabs that should be shown for a given currency.
- * Mirrors the previous per-component logic: UPI and Buy Me a Coffee are always
- * available, while Razorpay / PayPal are shown only when configured.
+ * - Stripe is the global card/subscription processor and is shown only when its keys are configured.
+ * - UPI is shown for INR (Indian) users.
+ * - Buy Me a Coffee is the universal fallback and is always available.
  */
 export function getAvailablePaymentTabs(currency: string): PaymentTab[] {
   const curr = (currency || 'USD').toUpperCase();
-  if (curr === 'INR') {
-    const tabs: PaymentTab[] = [];
-    if (isRazorpayConfigured()) tabs.push('razorpay');
-    tabs.push('upi');
-    tabs.push('bmac');
-    return tabs;
-  }
   const tabs: PaymentTab[] = [];
-  if (isPayPalConfigured()) tabs.push('paypal');
+  if (isStripeConfigured()) tabs.push('stripe');
+  if (curr === 'INR') tabs.push('upi');
   tabs.push('bmac');
   return tabs;
 }

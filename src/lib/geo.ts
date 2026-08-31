@@ -4,7 +4,7 @@
 
 export type Currency = 'INR' | 'USD' | 'GBP' | 'EUR' | 'CAD' | 'AUD';
 export type PlanName = 'free' | 'starter' | 'pro' | 'agency' | 'lifetime';
-export type PaymentMethod = 'razorpay' | 'upi' | 'paypal' | 'bmac';
+export type PaymentMethod = 'stripe' | 'upi' | 'bmac';
 
 export interface LocationData {
   country: string;
@@ -211,13 +211,12 @@ export function getCurrencyForCountry(countryCode: string): string {
  */
 export function getPaymentMethods(currency: string): PaymentMethod[] {
   const curr = (currency || '').toUpperCase();
+  // Stripe + BMAC are available globally; UPI is shown only for India (INR)
+  const methods: PaymentMethod[] = ['stripe', 'bmac'];
   if (curr === 'INR') {
-    return ['razorpay', 'upi', 'bmac'];
+    methods.push('upi');
   }
-  if (['USD', 'GBP', 'EUR', 'CAD', 'AUD', 'NZD'].includes(curr)) {
-    return ['paypal', 'bmac'];
-  }
-  return ['paypal', 'bmac'];
+  return methods;
 }
 
 /**

@@ -784,7 +784,7 @@ export async function activateUserPlan(
     if (userDoc?.email) {
       const userEmail = userDoc.email;
       const userName = userDoc.name || userDoc.displayName || userEmail.split('@')[0];
-      const currency = userDoc.currency || (gateway === 'upi' || gateway === 'razorpay' ? 'INR' : 'USD');
+      const currency = userDoc.currency || (gateway === 'upi' ? 'INR' : 'USD');
       
       const { PRICING_TABLE, computeDynamicPricingTable } = await import('./geo');
       let dynamicTable: any = PRICING_TABLE;

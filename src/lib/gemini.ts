@@ -3,7 +3,7 @@
  * Communicates with the secure backend endpoint at /api/gemini
  */
 
-import { apiPost, getAuthHeaders } from './apiClient';
+import { apiPost, getAuthHeaders, getApiUrl } from './apiClient';
 
 export async function callGemini(prompt: string, systemPrompt?: string): Promise<string> {
   try {
@@ -38,7 +38,7 @@ export async function streamGemini(
 ): Promise<void> {
   try {
     const headers = await getAuthHeaders();
-    const response = await fetch('/api/gemini', {
+    const response = await fetch(getApiUrl('/api/gemini'), {
       method: 'POST',
       headers,
       body: JSON.stringify({

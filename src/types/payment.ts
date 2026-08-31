@@ -2,7 +2,7 @@ import { Timestamp } from 'firebase/firestore';
 
 export type PlanName = 'free' | 'starter' | 'pro' | 'agency' | 'lifetime';
 export type BillingCycle = 'monthly' | 'annual' | 'lifetime';
-export type PaymentGateway = 'razorpay' | 'paypal' | 'upi' | 'bmac';
+export type PaymentGateway = 'stripe' | 'upi' | 'bmac';
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded' | 'cancelled';
 export type Currency = 'INR' | 'USD' | 'GBP' | 'EUR' | 'CAD' | 'AUD';
 

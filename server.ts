@@ -1192,305 +1192,12 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
-  // Razorpay Create Subscription
-  app.post('/api/payment/razorpay/create-subscription', async (req, res) => {
+// Stripe Create Checkout Session
+  app.post('/api/payment/stripe/create-checkout', async (req, res) => {
     try {
-      const { getRazorpayClient, RAZORPAY_PLAN_IDS, isRazorpayConfigured } = await import('./src/lib/razorpay');
-      const { getUserDocument, updateUserDocument } = await import('./src/lib/userService');
-
-      const uid = await requireVerifiedUser(req, res);
-      if (!uid) return;
-
-      const { plan, billingCycle } = req.body || {};
-      if (!['starter', 'pro', 'agency'].includes(plan) || !['monthly', 'annual'].includes(billingCycle)) {
-        return res.status(400).json({ error: 'Invalid plan or billing cycle' });
-      }
-      const planKey = `${plan}_${billingCycle}`;
-      const planId = RAZORPAY_PLAN_IDS[planKey];
-      const rzpKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder';
-
-      if (!isRazorpayConfigured() || !planId || planId.includes('REPLACE')) {
-        if (process.env.NODE_ENV === 'production') {
-          return res.status(503).json({ error: 'Razorpay is not configured. Contact support.' });
-        }
-        const mockSubId = `sub_test_${Math.random().toString(36).substring(2, 10)}`;
-        return res.json({
-          subscriptionId: mockSubId,
-          razorpayKeyId: rzpKeyId,
-          isSandbox: true,
-        });
-      }
-
-      const razorpay = getRazorpayClient();
-      const userDoc = uid ? await getUserDocument(uid) : null;
-      const email = userDoc?.email || req.body?.email || 'customer@kdpstudio.app';
-      const name = userDoc?.displayName || userDoc?.name || req.body?.name || 'Author';
-
-      let customerId = userDoc?.paymentCustomerId;
-      if (!customerId) {
-        try {
-          const customer = await razorpay.customers.create({
-            name,
-            email,
-            notes: { uid, plan },
-          });
-          customerId = customer.id;
-          if (uid) await updateUserDocument(uid, { paymentCustomerId: customerId });
-        } catch (e) {}
-      }
-
-      const subscription = await razorpay.subscriptions.create({
-        plan_id: planId,
-        customer_notify: 1,
-        total_count: billingCycle === 'annual' ? 12 : 120,
-        notes: { uid, plan, billingCycle },
-      });
-
-      return res.json({
-        subscriptionId: subscription.id,
-        razorpayKeyId: rzpKeyId,
-      });
-    } catch (err: any) {
-      console.error('[server.ts Razorpay create-sub] Error:', err);
-      return res.status(500).json({ error: err.message || 'Failed to create subscription' });
-    }
-  });
-
-  // Razorpay Verify Payment
-  app.post('/api/payment/razorpay/verify', async (req, res) => {
-    try {
-      const { activateUserPlan, createPaymentRecord, createSubscriptionRecord } = await import('./src/lib/paymentService');
+      const { getStripeClient, isStripeConfigured } = await import('./src/lib/stripe');
       const { getUserDocument } = await import('./src/lib/userService');
-      const { PRICING_TABLE } = await import('./src/lib/geo');
-
-      const {
-        razorpay_payment_id,
-        razorpay_subscription_id,
-        razorpay_signature,
-        plan,
-        billingCycle,
-        uid: bodyUid,
-      } = req.body || {};
-
-      const uid = await requireVerifiedUser(req, res);
-      if (!uid) return;
-
-      if (bodyUid && bodyUid !== uid) {
-        return res.status(403).json({ error: 'Payment user mismatch' });
-      }
-
-      if (!['starter', 'pro', 'agency'].includes(plan) || !['monthly', 'annual'].includes(billingCycle)) {
-        return res.status(400).json({ error: 'Invalid plan or billing cycle' });
-      }
-
-      const secret = process.env.RAZORPAY_KEY_SECRET || '';
-      const isSandboxTest =
-        process.env.NODE_ENV !== 'production' &&
-        (!process.env.RAZORPAY_KEY_ID ||
-          !secret ||
-          razorpay_payment_id?.startsWith('pay_test_') ||
-          razorpay_subscription_id?.startsWith('sub_test_'));
-
-      if (!isSandboxTest) {
-        if (!razorpay_payment_id || !razorpay_subscription_id || !razorpay_signature) {
-          return res.status(400).json({ error: 'Missing Razorpay payment verification fields' });
-        }
-
-        const expectedSignature = crypto
-          .createHmac('sha256', secret)
-          .update(`${razorpay_payment_id}|${razorpay_subscription_id}`)
-          .digest('hex');
-        const expectedBuf = Buffer.from(expectedSignature, 'utf8');
-        const receivedBuf = Buffer.from(String(razorpay_signature), 'utf8');
-
-        if (expectedBuf.length !== receivedBuf.length || !crypto.timingSafeEqual(expectedBuf, receivedBuf)) {
-          return res.status(400).json({ error: 'Invalid Razorpay payment signature' });
-        }
-      }
-
-      const baseINRPrice = (PRICING_TABLE[plan as 'starter' | 'pro' | 'agency']?.INR as number) || 1499;
-      const amountINR = billingCycle === 'annual' ? Math.round(baseINRPrice * 10) : baseINRPrice;
-      const amountPaise = amountINR * 100;
-      const now = new Date();
-      const planEndDate = billingCycle === 'annual'
-        ? new Date(now.getTime() + 365 * 86400000)
-        : new Date(now.getTime() + 30 * 86400000);
-
-      await activateUserPlan(
-        uid,
-        plan,
-        billingCycle,
-        'razorpay',
-        razorpay_payment_id || `pay_${Date.now()}`
-      );
-
-      const userDoc = await getUserDocument(uid);
-      const email = userDoc?.email || req.body?.email || 'customer@kdpstudio.app';
-
-      const paymentRecordId = await createPaymentRecord({
-        uid,
-        email,
-        gateway: 'razorpay',
-        gatewayPaymentId: razorpay_payment_id || `pay_${Date.now()}`,
-        gatewaySubscriptionId: razorpay_subscription_id || null,
-        gatewayCustomerId: userDoc?.paymentCustomerId || null,
-        plan,
-        billingCycle,
-        amount: amountPaise,
-        currency: 'INR',
-        status: 'completed',
-        createdAt: now.toISOString(),
-        updatedAt: now.toISOString(),
-        planStartDate: now.toISOString(),
-        planEndDate: planEndDate.toISOString(),
-        metadata: {
-          razorpay_payment_id,
-          razorpay_subscription_id,
-          razorpay_signature,
-        },
-      });
-
-      if (razorpay_subscription_id) {
-        await createSubscriptionRecord({
-          uid,
-          gateway: 'razorpay',
-          gatewaySubscriptionId: razorpay_subscription_id,
-          plan,
-          billingCycle,
-          status: 'active',
-          currentPeriodStart: now.toISOString(),
-          currentPeriodEnd: planEndDate.toISOString(),
-          cancelAtPeriodEnd: false,
-          currency: 'INR',
-          amount: amountPaise,
-          createdAt: now.toISOString(),
-          updatedAt: now.toISOString(),
-        });
-      }
-
-      return res.json({
-        success: true,
-        plan,
-        paymentId: paymentRecordId,
-      });
-    } catch (err: any) {
-      console.error('[server.ts Razorpay verify] Error:', err);
-      return res.status(500).json({ error: err.message || 'Payment verification failed' });
-    }
-  });
-
-  // Razorpay Webhook
-  app.post('/api/webhooks/razorpay', async (req, res) => {
-    try {
-      const { verifyRazorpayWebhook } = await import('./src/lib/webhookSecurity');
-      const { activateUserPlan, createPaymentRecord, updateSubscriptionRecord } = await import('./src/lib/paymentService');
-      const { updateUserDocument, getUserDocument } = await import('./src/lib/userService');
-
-      const signature = (req.headers['x-razorpay-signature'] as string) || '';
-      const rawBody = (req as any).rawBody || JSON.stringify(req.body);
-
-      // Verify webhook signature if configured
-      const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
-      if (secret && signature && !verifyRazorpayWebhook(rawBody, signature)) {
-        console.warn('[server.ts Razorpay Webhook] Invalid signature');
-        return res.status(401).json({ error: 'Invalid signature' });
-      }
-
-      const event = req.body;
-      const eventType = event?.event;
-      const payload = event?.payload;
-
-      console.log(`[server.ts Razorpay Webhook] Event: ${eventType}`);
-
-      if (eventType === 'subscription.charged') {
-        const subEntity = payload?.subscription?.entity;
-        const paymentEntity = payload?.payment?.entity;
-        const subscriptionId = subEntity?.id;
-        const notes = subEntity?.notes || paymentEntity?.notes || {};
-        const uid = notes.uid;
-        const plan = notes.plan || 'pro';
-        const billingCycle = notes.billingCycle || 'monthly';
-        const amountPaise = paymentEntity?.amount || 149900;
-
-        if (uid) {
-          await activateUserPlan(uid, plan, billingCycle, 'razorpay', paymentEntity?.id || subscriptionId);
-          await updateUserDocument(uid, { paymentFailed: false });
-
-          const now = new Date();
-          const planEndDate = billingCycle === 'annual'
-            ? new Date(now.getTime() + 365 * 86400000)
-            : new Date(now.getTime() + 30 * 86400000);
-
-          await createPaymentRecord({
-            uid,
-            email: paymentEntity?.email || notes.email || '',
-            gateway: 'razorpay',
-            gatewayPaymentId: paymentEntity?.id || `pay_${Date.now()}`,
-            gatewaySubscriptionId: subscriptionId || null,
-            gatewayCustomerId: subEntity?.customer_id || null,
-            plan,
-            billingCycle,
-            amount: amountPaise,
-            currency: 'INR',
-            status: 'completed',
-            createdAt: now.toISOString(),
-            updatedAt: now.toISOString(),
-            planStartDate: now.toISOString(),
-            planEndDate: planEndDate.toISOString(),
-            metadata: { eventType },
-          });
-        }
-      } else if (eventType === 'subscription.cancelled') {
-        const subEntity = payload?.subscription?.entity;
-        const subscriptionId = subEntity?.id;
-        if (subscriptionId) {
-          await updateSubscriptionRecord(subscriptionId, {
-            status: 'cancelled',
-            cancelAtPeriodEnd: true,
-          });
-        }
-      } else if (eventType === 'subscription.halted' || eventType === 'payment.failed') {
-        const notes = payload?.subscription?.entity?.notes || payload?.payment?.entity?.notes || {};
-        const paymentEntity = payload?.payment?.entity;
-        const uid = notes.uid;
-        if (uid) {
-          await updateUserDocument(uid, { paymentFailed: true });
-
-          // Non-blocking email dispatch
-          import('./src/lib/emailService').then(({ sendPaymentFailedEmail }) => {
-            getUserDocument(uid).then((doc) => {
-              if (doc?.email) {
-                const email = doc.email;
-                const name = doc.name || doc.displayName || email.split('@')[0];
-                const plan = notes.plan || doc.plan || 'pro';
-                const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://kdpstudio.com';
-                const amtFormatted = paymentEntity?.amount ? `₹${paymentEntity.amount / 100}` : '₹1,499';
-                sendPaymentFailedEmail({
-                  to: email,
-                  name,
-                  plan,
-                  amount: amtFormatted,
-                  gateway: 'Razorpay',
-                  retryUrl: `${appUrl}/settings/billing`,
-                }).catch(console.error);
-              }
-            }).catch(console.error);
-          }).catch(console.error);
-        }
-      }
-
-      return res.json({ received: true });
-    } catch (err: any) {
-      console.error('[server.ts Razorpay Webhook] Error:', err);
-      return res.json({ received: true, error: err.message });
-    }
-  });
-
-  // PayPal Create Subscription
-  app.post('/api/payment/paypal/create-subscription', async (req, res) => {
-    try {
-      const { paypalRequest, PAYPAL_PLAN_IDS, isPayPalConfigured } = await import('./src/lib/paypal');
-      const { getUserDocument } = await import('./src/lib/userService');
+      const { computeDynamicPricingTable } = await import('./src/lib/geo');
 
       const uid = await requireVerifiedUser(req, res);
       if (!uid) return;
@@ -1499,287 +1206,172 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       if (!['starter', 'pro', 'agency'].includes(plan) || !['monthly', 'annual'].includes(billingCycle)) {
         return res.status(400).json({ error: 'Invalid plan or billing cycle' });
       }
-      const userDoc = await getUserDocument(uid);
-      const email = userDoc?.email || req.body?.email || 'customer@kdpstudio.app';
-      const fullName = userDoc?.displayName || userDoc?.name || req.body?.name || 'Author User';
-      const nameParts = fullName.trim().split(' ');
-      const given_name = nameParts[0] || 'Author';
-      const surname = nameParts.slice(1).join(' ') || 'User';
-
-      const normalizedCurr = (currency || 'USD').toLowerCase();
-      let planKey = `${plan}_${billingCycle}_${normalizedCurr}`;
-      if (!PAYPAL_PLAN_IDS[planKey] || PAYPAL_PLAN_IDS[planKey].includes('REPLACE')) {
-        planKey = `${plan}_${billingCycle}_usd`;
-      }
-
-      const planId = PAYPAL_PLAN_IDS[planKey];
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || '';
-
-      if (!isPayPalConfigured() || !planId || planId.includes('REPLACE')) {
+      if (!isStripeConfigured()) {
         if (process.env.NODE_ENV === 'production') {
-          return res.status(503).json({ error: 'PayPal is not configured. Contact support.' });
+          return res.status(503).json({ error: 'Stripe is not configured. Contact support.' });
         }
-        const mockSubId = `I-MOCK_PAYPAL_${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-        const mockApprovalUrl = `/api/payment/paypal/success?subscription_id=${mockSubId}&token=MOCK_TOKEN&uid=${encodeURIComponent(uid)}&plan=${plan}&billingCycle=${billingCycle}`;
-
-        return res.json({
-          approvalUrl: mockApprovalUrl,
-          subscriptionId: mockSubId,
-          isSandbox: true,
-        });
       }
 
-      const payload = {
-        plan_id: planId,
-        subscriber: {
-          name: { given_name, surname },
-          email_address: email,
-        },
-        application_context: {
-          brand_name: 'KDP Studio',
-          locale: 'en-US',
-          shipping_preference: 'NO_SHIPPING',
-          user_action: 'SUBSCRIBE_NOW',
-          return_url: `${appUrl}/api/payment/paypal/success`,
-          cancel_url: `${appUrl}/pricing?cancelled=true`,
-        },
-        custom_id: uid,
-      };
+      const userDoc = uid ? await getUserDocument(uid) : null;
+      const email = userDoc?.email || req.body?.email || 'customer@kdpstudio.app';
 
-      const subResponse = await paypalRequest('POST', '/v1/billing/subscriptions', payload);
-      const approveLink = subResponse.links?.find((l: any) => l.rel === 'approve')?.href;
-
-      if (!approveLink) {
-        throw new Error('PayPal did not return an approval link');
+      // Resolve the dynamic published price (respects live overrides)
+      let pricingData: any = null;
+      const hasAdminServiceAccount = Boolean(
+        process.env.FIREBASE_ADMIN_PROJECT_ID &&
+        process.env.FIREBASE_ADMIN_CLIENT_EMAIL &&
+        process.env.FIREBASE_ADMIN_PRIVATE_KEY
+      );
+      if (hasAdminServiceAccount) {
+        const { getAdminDb } = await import('./src/lib/firebase-admin');
+        const db = getAdminDb();
+        if (db) {
+          const snap = await db.collection('appConfig').doc('pricing').get();
+          if (snap.exists) pricingData = snap.data();
+        }
       }
+      const table = computeDynamicPricingTable(pricingData);
+      const supportedCurr = ['INR', 'USD', 'GBP', 'EUR', 'CAD', 'AUD'].includes(currency) ? currency : 'USD';
+      const monthly = table[plan]?.[supportedCurr] || table[plan]?.USD || 19;
+      const amount = billingCycle === 'annual' ? Math.round(monthly * 10) : monthly;
+      const unitAmount = Math.round(amount * 100);
 
-      return res.json({
-        approvalUrl: approveLink,
-        subscriptionId: subResponse.id,
+      const stripe = getStripeClient();
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://kdpstudio-aio.web.app';
+
+      const session = await stripe.checkout.sessions.create({
+        mode: 'subscription',
+        customer_email: email || undefined,
+        line_items: [
+          {
+            quantity: 1,
+            price_data: {
+              currency: supportedCurr.toLowerCase(),
+              unit_amount: unitAmount,
+              recurring: {
+                interval: 'month',
+                interval_count: billingCycle === 'annual' ? 12 : 1,
+              },
+              product_data: { name: `KDP Studio ${plan} Plan (${billingCycle})` },
+            },
+          },
+        ],
+        metadata: { uid, plan, billingCycle },
+        success_url: `${appUrl}/dashboard?payment=success&plan=${plan}`,
+        cancel_url: `${appUrl}/pricing?cancelled=true`,
+        allow_promotion_codes: false,
       });
+
+      return res.json({ url: session.url, sessionId: session.id });
     } catch (err: any) {
-      console.error('[server.ts PayPal create-sub] Error:', err);
-      return res.status(500).json({ error: err.message || 'Failed to create PayPal subscription' });
+      console.error('[server.ts Stripe create-checkout] Error:', err);
+      return res.status(500).json({ error: err.message || 'Failed to create Stripe Checkout session' });
     }
   });
 
-  // PayPal Success Redirect Return Handler
-  app.get('/api/payment/paypal/success', async (req, res) => {
+// Stripe Webhook
+  app.post('/api/webhooks/stripe', async (req: any, res) => {
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    const signature = (req.headers['stripe-signature'] as string) || '';
+    const rawBody = req.rawBody || JSON.stringify(req.body || {});
+
     try {
-      const { paypalRequest, getPlanFromPayPalPlanId, isPayPalConfigured } = await import('./src/lib/paypal');
-      const { activateUserPlan, createPaymentRecord, createSubscriptionRecord } = await import('./src/lib/paymentService');
-      const { getUserDocument } = await import('./src/lib/userService');
-      const { PRICING_TABLE } = await import('./src/lib/geo');
+      const { default: Stripe } = await import('stripe');
+      const secret = process.env.STRIPE_SECRET_KEY;
+      if (!secret) throw new Error('STRIPE_SECRET_KEY not configured');
+      const stripe = new Stripe(secret, { apiVersion: '2024-06-20' });
 
-      const subscriptionId = (req.query.subscription_id as string) || (req.query.subscriptionId as string) || '';
-      const paramUid = (req.query.uid as string) || '';
-      const paramPlan = ((req.query.plan as string) || 'pro') as any;
-      const paramCycle = ((req.query.billingCycle as string) || 'monthly') as any;
-
-      if (!subscriptionId) {
-        return res.redirect('/pricing?error=payment_failed');
+      let event: any;
+      if (endpointSecret) {
+        event = stripe.webhooks.constructEvent(rawBody, signature, endpointSecret);
+      } else {
+        event = JSON.parse(rawBody);
       }
 
-      if (process.env.NODE_ENV === 'production' && !isPayPalConfigured()) {
-        return res.redirect('/pricing?error=payment_not_configured');
-      }
-
-      let uid = paramUid;
-      let plan = paramPlan;
-      let billingCycle = paramCycle;
-      let payerId: string | null = null;
-
-      if (isPayPalConfigured() && !subscriptionId.startsWith('I-MOCK_')) {
-        const subDetails = await paypalRequest('GET', `/v1/billing/subscriptions/${subscriptionId}`);
-        if (subDetails?.status !== 'ACTIVE') {
-          console.warn(`[server.ts PayPal success] Subscription ${subscriptionId} is ${subDetails?.status || 'unknown'}, not ACTIVE`);
-          return res.redirect('/pricing?error=payment_pending');
-        }
-        if (subDetails?.custom_id) uid = subDetails.custom_id;
-        payerId = subDetails?.subscriber?.payer_id || null;
-        if (subDetails?.plan_id) {
-          const detected = getPlanFromPayPalPlanId(subDetails.plan_id);
-          if (detected) {
-            plan = detected.plan;
-            billingCycle = detected.billingCycle;
-          }
-        }
-      }
-
-      if (subscriptionId.startsWith('I-MOCK_') && process.env.NODE_ENV === 'production') {
-        return res.redirect('/pricing?error=payment_failed');
-      }
-
-      if (!['starter', 'pro', 'agency'].includes(plan) || !['monthly', 'annual'].includes(billingCycle)) {
-        return res.redirect('/pricing?error=invalid_plan');
-      }
-
-      if (!uid) {
-        return res.redirect('/pricing?error=user_not_found');
-      }
-
-      const baseUsd = (PRICING_TABLE[plan as 'starter' | 'pro' | 'agency']?.USD as number) || 19;
-      const finalAmountUsd = billingCycle === 'annual' ? Math.round(baseUsd * 10) : baseUsd;
-      const amountUsd = finalAmountUsd * 100;
-
-      const now = new Date();
-      const planEndDate = billingCycle === 'annual'
-        ? new Date(now.getTime() + 365 * 86400000)
-        : new Date(now.getTime() + 30 * 86400000);
-
-      await activateUserPlan(uid, plan, billingCycle, 'paypal', subscriptionId);
-
-      const userDoc = await getUserDocument(uid);
-      const email = userDoc?.email || 'customer@kdpstudio.app';
-
-      await createPaymentRecord({
-        uid,
-        email,
-        gateway: 'paypal',
-        gatewayPaymentId: `pay_pp_${Date.now()}`,
-        gatewaySubscriptionId: subscriptionId,
-        gatewayCustomerId: payerId,
-        plan,
-        billingCycle,
-        amount: amountUsd,
-        currency: 'USD',
-        status: 'completed',
-        createdAt: now.toISOString(),
-        updatedAt: now.toISOString(),
-        planStartDate: now.toISOString(),
-        planEndDate: planEndDate.toISOString(),
-        metadata: { subscriptionId },
-      });
-
-      await createSubscriptionRecord({
-        uid,
-        gateway: 'paypal',
-        gatewaySubscriptionId: subscriptionId,
-        plan,
-        billingCycle,
-        status: 'active',
-        currentPeriodStart: now.toISOString(),
-        currentPeriodEnd: planEndDate.toISOString(),
-        cancelAtPeriodEnd: false,
-        currency: 'USD',
-        amount: amountUsd,
-        createdAt: now.toISOString(),
-        updatedAt: now.toISOString(),
-      });
-
-      return res.redirect(`/dashboard?payment=success&plan=${plan}`);
-    } catch (err: any) {
-      console.error('[server.ts PayPal success] Error:', err);
-      return res.redirect('/pricing?error=payment_failed');
-    }
-  });
-
-  // PayPal Webhook
-  app.post('/api/webhooks/paypal', async (req, res) => {
-    try {
-      const { verifyPayPalWebhook } = await import('./src/lib/webhookSecurity');
-      const { activateUserPlan, createPaymentRecord, updateSubscriptionRecord } = await import('./src/lib/paymentService');
+      const { activateUserPlan, createPaymentRecord, createSubscriptionRecord, updateSubscriptionRecord } = await import('./src/lib/paymentService');
       const { updateUserDocument } = await import('./src/lib/userService');
-      const { getPlanFromPayPalPlanId } = await import('./src/lib/paypal');
 
-      const rawBody = (req as any).rawBody || JSON.stringify(req.body);
-      const isValid = await verifyPayPalWebhook(req.headers as any, rawBody);
-
-      if (!isValid) {
-        console.warn('[server.ts PayPal Webhook] Invalid signature');
-        return res.status(401).json({ error: 'Invalid signature' });
-      }
-
-      const event = req.body;
-      const eventType = event?.event_type;
-      const resource = event?.resource || {};
-
-      console.log(`[server.ts PayPal Webhook] Event: ${eventType}`);
-
-      if (eventType === 'BILLING.SUBSCRIPTION.ACTIVATED') {
-        const subscriptionId = resource.id;
-        const uid = resource.custom_id;
-        const planId = resource.plan_id;
-        const detected = getPlanFromPayPalPlanId(planId);
-        const plan = detected?.plan || 'pro';
-        const billingCycle = detected?.billingCycle || 'monthly';
-
-        if (uid) {
-          await activateUserPlan(uid, plan, billingCycle, 'paypal', subscriptionId);
-          await updateUserDocument(uid, { paymentFailed: false });
-
-          const now = new Date();
-          const planEndDate = billingCycle === 'annual'
-            ? new Date(now.getTime() + 365 * 86400000)
-            : new Date(now.getTime() + 30 * 86400000);
-
+      if (event.type === 'checkout.session.completed') {
+        const session = event.data.object;
+        const { uid, plan, billingCycle } = session.metadata || {};
+        if (uid && plan && billingCycle) {
+          await activateUserPlan(uid, plan, billingCycle, 'stripe', session.id);
           await createPaymentRecord({
             uid,
-            email: resource.subscriber?.email_address || '',
-            gateway: 'paypal',
-            gatewayPaymentId: `pay_pp_${Date.now()}`,
-            gatewaySubscriptionId: subscriptionId,
-            gatewayCustomerId: resource.subscriber?.payer_id || null,
+            email: session.customer_email || 'customer@kdpstudio.app',
+            gateway: 'stripe',
+            gatewayPaymentId: session.payment_intent || session.id,
+            gatewaySubscriptionId: session.subscription || null,
+            gatewayCustomerId: session.customer || null,
             plan,
             billingCycle,
-            amount: (resource.billing_info?.last_payment?.amount?.value || 19) * 100,
-            currency: resource.billing_info?.last_payment?.amount?.currency_code || 'USD',
+            amount: session.amount_total || 0,
+            currency: (session.currency || 'usd').toUpperCase(),
             status: 'completed',
-            createdAt: now.toISOString(),
-            updatedAt: now.toISOString(),
-            planStartDate: now.toISOString(),
-            planEndDate: planEndDate.toISOString(),
-            metadata: { eventType },
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            planStartDate: new Date().toISOString(),
+            planEndDate: null,
+            metadata: { sessionId: session.id, stripeEvent: event.type },
           });
+          if (session.subscription) {
+            await createSubscriptionRecord({
+              uid,
+              gateway: 'stripe',
+              gatewaySubscriptionId: session.subscription,
+              plan,
+              billingCycle,
+              status: 'active',
+              currentPeriodStart: new Date().toISOString(),
+              currentPeriodEnd: null,
+              cancelAtPeriodEnd: false,
+              currency: (session.currency || 'usd').toUpperCase(),
+              amount: session.amount_total || 0,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            });
+          }
         }
-      } else if (eventType === 'PAYMENT.SALE.COMPLETED') {
-        const subscriptionId = resource.billing_agreement_id;
-        const uid = resource.custom || '';
-        if (uid) {
-          await activateUserPlan(uid, 'pro', 'monthly', 'paypal', subscriptionId);
-          await updateUserDocument(uid, { paymentFailed: false });
+      } else if (event.type === 'invoice.payment_failed') {
+        const invoice = event.data.object;
+        try {
+          if (invoice.subscription) {
+            const sub = await stripe.subscriptions.retrieve(invoice.subscription);
+            const uid = sub.metadata?.uid;
+            const plan = sub.metadata?.plan;
+            if (uid) {
+              await updateUserDocument(uid, { paymentFailed: true });
+              const { sendPaymentFailedEmail } = await import('./src/lib/emailService');
+              const { getUserDocument } = await import('./src/lib/userService');
+              const doc = await getUserDocument(uid);
+              if (doc?.email) {
+                sendPaymentFailedEmail({
+                  to: doc.email,
+                  name: doc.name || doc.displayName || doc.email.split('@')[0],
+                  plan: plan || doc.plan || 'pro',
+                  amount: invoice.amount_due ? `$${(invoice.amount_due / 100)}` : '$19.00',
+                  gateway: 'Stripe',
+                  retryUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://kdpstudio-aio.web.app'}/settings/billing`,
+                }).catch(console.error);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('[server.ts Stripe] payment_failed handler note:', e);
         }
-      } else if (eventType === 'BILLING.SUBSCRIPTION.CANCELLED') {
-        const subscriptionId = resource.id;
-        if (subscriptionId) {
-          await updateSubscriptionRecord(subscriptionId, {
-            status: 'cancelled',
-            cancelAtPeriodEnd: true,
-          });
-        }
-      } else if (eventType === 'BILLING.SUBSCRIPTION.SUSPENDED' || eventType === 'PAYMENT.SALE.DENIED') {
-        const uid = resource.custom_id || resource.custom;
-        if (uid) {
-          await updateUserDocument(uid, { paymentFailed: true });
-
-          import('./src/lib/emailService').then(({ sendPaymentFailedEmail }) => {
-            import('./src/lib/userService').then(({ getUserDocument }) => {
-              getUserDocument(uid).then((doc) => {
-                if (doc?.email) {
-                  const email = doc.email;
-                  const name = doc.name || doc.displayName || email.split('@')[0];
-                  const plan = doc.plan || 'pro';
-                  const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://kdpstudio.com';
-                  const amtFormatted = resource.amount?.total ? `$${resource.amount.total}` : '$19.00';
-                  sendPaymentFailedEmail({
-                    to: email,
-                    name,
-                    plan,
-                    amount: amtFormatted,
-                    gateway: 'PayPal',
-                    retryUrl: `${appUrl}/settings/billing`,
-                  }).catch(console.error);
-                }
-              }).catch(console.error);
-            }).catch(console.error);
-          }).catch(console.error);
+      } else if (event.type === 'customer.subscription.deleted') {
+        const sub = event.data.object;
+        try {
+          if (sub.id) await updateSubscriptionRecord(sub.id, { status: 'cancelled', cancelAtPeriodEnd: true });
+        } catch (e) {
+          console.warn('[server.ts Stripe] subscription.deleted handler note:', e);
         }
       }
 
       return res.json({ received: true });
     } catch (err: any) {
-      console.error('[server.ts PayPal Webhook] Error:', err);
-      return res.json({ received: true, error: err.message });
+      console.error('[server.ts Stripe Webhook] Error:', err);
+      return res.status(400).json({ error: err.message });
     }
   });
 
@@ -1876,8 +1468,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     try {
       const { getUserDocument, updateUserDocument } = await import('./src/lib/userService');
       const { getUserActiveSubscription, updateSubscriptionRecord } = await import('./src/lib/paymentService');
-      const { cancelPayPalSubscription } = await import('./src/lib/paypal');
-      const { cancelRazorpaySubscription } = await import('./src/lib/razorpay');
+      const { cancelStripeSubscription } = await import('./src/lib/stripe');
 
       const uid = await requireVerifiedUser(req, res);
       if (!uid) return;
@@ -1893,12 +1484,10 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       const activeSub = await getUserActiveSubscription(uid);
 
       if (activeSub) {
-        if (activeSub.gateway === 'razorpay' && activeSub.gatewaySubscriptionId) {
-          await cancelRazorpaySubscription(activeSub.gatewaySubscriptionId);
-        } else if (activeSub.gateway === 'paypal' && activeSub.gatewaySubscriptionId) {
-          await cancelPayPalSubscription(activeSub.gatewaySubscriptionId, reason);
-        }
 
+        if (activeSub.gateway === 'stripe' && activeSub.gatewaySubscriptionId) {
+          await cancelStripeSubscription(activeSub.gatewaySubscriptionId, reason);
+        }
         await updateSubscriptionRecord(activeSub.id, {
           status: 'cancelled',
           cancelAtPeriodEnd: true,
@@ -3327,7 +2916,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
 
         try {
           const responseStream = await ai.models.generateContentStream({
-            model: 'gemini-3.7-flash',
+            model: 'gemini-3.6-flash',
             contents: prompt,
             config: systemInstruction ? { systemInstruction } : undefined,
           });
@@ -3351,7 +2940,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
 
       // 2. Direct Content Generation
       const response = await ai.models.generateContent({
-        model: 'gemini-3.7-flash',
+        model: 'gemini-3.6-flash',
         contents: prompt,
         config: systemInstruction ? { systemInstruction } : undefined,
       });
@@ -4364,7 +3953,7 @@ Return valid JSON with: readingLevel (grade, fleschScore, averageSentenceLength,
       let aiParsed: any = null;
       try {
         const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
+          model: 'gemini-3.6-flash',
           contents: prompt,
           config: { responseMimeType: 'application/json' },
         });

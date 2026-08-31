@@ -19,8 +19,7 @@ import { PlanName, BillingCycle, Currency } from '../../types/payment';
 import { useAuthStore } from '../../lib/authStore';
 import { useGeoStore } from '../../lib/geoStore';
 import { PRICING_TABLE, formatPrice } from '../../lib/geo';
-import { RazorpayCheckout } from './RazorpayCheckout';
-import { PayPalCheckout } from './PayPalCheckout';
+import { StripeCheckout } from './StripeCheckout';
 import { UpiPayment } from './UpiPayment';
 import { BmacButton } from './BmacButton';
 import { getAvailablePaymentTabs } from '../../lib/paymentConfig';
@@ -400,22 +399,22 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               <div className={`grid gap-2 ${
                 availableTabs.length === 3 ? 'grid-cols-3' : availableTabs.length === 2 ? 'grid-cols-2' : 'grid-cols-1'
               }`}>
-                {availableTabs.includes('razorpay') && (
+                {availableTabs.includes('stripe') && (
                   <button
                     type="button"
-                    onClick={() => handleTabChange('razorpay')}
+                    onClick={() => handleTabChange('stripe')}
                     className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
-                      currentActiveTab === 'razorpay'
-                        ? 'bg-purple-50/70 border-purple-600 ring-2 ring-purple-600/20 shadow-xs'
+                      currentActiveTab === 'stripe'
+                        ? 'bg-indigo-50/70 border-indigo-600 ring-2 ring-indigo-600/20 shadow-xs'
                         : 'bg-white border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      <CreditCard size={16} className="text-purple-700" />
-                      <span className="text-xs font-bold text-slate-900">Razorpay</span>
+                      <CreditCard size={16} className="text-indigo-700" />
+                      <span className="text-xs font-bold text-slate-900">Stripe</span>
                     </div>
                     <p className="text-[10px] text-slate-500 leading-tight">
-                      Cards, UPI, NetBanking
+                      Cards / Global Payments
                     </p>
                   </button>
                 )}
@@ -436,26 +435,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     </div>
                     <p className="text-[10px] text-slate-500 leading-tight">
                       GPay / PhonePe / QR
-                    </p>
-                  </button>
-                )}
-
-                {availableTabs.includes('paypal') && (
-                  <button
-                    type="button"
-                    onClick={() => handleTabChange('paypal')}
-                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
-                      currentActiveTab === 'paypal'
-                        ? 'bg-blue-50/70 border-blue-600 ring-2 ring-blue-600/20 shadow-xs'
-                        : 'bg-white border-slate-200 hover:border-slate-300'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <CreditCard size={16} className="text-blue-700" />
-                      <span className="text-xs font-bold text-slate-900">PayPal / Cards</span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 leading-tight">
-                      Pay securely with PayPal account or Debit/Credit Cards
                     </p>
                   </button>
                 )}
@@ -491,16 +470,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
               {/* Gateway Interactive Content Area */}
               <div className="pt-2">
-                {/* 1. RAZORPAY */}
-                {currentActiveTab === 'razorpay' && availableTabs.includes('razorpay') && (
+                {/* 1. STRIPE */}
+                {currentActiveTab === 'stripe' && availableTabs.includes('stripe') && (
                   <div className="space-y-4">
-                    <RazorpayCheckout
+                    <StripeCheckout
                       plan={selectedPlan}
                       billingCycle={billingCycle}
                       amount={currentPrice}
+                      currency={currency}
                       onSuccess={handlePaymentSuccess}
                       onError={(err) => setPaymentError(err)}
-                      onClose={() => {}}
                     />
                   </div>
                 )}
@@ -514,20 +493,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       amount={currentPrice}
                       onSubmitted={handlePaymentSuccess}
                       onBack={() => handleClose()}
-                    />
-                  </div>
-                )}
-
-                {/* 3. PAYPAL */}
-                {currentActiveTab === 'paypal' && availableTabs.includes('paypal') && (
-                  <div className="space-y-4">
-                    <PayPalCheckout
-                      plan={selectedPlan}
-                      billingCycle={billingCycle}
-                      amount={currentPrice}
-                      currency={currency}
-                      onError={(err) => setPaymentError(err)}
-                      onSuccess={handlePaymentSuccess}
                     />
                   </div>
                 )}

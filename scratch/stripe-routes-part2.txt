@@ -1,0 +1,105 @@
+// Stripe Webhook
+  app.post('/api/webhooks/stripe', async (req: any, res) => {
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    const signature = (req.headers['stripe-signature'] as string) || '';
+    const rawBody = req.rawBody || JSON.stringify(req.body || {});
+
+    try {
+      const { default: Stripe } = await import('stripe');
+      const secret = process.env.STRIPE_SECRET_KEY;
+      if (!secret) throw new Error('STRIPE_SECRET_KEY not configured');
+      const stripe = new Stripe(secret, { apiVersion: '2024-06-20' });
+
+      let event: any;
+      if (endpointSecret) {
+        event = stripe.webhooks.constructEvent(rawBody, signature, endpointSecret);
+      } else {
+        event = JSON.parse(rawBody);
+      }
+
+      const { activateUserPlan, createPaymentRecord, createSubscriptionRecord, updateSubscriptionRecord } = await import('./src/lib/paymentService');
+      const { updateUserDocument } = await import('./src/lib/userService');
+
+      if (event.type === 'checkout.session.completed') {
+        const session = event.data.object;
+        const { uid, plan, billingCycle } = session.metadata || {};
+        if (uid && plan && billingCycle) {
+          await activateUserPlan(uid, plan, billingCycle, 'stripe', session.id);
+          await createPaymentRecord({
+            uid,
+            email: session.customer_email || 'customer@kdpstudio.app',
+            gateway: 'stripe',
+            gatewayPaymentId: session.payment_intent || session.id,
+            gatewaySubscriptionId: session.subscription || null,
+            gatewayCustomerId: session.customer || null,
+            plan,
+            billingCycle,
+            amount: session.amount_total || 0,
+            currency: (session.currency || 'usd').toUpperCase(),
+            status: 'completed',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            planStartDate: new Date().toISOString(),
+            planEndDate: null,
+            metadata: { sessionId: session.id, stripeEvent: event.type },
+          });
+          if (session.subscription) {
+            await createSubscriptionRecord({
+              uid,
+              gateway: 'stripe',
+              gatewaySubscriptionId: session.subscription,
+              plan,
+              billingCycle,
+              status: 'active',
+              currentPeriodStart: new Date().toISOString(),
+              currentPeriodEnd: null,
+              cancelAtPeriodEnd: false,
+              currency: (session.currency || 'usd').toUpperCase(),
+              amount: session.amount_total || 0,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            });
+          }
+        }
+      } else if (event.type === 'invoice.payment_failed') {
+        const invoice = event.data.object;
+        try {
+          if (invoice.subscription) {
+            const sub = await stripe.subscriptions.retrieve(invoice.subscription);
+            const uid = sub.metadata?.uid;
+            const plan = sub.metadata?.plan;
+            if (uid) {
+              await updateUserDocument(uid, { paymentFailed: true });
+              const { sendPaymentFailedEmail } = await import('./src/lib/emailService');
+              const { getUserDocument } = await import('./src/lib/userService');
+              const doc = await getUserDocument(uid);
+              if (doc?.email) {
+                sendPaymentFailedEmail({
+                  to: doc.email,
+                  name: doc.name || doc.displayName || doc.email.split('@')[0],
+                  plan: plan || doc.plan || 'pro',
+                  amount: invoice.amount_due ? `$${(invoice.amount_due / 100)}` : '$19.00',
+                  gateway: 'Stripe',
+                  retryUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://kdpstudio-aio.web.app'}/settings/billing`,
+                }).catch(console.error);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('[server.ts Stripe] payment_failed handler note:', e);
+        }
+      } else if (event.type === 'customer.subscription.deleted') {
+        const sub = event.data.object;
+        try {
+          if (sub.id) await updateSubscriptionRecord(sub.id, { status: 'cancelled', cancelAtPeriodEnd: true });
+        } catch (e) {
+          console.warn('[server.ts Stripe] subscription.deleted handler note:', e);
+        }
+      }
+
+      return res.json({ received: true });
+    } catch (err: any) {
+      console.error('[server.ts Stripe Webhook] Error:', err);
+      return res.status(400).json({ error: err.message });
+    }
+  });

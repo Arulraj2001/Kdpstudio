@@ -21,9 +21,6 @@ import { PageRoute } from '../../types';
 import { PlanName, BillingCycle } from '../../types/payment';
 import { CurrencySelector } from '../ui/CurrencySelector';
 import { useAuthStore } from '../../lib/authStore';
-import { RazorpayCheckout } from '../payment/RazorpayCheckout';
-import { PayPalCheckout } from '../payment/PayPalCheckout';
-import { UpiPayment } from '../payment/UpiPayment';
 import { BmacButton } from '../payment/BmacButton';
 import { showPaymentSuccessToast } from '../../lib/postPayment';
 import { useCheckoutStore } from '../../lib/checkoutStore';
@@ -80,8 +77,6 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
   const { user } = useAuthStore();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
-  const [selectedPlanForCheckout, setSelectedPlanForCheckout] = useState<{ plan: PlanName; amount: number; currency: Currency } | null>(null);
-  const [activeGatewayTab, setActiveGatewayTab] = useState<'paypal' | 'razorpay' | 'upi'>('razorpay');
   const [paymentNotice, setPaymentNotice] = useState<{ type: 'success' | 'cancelled' | 'error'; message: string } | null>(null);
 
   // Initialize and refresh real-time pricing on page mount
@@ -122,10 +117,6 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
     }
   }, [currKey]);
 
-  useEffect(() => {
-    setActiveGatewayTab(isIndia ? 'razorpay' : 'paypal');
-  }, [isIndia]);
-  
   const currentTable = pricingTable || PRICING_TABLE;
   const starterMonthly = currentTable.starter?.[currKey] ?? PRICING_TABLE.starter[currKey];
   const proMonthly = currentTable.pro?.[currKey] ?? PRICING_TABLE.pro[currKey];

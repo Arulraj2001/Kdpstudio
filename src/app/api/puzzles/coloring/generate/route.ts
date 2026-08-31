@@ -1,8 +1,8 @@
-import { GoogleGenAI } from '@google/genai';
 import { withUsageCheck } from '../../../../../lib/withUsageCheck';
 import { ColoringSettings, PuzzlePage, PuzzleBook } from '../../../../../types/puzzle';
 import { getPuzzleBook, savePuzzleBook } from '../../../../../lib/puzzleService';
 import { generateColoringLineArtFallback } from '../../../../../lib/puzzles/coloringHelper';
+import { generateImageWithFallback } from '../../../../../lib/imageGeneration';
 
 // Progress tracking for Server-Sent Events
 export const activeColoringGenerationProgress = new Map<string, {
@@ -19,7 +19,7 @@ export async function runColoringBookGeneration(
   prompts: string[],
   settings: ColoringSettings,
   userId?: string
-): Promise<{ success: boolean; bookId: string }> {
+): Promise<{ success: boolean; bookId: string; usedFallback?: boolean }> {
   const pageCount = Math.max(5, Math.min(40, settings.pageCount || prompts.length || 20));
   const cleanPrompts = prompts.length > 0
     ? prompts
@@ -33,15 +33,8 @@ export async function runColoringBookGeneration(
     status: 'generating',
   });
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  let ai: GoogleGenAI | null = null;
-  if (apiKey && !apiKey.includes('REPLACE')) {
-    try {
-      ai = new GoogleGenAI({ apiKey });
-    } catch {}
-  }
-
   const pages: PuzzlePage[] = [];
+  let usedFallback = false;
 
   for (let i = 0; i < pageCount; i++) {
     const pageNum = i + 1;
@@ -73,31 +66,16 @@ export async function runColoringBookGeneration(
 
     let imageUrl = '';
 
-    // 2. Call Imagen if client is active
-    if (ai) {
-      try {
-        const imgResponse = await ai.models.generateImages({
-          model: 'imagen-3.0-generate-002',
-          prompt: finalPrompt,
-          config: {
-            numberOfImages: 1,
-            aspectRatio: settings.trimSize === '8.5x11' || settings.trimSize === '6x9' ? '3:4' : '1:1',
-            outputMimeType: 'image/png',
-          },
-        });
-
-        const imageBytes = imgResponse.generatedImages?.[0]?.image?.imageBytes;
-        if (imageBytes) {
-          imageUrl = `data:image/png;base64,${imageBytes}`;
-        }
-      } catch (imgErr: any) {
-        console.warn(`Imagen call fallback for page #${pageNum}:`, imgErr.message);
-      }
+    // 2. Try AI image generation (Imagen → HuggingFace → Cloudflare cascade)
+    const aiResult = await generateImageWithFallback(finalPrompt, settings.trimSize === '8.5x11' || settings.trimSize === '6x9' ? '3:4' : '1:1');
+    if (!aiResult.fallback && aiResult.imageUrl) {
+      imageUrl = aiResult.imageUrl;
     }
 
-    // 3. Fallback vector line art if Imagen is unavailable or rate-limited
+    // 3. SVG fallback if all AI providers failed
     if (!imageUrl) {
       imageUrl = generateColoringLineArtFallback(basePrompt, settings.theme, pageNum);
+      usedFallback = true;
     }
 
     const page: PuzzlePage = {
@@ -155,7 +133,7 @@ export async function runColoringBookGeneration(
     status: 'complete',
   });
 
-  return { success: true, bookId };
+  return { success: true, bookId, usedFallback };
 }
 
 export const POST = withUsageCheck('imageGenerations', async (req) => {
