@@ -5,7 +5,13 @@ import {
   Menu, 
   X, 
   ArrowRight, 
-  Sparkles
+  Sparkles,
+  ChevronDown,
+  Calculator,
+  Compass,
+  AlertOctagon,
+  QrCode,
+  KeyRound
 } from 'lucide-react';
 import { useAuthStore } from '../../lib/authStore';
 import { PageRoute } from '../../types';
@@ -116,7 +122,130 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
           </div>
 
           {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
+          <div className="hidden md:flex items-center gap-7 text-sm font-semibold text-slate-600">
+            
+            {/* Tools Mega-Dropdown */}
+            <div className="relative group">
+              <button
+                onClick={() => handleNav('tools')}
+                className={`hover:text-purple-600 transition-colors cursor-pointer inline-flex items-center gap-1 py-2 ${
+                  ['tools', 'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator'].includes(currentRoute)
+                    ? 'text-purple-600 font-bold'
+                    : ''
+                }`}
+              >
+                <span>Tools</span>
+                <ChevronDown size={14} className="group-hover:rotate-180 transition-transform text-slate-400 group-hover:text-purple-600" />
+              </button>
+
+              {/* Dropdown Menu (Hover Flyout) */}
+              <div className="absolute top-full left-0 w-[540px] -ml-20 pt-2 opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 z-50">
+                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-2xl space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <span className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                      <Sparkles size={14} className="text-purple-600" />
+                      <span>KDP Creator Power Tools</span>
+                    </span>
+                    <button
+                      onClick={() => handleNav('tools')}
+                      className="text-xs font-bold text-purple-600 hover:text-purple-700 cursor-pointer"
+                    >
+                      View All Tools Hub →
+                    </button>
+                  </div>
+
+                  {/* 2-Column Tool Grid inside Dropdown */}
+                  <div className="grid grid-cols-2 gap-3">
+                    
+                    {/* Tool 1 */}
+                    <div 
+                      onClick={() => handleNav('royalty-calculator')}
+                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
+                    >
+                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
+                        <Calculator size={16} className="text-emerald-600 shrink-0" />
+                        <span>Royalty &amp; Print Calculator</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 line-clamp-2">
+                        Exact KDP printing costs and royalties across 13 global Amazon marketplaces.
+                      </p>
+                    </div>
+
+                    {/* Tool 2 */}
+                    <div 
+                      onClick={() => handleNav('asin-spy')}
+                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
+                    >
+                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
+                        <Compass size={16} className="text-purple-600 shrink-0" />
+                        <span>Reverse ASIN &amp; BSR Spy</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 line-clamp-2">
+                        Competitor sales velocity, monthly revenue, and daily sales needed for #1 rank.
+                      </p>
+                    </div>
+
+                    {/* Tool 3 */}
+                    <div 
+                      onClick={() => handleNav('review-miner')}
+                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
+                    >
+                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
+                        <AlertOctagon size={16} className="text-rose-600 shrink-0" />
+                        <span>Review Pain-Point Miner</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 line-clamp-2">
+                        Extract 1–3 star customer complaints to build superior bestseller blueprints.
+                      </p>
+                    </div>
+
+                    {/* Tool 4 */}
+                    <div 
+                      onClick={() => handleNav('lead-magnet')}
+                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
+                    >
+                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
+                        <QrCode size={16} className="text-purple-600 shrink-0" />
+                        <span>Lead Magnet &amp; QR Studio</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 line-clamp-2">
+                        Generate 300 DPI vector QR bonus pages to turn readers into email subscribers.
+                      </p>
+                    </div>
+
+                    {/* Tool 5 */}
+                    <div 
+                      onClick={() => handleNav('maze-generator')}
+                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
+                    >
+                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
+                        <Compass size={16} className="text-indigo-600 shrink-0" />
+                        <span>Algorithmic Mazes Studio</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 line-clamp-2">
+                        100% solvable rectangular, circular, and diamond mazes with answer keys.
+                      </p>
+                    </div>
+
+                    {/* Tool 6 */}
+                    <div 
+                      onClick={() => handleNav('cryptogram-generator')}
+                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
+                    >
+                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
+                        <KeyRound size={16} className="text-purple-600 shrink-0" />
+                        <span>Cryptogram &amp; Cipher Studio</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 line-clamp-2">
+                        Substitution cipher puzzles with quotes, letter frequencies, and solution keys.
+                      </p>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <button
               onClick={() => handleNav('features')}
               className={`hover:text-purple-600 transition-colors cursor-pointer ${
@@ -235,7 +364,13 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
           </div>
 
           {/* Centered Large Navigation Links */}
-          <div className="flex flex-col items-center justify-center space-y-6 py-8">
+          <div className="flex flex-col items-center justify-center space-y-5 py-6">
+            <button
+              onClick={() => handleNav('tools')}
+              className="text-2xl font-bold text-purple-400 hover:text-purple-300 transition-colors"
+            >
+              🛠️ Creator Tools Hub
+            </button>
             <button
               onClick={() => handleNav('features')}
               className="text-2xl font-bold text-slate-200 hover:text-purple-400 transition-colors"

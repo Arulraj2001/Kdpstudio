@@ -122,49 +122,63 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           {/* Column 2 — Product (3 cols) */}
           <div className="lg:col-span-3 space-y-3.5">
             <h4 className="text-xs font-bold uppercase tracking-wider text-white">
-              Product
+              Creator Tools
             </h4>
-            <ul className="space-y-2.5 text-xs sm:text-sm font-medium">
+            <ul className="space-y-2 text-xs font-medium">
               <li>
                 <button
-                  onClick={() => handleNav('features')}
+                  onClick={() => handleNav('tools')}
+                  className="hover:text-white transition-colors text-left cursor-pointer font-bold text-purple-400"
+                >
+                  🛠️ All Tools Hub
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => handleNav('royalty-calculator')}
                   className="hover:text-white transition-colors text-left cursor-pointer"
                 >
-                  Features
+                  Royalty &amp; Print Calculator
                 </button>
               </li>
               <li>
                 <button
-                  onClick={() => handleNav('pricing')}
+                  onClick={() => handleNav('asin-spy')}
                   className="hover:text-white transition-colors text-left cursor-pointer"
                 >
-                  Pricing
+                  Reverse ASIN Spy
                 </button>
               </li>
               <li>
                 <button
-                  onClick={() => handleNav('puzzles')}
-                  className="hover:text-white transition-colors text-left cursor-pointer flex items-center gap-1.5"
-                >
-                  <span>Puzzle Generator</span>
-                  <span className="text-[9px] bg-purple-900/80 text-purple-300 px-1.5 py-0.5 rounded border border-purple-700/50">New</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => handleNav('home', 'book-types')}
+                  onClick={() => handleNav('review-miner')}
                   className="hover:text-white transition-colors text-left cursor-pointer"
                 >
-                  Book Types
+                  Review Pain-Point Miner
                 </button>
               </li>
               <li>
                 <button
-                  onClick={() => handleNav('changelog')}
-                  className="hover:text-white transition-colors text-left flex items-center gap-1.5 cursor-pointer"
+                  onClick={() => handleNav('lead-magnet')}
+                  className="hover:text-white transition-colors text-left cursor-pointer"
                 >
-                  <span>Changelog</span>
-                  <span className="text-[10px] bg-purple-900/60 text-purple-300 px-1.5 py-0.2 rounded border border-purple-700/50">v2.4</span>
+                  Lead Magnet &amp; QR Studio
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => handleNav('maze-generator')}
+                  className="hover:text-white transition-colors text-left cursor-pointer"
+                >
+                  Algorithmic Mazes Studio
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => handleNav('cryptogram-generator')}
+                  className="hover:text-white transition-colors text-left cursor-pointer"
+                >
+                  Cryptograms &amp; Ciphers
                 </button>
               </li>
             </ul>

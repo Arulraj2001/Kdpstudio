@@ -2,6 +2,7 @@ export type PageRoute =
   | 'home'
   | 'features'
   | 'pricing'
+  | 'tools'
   | 'about'
   | 'terms'
   | 'privacy'

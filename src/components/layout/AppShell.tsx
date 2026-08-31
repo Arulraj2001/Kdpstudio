@@ -103,6 +103,7 @@ import { ChangelogPageView } from '../public/ChangelogPageView';
 import { BlogPageView } from '../public/BlogPageView';
 import { BlogPostDetailView } from '../public/BlogPostDetailView';
 import { LaunchPageView } from '../public/LaunchPageView';
+import { ToolsHubPageView } from '../public/ToolsHubPageView';
 import { KdpRoyaltyCalculatorView } from '../tools/KdpRoyaltyCalculatorView';
 import { ReverseAsinSpyView } from '../tools/ReverseAsinSpyView';
 import { ReviewPainPointMinerView } from '../tools/ReviewPainPointMinerView';
@@ -119,6 +120,7 @@ export const ROUTE_PATH_MAP: Record<PageRoute, string> = {
   home: '/',
   features: '/features',
   pricing: '/pricing',
+  tools: '/tools',
   about: '/about',
   terms: '/terms',
   privacy: '/privacy',
@@ -211,6 +213,7 @@ export function parsePathToRoute(pathname: string): PageRoute | null {
   if (clean === 'features') return 'features';
   if (clean === 'payment/success' || clean === 'payment-success') return 'payment-success';
   if (clean === 'pricing') return 'pricing';
+  if (clean === 'tools' || clean === 'tools/') return 'tools';
   if (clean === 'about') return 'about';
   if (clean === 'terms') return 'terms';
   if (clean === 'privacy') return 'privacy';
@@ -418,7 +421,7 @@ export const AppShell: React.FC = () => {
     if (!isInitialized) return;
 
     const isPublicMarketingRoute = [
-      'home', 'features', 'pricing', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'blog-detail', 'launch', 'payment-success',
+      'home', 'features', 'pricing', 'tools', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'blog-detail', 'launch', 'payment-success',
       'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator'
     ].includes(currentRoute);
 
@@ -529,7 +532,7 @@ export const AppShell: React.FC = () => {
   };
 
   const isPublicMarketingRoute = [
-    'home', 'features', 'pricing', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'blog-detail', 'launch', 'payment-success',
+    'home', 'features', 'pricing', 'tools', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'blog-detail', 'launch', 'payment-success',
     'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator'
   ].includes(currentRoute);
 
@@ -575,6 +578,7 @@ export const AppShell: React.FC = () => {
           {currentRoute === 'home' && <HomePageView onNavigate={handleNavigate} />}
           {currentRoute === 'features' && <FeaturesPageView onNavigate={handleNavigate} />}
           {currentRoute === 'pricing' && <PricingPageView onNavigate={handleNavigate} />}
+          {currentRoute === 'tools' && <ToolsHubPageView onNavigate={handleNavigate} />}
           {currentRoute === 'about' && <AboutPageView onNavigate={handleNavigate} />}
           {currentRoute === 'terms' && <TermsPageView onNavigate={handleNavigate} />}
           {currentRoute === 'privacy' && <PrivacyPageView onNavigate={handleNavigate} />}
@@ -1159,6 +1163,7 @@ export const AppShell: React.FC = () => {
 
               {currentRoute === 'settings' && <SettingsView onNavigate={handleNavigate} />}
 
+              {currentRoute === 'tools' && <ToolsHubPageView onNavigate={handleNavigate} />}
               {currentRoute === 'royalty-calculator' && <KdpRoyaltyCalculatorView onNavigate={handleNavigate} />}
               {currentRoute === 'asin-spy' && <ReverseAsinSpyView onNavigate={handleNavigate} />}
               {currentRoute === 'review-miner' && <ReviewPainPointMinerView onNavigate={handleNavigate} />}
