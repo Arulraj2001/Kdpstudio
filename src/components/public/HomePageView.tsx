@@ -150,6 +150,18 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
     }
   };
 
+  const handleGoToPricingCards = () => {
+    onNavigate('pricing');
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        const el = document.getElementById('pricing-cards') || document.getElementById('pricing-controls');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 120);
+    }
+  };
+
   const handleIdeaSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (ideaInput.trim()) {
@@ -922,7 +934,7 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
                 </ul>
               </div>
               <button
-                onClick={() => onNavigate('pricing')}
+                onClick={handleGoToPricingCards}
                 className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-purple-600/40 transition-all cursor-pointer"
               >
                 Start with Pro
@@ -967,7 +979,7 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
                 </ul>
               </div>
               <button
-                onClick={() => onNavigate('pricing')}
+                onClick={handleGoToPricingCards}
                 className="w-full py-3.5 rounded-2xl border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white font-bold text-sm transition-all cursor-pointer"
               >
                 View Full Pricing

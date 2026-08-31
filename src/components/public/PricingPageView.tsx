@@ -233,60 +233,23 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
       )}
       
       {/* Header */}
-      <section className="pt-16 pb-12 sm:pt-20 sm:pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center space-y-6">
-        <div className="flex items-center justify-center gap-2 mb-2">
+      <section className="pt-14 pb-8 sm:pt-16 sm:pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center space-y-4">
+        <div className="flex items-center justify-center gap-2 mb-1">
           <span className="text-xs font-bold uppercase tracking-wider text-purple-600 bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
             Fair & Transparent
           </span>
         </div>
 
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight">
+        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight">
           Simple, Transparent Pricing
         </h1>
-        <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto">
+        <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto">
           Start free. Upgrade when you're ready to publish more books.
         </p>
-
-        {/* Currency Switcher + Billing Toggle */}
-        <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
-          
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
-            <span>Currency:</span>
-            <CurrencySelector />
-          </div>
-
-          {/* Monthly / Annual Toggle */}
-          <div className="inline-flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200">
-            <button
-              onClick={() => setBillingCycle('monthly')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                billingCycle === 'monthly'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Monthly Billing
-            </button>
-            <button
-              onClick={() => setBillingCycle('annual')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                billingCycle === 'annual'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <span>Annual Billing</span>
-              <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-extrabold">
-                2 Months Free (Save 20%)
-              </span>
-            </button>
-          </div>
-
-        </div>
       </section>
 
       {/* ── VIRAL GROWTH PROMOTION CELEBRATION CARD ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-violet-900 via-purple-900 to-indigo-950 p-6 sm:p-8 text-white border border-purple-400/40 shadow-2xl shadow-purple-950/50">
           <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
           
@@ -332,8 +295,43 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
         </div>
       </div>
 
+      {/* ── Currency Switcher + Billing Toggle (Placed below Promo Card) ── */}
+      <div id="pricing-controls" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shadow-xs">
+          <span>Currency:</span>
+          <CurrencySelector />
+        </div>
+
+        {/* Monthly / Annual Toggle */}
+        <div className="inline-flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200 shadow-xs">
+          <button
+            onClick={() => setBillingCycle('monthly')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              billingCycle === 'monthly'
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Monthly Billing
+          </button>
+          <button
+            onClick={() => setBillingCycle('annual')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              billingCycle === 'annual'
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <span>Annual Billing</span>
+            <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-extrabold">
+              2 Months Free (Save 20%)
+            </span>
+          </button>
+        </div>
+      </div>
+
       {/* 4 Plan Cards */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+      <section id="pricing-cards" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 scroll-mt-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
           
           {/* 1. Free */}
@@ -557,14 +555,14 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
                 </div>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed">
-                UPI (Google Pay, PhonePe, Paytm, BHIM), all Indian Debit/Credit cards, and Net Banking.
+                UPI (Google Pay, PhonePe, Paytm, BHIM), Indian Net Banking, and Debit/Credit cards.
               </p>
               <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-bold text-slate-700">
                 <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">UPI Instant</span>
                 <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Google Pay</span>
                 <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">PhonePe</span>
                 <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Paytm</span>
-                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">RuPay / Visa / Mastercard</span>
+                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">RuPay</span>
                 <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Net Banking</span>
               </div>
             </div>
@@ -579,15 +577,12 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
                 </div>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Stripe, Mastercard, Visa, American Express, Apple Pay, and Google Pay in USD, GBP, EUR, CAD, AUD.
+                Stripe and Google Pay in USD, GBP, EUR, CAD, AUD with instant license activation.
               </p>
               <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-bold text-slate-700">
                 <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Stripe</span>
-                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Visa</span>
-                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Mastercard</span>
-                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">American Express</span>
-                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Apple Pay</span>
                 <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Google Pay</span>
+                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Instant Activation</span>
               </div>
             </div>
 
