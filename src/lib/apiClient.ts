@@ -96,3 +96,19 @@ export async function apiPut(
     body: JSON.stringify(body),
   });
 }
+
+/**
+ * Safely parse a JSON response, avoiding "Unexpected token '<', <!doctype..." crashes.
+ */
+export async function safeJson<T = any>(res: Response): Promise<T> {
+  const text = await res.text();
+  try {
+    return JSON.parse(text) as T;
+  } catch (err) {
+    if (text.trim().startsWith('<')) {
+      throw new Error(`Server returned HTML instead of JSON (Status ${res.status}). The backend may be booting up or unreachable.`);
+    }
+    throw new Error(`Invalid JSON response: ${text.slice(0, 100)}`);
+  }
+}
+

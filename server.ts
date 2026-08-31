@@ -70,7 +70,8 @@ async function startServer() {
   app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-user-id, X-Requested-With');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-user-id, X-Requested-With, Accept, Cache-Control, x-country, x-currency');
+    res.setHeader('Access-Control-Expose-Headers', 'X-Usage-Remaining, X-Usage-Limit, X-Usage-Reset, Content-Type');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-Content-Type-Options', 'nosniff');
