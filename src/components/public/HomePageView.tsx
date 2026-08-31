@@ -17,11 +17,12 @@ import {
   BadgeCheck, 
   ChevronDown, 
   ChevronUp, 
-  Grid,
-  TrendingUp,
-  Cpu,
-  CheckCircle2,
-  FolderZip
+  Grid, 
+  TrendingUp, 
+  Cpu, 
+  CheckCircle2, 
+  FolderArchive,
+  SlidersHorizontal
 } from 'lucide-react';
 import { PageRoute } from '../../types';
 import { useAuthStore } from '../../lib/authStore';
@@ -260,16 +261,16 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
       <JsonLd id="jsonld-faq" data={FAQ_SCHEMA} />
 
       {/* ─────────────────────────────────────────────────────────────────────────────
-          1. HERO SECTION (Dark Obsidian + Violet/Indigo Ambient Lighting + Interactive Prompt)
+          1. HERO SECTION (Tighter Vertical Spacing + Ambient Glow + Interactive Prompt)
          ───────────────────────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-slate-950 text-white pt-16 pb-20 sm:pt-24 sm:pb-32">
+      <section className="relative overflow-hidden bg-slate-950 text-white pt-8 pb-12 sm:pt-12 sm:pb-16">
         {/* Ambient Glows */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-purple-600/20 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute top-1/3 left-1/4 w-[400px] h-[300px] bg-indigo-600/15 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-purple-600/20 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute top-1/3 left-1/4 w-[400px] h-[250px] bg-indigo-600/15 rounded-full blur-[120px] pointer-events-none" />
 
         {/* Subtle CSS Grid Background */}
         <div 
-          className="absolute inset-0 pointer-events-none opacity-25"
+          className="absolute inset-0 pointer-events-none opacity-20"
           style={{
             backgroundImage: `
               linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
@@ -279,16 +280,16 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
           }}
         />
 
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-5">
           
           {/* Trust Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 text-xs sm:text-sm font-semibold backdrop-blur-md shadow-lg shadow-emerald-950/40">
-            <BadgeCheck size={16} className="text-emerald-400" />
+          <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-emerald-950/70 border border-emerald-500/30 text-emerald-300 text-xs sm:text-sm font-semibold backdrop-blur-md shadow-lg shadow-emerald-950/40">
+            <BadgeCheck size={15} className="text-emerald-400" />
             <span>Official Amazon KDP Publishing Suite • 100% Bleed & Gutter Compliant</span>
           </div>
 
           {/* Main Headline */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.08] max-w-4xl mx-auto">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.08] max-w-4xl mx-auto">
             From Idea to Upload-Ready Book — <br className="hidden sm:inline" />
             <span className="bg-gradient-to-r from-purple-300 via-violet-200 to-indigo-300 bg-clip-text text-transparent">
               The Complete AI Studio
@@ -296,15 +297,15 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
           </h1>
 
           {/* Subtitle */}
-          <p className="text-base sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed font-normal">
+          <p className="text-sm sm:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed font-normal">
             Create your manuscript, typeset print interiors, generate spine-calculated 300 DPI wrap covers, and download a complete KDP publishing package in minutes.
           </p>
 
           {/* ── Interactive 60-Second "Try Your Idea" Input Box ── */}
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-2xl mx-auto pt-1">
             <form 
               onSubmit={handleIdeaSubmit}
-              className="flex flex-col sm:flex-row items-stretch gap-2 p-2 rounded-2xl bg-white/[0.06] border border-white/[0.15] backdrop-blur-md shadow-2xl shadow-purple-950/60 focus-within:border-purple-400 transition-all"
+              className="flex flex-col sm:flex-row items-stretch gap-2 p-1.5 rounded-2xl bg-white/[0.07] border border-white/[0.18] backdrop-blur-md shadow-2xl shadow-purple-950/60 focus-within:border-purple-400 transition-all"
             >
               <div className="flex items-center flex-1 min-w-0 px-3">
                 <Sparkles size={18} className="text-purple-400 shrink-0 mr-2.5 animate-pulse" />
@@ -314,49 +315,49 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
                   value={ideaInput}
                   onChange={(e) => setIdeaInput(e.target.value)}
                   placeholder="Type your book idea… e.g. 50 Calming Sudoku Puzzles for Seniors"
-                  className="w-full bg-transparent text-white placeholder:text-slate-400 text-sm sm:text-base py-3 outline-none"
+                  className="w-full bg-transparent text-white placeholder:text-slate-400 text-xs sm:text-sm py-2.5 outline-none"
                 />
               </div>
               <button
                 type="submit"
-                className="shrink-0 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm sm:text-base px-6 py-3 shadow-lg shadow-purple-600/30 transition-all cursor-pointer active:scale-95"
+                className="shrink-0 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm px-5 py-2.5 shadow-lg shadow-purple-600/30 transition-all cursor-pointer active:scale-95"
               >
                 <span>Try It Free</span>
-                <ArrowRight size={16} />
+                <ArrowRight size={15} />
               </button>
             </form>
-            <p className="mt-2.5 text-xs text-slate-400">
+            <p className="mt-2 text-[11px] text-slate-400">
               Get an instant preview concept in about 60 seconds — no credit card required.
             </p>
           </div>
 
           {/* Trust Value Props */}
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 pt-2 text-xs sm:text-sm text-slate-300 font-medium">
-            <div className="flex items-center gap-2">
-              <Gift size={16} className="text-emerald-400" />
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-1 text-xs text-slate-300 font-medium">
+            <div className="flex items-center gap-1.5">
+              <Gift size={15} className="text-emerald-400" />
               <span><strong>{freeLimits.daily.aiGenerations} daily AI credits</strong> included free</span>
             </div>
-            <div className="flex items-center gap-2">
-              <ShieldCheck size={16} className="text-emerald-400" />
-              <span>You own 100% of all royalties & copyrights</span>
+            <div className="flex items-center gap-1.5">
+              <ShieldCheck size={15} className="text-emerald-400" />
+              <span>100% Royalties & Copyright Ownership</span>
             </div>
-            <div className="flex items-center gap-2">
-              <FileCheck size={16} className="text-emerald-400" />
-              <span>Guaranteed zero Amazon bleed rejections</span>
+            <div className="flex items-center gap-1.5">
+              <FileCheck size={15} className="text-emerald-400" />
+              <span>Guaranteed Zero Bleed Rejections</span>
             </div>
           </div>
 
           {/* ── 3D Hero Product Composite Preview ── */}
-          <div className="pt-10 max-w-5xl mx-auto">
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-purple-950/80 border border-white/15 bg-slate-900/90 p-4 sm:p-8">
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+          <div className="pt-6 max-w-5xl mx-auto">
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-purple-950/80 border border-white/15 bg-slate-900/90 p-4 sm:p-6">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
                 
                 {/* Left: Open Interior Spread */}
                 <div className="md:col-span-7 rounded-2xl overflow-hidden shadow-lg border border-white/10 relative group">
                   <img
                     src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1000&q=80"
                     alt="Open book interior formatting spread with drop caps"
-                    className="w-full h-64 sm:h-80 object-cover rounded-2xl transition-transform duration-500 group-hover:scale-103"
+                    className="w-full h-56 sm:h-72 object-cover rounded-2xl transition-transform duration-500 group-hover:scale-103"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent flex flex-col justify-end p-4 text-left">
                     <span className="text-[10px] font-mono uppercase font-bold text-purple-300">
@@ -373,7 +374,7 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
                   <img
                     src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80"
                     alt="Print ready paperback wrap book cover"
-                    className="w-full h-64 sm:h-80 object-cover rounded-2xl transition-transform duration-500 group-hover:scale-103"
+                    className="w-full h-56 sm:h-72 object-cover rounded-2xl transition-transform duration-500 group-hover:scale-103"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent flex flex-col justify-end p-4 text-left">
                     <span className="text-[10px] font-mono uppercase font-bold text-emerald-300">
@@ -388,7 +389,7 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
               </div>
 
               {/* Floating Feature Pills */}
-              <div className="flex flex-wrap items-center justify-center gap-3 pt-6 text-[11px] font-bold">
+              <div className="flex flex-wrap items-center justify-center gap-2.5 pt-4 text-[11px] font-bold">
                 <span className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-400/30">
                   ✓ 0.125″ Bleed Safe
                 </span>
@@ -412,10 +413,10 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
       {/* ─────────────────────────────────────────────────────────────────────────────
           2. REAL BOOK PROOF: "Books We Actually Built With KDP Studio"
          ───────────────────────────────────────────────────────────────────────────── */}
-      <section className="py-20 bg-slate-50 border-b border-slate-200">
+      <section className="py-16 sm:py-20 bg-slate-50 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className="text-center max-w-3xl mx-auto mb-14 space-y-3">
+          <div className="text-center max-w-3xl mx-auto mb-12 space-y-2.5">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-black uppercase tracking-wider">
               <BadgeCheck size={14} className="text-emerald-600" />
               <span>Real Builds, Not Generic Mockups</span>
@@ -423,49 +424,46 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
             <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
               Books We Actually Built With It
             </h2>
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl mx-auto">
               Every book below was produced end-to-end inside KDP Studio — manuscript, formatted interior PDF, and spine-calculated wrap cover — passing our 100-point Amazon KDP pre-flight audit.
             </p>
           </div>
 
-          {/* 5 Real Photographic Book Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+          {/* Flagship Books Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {flagshipBooks.map((book) => (
-              <div 
-                key={book.id} 
-                className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-2xl hover:border-purple-400 transition-all flex flex-col justify-between"
+              <div
+                key={book.id}
+                className="bg-white rounded-3xl border border-slate-200 shadow-xs hover:shadow-xl hover:border-purple-300 transition-all duration-300 overflow-hidden flex flex-col justify-between group"
               >
                 <div>
-                  {/* Real Photographic Cover with 3D Spine Crease */}
-                  <div className="relative aspect-[2/3] overflow-hidden bg-slate-900">
+                  <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
                     <img
                       src={book.imageUrl}
-                      alt={`${book.title} cover`}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      alt={book.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                     />
-                    <div className="book-spine-highlight" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent flex flex-col justify-end p-3 text-white">
-                      <div className="text-[9px] font-black uppercase tracking-wider text-purple-300">
+                    <div className="absolute top-3 left-3">
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border backdrop-blur-md ${book.badgeColor}`}>
                         {book.genre}
-                      </div>
-                      <div className="text-sm font-black leading-tight text-white drop-shadow-md">
-                        {book.title}
-                      </div>
+                      </span>
+                    </div>
+                    <div className="absolute top-3 right-3">
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 backdrop-blur-md">
+                        Quality {book.quality}
+                      </span>
                     </div>
                   </div>
 
-                  <div className="p-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${book.badgeColor}`}>
-                        {book.genre.split('/')[0]}
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                        <BadgeCheck size={12} /> {book.quality}
-                      </span>
-                    </div>
-                    <h3 className="text-sm font-bold text-slate-900 leading-snug">{book.title}</h3>
-                    <p className="text-xs text-slate-500 leading-relaxed">
+                  <div className="p-6 space-y-2">
+                    <h3 className="text-lg font-black text-slate-900 group-hover:text-purple-600 transition-colors">
+                      {book.title}
+                    </h3>
+                    <p className="text-xs font-semibold text-purple-600">
+                      {book.subtitle}
+                    </p>
+                    <p className="text-xs text-slate-600 leading-relaxed pt-1">
                       {book.description}
                     </p>
                   </div>
@@ -479,13 +477,13 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
             ))}
           </div>
 
-          <div className="mt-12 text-center">
+          <div className="mt-10 text-center">
             <button
               onClick={handleStart}
-              className="px-8 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-md transition-all cursor-pointer inline-flex items-center gap-2"
+              className="px-7 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm shadow-md transition-all cursor-pointer inline-flex items-center gap-2"
             >
               <span>Build Your Own Book Now</span>
-              <ArrowRight size={16} />
+              <ArrowRight size={15} />
             </button>
           </div>
         </div>
@@ -494,8 +492,8 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
       {/* ─────────────────────────────────────────────────────────────────────────────
           3. INFINITE GENRE COVER MARQUEE (12+ Real Covers with Hover Lift)
          ───────────────────────────────────────────────────────────────────────────── */}
-      <section className="py-20 bg-slate-950 text-white overflow-hidden relative">
-        <div className="max-w-4xl mx-auto px-4 text-center mb-10 space-y-2">
+      <section className="py-16 bg-slate-950 text-white overflow-hidden relative">
+        <div className="max-w-4xl mx-auto px-4 text-center mb-8 space-y-2">
           <h2 className="text-2xl sm:text-4xl font-black tracking-tight">
             Covers That Look Like You Hired a Top Agency
           </h2>
@@ -506,7 +504,6 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
 
         {/* Scrolling Marquee Container */}
         <div className="relative w-full overflow-hidden">
-          {/* Left/Right Fade Mask */}
           <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-slate-950 to-transparent z-10 pointer-events-none" />
           <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-slate-950 to-transparent z-10 pointer-events-none" />
 
@@ -550,118 +547,144 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────────────────────
-          4. THE COMPLETE PUBLISHING PACKAGE (Exploded ZIP View)
+          4. THE COMPLETE PUBLISHING PACKAGE (1-Click Exploded ZIP View)
          ───────────────────────────────────────────────────────────────────────────── */}
-      <section className="py-20 sm:py-28 bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+      <section className="py-16 sm:py-24 bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
           <div className="text-center max-w-3xl mx-auto space-y-3">
-            <span className="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-black uppercase tracking-wider">
-              1-Click Ready to Upload
-            </span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 border border-purple-300 text-purple-800 text-xs font-black uppercase tracking-wider">
+              <FolderArchive size={14} className="text-purple-600" />
+              <span>1-Click Ready to Upload</span>
+            </div>
             <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
               Everything You Need to Publish — In One ZIP
             </h2>
-            <p className="text-sm sm:text-base text-slate-600">
-              You don't just get a raw text file. You get a professionally formatted, pre-flight audited publishing bundle ready for Amazon KDP.
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl mx-auto">
+              You don't just get a raw text file. You get a professionally formatted, pre-flight audited publishing bundle ready for instant Amazon KDP upload.
             </p>
           </div>
 
           {/* Exploded Package Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
             {/* 1. Interior PDF */}
-            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 hover:border-purple-300 transition-all">
-              <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
-                <FileText size={24} />
+            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 hover:border-purple-400 hover:shadow-lg transition-all group">
+              <div className="flex items-center justify-between">
+                <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
+                  <FileText size={22} />
+                </div>
+                <span className="px-2.5 py-1 rounded-lg bg-purple-100 text-purple-800 text-[10px] font-mono font-black">
+                  PDF • 300 DPI
+                </span>
               </div>
               <div className="space-y-1.5">
-                <h3 className="text-lg font-bold text-slate-900">1. Print-Ready Interior PDF</h3>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">1. Print-Ready Interior PDF</h3>
                 <p className="text-xs text-slate-600 leading-relaxed">
                   Ornamental chapter headings, drop caps, header/footer running heads, and mathematically calculated gutter margins to prevent text swallowing in binding.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2 pt-2 text-[11px] font-semibold text-purple-800">
-                <span className="px-2.5 py-1 rounded-lg bg-purple-50 border border-purple-200">0.125" Bleed Safe</span>
-                <span className="px-2.5 py-1 rounded-lg bg-purple-50 border border-purple-200">KDP Gutter Math</span>
+              <div className="flex flex-wrap gap-2 pt-2 text-[11px] font-semibold text-purple-800 border-t border-slate-200/70">
+                <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200">0.125″ Bleed Safe</span>
+                <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200">KDP Gutter Math</span>
               </div>
             </div>
 
             {/* 2. Wrap Cover Spread */}
-            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 hover:border-purple-300 transition-all">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
-                <Palette size={24} />
+            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 hover:border-indigo-400 hover:shadow-lg transition-all group">
+              <div className="flex items-center justify-between">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
+                  <Palette size={22} />
+                </div>
+                <span className="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-800 text-[10px] font-mono font-black">
+                  WRAP PDF • CMYK
+                </span>
               </div>
               <div className="space-y-1.5">
-                <h3 className="text-lg font-bold text-slate-900">2. Spine-Calculated Wrap Cover</h3>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">2. Spine-Calculated Wrap Cover</h3>
                 <p className="text-xs text-slate-600 leading-relaxed">
                   Full spread PDF including front artwork, back cover marketing blurb, barcode safe zone, and exact spine width calculated from your page count and paper type.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2 pt-2 text-[11px] font-semibold text-indigo-800">
-                <span className="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200">300 DPI High-Res</span>
-                <span className="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200">Barcode Safe Zone</span>
+              <div className="flex flex-wrap gap-2 pt-2 text-[11px] font-semibold text-indigo-800 border-t border-slate-200/70">
+                <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200">300 DPI High-Res</span>
+                <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200">Barcode Safe Zone</span>
               </div>
             </div>
 
             {/* 3. SEO & 7 Keywords */}
-            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 hover:border-purple-300 transition-all">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-                <Search size={24} />
+            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 hover:border-emerald-400 hover:shadow-lg transition-all group">
+              <div className="flex items-center justify-between">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
+                  <Search size={22} />
+                </div>
+                <span className="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-[10px] font-mono font-black">
+                  TXT & HTML
+                </span>
               </div>
               <div className="space-y-1.5">
-                <h3 className="text-lg font-bold text-slate-900">3. Amazon 7-Keyword Strategy</h3>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">3. Amazon 7-Keyword Strategy</h3>
                 <p className="text-xs text-slate-600 leading-relaxed">
                   High-intent keyword strings tailored for Amazon search algorithms, 3 primary/secondary BISAC categories, and formatted HTML book description ready to paste.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2 pt-2 text-[11px] font-semibold text-emerald-800">
-                <span className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200">7 Keyword Strings</span>
-                <span className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200">BISAC Categories</span>
+              <div className="flex flex-wrap gap-2 pt-2 text-[11px] font-semibold text-emerald-800 border-t border-slate-200/70">
+                <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200">7 Keyword Strings</span>
+                <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200">BISAC Categories</span>
               </div>
             </div>
 
             {/* 4. Kindle ePub */}
-            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 hover:border-purple-300 transition-all">
-              <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
-                <BookOpen size={24} />
+            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 hover:border-amber-400 hover:shadow-lg transition-all group">
+              <div className="flex items-center justify-between">
+                <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
+                  <BookOpen size={22} />
+                </div>
+                <span className="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 text-[10px] font-mono font-black">
+                  EPUB 3.0
+                </span>
               </div>
               <div className="space-y-1.5">
-                <h3 className="text-lg font-bold text-slate-900">4. Kindle Reflowable ePub</h3>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">4. Kindle Reflowable ePub</h3>
                 <p className="text-xs text-slate-600 leading-relaxed">
                   Validated ePub eBook package ready for Kindle Direct Publishing with working Table of Contents, responsive images, and typography tags.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2 pt-2 text-[11px] font-semibold text-amber-800">
-                <span className="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200">Reflowable Layout</span>
-                <span className="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200">Kindle Tested</span>
+              <div className="flex flex-wrap gap-2 pt-2 text-[11px] font-semibold text-amber-800 border-t border-slate-200/70">
+                <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200">Reflowable Layout</span>
+                <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200">Kindle Tested</span>
               </div>
             </div>
 
             {/* 5. Pre-flight Quality Audit */}
-            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 hover:border-purple-300 transition-all">
-              <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold">
-                <ShieldCheck size={24} />
+            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 hover:border-rose-400 hover:shadow-lg transition-all group">
+              <div className="flex items-center justify-between">
+                <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
+                  <ShieldCheck size={22} />
+                </div>
+                <span className="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-800 text-[10px] font-mono font-black">
+                  100/100 AUDIT
+                </span>
               </div>
               <div className="space-y-1.5">
-                <h3 className="text-lg font-bold text-slate-900">5. KDP Pre-Flight Quality Audit</h3>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">5. KDP Pre-Flight Quality Audit</h3>
                 <p className="text-xs text-slate-600 leading-relaxed">
                   Automated checks against Amazon print guidelines: font embedding verification, minimum margin clearances, bleed validation, and image compression checks.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2 pt-2 text-[11px] font-semibold text-rose-800">
-                <span className="px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-200">100-Point Audit</span>
-                <span className="px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-200">Zero Rejections</span>
+              <div className="flex flex-wrap gap-2 pt-2 text-[11px] font-semibold text-rose-800 border-t border-slate-200/70">
+                <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200">100-Point Audit</span>
+                <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200">Zero Rejections</span>
               </div>
             </div>
 
             {/* 6. Instant ZIP Download */}
-            <div className="bg-gradient-to-br from-purple-900 to-slate-950 p-6 rounded-3xl text-white space-y-4 flex flex-col justify-between shadow-xl">
+            <div className="bg-gradient-to-br from-purple-900 via-indigo-950 to-slate-950 p-6 rounded-3xl text-white space-y-4 flex flex-col justify-between shadow-xl border border-purple-500/30">
               <div className="space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center font-bold">
-                  <Download size={24} />
+                <div className="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center font-bold shadow-lg shadow-purple-600/30">
+                  <Download size={22} />
                 </div>
-                <h3 className="text-lg font-bold">6. One-Click ZIP Download</h3>
+                <h3 className="text-base sm:text-lg font-bold text-white">6. One-Click ZIP Download</h3>
                 <p className="text-xs text-purple-200 leading-relaxed">
                   All production assets organized into structured folders with an upload checklist to guide you through your Amazon KDP dashboard in 5 minutes.
                 </p>
@@ -681,43 +704,110 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────────────────────
-          5. SIX STEPS FROM IDEA TO PUBLISHED BOOK (The Step-by-Step Pipeline)
+          5. SIX STEPS FROM IDEA TO PUBLISHED BOOK (Redesigned Interactive Workflow)
          ───────────────────────────────────────────────────────────────────────────── */}
-      <section id="how-it-works" className="py-20 bg-slate-50 border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+      <section id="how-it-works" className="py-16 sm:py-24 bg-slate-50 border-b border-slate-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
-          <div className="text-center max-w-2xl mx-auto space-y-3">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-100 border border-indigo-300 text-indigo-800 text-xs font-black uppercase tracking-wider">
+              <SlidersHorizontal size={14} className="text-indigo-600" />
+              <span>Studio Pipeline</span>
+            </div>
             <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
               Six Steps From Idea to Published Book
             </h2>
-            <p className="text-sm sm:text-base text-slate-600">
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl mx-auto">
               You don't need publishing experience. Follow the guided step-by-step studio workflow.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { num: '1', title: 'Pick Your Book Format', desc: 'Select from Fiction, Nonfiction, Word Search, Sudoku, Coloring Books, or Planners — each with its specialized generator workflow.' },
-              { num: '2', title: 'AI Niche & Market Research', desc: 'Discover profitable Amazon KDP keywords, analyze competitor sales ranks, and identify audience demand before writing.' },
-              { num: '3', title: 'Generate Manuscript & Interior', desc: 'Draft chapter outlines and full manuscript sections with voice-consistent Gemini 2.0 AI. Edit and lock chapters as you go.' },
-              { num: '4', title: 'Design 300 DPI Wrap Cover', desc: 'Generate genre-aware artwork with calculated spine width, crisp typography, and full paperback wrap.' },
-              { num: '5', title: 'Pre-Flight Quality Audit', desc: 'Run automated compliance verification to ensure zero margin or bleed errors on Amazon KDP print presses.' },
-              { num: '6', title: 'Download & Publish', desc: 'Download your full upload-ready ZIP and upload directly to Amazon KDP, IngramSpark, or Etsy. Keep 100% of your earnings.' },
-            ].map((step, idx) => (
-              <div key={idx} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-purple-300 transition-all space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-900 text-white font-black text-sm flex items-center justify-center">
-                  {step.num}
+              { 
+                num: '01', 
+                icon: Grid,
+                title: 'Pick Your Book Format', 
+                desc: 'Select from Fiction, Nonfiction, Word Search, Sudoku, Coloring Books, or Planners — each with specialized layout workflows and trim defaults.',
+                badge: 'Format Selection'
+              },
+              { 
+                num: '02', 
+                icon: TrendingUp,
+                title: 'AI Niche & Market Research', 
+                desc: 'Discover profitable Amazon KDP keywords, analyze competitor sales ranks, and identify audience demand before writing a single word.',
+                badge: 'Demand Analysis'
+              },
+              { 
+                num: '03', 
+                icon: Cpu,
+                title: 'Generate Manuscript & Interior', 
+                desc: 'Draft chapter outlines and full manuscript sections with voice-consistent Gemini 2.0 AI. Edit, refine, and lock chapters seamlessly.',
+                badge: 'Gemini 2.0 Core'
+              },
+              { 
+                num: '04', 
+                icon: Palette,
+                title: 'Design 300 DPI Wrap Cover', 
+                desc: 'Generate genre-aware artwork with exact spine thickness math (pages × 0.002252″), crisp typography, and full paperback wrap spread.',
+                badge: 'Spine Math'
+              },
+              { 
+                num: '05', 
+                icon: ShieldCheck,
+                title: 'Pre-Flight Quality Audit', 
+                desc: 'Run automated compliance verification across 100 checkpoints to guarantee zero margin, gutter, or bleed rejections on Amazon KDP print presses.',
+                badge: '100% Zero-Reject'
+              },
+              { 
+                num: '06', 
+                icon: FolderArchive,
+                title: 'Download & Publish', 
+                desc: 'Download your full upload-ready ZIP and upload directly to Amazon KDP, keeping 100% of all royalties with zero publisher commissions.',
+                badge: '100% Royalties'
+              },
+            ].map((step, idx) => {
+              const StepIcon = step.icon;
+              return (
+                <div 
+                  key={idx} 
+                  className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs hover:shadow-lg hover:border-purple-300 transition-all duration-300 flex flex-col justify-between space-y-4 group"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white font-black text-xs flex items-center justify-center group-hover:bg-purple-600 transition-colors">
+                        {step.num}
+                      </div>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                        {step.badge}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <StepIcon size={18} className="text-purple-600 shrink-0" />
+                      <h3 className="text-base font-bold text-slate-900 group-hover:text-purple-600 transition-colors">
+                        {step.title}
+                      </h3>
+                    </div>
+
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      {step.desc}
+                    </p>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-semibold text-slate-400 group-hover:text-purple-600 transition-colors">
+                    <span>Guided Studio Stage {step.num}</span>
+                    <span>→</span>
+                  </div>
                 </div>
-                <h3 className="text-base font-bold text-slate-900">{step.title}</h3>
-                <p className="text-xs text-slate-600 leading-relaxed">{step.desc}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          <div className="text-center">
+          <div className="text-center pt-2">
             <button
               onClick={() => onNavigate('features')}
-              className="px-8 py-3.5 rounded-2xl bg-purple-100 hover:bg-purple-200 text-purple-900 font-bold text-xs sm:text-sm transition-all cursor-pointer inline-flex items-center gap-2"
+              className="px-8 py-3.5 rounded-2xl bg-purple-100 hover:bg-purple-200 text-purple-900 font-bold text-xs sm:text-sm transition-all cursor-pointer inline-flex items-center gap-2 shadow-xs"
             >
               <span>Explore All Studio Features in Depth</span>
               <ArrowRight size={16} />

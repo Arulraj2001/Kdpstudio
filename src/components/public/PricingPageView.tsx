@@ -175,7 +175,7 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
     },
     {
       q: 'Can I pay in Indian Rupees?',
-      a: 'Yes! Indian users are billed in INR (₹) via Razorpay with support for UPI (Google Pay, PhonePe, Paytm), Net Banking, and Indian RuPay/Mastercard/Visa cards.'
+      a: 'Yes! Indian users are billed in INR (₹) with instant support for UPI (Google Pay, PhonePe, Paytm, BHIM), Net Banking, and Indian RuPay/Mastercard/Visa cards.'
     },
     {
       q: 'What is the Lifetime deal?',
@@ -285,15 +285,52 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
         </div>
       </section>
 
-      {/* Growth Promotion Banner if Active */}
-      {growthPromo && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-3.5 rounded-2xl shadow-md flex items-center justify-center gap-2.5 text-center text-xs sm:text-sm font-bold animate-in fade-in duration-300">
-            <Sparkles size={18} className="text-amber-300 shrink-0 animate-pulse" />
-            <span>{growthPromo.bannerText}</span>
+      {/* ── VIRAL GROWTH PROMOTION CELEBRATION CARD ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-violet-900 via-purple-900 to-indigo-950 p-6 sm:p-8 text-white border border-purple-400/40 shadow-2xl shadow-purple-950/50">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6">
+            <div className="space-y-2 text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-300 text-xs font-black uppercase tracking-wider">
+                <span>🔥 VIRAL GROWTH PROMO</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-white">
+                Free accounts get <span className="text-amber-300">20 daily AI credits</span>, <span className="text-cyan-300">10 puzzles</span>, and <span className="text-emerald-300">5 active books!</span>
+              </h2>
+              <p className="text-xs sm:text-sm text-purple-200/90 max-w-2xl leading-relaxed">
+                Take advantage of our global creator expansion. Every new free account is automatically granted boosted daily limits with zero expiration.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
+              <button
+                onClick={() => onNavigate(user ? 'dashboard' : 'signup')}
+                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-amber-500/30 transition-all cursor-pointer hover:scale-105 active:scale-95"
+              >
+                <span>Claim Free Creator Account</span>
+                <span className="ml-1.5">→</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 3 Highlight Metric Pills */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-6 mt-6 border-t border-white/15 text-xs font-semibold">
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-white/10">
+              <Sparkles size={16} className="text-amber-400 shrink-0" />
+              <span><strong>20 AI Generations / Day</strong> (Manuscript & Ideas)</span>
+            </div>
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-white/10">
+              <Zap size={16} className="text-cyan-400 shrink-0" />
+              <span><strong>10 Daily Puzzles</strong> (Word Search, Sudoku & Color)</span>
+            </div>
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-white/10">
+              <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
+              <span><strong>5 Active Book Projects</strong> with 100% Royalties</span>
+            </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* 4 Plan Cards */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
@@ -339,7 +376,7 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
                 onClick={() => handleSelectPlan('free')}
                 className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-800 font-bold text-xs hover:bg-slate-50 transition-colors cursor-pointer"
               >
-                Start Free
+                {user ? 'Current Plan' : 'Start Free'}
               </button>
             </div>
           </div>
@@ -349,7 +386,7 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
             <div className="space-y-4">
               <div>
                 <h3 className="font-bold text-slate-900 text-lg">Starter</h3>
-                <p className="text-xs text-slate-500 mt-1">For regular indie authors</p>
+                <p className="text-xs text-slate-500 mt-1">For part-time self-publishers</p>
               </div>
 
               <div className="flex items-baseline gap-1 py-2">
@@ -384,46 +421,46 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
             <div className="pt-6">
               <button
                 onClick={() => handleSelectPlan('starter')}
-                className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors shadow-sm cursor-pointer"
+                className="w-full py-2.5 rounded-xl border border-purple-200 text-purple-700 font-bold text-xs hover:bg-purple-50 transition-colors cursor-pointer"
               >
-                Start with Starter
+                Upgrade to Starter
               </button>
             </div>
           </div>
 
-          {/* 3. Pro (Most Popular) */}
-          <div className="bg-white rounded-2xl border-2 border-purple-600 p-6 flex flex-col justify-between shadow-xl relative scale-102">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-[10px] font-black uppercase px-3 py-0.8 rounded-full tracking-wider shadow-sm">
+          {/* 3. Pro (Popular) */}
+          <div className="bg-gradient-to-b from-purple-900 to-indigo-950 rounded-2xl p-6 flex flex-col justify-between text-white shadow-xl shadow-purple-950/30 relative border border-purple-500/40">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-[10px] font-black uppercase tracking-wider px-3 py-0.5 rounded-full shadow-md">
               Most Popular
             </div>
 
             <div className="space-y-4">
               <div>
-                <h3 className="font-bold text-purple-700 text-lg">Pro Plan</h3>
-                <p className="text-xs text-slate-500 mt-1">For full-time self-publishers</p>
+                <h3 className="font-bold text-white text-lg">Pro</h3>
+                <p className="text-xs text-purple-200 mt-1">For serious indie authors</p>
               </div>
 
               <div className="flex items-baseline gap-1 py-2">
-                <span className="text-3xl sm:text-4xl font-black text-slate-900">
+                <span className="text-3xl sm:text-4xl font-black text-white">
                   {formatPrice(proPrice, currency)}
                 </span>
-                <span className="text-xs text-slate-500 font-medium">
+                <span className="text-xs text-purple-200 font-medium">
                   {billingCycle === 'monthly' ? '/month' : '/year'}
                 </span>
               </div>
 
-              <div className="space-y-3 pt-4 border-t border-slate-100 text-xs">
-                <div className="font-bold text-purple-700">Everything in Starter +</div>
+              <div className="space-y-3 pt-4 border-t border-white/10 text-xs">
+                <div className="font-bold text-purple-100">Everything in Starter, plus:</div>
                 <ul className="space-y-2.5">
                   {getDynamicPlanFeatures('pro').map((feat, idx) => (
-                    <li key={idx} className={`flex items-center gap-2 ${feat.included ? 'text-slate-900 font-semibold' : 'text-slate-400 line-through'}`}>
+                    <li key={idx} className={`flex items-center gap-2 ${feat.included ? 'text-purple-100' : 'text-purple-400/60 line-through'}`}>
                       {feat.included ? (
-                        <Check size={14} className="text-purple-600 shrink-0" />
+                        <Check size={14} className="text-emerald-400 shrink-0" />
                       ) : (
-                        <XIcon size={14} className="text-slate-300 shrink-0" />
+                        <XIcon size={14} className="text-purple-400/40 shrink-0" />
                       )}
                       <span>
-                        {feat.strong ? <strong>{feat.strong}</strong> : null}
+                        {feat.strong ? <strong className="text-white">{feat.strong}</strong> : null}
                         {feat.text}
                       </span>
                     </li>
@@ -435,9 +472,9 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
             <div className="pt-6">
               <button
                 onClick={() => handleSelectPlan('pro')}
-                className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md shadow-purple-600/30 transition-all cursor-pointer"
+                className="w-full py-3 rounded-xl bg-white text-purple-950 font-black text-xs hover:bg-purple-50 transition-all cursor-pointer shadow-lg hover:shadow-xl active:scale-98"
               >
-                Start with Pro
+                Upgrade to Pro
               </button>
             </div>
           </div>
@@ -492,14 +529,18 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
         </div>
       </section>
 
-      {/* Payment Methods Section */}
+      {/* ── Accepted Payment Methods Section ── */}
       <section className="bg-slate-50 py-16 border-y border-slate-200 px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto space-y-8">
           <div className="text-center space-y-2">
-            <h3 className="text-2xl font-bold text-slate-900">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black uppercase tracking-wider border border-emerald-300">
+              <ShieldCheck size={14} className="text-emerald-600" />
+              <span>Bank-Grade 256-Bit SSL Encryption</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               Accepted Payment Methods
             </h3>
-            <p className="text-xs sm:text-sm text-slate-500">
+            <p className="text-xs sm:text-sm text-slate-600">
               Safe, encrypted checkout with instant license activation
             </p>
           </div>
@@ -507,42 +548,52 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* India Column */}
-            <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
-              <div className="flex items-center gap-2 font-bold text-sm text-slate-900">
-                <span className="text-lg">🇮🇳</span>
-                <span>India Payment Options</span>
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-4 shadow-xs hover:border-purple-300 transition-all">
+              <div className="flex items-center gap-2.5 font-black text-base text-slate-900">
+                <span className="text-2xl">🇮🇳</span>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-900">India Payment Options</h4>
+                  <span className="text-[11px] font-medium text-slate-400">Zero surcharge • Instant access</span>
+                </div>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Razorpay, UPI (Google Pay, PhonePe, Paytm, BHIM), all Indian Debit/Credit cards, and Net Banking.
+                UPI (Google Pay, PhonePe, Paytm, BHIM), all Indian Debit/Credit cards, and Net Banking.
               </p>
-              <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-semibold text-slate-700">
-                <span className="px-2 py-1 bg-slate-100 rounded border border-slate-200">UPI Instant</span>
-                <span className="px-2 py-1 bg-slate-100 rounded border border-slate-200">Razorpay</span>
-                <span className="px-2 py-1 bg-slate-100 rounded border border-slate-200">RuPay / Visa</span>
-                <span className="px-2 py-1 bg-slate-100 rounded border border-slate-200">Net Banking</span>
+              <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-bold text-slate-700">
+                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">UPI Instant</span>
+                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Google Pay</span>
+                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">PhonePe</span>
+                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Paytm</span>
+                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">RuPay / Visa / Mastercard</span>
+                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Net Banking</span>
               </div>
             </div>
 
             {/* International Column */}
-            <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
-              <div className="flex items-center gap-2 font-bold text-sm text-slate-900">
-                <span className="text-lg">🌍</span>
-                <span>International Payment Options</span>
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-4 shadow-xs hover:border-indigo-300 transition-all">
+              <div className="flex items-center gap-2.5 font-black text-base text-slate-900">
+                <span className="text-2xl">🌍</span>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-900">International Payment Options</h4>
+                  <span className="text-[11px] font-medium text-slate-400">Global multi-currency checkout</span>
+                </div>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed">
-                PayPal, Stripe, Mastercard, Visa, American Express, Apple Pay, and Google Pay in USD, GBP, EUR, CAD, AUD.
+                Stripe, Mastercard, Visa, American Express, Apple Pay, and Google Pay in USD, GBP, EUR, CAD, AUD.
               </p>
-              <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-semibold text-slate-700">
-                <span className="px-2 py-1 bg-slate-100 rounded border border-slate-200">PayPal</span>
-                <span className="px-2 py-1 bg-slate-100 rounded border border-slate-200">Credit / Debit</span>
-                <span className="px-2 py-1 bg-slate-100 rounded border border-slate-200">Apple Pay</span>
-                <span className="px-2 py-1 bg-slate-100 rounded border border-slate-200">Stripe</span>
+              <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-bold text-slate-700">
+                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Stripe</span>
+                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Visa</span>
+                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Mastercard</span>
+                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">American Express</span>
+                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Apple Pay</span>
+                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Google Pay</span>
               </div>
             </div>
 
           </div>
 
-          <div className="pt-6 max-w-3xl mx-auto">
+          <div className="pt-4 max-w-3xl mx-auto">
             <div className="bg-gradient-to-b from-amber-50/90 via-amber-50/60 to-amber-100/40 border border-amber-200/90 rounded-3xl p-6 sm:p-8 text-center space-y-5 shadow-xs">
               <div className="space-y-1.5 max-w-xl mx-auto">
                 <span className="inline-block px-3 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-200/80 text-amber-900 border border-amber-300">

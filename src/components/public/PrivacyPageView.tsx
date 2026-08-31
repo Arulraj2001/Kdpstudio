@@ -52,7 +52,7 @@ export const PrivacyPageView: React.FC<PrivacyPageViewProps> = ({ onNavigate }) 
             <ul className="list-disc pl-5 space-y-1 text-xs">
               <li><strong>Firebase (Google Cloud):</strong> Encrypted database authentication and user profile storage.</li>
               <li><strong>Google Gemini & Imagen:</strong> AI model inferencing without using your private data to train public models.</li>
-              <li><strong>Razorpay & PayPal:</strong> PCI-DSS compliant payment processing. We never store credit card numbers directly.</li>
+              <li><strong>Payment Processors (Stripe / UPI):</strong> PCI-DSS compliant payment processing. We never store credit card numbers directly.</li>
             </ul>
           </section>
 
