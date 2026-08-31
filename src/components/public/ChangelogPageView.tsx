@@ -28,7 +28,7 @@ export const ChangelogPageView: React.FC<ChangelogPageViewProps> = ({ onNavigate
       date: 'August 2026',
       badge: 'Latest Release',
       features: [
-        'Google Gemini 2.0 & Imagen 3 Integration — Ultra-fast AI drafting, chapter expansion, and high-fidelity cover illustration generation.',
+        'Claude AI & Imagen 3 Integration — Ultra-fast AI drafting, chapter expansion, and high-fidelity cover illustration generation.',
         'Dynamic IP Geolocation & Localized Pricing — Auto-detects visitor country and displays localized pricing in INR (₹), USD ($), GBP (£), EUR (€), CAD (CA$), and AUD (A$).',
         'Multi-Gateway Payment Engine — Direct checkouts for Razorpay, UPI (GPay/PhonePe), PayPal, and Buy Me a Coffee with automated activation webhooks.'
       ],

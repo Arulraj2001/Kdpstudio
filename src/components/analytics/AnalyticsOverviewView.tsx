@@ -862,7 +862,7 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">🤖 AI Insights</h3>
-                  <span className="text-[10px] text-slate-500">Gemini 2.0 Performance Strategist</span>
+                  <span className="text-[10px] text-slate-500">Claude AI Performance Strategist</span>
                 </div>
               </div>
 

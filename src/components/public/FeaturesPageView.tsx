@@ -61,7 +61,7 @@ export const FeaturesPageView: React.FC<FeaturesPageViewProps> = ({ onNavigate }
       <SEOHead
         pageKey="features"
         title="Features — The Complete AI Self-Publishing Studio | KDP Studio"
-        description="Explore the full suite of KDP Studio features: Gemini 2.0 writing studio, print interior formatter with KDP bleed & gutter math, 300 DPI wrap cover generator, and low-content puzzle engine."
+        description="Explore the full suite of KDP Studio features: Claude AI writing studio, print interior formatter with KDP bleed & gutter math, 300 DPI wrap cover generator, and low-content puzzle engine."
         canonicalPath="/features"
       />
       <JsonLd id="jsonld-features" data={FEATURES_SCHEMA} />
@@ -129,7 +129,7 @@ export const FeaturesPageView: React.FC<FeaturesPageViewProps> = ({ onNavigate }
           <div className="lg:col-span-6 space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-black uppercase tracking-wider">
               <Cpu size={14} className="text-purple-600" />
-              <span>Google Gemini 2.0 Flash Core</span>
+              <span>Claude AI Core</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
               AI Manuscript Studio with Consistent Author Voice
@@ -433,7 +433,7 @@ export const FeaturesPageView: React.FC<FeaturesPageViewProps> = ({ onNavigate }
             </div>
 
             {[
-              { cap: 'Manuscript Generation (Gemini 2.0)', studio: 'Included (Instant Outline & Chapters)', trad: 'Weeks of writing or $2,000 ghostwriter' },
+              { cap: 'Manuscript Generation (Claude AI)', studio: 'Included (Instant Outline & Chapters)', trad: 'Weeks of writing or $2,000 ghostwriter' },
               { cap: 'KDP Margin & Gutter Math', studio: 'Automated 100% Gutter Safe', trad: 'Manual Adobe InDesign math' },
               { cap: '300 DPI Wrap Cover & Spine', studio: 'Calculated from Page Count', trad: '$300-$800 Freelance Designer' },
               { cap: 'Puzzle & Activity Book Engine', studio: 'Built-in 1-Click Generator', trad: 'Separate paid puzzle subscriptions' },

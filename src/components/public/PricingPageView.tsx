@@ -187,7 +187,7 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
     },
     {
       q: 'What AI model powers KDP Studio?',
-      a: 'We use Google Gemini 2.0 Flash for lightning-fast writing and metadata generation, along with Google Imagen 3 for high-resolution cover and book illustration generation.'
+      a: 'We use Claude AI for lightning-fast writing and metadata generation, along with Google Imagen 3 for high-resolution cover and book illustration generation.'
     },
   ];
 

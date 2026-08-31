@@ -794,7 +794,7 @@ export const NicheResearchView: React.FC<NicheResearchViewProps> = ({
                   {LOADING_STEPS[loadingStepIndex]}
                 </p>
                 <p className="text-xs text-slate-500 mt-3 max-w-md mx-auto">
-                  Gemini 2.0 Flash is querying live Amazon search indexes and competitor BSR velocity.
+                  Claude AI is querying live Amazon search indexes and competitor BSR velocity.
                 </p>
               </div>
 

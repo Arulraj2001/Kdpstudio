@@ -846,7 +846,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   <g transform="translate(600, 500)">
     <rect x="-190" y="-22" width="380" height="44" rx="22" fill="url(#badgeGrad)"/>
     <text x="0" y="6" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="bold" fill="#ffffff">
-      ✨ Powered by Google Gemini 2.0 AI
+      ✨ Powered by Claude AI
     </text>
   </g>
 </svg>`;

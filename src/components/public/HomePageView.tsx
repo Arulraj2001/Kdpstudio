@@ -50,7 +50,7 @@ const SOFTWARE_SCHEMA = {
     "priceCurrency": "USD"
   },
   "featureList": [
-    "AI Book Writer (Gemini 2.0)",
+    "AI Book Writer (Claude AI)",
     "Print Interior Formatter with Bleed & Gutters",
     "Spine-Calculated Wrap Cover Designer",
     "Puzzle & Coloring Book Generator",
@@ -74,7 +74,7 @@ const HOWTO_SCHEMA = {
       "@type": "HowToStep",
       "position": 2,
       "name": "Generate Chapter Outline & Manuscript",
-      "text": "Draft structured chapters with consistent author voice powered by Google Gemini 2.0."
+      "text": "Draft structured chapters with consistent author voice powered by Claude AI."
     },
     {
       "@type": "HowToStep",
@@ -264,7 +264,7 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
       <SEOHead
         pageKey="home"
         title="KDP Studio — The Complete AI Self-Publishing Studio for Amazon KDP"
-        description="From blank idea to upload-ready Amazon KDP book. Write manuscripts with Gemini 2.0, generate 300 DPI wrap covers, format print interiors, and build puzzle books. Free plan available."
+        description="From blank idea to upload-ready Amazon KDP book. Write manuscripts with Claude AI, generate 300 DPI wrap covers, format print interiors, and build puzzle books. Free plan available."
         canonicalPath="/"
         languages={{ en: '/', 'x-default': '/' }}
       />
@@ -409,7 +409,7 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
                   ✓ 300 DPI High-Res PDF
                 </span>
                 <span className="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
-                  ✓ Google Gemini 2.0 Core
+                  ✓ Claude AI Core
                 </span>
                 <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
                   ✓ Amazon 7-Keywords Included
@@ -843,8 +843,8 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
                 num: '03', 
                 icon: Cpu,
                 title: 'Generate Manuscript & Interior', 
-                desc: 'Draft chapter outlines and full manuscript sections with voice-consistent Gemini 2.0 AI. Edit, refine, and lock chapters seamlessly.',
-                badge: 'Gemini 2.0 Core'
+                desc: 'Draft chapter outlines and full manuscript sections with voice-consistent Claude AI. Edit, refine, and lock chapters seamlessly.',
+                badge: 'Claude AI Core'
               },
               { 
                 num: '04', 
@@ -1006,7 +1006,7 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check size={16} className="text-purple-400 shrink-0" />
-                    <span><strong>Unlimited</strong> AI Writing with Gemini 2.0</span>
+                    <span><strong>Unlimited</strong> AI Writing with Claude AI</span>
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check size={16} className="text-purple-400 shrink-0" />

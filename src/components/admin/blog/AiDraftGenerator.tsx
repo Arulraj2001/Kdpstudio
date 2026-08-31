@@ -509,7 +509,7 @@ export const AiDraftGenerator: React.FC<AiDraftGeneratorProps> = ({
                 <h3 className="text-lg font-black text-slate-900">
                   Crafting Long-Form Article for "{keyword}"
                 </h3>
-                <p className="text-xs text-slate-500">Gemini 2.0 Flash is analyzing EEAT guidelines & drafting content</p>
+                <p className="text-xs text-slate-500">Claude AI is analyzing EEAT guidelines & drafting content</p>
               </div>
 
               {/* Animated Progress Steps */}

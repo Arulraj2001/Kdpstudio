@@ -77,7 +77,7 @@ export const AdminPageView: React.FC<AdminPageViewProps> = ({ onNavigate }) => {
         <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-1">
           <div className="text-xs font-bold text-slate-500">AI Tokens Processed</div>
           <div className="text-2xl font-black text-slate-900">1.8B</div>
-          <div className="text-[10px] text-purple-600 font-semibold">Gemini 2.0 Flash</div>
+          <div className="text-[10px] text-purple-600 font-semibold">Claude AI</div>
         </div>
 
         <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-1">

@@ -111,7 +111,7 @@ export const OfflineView: React.FC<OfflineViewProps> = ({ onRetry }) => {
             </h4>
             <ul className="text-xs text-slate-300 space-y-1.5 leading-relaxed">
               <li className="flex items-center gap-2">
-                <span className="text-rose-400 font-bold">✕</span> Gemini 2.0 AI chapter drafting
+                <span className="text-rose-400 font-bold">✕</span> Claude AI chapter drafting
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-rose-400 font-bold">✕</span> 300 DPI PDF & EPUB export

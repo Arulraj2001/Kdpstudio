@@ -193,7 +193,7 @@ export const LaunchPageView: React.FC<LaunchPageViewProps> = ({ onNavigate }) =>
             <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xl">
               ⚡
             </div>
-            <h3 className="font-bold text-lg text-slate-900">Google Gemini 2.0 AI</h3>
+            <h3 className="font-bold text-lg text-slate-900">Claude AI</h3>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
               Generate entire manuscripts, structured chapter outlines, and SEO book descriptions with state-of-the-art multimodal AI.
             </p>

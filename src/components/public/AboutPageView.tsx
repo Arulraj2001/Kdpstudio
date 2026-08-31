@@ -41,7 +41,7 @@ export const AboutPageView: React.FC<AboutPageViewProps> = ({ onNavigate }) => {
               Self-publishing on Amazon Kindle Direct Publishing (KDP) offers unprecedented creative freedom and 70% royalties. However, the technical barriers — calculating page gutters, converting RGB images to 300 DPI CMYK, designing wrap-around covers with spine math — routinely lead to book rejections.
             </p>
             <p>
-              By combining Google Gemini 2.0 generative intelligence with automated print layout algorithms, KDP Studio turns a multi-week technical ordeal into a joyful, 20-minute creative session.
+              By combining Claude AI generative intelligence with automated print layout algorithms, KDP Studio turns a multi-week technical ordeal into a joyful, 20-minute creative session.
             </p>
           </div>
 
@@ -51,7 +51,7 @@ export const AboutPageView: React.FC<AboutPageViewProps> = ({ onNavigate }) => {
                 <Sparkles size={20} />
               </div>
               <div>
-                <h3 className="font-bold text-base">Google Gemini & Imagen</h3>
+                <h3 className="font-bold text-base">Claude AI & Imagen</h3>
                 <p className="text-xs text-purple-200">State of the art multimodal AI</p>
               </div>
             </div>
