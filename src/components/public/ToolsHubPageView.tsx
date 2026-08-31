@@ -19,7 +19,9 @@ import {
   CheckCircle2,
   Baby,
   UtensilsCrossed,
-  Calendar
+  Calendar,
+  Briefcase,
+  FileText
 } from 'lucide-react';
 import { SEOHead } from '../seo/SEOHead';
 import { JsonLd } from '../seo/JsonLd';
@@ -360,7 +362,70 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
                 </span>
               </div>
 
-              {/* Tool Item 1: Children's Books */}
+              {/* Tool Item 1: Non-Fiction & Business */}
+              <div 
+                onClick={() => onNavigate('nonfiction-studio')}
+                className="group p-4 rounded-2xl border border-slate-200 hover:border-indigo-500 bg-slate-50/60 hover:bg-indigo-50/40 transition-all cursor-pointer space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Briefcase size={18} className="text-indigo-600" />
+                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-indigo-700 transition-colors">
+                      Non-Fiction &amp; Business Blueprint Studio
+                    </h3>
+                  </div>
+                  <span className="text-xs font-bold text-indigo-600 group-hover:translate-x-1 transition-transform">
+                    Open Studio →
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Chapter blueprint architecture with core thesis hooks, actionable frameworks, case studies, and 300 DPI PDF manuscript exports.
+                </p>
+              </div>
+
+              {/* Tool Item 2: Fiction & Novel Outliner */}
+              <div 
+                onClick={() => onNavigate('fiction-studio')}
+                className="group p-4 rounded-2xl border border-slate-200 hover:border-rose-500 bg-slate-50/60 hover:bg-rose-50/40 transition-all cursor-pointer space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <BookOpen size={18} className="text-rose-600" />
+                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-rose-700 transition-colors">
+                      Fiction &amp; Novel Storyboard Studio
+                    </h3>
+                  </div>
+                  <span className="text-xs font-bold text-rose-600 group-hover:translate-x-1 transition-transform">
+                    Open Studio →
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  15-Beat Save the Cat story architecture, character flaw/want/need conflict matrix, and 300 DPI Story Bible PDF exports.
+                </p>
+              </div>
+
+              {/* Tool Item 3: Interactive Workbooks */}
+              <div 
+                onClick={() => onNavigate('workbook-studio')}
+                className="group p-4 rounded-2xl border border-slate-200 hover:border-sky-500 bg-slate-50/60 hover:bg-sky-50/40 transition-all cursor-pointer space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FileText size={18} className="text-sky-600" />
+                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-sky-700 transition-colors">
+                      Interactive Workbook &amp; Quiz Studio
+                    </h3>
+                  </div>
+                  <span className="text-xs font-bold text-sky-600 group-hover:translate-x-1 transition-transform">
+                    Open Studio →
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Companion workbooks with 1–5 scale self-assessments, guided reflection prompt ruled sheets, and multiple-choice quizzes with keys.
+                </p>
+              </div>
+
+              {/* Tool Item 4: Children's Books */}
               <div 
                 onClick={() => onNavigate('childrens-book-studio')}
                 className="group p-4 rounded-2xl border border-slate-200 hover:border-pink-500 bg-slate-50/60 hover:bg-pink-50/40 transition-all cursor-pointer space-y-2"
@@ -381,7 +446,7 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
                 </p>
               </div>
 
-              {/* Tool Item 2: Cookbook Studio */}
+              {/* Tool Item 5: Cookbook Studio */}
               <div 
                 onClick={() => onNavigate('cookbook-studio')}
                 className="group p-4 rounded-2xl border border-slate-200 hover:border-amber-500 bg-slate-50/60 hover:bg-amber-50/40 transition-all cursor-pointer space-y-2"
@@ -402,7 +467,7 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
                 </p>
               </div>
 
-              {/* Tool Item 3: Low-Content Planner */}
+              {/* Tool Item 6: Low-Content Planner */}
               <div 
                 onClick={() => onNavigate('planner-studio')}
                 className="group p-4 rounded-2xl border border-slate-200 hover:border-cyan-500 bg-slate-50/60 hover:bg-cyan-50/40 transition-all cursor-pointer space-y-2"

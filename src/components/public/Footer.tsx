@@ -167,6 +167,30 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               </li>
               <li>
                 <button
+                  onClick={() => handleNav('nonfiction-studio')}
+                  className="hover:text-white transition-colors text-left cursor-pointer"
+                >
+                  Non-Fiction Blueprints
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => handleNav('fiction-studio')}
+                  className="hover:text-white transition-colors text-left cursor-pointer"
+                >
+                  Fiction &amp; Novel Storyboards
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => handleNav('workbook-studio')}
+                  className="hover:text-white transition-colors text-left cursor-pointer"
+                >
+                  Interactive Workbooks &amp; Quizzes
+                </button>
+              </li>
+              <li>
+                <button
                   onClick={() => handleNav('childrens-book-studio')}
                   className="hover:text-white transition-colors text-left cursor-pointer"
                 >

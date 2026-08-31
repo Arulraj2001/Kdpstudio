@@ -115,6 +115,9 @@ import { CrosswordGeneratorView } from '../puzzles/CrosswordGeneratorView';
 import { ChildrensBookStudioView } from '../studios/ChildrensBookStudioView';
 import { CookbookStudioView } from '../studios/CookbookStudioView';
 import { PlannerGeneratorView } from '../studios/PlannerGeneratorView';
+import { NonFictionStudioView } from '../studios/NonFictionStudioView';
+import { FictionStudioView } from '../studios/FictionStudioView';
+import { WorkbookStudioView } from '../studios/WorkbookStudioView';
 import { useGeoStore } from '../../lib/geoStore';
 import { useAuthStore } from '../../lib/authStore';
 import { useBookStore } from '../../lib/store';
@@ -151,6 +154,9 @@ export const ROUTE_PATH_MAP: Record<PageRoute, string> = {
   'childrens-book-studio': '/studios/childrens-book',
   'cookbook-studio': '/studios/cookbook',
   'planner-studio': '/studios/planner',
+  'nonfiction-studio': '/studios/non-fiction',
+  'fiction-studio': '/studios/fiction',
+  'workbook-studio': '/studios/workbook',
   'word-search': '/word-search',
   'word-search-generating': '/word-search-generating',
   'word-search-detail': '/word-search-detail',
@@ -260,6 +266,9 @@ export function parsePathToRoute(pathname: string): PageRoute | null {
   if (clean === 'studios/childrens-book' || clean === 'childrens-book') return 'childrens-book-studio';
   if (clean === 'studios/cookbook' || clean === 'cookbook') return 'cookbook-studio';
   if (clean === 'studios/planner' || clean === 'planner') return 'planner-studio';
+  if (clean === 'studios/non-fiction' || clean === 'non-fiction') return 'nonfiction-studio';
+  if (clean === 'studios/fiction' || clean === 'fiction') return 'fiction-studio';
+  if (clean === 'studios/workbook' || clean === 'workbook') return 'workbook-studio';
   if (clean === 'tools/royalty-calculator' || clean === 'royalty-calculator') return 'royalty-calculator';
   if (clean === 'tools/asin-spy' || clean === 'asin-spy' || clean === 'spy') return 'asin-spy';
   if (clean === 'tools/review-miner' || clean === 'review-miner' || clean === 'miner') return 'review-miner';
@@ -438,7 +447,7 @@ export const AppShell: React.FC = () => {
     const isPublicMarketingRoute = [
       'home', 'features', 'pricing', 'tools', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'blog-detail', 'launch', 'payment-success',
       'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator', 'sudoku-generator', 'crossword-generator',
-      'childrens-book-studio', 'cookbook-studio', 'planner-studio'
+      'childrens-book-studio', 'cookbook-studio', 'planner-studio', 'nonfiction-studio', 'fiction-studio', 'workbook-studio'
     ].includes(currentRoute);
 
     const isAuth = ['login', 'signup', 'forgot-password', 'verify-email'].includes(currentRoute);
@@ -550,7 +559,7 @@ export const AppShell: React.FC = () => {
   const isPublicMarketingRoute = [
     'home', 'features', 'pricing', 'tools', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'blog-detail', 'launch', 'payment-success',
     'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator', 'sudoku-generator', 'crossword-generator',
-    'childrens-book-studio', 'cookbook-studio', 'planner-studio'
+    'childrens-book-studio', 'cookbook-studio', 'planner-studio', 'nonfiction-studio', 'fiction-studio', 'workbook-studio'
   ].includes(currentRoute);
 
   const isAuthRoute = ['login', 'signup', 'forgot-password', 'verify-email'].includes(currentRoute);
@@ -637,6 +646,9 @@ export const AppShell: React.FC = () => {
           {currentRoute === 'childrens-book-studio' && <ChildrensBookStudioView onNavigate={handleNavigate} />}
           {currentRoute === 'cookbook-studio' && <CookbookStudioView onNavigate={handleNavigate} />}
           {currentRoute === 'planner-studio' && <PlannerGeneratorView onNavigate={handleNavigate} />}
+          {currentRoute === 'nonfiction-studio' && <NonFictionStudioView onNavigate={handleNavigate} />}
+          {currentRoute === 'fiction-studio' && <FictionStudioView onNavigate={handleNavigate} />}
+          {currentRoute === 'workbook-studio' && <WorkbookStudioView onNavigate={handleNavigate} />}
         </PublicLayout>
       ) : isOnboardingRoute ? (
         /* ─────────────────────────────────────────
@@ -1197,6 +1209,9 @@ export const AppShell: React.FC = () => {
               {currentRoute === 'childrens-book-studio' && <ChildrensBookStudioView onNavigate={handleNavigate} />}
               {currentRoute === 'cookbook-studio' && <CookbookStudioView onNavigate={handleNavigate} />}
               {currentRoute === 'planner-studio' && <PlannerGeneratorView onNavigate={handleNavigate} />}
+              {currentRoute === 'nonfiction-studio' && <NonFictionStudioView onNavigate={handleNavigate} />}
+              {currentRoute === 'fiction-studio' && <FictionStudioView onNavigate={handleNavigate} />}
+              {currentRoute === 'workbook-studio' && <WorkbookStudioView onNavigate={handleNavigate} />}
               {currentRoute === 'billing' && <BillingPageView onNavigate={handleNavigate} />}
 
               {currentRoute === 'geo-test' && <GeoTestView />}

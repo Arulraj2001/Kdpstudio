@@ -18,6 +18,9 @@ import { generateCrossword, CROSSWORD_THEMES } from './puzzles/crosswordEngine';
 import { ChildrensBookProject } from './studios/childrensBookEngine';
 import { CookbookProject } from './studios/cookbookEngine';
 import { PlannerConfig } from './studios/plannerEngine';
+import { NonFictionProject } from './studios/nonfictionEngine';
+import { FictionProject } from './studios/fictionEngine';
+import { WorkbookProject } from './studios/workbookEngine';
 
 // Standard KDP trim dimensions in inches
 export const TRIM_SIZES_INCHES: Record<string, { width: number; height: number }> = {
@@ -1228,5 +1231,387 @@ export async function exportPlannerBookPdf(config: PlannerConfig): Promise<void>
 
   doc.save(`kdp_planner_${config.type}_${config.pageCount}p_${config.trimSize}.pdf`);
 }
+
+/**
+ * 10. Exports 300 DPI Non-Fiction & Business Blueprint Manuscript PDF
+ */
+export async function exportNonFictionBookPdf(
+  project: NonFictionProject,
+  trimSize: string = '6x9'
+): Promise<void> {
+  const dims = TRIM_SIZES_INCHES[trimSize] || TRIM_SIZES_INCHES['6x9'];
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'in',
+    format: [dims.width, dims.height],
+    compress: true,
+  });
+
+  const marginL = 0.75;
+  const marginR = 0.6;
+  const marginT = 0.75;
+  const contentW = dims.width - marginL - marginR;
+
+  // Title Page
+  doc.setFont('times', 'bold');
+  doc.setFontSize(26);
+  doc.setTextColor(15, 23, 42);
+  doc.text(project.title.toUpperCase(), dims.width / 2, dims.height / 2 - 0.8, { align: 'center' });
+
+  doc.setFontSize(13);
+  doc.setFont('times', 'italic');
+  doc.setTextColor(100, 116, 139);
+  const splitSub = doc.splitTextToSize(project.subtitle, contentW);
+  doc.text(splitSub, dims.width / 2, dims.height / 2 - 0.1, { align: 'center' });
+
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`By ${project.authorName}`, dims.width / 2, dims.height / 2 + 0.6, { align: 'center' });
+
+  // Chapters
+  project.chapters.forEach((chap) => {
+    doc.addPage([dims.width, dims.height], 'portrait');
+
+    let y = marginT + 0.2;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(79, 70, 229); // indigo-600
+    doc.text(`CHAPTER ${chap.chapterNumber}`, marginL, y);
+
+    y += 0.3;
+    doc.setFont('times', 'bold');
+    doc.setFontSize(20);
+    doc.setTextColor(15, 23, 42);
+    doc.text(chap.title, marginL, y);
+
+    y += 0.22;
+    doc.setFont('times', 'italic');
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139);
+    doc.text(chap.subtitle, marginL, y);
+
+    // Chapter Hook Box
+    y += 0.35;
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(marginL, y, contentW, 0.8, 0.05, 0.05, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(30, 41, 59);
+    doc.text('THE CORE THESIS:', marginL + 0.15, y + 0.2);
+
+    doc.setFont('times', 'italic');
+    doc.setFontSize(9);
+    const splitHook = doc.splitTextToSize(`"${chap.hook}"`, contentW - 0.3);
+    doc.text(splitHook, marginL + 0.15, y + 0.38);
+
+    // Framework Section
+    y += 1.05;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(15, 23, 42);
+    doc.text(chap.frameworkName.toUpperCase(), marginL, y);
+
+    y += 0.22;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(51, 65, 85);
+    chap.frameworkSteps.forEach((step, sIdx) => {
+      const splitStep = doc.splitTextToSize(`${sIdx + 1}. ${step}`, contentW);
+      doc.text(splitStep, marginL, y);
+      y += splitStep.length * 0.16 + 0.06;
+    });
+
+    // Key Takeaways Box
+    y += 0.15;
+    doc.setFillColor(238, 242, 255); // indigo-50
+    doc.setDrawColor(199, 210, 254);
+    doc.roundedRect(marginL, y, contentW, 1.1, 0.05, 0.05, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(67, 56, 202);
+    doc.text('KEY CHAPTER TAKEAWAYS:', marginL + 0.15, y + 0.2);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(30, 41, 59);
+    let tkY = y + 0.38;
+    chap.keyTakeaways.forEach((t) => {
+      const splitT = doc.splitTextToSize(`• ${t}`, contentW - 0.3);
+      doc.text(splitT, marginL + 0.15, tkY);
+      tkY += splitT.length * 0.14 + 0.04;
+    });
+
+    // Action Checklist
+    y += 1.3;
+    if (y < dims.height - 1.2) {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9.5);
+      doc.setTextColor(15, 23, 42);
+      doc.text('ACTION IMPLEMENTATION CHECKLIST:', marginL, y);
+
+      y += 0.2;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(51, 65, 85);
+      chap.actionChecklist.forEach((action) => {
+        doc.rect(marginL, y - 0.07, 0.09, 0.09);
+        const splitA = doc.splitTextToSize(action, contentW - 0.2);
+        doc.text(splitA, marginL + 0.16, y);
+        y += splitA.length * 0.14 + 0.06;
+      });
+    }
+
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184);
+    doc.text(`Chapter ${chap.chapterNumber}`, dims.width / 2, dims.height - 0.35, { align: 'center' });
+  });
+
+  doc.save(`kdp_nonfiction_${project.id}_${trimSize}.pdf`);
+}
+
+/**
+ * 11. Exports 300 DPI Fiction Story Bible & Save-the-Cat Beat Sheet PDF
+ */
+export async function exportFictionBeatSheetPdf(
+  project: FictionProject,
+  trimSize: string = '6x9'
+): Promise<void> {
+  const dims = TRIM_SIZES_INCHES[trimSize] || TRIM_SIZES_INCHES['6x9'];
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'in',
+    format: [dims.width, dims.height],
+    compress: true,
+  });
+
+  const marginL = 0.75;
+  const marginR = 0.6;
+  const marginT = 0.75;
+  const contentW = dims.width - marginL - marginR;
+
+  // Title Page
+  doc.setFont('times', 'bold');
+  doc.setFontSize(26);
+  doc.setTextColor(15, 23, 42);
+  doc.text(project.title.toUpperCase(), dims.width / 2, dims.height / 2 - 0.8, { align: 'center' });
+
+  doc.setFontSize(12);
+  doc.setFont('times', 'italic');
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Story Bible & 15-Beat Novel Architecture`, dims.width / 2, dims.height / 2 - 0.2, { align: 'center' });
+
+  doc.setFontSize(10.5);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Genre: ${project.genre}  |  Author: ${project.authorName}`, dims.width / 2, dims.height / 2 + 0.3, { align: 'center' });
+
+  // Character Profiles Page
+  doc.addPage([dims.width, dims.height], 'portrait');
+  doc.setFont('times', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(15, 23, 42);
+  doc.text('CHARACTER ARC & CONFLICT MATRIX', marginL, marginT + 0.3);
+
+  let charY = marginT + 0.65;
+  project.characters.forEach((char) => {
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(marginL, charY, contentW, 1.8, 0.05, 0.05, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(15, 23, 42);
+    doc.text(`${char.name} (${char.role})`, marginL + 0.15, charY + 0.25);
+
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(185, 28, 28);
+    doc.text('INTERNAL FLAW (The Lie):', marginL + 0.15, charY + 0.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(51, 65, 85);
+    doc.text(doc.splitTextToSize(char.internalFlaw, contentW - 0.3), marginL + 0.15, charY + 0.65);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(3, 105, 161);
+    doc.text('EXTERNAL WANT (Plot Goal):', marginL + 0.15, charY + 0.95);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(51, 65, 85);
+    doc.text(doc.splitTextToSize(char.externalWant, contentW - 0.3), marginL + 0.15, charY + 1.1);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(4, 120, 87);
+    doc.text('SOUL NEED (True Healing):', marginL + 0.15, charY + 1.4);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(51, 65, 85);
+    doc.text(doc.splitTextToSize(char.soulNeed, contentW - 0.3), marginL + 0.15, charY + 1.55);
+
+    charY += 2.0;
+  });
+
+  // Story Beats (2-3 beats per page)
+  doc.addPage([dims.width, dims.height], 'portrait');
+  doc.setFont('times', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(15, 23, 42);
+  doc.text('15-BEAT NOVEL OUTLINE', marginL, marginT + 0.3);
+
+  let beatY = marginT + 0.7;
+  project.beats.forEach((beat) => {
+    if (beatY > dims.height - 1.8) {
+      doc.addPage([dims.width, dims.height], 'portrait');
+      beatY = marginT + 0.4;
+    }
+
+    doc.setFillColor(241, 245, 249);
+    doc.roundedRect(marginL, beatY, contentW, 1.2, 0.05, 0.05, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(15, 23, 42);
+    doc.text(`${beat.beatName}  [${beat.targetPercentage}]`, marginL + 0.15, beatY + 0.25);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text(beat.description, marginL + 0.15, beatY + 0.42);
+
+    doc.setFont('times', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(30, 41, 59);
+    const splitScene = doc.splitTextToSize(`Scene: ${beat.sceneSummary}`, contentW - 0.3);
+    doc.text(splitScene, marginL + 0.15, beatY + 0.65);
+
+    beatY += 1.35;
+  });
+
+  doc.save(`kdp_fiction_beat_sheet_${project.id}_${trimSize}.pdf`);
+}
+
+/**
+ * 12. Exports 300 DPI Interactive Workbook PDF
+ */
+export async function exportWorkbookPdf(
+  project: WorkbookProject,
+  trimSize: string = '8.5x11'
+): Promise<void> {
+  const dims = TRIM_SIZES_INCHES[trimSize] || TRIM_SIZES_INCHES['8.5x11'];
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'in',
+    format: [dims.width, dims.height],
+    compress: true,
+  });
+
+  const marginL = 0.75;
+  const marginR = 0.6;
+  const marginT = 0.75;
+  const contentW = dims.width - marginL - marginR;
+
+  // Title Page
+  doc.setFont('times', 'bold');
+  doc.setFontSize(30);
+  doc.setTextColor(15, 23, 42);
+  doc.text(project.title.toUpperCase(), dims.width / 2, dims.height / 2 - 0.8, { align: 'center' });
+
+  doc.setFontSize(14);
+  doc.setFont('times', 'italic');
+  doc.setTextColor(100, 116, 139);
+  doc.text(project.subtitle, dims.width / 2, dims.height / 2 - 0.1, { align: 'center' });
+
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`By ${project.authorName}`, dims.width / 2, dims.height / 2 + 0.5, { align: 'center' });
+
+  // Workbook Sections
+  project.sections.forEach((sec) => {
+    doc.addPage([dims.width, dims.height], 'portrait');
+
+    let y = marginT + 0.2;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(14, 165, 233); // sky-500
+    doc.text(`SECTION ${sec.sectionNumber}`, marginL, y);
+
+    y += 0.35;
+    doc.setFont('times', 'bold');
+    doc.setFontSize(22);
+    doc.setTextColor(15, 23, 42);
+    doc.text(sec.title, marginL, y);
+
+    y += 0.25;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Objective: ${sec.learningObjective}`, marginL, y);
+
+    // 1. Likert Self-Assessment
+    y += 0.5;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(15, 23, 42);
+    doc.text('EXERCISE 1: SELF-ASSESSMENT MATRIX', marginL, y);
+
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text('(Rate 1 = Strongly Disagree to 5 = Strongly Agree)', marginL + 3.0, y);
+
+    y += 0.3;
+    sec.assessments.forEach((a) => {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(30, 41, 59);
+      const splitSt = doc.splitTextToSize(`• ${a.statement}`, contentW - 1.8);
+      doc.text(splitSt, marginL, y);
+
+      // 1-5 Circles
+      const circleStartX = marginL + contentW - 1.6;
+      for (let c = 1; c <= 5; c++) {
+        doc.circle(circleStartX + (c - 1) * 0.3, y - 0.03, 0.08);
+        doc.setFontSize(7);
+        doc.text(c.toString(), circleStartX + (c - 1) * 0.3, y, { align: 'center' });
+      }
+
+      y += splitSt.length * 0.16 + 0.12;
+    });
+
+    // 2. Guided Reflection Prompts
+    y += 0.3;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(15, 23, 42);
+    doc.text('EXERCISE 2: DEEP REFLECTION WORKSHEET', marginL, y);
+
+    y += 0.25;
+    sec.reflections.forEach((r) => {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8.5);
+      doc.setTextColor(15, 23, 42);
+      doc.text(r.promptQuestion, marginL, y);
+
+      if (r.subHint) {
+        y += 0.16;
+        doc.setFont('times', 'italic');
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        doc.text(r.subHint, marginL, y);
+      }
+
+      y += 0.25;
+      doc.setDrawColor(203, 213, 225);
+      for (let l = 0; l < r.lineCount; l++) {
+        doc.line(marginL, y + l * 0.24, marginL + contentW, y + l * 0.24);
+      }
+      y += r.lineCount * 0.24 + 0.2;
+    });
+
+    doc.setFontSize(9);
+    doc.setTextColor(148, 163, 184);
+    doc.text(`Page ${sec.sectionNumber}`, dims.width / 2, dims.height - 0.4, { align: 'center' });
+  });
+
+  doc.save(`kdp_workbook_${project.id}_${trimSize}.pdf`);
+}
+
 
 

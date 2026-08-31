@@ -23,7 +23,9 @@ import {
   QrCode,
   Baby,
   UtensilsCrossed,
-  Calendar
+  Calendar,
+  Briefcase,
+  FileText
 } from 'lucide-react';
 import { PageRoute } from '../../types';
 import { useAuthStore } from '../../lib/authStore';
@@ -94,6 +96,9 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'childrens-book-studio', label: 'Children\'s Books', icon: Baby, badge: 'Studio' },
   { id: 'cookbook-studio', label: 'Cookbook Studio', icon: UtensilsCrossed, badge: 'Studio' },
   { id: 'planner-studio', label: 'Planner Studio', icon: Calendar, badge: 'Studio' },
+  { id: 'nonfiction-studio', label: 'Non-Fiction Studio', icon: Briefcase, badge: 'Studio' },
+  { id: 'fiction-studio', label: 'Fiction Studio', icon: BookOpen, badge: 'Studio' },
+  { id: 'workbook-studio', label: 'Workbook Studio', icon: FileText, badge: 'Studio' },
   { id: 'books', label: 'My Books', icon: BookOpen },
   { id: 'analytics', label: 'Analytics', icon: BarChart3, badge: 'Pro' },
   { id: 'series', label: 'Series', icon: BookMarked },

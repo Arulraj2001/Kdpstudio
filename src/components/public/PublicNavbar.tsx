@@ -16,7 +16,10 @@ import {
   Grid,
   Baby,
   UtensilsCrossed,
-  Calendar
+  Calendar,
+  Briefcase,
+  BookOpen,
+  FileText
 } from 'lucide-react';
 import { useAuthStore } from '../../lib/authStore';
 import { PageRoute } from '../../types';
@@ -134,7 +137,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
               <button
                 onClick={() => handleNav('tools')}
                 className={`hover:text-purple-600 transition-colors cursor-pointer inline-flex items-center gap-1 py-2 ${
-                  ['tools', 'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator', 'sudoku-generator', 'crossword-generator', 'childrens-book-studio', 'cookbook-studio', 'planner-studio'].includes(currentRoute)
+                  ['tools', 'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator', 'sudoku-generator', 'crossword-generator', 'childrens-book-studio', 'cookbook-studio', 'planner-studio', 'nonfiction-studio', 'fiction-studio', 'workbook-studio'].includes(currentRoute)
                     ? 'text-purple-600 font-bold'
                     : ''
                 }`}
@@ -313,6 +316,48 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
                       </div>
                       <p className="text-[11px] text-slate-500 line-clamp-2">
                         Parametric 120-page daily planners, habit trackers, and dot grids.
+                      </p>
+                    </div>
+
+                    {/* Tool 12: Non-Fiction */}
+                    <div 
+                      onClick={() => handleNav('nonfiction-studio')}
+                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
+                    >
+                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
+                        <Briefcase size={16} className="text-indigo-600 shrink-0" />
+                        <span>Non-Fiction Blueprint Studio</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 line-clamp-2">
+                        Authority book blueprints with frameworks and case studies.
+                      </p>
+                    </div>
+
+                    {/* Tool 13: Fiction */}
+                    <div 
+                      onClick={() => handleNav('fiction-studio')}
+                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
+                    >
+                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
+                        <BookOpen size={16} className="text-rose-600 shrink-0" />
+                        <span>Fiction Storyboard Studio</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 line-clamp-2">
+                        15-Beat Save the Cat novel beats and character conflict arcs.
+                      </p>
+                    </div>
+
+                    {/* Tool 14: Workbook */}
+                    <div 
+                      onClick={() => handleNav('workbook-studio')}
+                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
+                    >
+                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
+                        <FileText size={16} className="text-sky-600 shrink-0" />
+                        <span>Interactive Workbook Studio</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 line-clamp-2">
+                        Companion workbooks with 1–5 assessments and reflection prompts.
                       </p>
                     </div>
 
