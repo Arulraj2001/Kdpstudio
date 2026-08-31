@@ -260,9 +260,9 @@ export function AdminLayout({
         {/* Branding & Header */}
         <div className="h-16 px-5 border-b border-slate-800/90 flex items-center justify-between bg-gradient-to-r from-violet-950/40 via-transparent to-transparent">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-slate-900 border border-purple-500/40 p-1 flex items-center justify-center shadow-md shadow-violet-900/50 shrink-0 overflow-hidden">
+            <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/80 p-0.5 flex items-center justify-center shadow-md shadow-violet-900/20 shrink-0 overflow-hidden">
               <img
-                src="/brand-icon.png?v=20260830"
+                src="/brand-icon.png?v=20260831"
                 alt="KDP Studio Admin"
                 className="w-full h-full object-cover rounded-lg"
               />

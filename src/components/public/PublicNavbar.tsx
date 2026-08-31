@@ -98,9 +98,9 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
             onClick={() => handleNav('home')}
             className="flex items-center gap-3 cursor-pointer select-none group"
           >
-            <div className="w-10 h-10 rounded-xl bg-slate-900 border border-purple-500/40 p-1 flex items-center justify-center shadow-md shadow-purple-500/20 group-hover:scale-105 transition-transform shrink-0 overflow-hidden">
+            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200/80 p-0.5 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform shrink-0 overflow-hidden">
               <img
-                src="/brand-icon.png?v=20260830"
+                src="/brand-icon.png?v=20260831"
                 alt="KDP Studio Logo"
                 className="w-full h-full object-cover rounded-lg"
               />
@@ -208,9 +208,9 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
           {/* Top Bar inside Drawer */}
           <div className="flex items-center justify-between border-b border-slate-800 pb-5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-900 border border-purple-500/40 p-1 flex items-center justify-center shadow-md overflow-hidden">
+              <div className="w-10 h-10 rounded-xl bg-white border border-slate-200/80 p-0.5 flex items-center justify-center shadow-md overflow-hidden">
                 <img
-                  src="/brand-icon.png?v=20260830"
+                  src="/brand-icon.png?v=20260831"
                   alt="KDP Studio Logo"
                   className="w-full h-full object-cover rounded-lg"
                 />

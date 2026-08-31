@@ -437,8 +437,8 @@ export const SiteSeoAdminPage: React.FC = () => {
               {/* SERP Mockup Box */}
               <div className={`p-4 rounded-2xl bg-slate-50/70 border border-slate-200 space-y-1.5 ${previewDevice === 'mobile' ? 'max-w-[280px] mx-auto' : ''}`}>
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full bg-slate-900 flex items-center justify-center p-0.5">
-                    <img src="/brand-icon.png?v=20260830" alt="icon" className="w-full h-full object-cover rounded-full" />
+                  <div className="w-5 h-5 rounded-full bg-white border border-slate-200 flex items-center justify-center p-0.5 shadow-2xs">
+                    <img src="/brand-icon.png?v=20260831" alt="icon" className="w-full h-full object-cover rounded-full" />
                   </div>
                   <div className="truncate">
                     <div className="text-[11px] text-slate-800 font-semibold leading-none">KDP Studio</div>

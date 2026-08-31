@@ -132,8 +132,8 @@ export const InstallPrompt: React.FC = () => {
         <div className="w-96 p-5 rounded-2xl bg-[#130f30]/95 backdrop-blur-md border border-purple-500/30 text-white shadow-2xl shadow-purple-950/60">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-slate-900 border border-purple-400/40 p-1 flex items-center justify-center shrink-0 shadow-lg shadow-purple-600/30 overflow-hidden">
-                <img src="/brand-icon.png?v=20260830" alt="KDP Studio" className="w-full h-full object-cover rounded-lg" />
+              <div className="w-12 h-12 rounded-xl bg-white border border-slate-200/80 p-0.5 flex items-center justify-center shrink-0 shadow-lg shadow-purple-600/20 overflow-hidden">
+                <img src="/brand-icon.png?v=20260831" alt="KDP Studio" className="w-full h-full object-cover rounded-lg" />
               </div>
               <div>
                 <h4 className="font-bold text-sm text-white tracking-tight flex items-center gap-1.5">
@@ -183,8 +183,8 @@ export const InstallPrompt: React.FC = () => {
           {/* Header Row */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-slate-900 border border-purple-400/40 p-1 flex items-center justify-center shrink-0 shadow-lg shadow-purple-600/30 overflow-hidden">
-                <img src="/brand-icon.png?v=20260830" alt="KDP Studio" className="w-full h-full object-cover rounded-lg" />
+              <div className="w-12 h-12 rounded-xl bg-white border border-slate-200/80 p-0.5 flex items-center justify-center shrink-0 shadow-lg shadow-purple-600/20 overflow-hidden">
+                <img src="/brand-icon.png?v=20260831" alt="KDP Studio" className="w-full h-full object-cover rounded-lg" />
               </div>
               <div>
                 <h3 className="font-black text-base text-white tracking-tight leading-tight">

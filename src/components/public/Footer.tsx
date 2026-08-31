@@ -36,9 +36,9 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               onClick={() => handleNav('home')}
               className="flex items-center gap-2.5 cursor-pointer select-none group inline-flex"
             >
-              <div className="w-9 h-9 rounded-xl bg-slate-900 border border-purple-500/40 p-1 flex items-center justify-center shadow-md shadow-purple-500/20 group-hover:scale-105 transition-transform overflow-hidden">
+              <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/80 p-0.5 flex items-center justify-center shadow-md shadow-purple-500/10 group-hover:scale-105 transition-transform overflow-hidden">
                 <img
-                  src="/brand-icon.png?v=20260830"
+                  src="/brand-icon.png?v=20260831"
                   alt="KDP Studio Logo"
                   className="w-full h-full object-cover rounded-lg"
                 />

@@ -70,8 +70,8 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentRoute, 
             {/* Sheet Header */}
             <div className="p-4 px-6 border-b border-white/10 flex items-center justify-between shrink-0 bg-slate-900/60">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-slate-900 border border-purple-500/40 p-1 flex items-center justify-center overflow-hidden">
-                  <img src="/brand-icon.png?v=20260830" alt="KDP Studio" className="w-full h-full object-cover rounded-lg" />
+                <div className="w-8 h-8 rounded-xl bg-white border border-slate-200/80 p-0.5 flex items-center justify-center overflow-hidden">
+                  <img src="/brand-icon.png?v=20260831" alt="KDP Studio" className="w-full h-full object-cover rounded-lg" />
                 </div>
                 <div>
                   <h3 className="font-bold text-sm text-white">All Studio Tools</h3>
