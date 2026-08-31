@@ -53,11 +53,20 @@ export const BlogPostsListPage: React.FC<BlogPostsListPageProps> = ({ onNavigate
     setLoading(true);
     try {
       const livePosts = await getAllAdminPosts();
-      if (Array.isArray(livePosts)) {
+      if (Array.isArray(livePosts) && livePosts.length > 0) {
         setPosts(livePosts);
+      } else {
+        const { SEED_BLOG_POSTS } = await import('../../../lib/blog');
+        const { mapSeedPostToBlogPost } = await import('../../../lib/blogService');
+        setPosts(SEED_BLOG_POSTS.map(mapSeedPostToBlogPost));
       }
     } catch (err) {
       console.error('Failed to fetch admin blog posts:', err);
+      try {
+        const { SEED_BLOG_POSTS } = await import('../../../lib/blog');
+        const { mapSeedPostToBlogPost } = await import('../../../lib/blogService');
+        setPosts(SEED_BLOG_POSTS.map(mapSeedPostToBlogPost));
+      } catch {}
     } finally {
       setLoading(false);
     }
@@ -76,8 +85,11 @@ export const BlogPostsListPage: React.FC<BlogPostsListPageProps> = ({ onNavigate
   const statusCounts = useMemo(() => {
     const counts = { all: posts.length, draft: 0, review: 0, published: 0, archived: 0 };
     posts.forEach((p) => {
-      if (p.status in counts) {
-        counts[p.status as keyof typeof counts]++;
+      const st = (p.status || 'published').toLowerCase();
+      if (st in counts) {
+        counts[st as keyof typeof counts]++;
+      } else {
+        counts.published++;
       }
     });
     return counts;
@@ -87,7 +99,7 @@ export const BlogPostsListPage: React.FC<BlogPostsListPageProps> = ({ onNavigate
   const categories = useMemo(() => {
     const set = new Set<string>();
     posts.forEach((p) => {
-      if (p.category) set.add(p.category);
+      if (p.category && p.category.trim()) set.add(p.category.trim());
     });
     return Array.from(set);
   }, [posts]);
@@ -95,7 +107,7 @@ export const BlogPostsListPage: React.FC<BlogPostsListPageProps> = ({ onNavigate
   const authors = useMemo(() => {
     const set = new Set<string>();
     posts.forEach((p) => {
-      if (p.authorName) set.add(p.authorName);
+      if (p.authorName && p.authorName.trim()) set.add(p.authorName.trim());
     });
     return Array.from(set);
   }, [posts]);
@@ -104,16 +116,17 @@ export const BlogPostsListPage: React.FC<BlogPostsListPageProps> = ({ onNavigate
   const filteredPosts = useMemo(() => {
     return posts
       .filter((post) => {
-        // Status tab filter
-        if (activeStatusTab !== 'all' && post.status !== activeStatusTab) {
+        // Status tab filter (case-insensitive)
+        const postStatus = (post.status || 'published').toLowerCase();
+        if (activeStatusTab !== 'all' && postStatus !== activeStatusTab.toLowerCase()) {
           return false;
         }
         // Category filter
-        if (selectedCategory !== 'all' && post.category !== selectedCategory) {
+        if (selectedCategory !== 'all' && (post.category || '').toLowerCase() !== selectedCategory.toLowerCase()) {
           return false;
         }
         // Author filter
-        if (selectedAuthor !== 'all' && post.authorName !== selectedAuthor) {
+        if (selectedAuthor !== 'all' && (post.authorName || '').toLowerCase() !== selectedAuthor.toLowerCase()) {
           return false;
         }
         // Search filter
@@ -131,10 +144,10 @@ export const BlogPostsListPage: React.FC<BlogPostsListPageProps> = ({ onNavigate
       })
       .sort((a, b) => {
         if (sortBy === 'latest') {
-          return new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime();
+          return new Date(b.updatedAt || b.publishedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.publishedAt || a.createdAt || 0).getTime();
         }
         if (sortBy === 'oldest') {
-          return new Date(a.updatedAt || 0).getTime() - new Date(b.updatedAt || 0).getTime();
+          return new Date(a.updatedAt || a.publishedAt || a.createdAt || 0).getTime() - new Date(b.updatedAt || b.publishedAt || b.createdAt || 0).getTime();
         }
         if (sortBy === 'views') {
           return (b.viewCount || 0) - (a.viewCount || 0);
