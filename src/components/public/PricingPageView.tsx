@@ -136,6 +136,10 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
     if (pricingOverrides.agencyAnnualInr) agencyAnnual = pricingOverrides.agencyAnnualInr;
   }
 
+  const starterPrice = billingCycle === 'monthly' ? starterMonthly : starterAnnual;
+  const proPrice = billingCycle === 'monthly' ? proMonthly : proAnnual;
+  const agencyPrice = billingCycle === 'monthly' ? agencyMonthly : agencyAnnual;
+
   const handleSelectPlan = (planKey: string) => {
     if (planKey === 'free') {
       if (user) onNavigate('dashboard');
