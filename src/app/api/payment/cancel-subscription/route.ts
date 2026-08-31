@@ -1,5 +1,4 @@
-import { cancelPayPalSubscription } from '../../../../lib/paypal';
-import { cancelRazorpaySubscription } from '../../../../lib/razorpay';
+import { cancelStripeSubscription } from '../../../../lib/stripe';
 import { getUserActiveSubscription, updateSubscriptionRecord } from '../../../../lib/paymentService';
 import { getUserDocument, updateUserDocument } from '../../../../lib/userService';
 import { sendPlanCancelledEmail } from '../../../../lib/emailService';
@@ -36,10 +35,8 @@ export async function POST(req: Request) {
 
     // 2. Cancel on gateway if recurring provider exists
     if (activeSub) {
-      if (activeSub.gateway === 'razorpay' && activeSub.gatewaySubscriptionId) {
-        await cancelRazorpaySubscription(activeSub.gatewaySubscriptionId);
-      } else if (activeSub.gateway === 'paypal' && activeSub.gatewaySubscriptionId) {
-        await cancelPayPalSubscription(activeSub.gatewaySubscriptionId, reason);
+      if (activeSub.gateway === 'stripe' && activeSub.gatewaySubscriptionId) {
+        await cancelStripeSubscription(activeSub.gatewaySubscriptionId, reason);
       }
 
       // 3. Mark subscription cancelled in Firestore

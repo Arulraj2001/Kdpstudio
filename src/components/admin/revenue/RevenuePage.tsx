@@ -27,8 +27,7 @@ const PLAN_COLORS: Record<string, string> = {
 };
 
 const GATEWAY_COLORS: Record<string, string> = {
-  RAZORPAY: '#3b82f6',
-  PAYPAL: '#1d4ed8',
+  STRIPE: '#635BFF',
   UPI: '#10b981',
   BMAC: '#f59e0b',
   OTHER: '#6b7280',

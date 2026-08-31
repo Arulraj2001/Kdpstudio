@@ -102,9 +102,7 @@ test('GET /api/health returns 200', async () => {
 
 test('user payment mutations require a verified token (401 without auth)', async () => {
   const endpoints = [
-    ['POST', '/api/payment/razorpay/verify'],
-    ['POST', '/api/payment/razorpay/create-subscription'],
-    ['POST', '/api/payment/paypal/create-subscription'],
+    ['POST', '/api/payment/stripe/create-checkout'],
     ['POST', '/api/payment/upi/submit'],
     ['POST', '/api/payment/cancel-subscription'],
   ] as const;

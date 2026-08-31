@@ -197,8 +197,7 @@ export function AppSettingsPage() {
   const apiKeys = config?.apiKeys || {
     gemini: false,
     imagen: false,
-    razorpay: false,
-    paypal: false,
+    stripe: false,
     resend: false,
     firebaseAdmin: false,
   };
@@ -400,8 +399,8 @@ export function AppSettingsPage() {
           {[
             { name: 'Google Gemini 2.5 AI', configured: apiKeys.gemini },
             { name: 'Imagen 3 Image Model', configured: apiKeys.imagen },
-            { name: 'Razorpay Gateway (IN)', configured: apiKeys.razorpay },
-            { name: 'PayPal REST Gateway (INTL)', configured: apiKeys.paypal },
+            { name: 'Stripe Gateway (Global)', configured: apiKeys.stripe },
+            { name: 'UPI Direct (IN)', configured: true },
             { name: 'Resend Transactional Email', configured: apiKeys.resend },
             { name: 'Firebase Admin SDK', configured: apiKeys.firebaseAdmin },
           ].map(k => (

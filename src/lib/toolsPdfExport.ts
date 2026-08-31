@@ -15,12 +15,16 @@ import { generateMaze, MazeDifficulty, MazeShape } from './puzzles/mazeEngine';
 import { generateCryptogram, CRYPTOGRAM_QUOTE_BANKS } from './puzzles/cryptogramEngine';
 import { generateSudoku, SudokuDifficulty } from './puzzles/sudokuEngine';
 import { generateCrossword, CROSSWORD_THEMES } from './puzzles/crosswordEngine';
+import { ChildrensBookProject } from './studios/childrensBookEngine';
+import { CookbookProject } from './studios/cookbookEngine';
+import { PlannerConfig } from './studios/plannerEngine';
 
 // Standard KDP trim dimensions in inches
 export const TRIM_SIZES_INCHES: Record<string, { width: number; height: number }> = {
   '6x9': { width: 6.0, height: 9.0 },
   '5.5x8.5': { width: 5.5, height: 8.5 },
   '8.5x11': { width: 8.5, height: 11.0 },
+  '8.5x8.5': { width: 8.5, height: 8.5 },
   '5x8': { width: 5.0, height: 8.0 },
 };
 
@@ -870,4 +874,359 @@ export async function exportCrosswordBookPdf(
 
   doc.save(`kdp_crossword_book_${batchCount}_puzzles_${trimSize}.pdf`);
 }
+
+/**
+ * 7. Exports 300 DPI Children's Illustrated Picture Book PDF
+ */
+export async function exportChildrensBookPdf(
+  project: ChildrensBookProject,
+  trimSize: string = '8.5x8.5'
+): Promise<void> {
+  const dims = TRIM_SIZES_INCHES[trimSize] || TRIM_SIZES_INCHES['8.5x8.5'];
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'in',
+    format: [dims.width, dims.height],
+    compress: true,
+  });
+
+  const marginL = 0.75;
+  const marginR = 0.6;
+  const marginT = 0.75;
+  const contentW = dims.width - marginL - marginR;
+
+  // Title Page
+  doc.setFont('times', 'bold');
+  doc.setFontSize(28);
+  doc.setTextColor(15, 23, 42);
+  doc.text(project.title.toUpperCase(), dims.width / 2, dims.height / 2 - 0.8, { align: 'center' });
+
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139);
+  doc.text(`An Illustrated Story for Ages ${project.targetAge}`, dims.width / 2, dims.height / 2 - 0.2, { align: 'center' });
+
+  doc.setFontSize(11);
+  doc.text(`Art Style: ${project.character.artStyle}`, dims.width / 2, dims.height / 2 + 0.3, { align: 'center' });
+
+  // Story Spreads (Left text page, Right illustration placeholder / visual page)
+  project.spreads.forEach((spread) => {
+    // Left Page (Story Prose)
+    doc.addPage([dims.width, dims.height], 'portrait');
+    doc.setFont('times', 'normal');
+    doc.setFontSize(18);
+    doc.setTextColor(15, 23, 42);
+
+    const splitText = doc.splitTextToSize(spread.storyText, contentW - 0.4);
+    const textY = (dims.height - splitText.length * 0.35) / 2;
+    doc.text(splitText, marginL + (contentW - 0.4) / 2, textY, { align: 'center', lineHeightFactor: 1.5 });
+
+    doc.setFontSize(9);
+    doc.setTextColor(148, 163, 184);
+    doc.text(`Page ${spread.leftPageNumber}`, dims.width / 2, dims.height - 0.4, { align: 'center' });
+
+    // Right Page (Illustration Scene Frame)
+    doc.addPage([dims.width, dims.height], 'portrait');
+    
+    // Decorative Frame for illustration
+    const frameSize = dims.width - 1.2;
+    const fX = 0.6;
+    const fY = (dims.height - frameSize) / 2 - 0.2;
+
+    doc.setDrawColor(203, 213, 225);
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(fX, fY, frameSize, frameSize, 0.1, 0.1, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`[ Illustration: Spread ${spread.spreadNumber} ]`, dims.width / 2, fY + frameSize / 2 - 0.4, { align: 'center' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(148, 163, 184);
+    const splitScene = doc.splitTextToSize(spread.sceneDescription, frameSize - 0.6);
+    doc.text(splitScene, dims.width / 2, fY + frameSize / 2, { align: 'center' });
+
+    doc.text(`Page ${spread.rightPageNumber}`, dims.width / 2, dims.height - 0.4, { align: 'center' });
+  });
+
+  doc.save(`kdp_childrens_book_${project.id}_${trimSize}.pdf`);
+}
+
+/**
+ * 8. Exports 300 DPI Luxury Cookbook Manuscript PDF
+ */
+export async function exportCookbookPdf(
+  project: CookbookProject,
+  trimSize: string = '8.5x11'
+): Promise<void> {
+  const dims = TRIM_SIZES_INCHES[trimSize] || TRIM_SIZES_INCHES['8.5x11'];
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'in',
+    format: [dims.width, dims.height],
+    compress: true,
+  });
+
+  const marginL = 0.75;
+  const marginR = 0.6;
+  const marginT = 0.75;
+  const contentW = dims.width - marginL - marginR;
+
+  // Title Page
+  doc.setFont('times', 'bold');
+  doc.setFontSize(32);
+  doc.setTextColor(15, 23, 42);
+  doc.text(project.bookTitle.toUpperCase(), dims.width / 2, dims.height / 2 - 0.8, { align: 'center' });
+
+  doc.setFontSize(16);
+  doc.setFont('times', 'italic');
+  doc.setTextColor(100, 116, 139);
+  doc.text(project.theme, dims.width / 2, dims.height / 2 - 0.2, { align: 'center' });
+
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`By ${project.authorName}`, dims.width / 2, dims.height / 2 + 0.4, { align: 'center' });
+
+  // Recipe Pages (1 recipe per page)
+  project.recipes.forEach((rec, idx) => {
+    doc.addPage([dims.width, dims.height], 'portrait');
+
+    // Header
+    let y = marginT + 0.2;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(147, 51, 234); // purple-600
+    doc.text(rec.category.toUpperCase(), marginL, y);
+
+    y += 0.35;
+    doc.setFont('times', 'bold');
+    doc.setFontSize(22);
+    doc.setTextColor(15, 23, 42);
+    doc.text(rec.title, marginL, y);
+
+    y += 0.25;
+    doc.setFont('times', 'italic');
+    doc.setFontSize(10.5);
+    doc.setTextColor(71, 85, 105);
+    const splitSub = doc.splitTextToSize(rec.subtitle, contentW);
+    doc.text(splitSub, marginL, y);
+
+    // Meta Specs Bar (Prep time, Cook time, Servings, Calories)
+    y += splitSub.length * 0.18 + 0.2;
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(marginL, y, contentW, 0.45, 0.05, 0.05, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(30, 41, 59);
+    doc.text(`Prep: ${rec.prepTimeMinutes} mins  |  Cook: ${rec.cookTimeMinutes} mins  |  Servings: ${rec.servings}  |  Calories: ${rec.nutrition.calories} kcal`, marginL + 0.2, y + 0.28);
+
+    // 2-Column Section: Ingredients (Left) vs Instructions (Right)
+    y += 0.75;
+    const colLeftW = contentW * 0.38;
+    const colRightW = contentW * 0.58;
+    const colRightX = marginL + colLeftW + 0.3;
+
+    // Left Column: Ingredients
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(15, 23, 42);
+    doc.text('INGREDIENTS', marginL, y);
+
+    let ingY = y + 0.25;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(51, 65, 85);
+
+    rec.ingredients.forEach((ing) => {
+      const line = `• ${ing.amount} ${ing.item}${ing.notes ? ` (${ing.notes})` : ''}`;
+      const splitIng = doc.splitTextToSize(line, colLeftW);
+      doc.text(splitIng, marginL, ingY);
+      ingY += splitIng.length * 0.16 + 0.04;
+    });
+
+    // Right Column: Instructions
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(15, 23, 42);
+    doc.text('INSTRUCTIONS', colRightX, y);
+
+    let instY = y + 0.25;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(51, 65, 85);
+
+    rec.instructions.forEach((step, sIdx) => {
+      const line = `${sIdx + 1}. ${step}`;
+      const splitStep = doc.splitTextToSize(line, colRightW);
+      doc.text(splitStep, colRightX, instY);
+      instY += splitStep.length * 0.16 + 0.08;
+    });
+
+    // Chef's Pro Tip Box at bottom
+    const boxY = Math.max(ingY, instY) + 0.3;
+    if (boxY < dims.height - 1.2) {
+      doc.setFillColor(254, 243, 199); // amber-50
+      doc.setDrawColor(251, 191, 36);
+      doc.roundedRect(marginL, boxY, contentW, 0.6, 0.05, 0.05, 'FD');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8.5);
+      doc.setTextColor(146, 64, 14);
+      doc.text('CHEF\'S PRO TIP:', marginL + 0.15, boxY + 0.22);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      const splitTip = doc.splitTextToSize(rec.chefTip, contentW - 0.3);
+      doc.text(splitTip, marginL + 0.15, boxY + 0.42);
+    }
+
+    doc.setFontSize(9);
+    doc.setTextColor(148, 163, 184);
+    doc.text(`Page ${idx + 1}`, dims.width / 2, dims.height - 0.4, { align: 'center' });
+  });
+
+  doc.save(`kdp_cookbook_${project.id}_${trimSize}.pdf`);
+}
+
+/**
+ * 9. Exports Multi-Page Low-Content Planner / Journal Interior PDF
+ */
+export async function exportPlannerBookPdf(config: PlannerConfig): Promise<void> {
+  const dims = TRIM_SIZES_INCHES[config.trimSize] || TRIM_SIZES_INCHES['6x9'];
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'in',
+    format: [dims.width, dims.height],
+    compress: true,
+  });
+
+  // Belongs to Page (Cover Page)
+  doc.setFont('times', 'bold');
+  doc.setFontSize(24);
+  doc.setTextColor(15, 23, 42);
+  doc.text(config.title.toUpperCase(), dims.width / 2, dims.height / 2 - 1.0, { align: 'center' });
+
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139);
+  doc.text('THIS PLANNER BELONGS TO:', dims.width / 2, dims.height / 2 - 0.2, { align: 'center' });
+
+  doc.setDrawColor(148, 163, 184);
+  doc.line(dims.width / 2 - 1.5, dims.height / 2 + 0.4, dims.width / 2 + 1.5, dims.height / 2 + 0.4);
+
+  // Generate N Repeating Interior Pages with Mirrored Gutter Margins (0.75" inside spine, 0.5" outside)
+  for (let p = 1; p <= config.pageCount; p++) {
+    doc.addPage([dims.width, dims.height], 'portrait');
+    const isOdd = p % 2 !== 0;
+    const marginL = isOdd ? 0.75 : 0.5; // Left gutter for odd, right gutter for even
+    const marginR = isOdd ? 0.5 : 0.75;
+    const marginT = 0.65;
+    const contentW = dims.width - marginL - marginR;
+
+    if (config.type === 'daily-productivity') {
+      // Header: Date & Day
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.setTextColor(15, 23, 42);
+      doc.text('DAILY PRODUCTIVITY PLANNER', marginL, marginT + 0.2);
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 116, 139);
+      doc.text('Date: ______________  |  Day: M  T  W  T  F  S  S', marginL, marginT + 0.45);
+
+      // Top 3 Priorities Box
+      let y = marginT + 0.75;
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(marginL, y, contentW, 1.1, 0.05, 0.05, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(15, 23, 42);
+      doc.text('TOP 3 PRIORITIES FOR TODAY', marginL + 0.15, y + 0.25);
+
+      for (let i = 1; i <= 3; i++) {
+        doc.rect(marginL + 0.15, y + 0.28 + i * 0.22, 0.12, 0.12);
+        doc.setDrawColor(203, 213, 225);
+        doc.line(marginL + 0.35, y + 0.38 + i * 0.22, marginL + contentW - 0.2, y + 0.38 + i * 0.22);
+      }
+
+      // Schedule (Left) vs To-Do (Right)
+      y += 1.35;
+      const colW = (contentW - 0.3) / 2;
+
+      // Hourly Schedule (6am - 8pm)
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.text('HOURLY SCHEDULE', marginL, y);
+
+      const hours = ['6 AM', '7 AM', '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', '6 PM', '7 PM', '8 PM'];
+      hours.forEach((h, hIdx) => {
+        const lineY = y + 0.22 + hIdx * 0.24;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(100, 116, 139);
+        doc.text(h, marginL, lineY);
+        doc.setDrawColor(226, 232, 240);
+        doc.line(marginL + 0.45, lineY, marginL + colW, lineY);
+      });
+
+      // To-Do Checklists (Right)
+      const rightX = marginL + colW + 0.3;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(15, 23, 42);
+      doc.text('TO-DO CHECKLIST', rightX, y);
+
+      for (let t = 0; t < 12; t++) {
+        const lineY = y + 0.22 + t * 0.24;
+        doc.rect(rightX, lineY - 0.08, 0.1, 0.1);
+        doc.setDrawColor(226, 232, 240);
+        doc.line(rightX + 0.2, lineY, rightX + colW, lineY);
+      }
+
+      // Water Tracker at bottom
+      const botY = dims.height - 1.2;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(15, 23, 42);
+      doc.text('WATER TRACKER:  ○ ○ ○ ○ ○ ○ ○ ○ (8 Glasses)', marginL, botY);
+    } 
+    else if (config.type === 'dot-grid') {
+      // 5mm Bullet Dot Grid
+      const step = 0.19685; // 5mm in inches
+      doc.setFillColor(148, 163, 184);
+
+      for (let dx = marginL; dx <= marginL + contentW; dx += step) {
+        for (let dy = marginT; dy <= dims.height - marginT; dy += step) {
+          doc.circle(dx, dy, 0.006, 'F');
+        }
+      }
+    } 
+    else {
+      // Lined Journal / Ruled Notebook
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(15, 23, 42);
+      doc.text('DATE: _______________', marginL, marginT + 0.2);
+
+      const lineStep = 0.3; // standard line spacing
+      doc.setDrawColor(203, 213, 225);
+      for (let ly = marginT + 0.6; ly <= dims.height - 0.8; ly += lineStep) {
+        doc.line(marginL, ly, marginL + contentW, ly);
+      }
+    }
+
+    // Page Number
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184);
+    doc.text(`${p}`, isOdd ? marginL + contentW - 0.1 : marginL + 0.1, dims.height - 0.35);
+  }
+
+  doc.save(`kdp_planner_${config.type}_${config.pageCount}p_${config.trimSize}.pdf`);
+}
+
 

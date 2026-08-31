@@ -1089,8 +1089,7 @@ export async function getRevenueSummary(
     };
 
     const gatewayRevenueMap: Record<string, { revenue: number; count: number }> = {
-      razorpay: { revenue: 0, count: 0 },
-      paypal: { revenue: 0, count: 0 },
+      stripe: { revenue: 0, count: 0 },
       upi: { revenue: 0, count: 0 },
       bmac: { revenue: 0, count: 0 },
     };
@@ -1326,7 +1325,7 @@ export async function getAllPayments(query: AdminPaymentsQuery = {}): Promise<Ad
         amount: origAmt,
         currency: curr,
         amountUSD: usdAmt,
-        gateway: p.gateway || 'razorpay',
+        gateway: p.gateway || 'stripe',
         status: p.status || 'completed',
         gatewayPaymentId: p.gatewayPaymentId || d.id,
         gatewaySubscriptionId: p.gatewaySubscriptionId || null,
@@ -1630,46 +1629,24 @@ export async function processRefund(params: {
   let status: 'completed' | 'manual_pending' | 'failed' = 'completed';
 
   // 2. Gateway API Integration
-  if (gateway === 'razorpay') {
+  if (gateway === 'stripe') {
     try {
-      const { getRazorpayClient } = await import('./razorpay');
-      const rzp = getRazorpayClient();
-      const rzpPayId = payment.gatewayPaymentId || paymentId;
+      const { getStripeClient } = await import('./stripe');
+      const stripe = getStripeClient();
+      const paymentIntentId = payment.gatewayPaymentId || paymentId;
+      const refundAmount = customAmount !== undefined && customAmount > 0 ? customAmount : originalNorm;
 
-      // In paise for INR
-      const refundAmountPaise = currency === 'INR' ? Math.round(refundAmount * 100) : refundAmount;
-
-      const rzpRefund: any = await (rzp.payments as any).refund(rzpPayId, {
-        amount: refundAmountPaise,
-        notes: {
-          reason,
-          refundId,
-          processedBy: adminEmail,
-        },
+      const stripeRefund = await stripe.refunds.create({
+        payment_intent: paymentIntentId.startsWith('pi_') ? paymentIntentId : undefined,
+        amount: Math.round(refundAmount * 100),
+        reason: 'requested_by_customer',
+        metadata: { reason, refundId, processedBy: adminEmail },
       });
-      gatewayRefundId = rzpRefund.id;
+      gatewayRefundId = stripeRefund.id;
       status = 'completed';
-    } catch (rzpErr: any) {
-      console.error('[adminService.processRefund] Razorpay refund error:', rzpErr);
-      throw new Error(`Razorpay refund failed: ${rzpErr.message || 'Unknown error'}`);
-    }
-  } else if (gateway === 'paypal') {
-    try {
-      const { paypalRequest } = await import('./paypal');
-      const captureId = payment.gatewayPaymentId || paymentId;
-
-      const ppRefund = await paypalRequest('POST', `/v2/payments/captures/${captureId}/refund`, {
-        amount: {
-          value: refundAmount.toFixed(2),
-          currency_code: currency,
-        },
-        note_to_payer: reason,
-      });
-      gatewayRefundId = ppRefund.id;
-      status = 'completed';
-    } catch (ppErr: any) {
-      console.error('[adminService.processRefund] PayPal refund error:', ppErr);
-      throw new Error(`PayPal refund failed: ${ppErr.message || 'Unknown error'}`);
+    } catch (stripeErr: any) {
+      console.error('[adminService.processRefund] Stripe refund error:', stripeErr);
+      throw new Error(`Stripe refund failed: ${stripeErr.message || 'Unknown error'}`);
     }
   } else {
     // UPI or BMaC manual refund
@@ -1871,34 +1848,20 @@ export async function getSystemHealthReport(): Promise<SystemHealthReport> {
     services.push({ name: 'Imagen 3 Art Generator', status: 'unknown' });
   }
 
-  // 5. Razorpay Gateway
+  // 5. Stripe Gateway
   try {
-    const rzpId = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-    const rzpSecret = process.env.RAZORPAY_KEY_SECRET;
+    const stripeId = process.env.STRIPE_SECRET_KEY;
     services.push({
-      name: 'Razorpay Gateway',
-      status: rzpId && rzpSecret ? 'operational' : 'degraded',
-      details: rzpId ? 'Subscriptions & UPI active' : 'Credentials not configured',
+      name: 'Stripe Gateway',
+      status: stripeId ? 'operational' : 'degraded',
+      details: stripeId ? 'Global cards & subscriptions active' : 'Credentials not configured',
       lastChecked: now,
     });
   } catch {
-    services.push({ name: 'Razorpay Gateway', status: 'unknown' });
+    services.push({ name: 'Stripe Gateway', status: 'unknown' });
   }
 
-  // 6. PayPal Gateway
-  try {
-    const ppId = process.env.PAYPAL_CLIENT_ID || process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
-    services.push({
-      name: 'PayPal REST Gateway',
-      status: ppId ? 'operational' : 'degraded',
-      details: ppId ? 'International subscriptions active' : 'Client ID not configured',
-      lastChecked: now,
-    });
-  } catch {
-    services.push({ name: 'PayPal REST Gateway', status: 'unknown' });
-  }
-
-  // 7. Resend Email Service
+  // 6. Resend Email Service
   try {
     const resendKey = process.env.RESEND_API_KEY;
     services.push({
@@ -2416,8 +2379,10 @@ export async function getAppConfig(): Promise<AppConfigData> {
     apiKeys: {
       gemini: Boolean(process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY),
       imagen: Boolean(process.env.IMAGEN_API_KEY || process.env.GEMINI_API_KEY),
-      razorpay: Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
-      paypal: Boolean(process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET),
+      stripe: Boolean(
+        process.env.STRIPE_SECRET_KEY &&
+        (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || process.env.VITE_STRIPE_PUBLISHABLE_KEY)
+      ),
       resend: Boolean(process.env.RESEND_API_KEY),
       firebaseAdmin: Boolean(getAdminDb()),
     },

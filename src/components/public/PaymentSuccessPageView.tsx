@@ -61,7 +61,7 @@ export const PaymentSuccessPageView: React.FC<PaymentSuccessPageViewProps> = ({
 
   // Extract query parameters from URL if not passed in props
   const [targetPlan, setTargetPlan] = useState<PlanName>('pro');
-  const [gateway, setGateway] = useState<string>('paypal');
+  const [gateway, setGateway] = useState<string>('stripe');
   const [status, setStatus] = useState<'polling' | 'success' | 'timeout'>('polling');
 
   useEffect(() => {
@@ -76,7 +76,7 @@ export const PaymentSuccessPageView: React.FC<PaymentSuccessPageViewProps> = ({
 
     const resolvedPlan = (p?.toLowerCase() as PlanName) || 'pro';
     setTargetPlan(resolvedPlan);
-    setGateway(g || 'paypal');
+    setGateway(g || 'stripe');
 
     // Run polling
     let isCancelled = false;

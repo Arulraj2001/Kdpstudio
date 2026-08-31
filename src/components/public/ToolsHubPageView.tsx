@@ -16,7 +16,10 @@ import {
   Hash, 
   DollarSign, 
   ShieldCheck,
-  CheckCircle2
+  CheckCircle2,
+  Baby,
+  UtensilsCrossed,
+  Calendar
 } from 'lucide-react';
 import { SEOHead } from '../seo/SEOHead';
 import { JsonLd } from '../seo/JsonLd';
@@ -357,7 +360,70 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
                 </span>
               </div>
 
-              {/* Tool Item 1: Coloring Books */}
+              {/* Tool Item 1: Children's Books */}
+              <div 
+                onClick={() => onNavigate('childrens-book-studio')}
+                className="group p-4 rounded-2xl border border-slate-200 hover:border-pink-500 bg-slate-50/60 hover:bg-pink-50/40 transition-all cursor-pointer space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Baby size={18} className="text-pink-600" />
+                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-pink-700 transition-colors">
+                      Children's Illustrated Storyboard Studio
+                    </h3>
+                  </div>
+                  <span className="text-xs font-bold text-pink-600 group-hover:translate-x-1 transition-transform">
+                    Open Studio →
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  24 &amp; 32-page picture book spreads with character consistency locks and full-bleed 8.5×8.5" PDF manuscript exports.
+                </p>
+              </div>
+
+              {/* Tool Item 2: Cookbook Studio */}
+              <div 
+                onClick={() => onNavigate('cookbook-studio')}
+                className="group p-4 rounded-2xl border border-slate-200 hover:border-amber-500 bg-slate-50/60 hover:bg-amber-50/40 transition-all cursor-pointer space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <UtensilsCrossed size={18} className="text-amber-600" />
+                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-amber-700 transition-colors">
+                      Cookbook &amp; Structured Recipe Studio
+                    </h3>
+                  </div>
+                  <span className="text-xs font-bold text-amber-600 group-hover:translate-x-1 transition-transform">
+                    Open Studio →
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Gourmet recipes with macro nutrition, structured ingredients, chef's tips, and 2-column PDF cookbook manuscripts.
+                </p>
+              </div>
+
+              {/* Tool Item 3: Low-Content Planner */}
+              <div 
+                onClick={() => onNavigate('planner-studio')}
+                className="group p-4 rounded-2xl border border-slate-200 hover:border-cyan-500 bg-slate-50/60 hover:bg-cyan-50/40 transition-all cursor-pointer space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Calendar size={18} className="text-cyan-600" />
+                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-cyan-700 transition-colors">
+                      Planners, Habit &amp; Journal Studio
+                    </h3>
+                  </div>
+                  <span className="text-xs font-bold text-cyan-600 group-hover:translate-x-1 transition-transform">
+                    Open Studio →
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Parametric vector daily productivity planners, 10-habit matrices, gratitude journals, and 5mm dot grid interiors with 0.75" gutter safe margins.
+                </p>
+              </div>
+
+              {/* Tool Item 4: Coloring Books */}
               <div 
                 onClick={() => onNavigate('puzzles')}
                 className="group p-4 rounded-2xl border border-slate-200 hover:border-pink-500 bg-slate-50/60 hover:bg-pink-50/40 transition-all cursor-pointer space-y-2"
@@ -378,7 +444,7 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
                 </p>
               </div>
 
-              {/* Tool Item 2: Color By Number */}
+              {/* Tool Item 5: Color By Number */}
               <div 
                 onClick={() => onNavigate('puzzles')}
                 className="group p-4 rounded-2xl border border-slate-200 hover:border-amber-500 bg-slate-50/60 hover:bg-amber-50/40 transition-all cursor-pointer space-y-2"
@@ -399,7 +465,7 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
                 </p>
               </div>
 
-              {/* Tool Item 3: Word Fit Crosswords */}
+              {/* Tool Item 6: Word Fit Crosswords */}
               <div 
                 onClick={() => onNavigate('puzzles')}
                 className="group p-4 rounded-2xl border border-slate-200 hover:border-indigo-500 bg-slate-50/60 hover:bg-indigo-50/40 transition-all cursor-pointer space-y-2"

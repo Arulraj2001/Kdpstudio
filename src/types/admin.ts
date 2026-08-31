@@ -545,8 +545,7 @@ export interface MaintenanceConfig {
 export interface ApiKeysStatus {
   gemini: boolean;
   imagen: boolean;
-  razorpay: boolean;
-  paypal: boolean;
+  stripe: boolean;
   resend: boolean;
   firebaseAdmin: boolean;
 }

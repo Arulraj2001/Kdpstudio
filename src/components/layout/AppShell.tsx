@@ -112,6 +112,9 @@ import { MazeGeneratorView } from '../puzzles/MazeGeneratorView';
 import { CryptogramGeneratorView } from '../puzzles/CryptogramGeneratorView';
 import { SudokuGeneratorView } from '../puzzles/SudokuGeneratorView';
 import { CrosswordGeneratorView } from '../puzzles/CrosswordGeneratorView';
+import { ChildrensBookStudioView } from '../studios/ChildrensBookStudioView';
+import { CookbookStudioView } from '../studios/CookbookStudioView';
+import { PlannerGeneratorView } from '../studios/PlannerGeneratorView';
 import { useGeoStore } from '../../lib/geoStore';
 import { useAuthStore } from '../../lib/authStore';
 import { useBookStore } from '../../lib/store';
@@ -145,6 +148,9 @@ export const ROUTE_PATH_MAP: Record<PageRoute, string> = {
   'cryptogram-generator': '/puzzles/cryptograms',
   'sudoku-generator': '/puzzles/sudoku',
   'crossword-generator': '/puzzles/crosswords',
+  'childrens-book-studio': '/studios/childrens-book',
+  'cookbook-studio': '/studios/cookbook',
+  'planner-studio': '/studios/planner',
   'word-search': '/word-search',
   'word-search-generating': '/word-search-generating',
   'word-search-detail': '/word-search-detail',
@@ -251,6 +257,9 @@ export function parsePathToRoute(pathname: string): PageRoute | null {
   if (clean === 'puzzles/cryptograms' || clean === 'cryptograms') return 'cryptogram-generator';
   if (clean === 'puzzles/sudoku' || clean === 'sudoku') return 'sudoku-generator';
   if (clean === 'puzzles/crosswords' || clean === 'crosswords') return 'crossword-generator';
+  if (clean === 'studios/childrens-book' || clean === 'childrens-book') return 'childrens-book-studio';
+  if (clean === 'studios/cookbook' || clean === 'cookbook') return 'cookbook-studio';
+  if (clean === 'studios/planner' || clean === 'planner') return 'planner-studio';
   if (clean === 'tools/royalty-calculator' || clean === 'royalty-calculator') return 'royalty-calculator';
   if (clean === 'tools/asin-spy' || clean === 'asin-spy' || clean === 'spy') return 'asin-spy';
   if (clean === 'tools/review-miner' || clean === 'review-miner' || clean === 'miner') return 'review-miner';
@@ -428,7 +437,8 @@ export const AppShell: React.FC = () => {
 
     const isPublicMarketingRoute = [
       'home', 'features', 'pricing', 'tools', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'blog-detail', 'launch', 'payment-success',
-      'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator', 'sudoku-generator', 'crossword-generator'
+      'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator', 'sudoku-generator', 'crossword-generator',
+      'childrens-book-studio', 'cookbook-studio', 'planner-studio'
     ].includes(currentRoute);
 
     const isAuth = ['login', 'signup', 'forgot-password', 'verify-email'].includes(currentRoute);
@@ -539,7 +549,8 @@ export const AppShell: React.FC = () => {
 
   const isPublicMarketingRoute = [
     'home', 'features', 'pricing', 'tools', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'blog-detail', 'launch', 'payment-success',
-    'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator', 'sudoku-generator', 'crossword-generator'
+    'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator', 'sudoku-generator', 'crossword-generator',
+    'childrens-book-studio', 'cookbook-studio', 'planner-studio'
   ].includes(currentRoute);
 
   const isAuthRoute = ['login', 'signup', 'forgot-password', 'verify-email'].includes(currentRoute);
@@ -623,6 +634,9 @@ export const AppShell: React.FC = () => {
           {currentRoute === 'cryptogram-generator' && <CryptogramGeneratorView onNavigate={handleNavigate} />}
           {currentRoute === 'sudoku-generator' && <SudokuGeneratorView onNavigate={handleNavigate} />}
           {currentRoute === 'crossword-generator' && <CrosswordGeneratorView onNavigate={handleNavigate} />}
+          {currentRoute === 'childrens-book-studio' && <ChildrensBookStudioView onNavigate={handleNavigate} />}
+          {currentRoute === 'cookbook-studio' && <CookbookStudioView onNavigate={handleNavigate} />}
+          {currentRoute === 'planner-studio' && <PlannerGeneratorView onNavigate={handleNavigate} />}
         </PublicLayout>
       ) : isOnboardingRoute ? (
         /* ─────────────────────────────────────────
@@ -1180,6 +1194,9 @@ export const AppShell: React.FC = () => {
               {currentRoute === 'cryptogram-generator' && <CryptogramGeneratorView onNavigate={handleNavigate} />}
               {currentRoute === 'sudoku-generator' && <SudokuGeneratorView onNavigate={handleNavigate} />}
               {currentRoute === 'crossword-generator' && <CrosswordGeneratorView onNavigate={handleNavigate} />}
+              {currentRoute === 'childrens-book-studio' && <ChildrensBookStudioView onNavigate={handleNavigate} />}
+              {currentRoute === 'cookbook-studio' && <CookbookStudioView onNavigate={handleNavigate} />}
+              {currentRoute === 'planner-studio' && <PlannerGeneratorView onNavigate={handleNavigate} />}
               {currentRoute === 'billing' && <BillingPageView onNavigate={handleNavigate} />}
 
               {currentRoute === 'geo-test' && <GeoTestView />}

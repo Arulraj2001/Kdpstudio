@@ -7,8 +7,7 @@ import type { AdminPaymentRow, AdminPaymentsResult } from '../../../types/admin'
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const GATEWAY_BADGES: Record<string, { label: string; bg: string; text: string }> = {
-  razorpay: { label: 'Razorpay', bg: 'bg-blue-50 border-blue-200', text: 'text-blue-700' },
-  paypal: { label: 'PayPal', bg: 'bg-indigo-50 border-indigo-200', text: 'text-indigo-700' },
+  stripe: { label: 'Stripe', bg: 'bg-indigo-50 border-indigo-200', text: 'text-indigo-700' },
   upi: { label: 'UPI Direct', bg: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-700' },
   bmac: { label: 'BMaC', bg: 'bg-amber-50 border-amber-200', text: 'text-amber-700' },
 };
@@ -239,11 +238,8 @@ function RefundModal({
   };
 
   const getGatewayWarning = () => {
-    if (payment.gateway === 'razorpay') {
-      return '⚠️ Refund will be executed immediately via the Razorpay Refunds API.';
-    }
-    if (payment.gateway === 'paypal') {
-      return '⚠️ Refund will be executed immediately via the PayPal REST API.';
+    if (payment.gateway === 'stripe') {
+      return '⚠️ Refund will be executed immediately via the Stripe Refunds API.';
     }
     if (payment.gateway === 'upi') {
       return 'ℹ️ UPI refunds are manual. This will record the refund in the database, but you must transfer the money back in your UPI app.';
@@ -502,8 +498,7 @@ export function PaymentsPage() {
             className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500"
           >
             <option value="all">All Gateways</option>
-            <option value="razorpay">Razorpay</option>
-            <option value="paypal">PayPal</option>
+            <option value="stripe">Stripe</option>
             <option value="upi">UPI Direct</option>
             <option value="bmac">Buy Me a Coffee</option>
           </select>

@@ -38,8 +38,7 @@ interface BillingPageViewProps {
 }
 
 const GATEWAY_BADGE_STYLE: Record<string, { label: string; bg: string; text: string; border: string }> = {
-  razorpay: { label: 'Razorpay', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
-  paypal: { label: 'PayPal', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+  stripe: { label: 'Stripe', bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' },
   upi: { label: 'UPI Direct', bg: 'bg-amber-50', text: 'text-amber-800', border: 'border-amber-200' },
   bmac: { label: 'Buy Me a Coffee', bg: 'bg-orange-50', text: 'text-orange-800', border: 'border-orange-200' },
 };
@@ -241,7 +240,7 @@ export const BillingPageView: React.FC<BillingPageViewProps> = ({ onNavigate }) 
           <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-1">
             <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Payment Method</div>
             <div className="text-xl font-black text-slate-900">
-              {userDoc?.paymentFailed ? 'Payment Issue' : isPaidPlan ? 'Card / UPI / PayPal' : 'Free Account'}
+              {userDoc?.paymentFailed ? 'Payment Issue' : isPaidPlan ? 'Card / UPI / Coffee' : 'Free Account'}
             </div>
             <div className="text-[11px] text-slate-500">
               {userDoc?.paymentFailed ? '⚠️ Please update payment details' : 'Secure gateway link'}
@@ -335,7 +334,7 @@ export const BillingPageView: React.FC<BillingPageViewProps> = ({ onNavigate }) 
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {payments.map((p) => {
-                  const gatewayStyle = GATEWAY_BADGE_STYLE[p.gateway] || GATEWAY_BADGE_STYLE.razorpay;
+                  const gatewayStyle = GATEWAY_BADGE_STYLE[p.gateway] || GATEWAY_BADGE_STYLE.stripe;
                   const dateFormatted = p.createdAt
                     ? new Date(p.createdAt).toLocaleDateString('en-US', {
                         month: 'short',

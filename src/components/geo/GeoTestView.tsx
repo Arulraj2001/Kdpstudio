@@ -138,9 +138,8 @@ export const GeoTestView: React.FC = () => {
           <div className="space-y-1.5">
             {paymentMethods.map((method) => {
               const labels: Record<string, string> = {
-                razorpay: 'Razorpay (Cards, NetBanking)',
+                stripe: 'Stripe / Global Cards',
                 upi: 'UPI / QR Payments (India)',
-                paypal: 'PayPal / Global Credit Cards',
                 bmac: 'Buy Me a Coffee / International',
               };
               return (

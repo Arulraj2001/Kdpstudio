@@ -20,7 +20,10 @@ import {
   Calculator,
   Compass,
   AlertOctagon,
-  QrCode
+  QrCode,
+  Baby,
+  UtensilsCrossed,
+  Calendar
 } from 'lucide-react';
 import { PageRoute } from '../../types';
 import { useAuthStore } from '../../lib/authStore';
@@ -88,6 +91,9 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'review-miner', label: 'Review Miner', icon: AlertOctagon, badge: 'Pro' },
   { id: 'royalty-calculator', label: 'Royalty Calculator', icon: Calculator, badge: 'Tool' },
   { id: 'lead-magnet', label: 'Lead Magnet & QR', icon: QrCode, badge: 'New' },
+  { id: 'childrens-book-studio', label: 'Children\'s Books', icon: Baby, badge: 'Studio' },
+  { id: 'cookbook-studio', label: 'Cookbook Studio', icon: UtensilsCrossed, badge: 'Studio' },
+  { id: 'planner-studio', label: 'Planner Studio', icon: Calendar, badge: 'Studio' },
   { id: 'books', label: 'My Books', icon: BookOpen },
   { id: 'analytics', label: 'Analytics', icon: BarChart3, badge: 'Pro' },
   { id: 'series', label: 'Series', icon: BookMarked },
