@@ -140,11 +140,12 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         })
         .catch(async () => {
-          const cache = await caches.open(CACHE_NAME);
-          const cached = await cache.match(request);
+          const cached = (await caches.match(request)) || (await caches.match('/index.html')) || (await caches.match('/'));
           if (cached) return cached;
-          const staticCache = await caches.open(STATIC_CACHE_NAME);
-          return staticCache.match('/index.html') || fetch(request);
+          return new Response(
+            '<!DOCTYPE html><html><head><meta charset="utf-8"><title>KDP Studio</title><meta http-equiv="refresh" content="3"></head><body><div style="font-family:sans-serif;padding:40px;text-align:center"><h2>Reconnecting to KDP Studio...</h2><p>Please check your connection or refresh the page.</p></div></body></html>',
+            { headers: { 'Content-Type': 'text/html' }, status: 200 }
+          );
         })
     );
     return;
@@ -153,15 +154,20 @@ self.addEventListener('fetch', (event) => {
   // Default: Network with Cache Fallback for Vite bundles
   event.respondWith(
     caches.match(request).then((response) => {
-      return response || fetch(request).then((networkResponse) => {
-        if (networkResponse && networkResponse.ok && url.origin === self.location.origin) {
-          const clone = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, clone).catch(() => {});
-          }).catch(() => {});
-        }
-        return networkResponse;
-      }).catch(() => response);
+      return (
+        response ||
+        fetch(request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.ok && url.origin === self.location.origin) {
+              const clone = networkResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(request, clone).catch(() => {});
+              }).catch(() => {});
+            }
+            return networkResponse;
+          })
+          .catch(() => response || new Response('', { status: 404 }))
+      );
     })
   );
 });

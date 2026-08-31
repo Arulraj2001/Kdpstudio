@@ -1,57 +1,113 @@
 // =============================================================================
 // KDP STUDIO — FIRESTORE SECURITY RULES
 // =============================================================================
-// HOW TO DEPLOY THESE RULES:
-// 1. Firebase CLI: Run `firebase deploy --only firestore:rules` in terminal, OR
-// 2. Firebase Console: Go to Firebase Console -> Build -> Firestore Database -> Rules,
-//    paste the entire contents of this file, and click "Publish".
+// Rules version 2
+// Provides strict user-level ownership isolation for all dashboard collections
 // =============================================================================
 
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Users can read/write their own document
+    // Helper function: verify authenticated user
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function: verify document owner
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // 1. User Profiles & Settings
     match /users/{uid} {
-      allow read, write: if request.auth != null 
-        && request.auth.uid == uid;
+      allow read, write: if isOwner(uid);
     }
     
-    // Books belong to their owner
+    // 2. User Usage Tracking & Plan Limits
+    match /userUsage/{uid} {
+      allow read, write: if isOwner(uid);
+    }
+    
+    // 3. Books & Manuscripts
     match /books/{bookId} {
-      allow read, write: if request.auth != null 
-        && resource.data.uid == request.auth.uid;
-      allow create: if request.auth != null 
-        && request.resource.data.uid == request.auth.uid;
+      allow read, update, delete: if isAuthenticated() && (resource == null || resource.data.uid == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
     }
     
-    // Published blog posts are public read
-    match /blogPosts/{postId} {
-      allow read: if resource.data.status == 'published';
-      allow write: if false; // server-side only via Admin SDK
+    // 4. Puzzle Books (Word Search, Coloring, Color by Number, Word Fit)
+    match /puzzleBooks/{bookId} {
+      allow read, update, delete: if isAuthenticated() && (resource == null || resource.data.uid == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
     }
     
-    // Subscriptions belong to their owner
+    // 5. Saved Niches & Niche Research
+    match /savedNiches/{nicheId} {
+      allow read, update, delete: if isAuthenticated() && (resource == null || resource.data.uid == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+    }
+    
+    // 6. Search History
+    match /searchHistory/{historyId} {
+      allow read, update, delete: if isAuthenticated() && (resource == null || resource.data.uid == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+    }
+    
+    // 7. Brand Kits & Author Profiles
+    match /brandKits/{brandId} {
+      allow read, update, delete: if isAuthenticated() && (resource == null || resource.data.uid == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+    }
+    
+    // 8. Book Series & Series Bibles
+    match /series/{seriesId} {
+      allow read, update, delete: if isAuthenticated() && (resource == null || resource.data.uid == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+    }
+    
+    // 9. Bulk Generation Jobs
+    match /bulkJobs/{jobId} {
+      allow read, update, delete: if isAuthenticated() && (resource == null || resource.data.uid == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+    }
+    
+    // 10. User In-App Notifications
+    match /notifications/{notificationId} {
+      allow read, update, delete: if isAuthenticated() && (resource == null || resource.data.uid == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+    }
+
+    // 11. Subscriptions (Read-only by owner, writes via Admin SDK)
     match /subscriptions/{subId} {
-      allow read: if request.auth != null 
-        && resource.data.uid == request.auth.uid;
-      allow write: if false; // server-side only via Admin SDK
+      allow read: if isAuthenticated() && (resource == null || resource.data.uid == request.auth.uid);
+      allow write: if false;
     }
     
-    // Payments belong to their owner
+    // 12. Payments & UPI Receipts (Create & Read by owner)
     match /payments/{paymentId} {
-      allow read: if request.auth != null 
-        && resource.data.uid == request.auth.uid;
-      allow write: if false; // server-side only via Admin SDK
+      allow read: if isAuthenticated() && (resource == null || resource.data.uid == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false; // updates via Admin SDK webhook
     }
     
-    // Global app configurations (pricing, feature flags, maintenance mode) are public read
+    // 13. Public Blog Posts & Categories
+    match /blogPosts/{postId} {
+      allow read: if true;
+      allow write: if false; // Admin SDK only
+    }
+    
+    match /blogAuthors/{authorId} {
+      allow read: if true;
+      allow write: if false; // Admin SDK only
+    }
+    
+    // 14. Global App Configurations (Pricing, Feature Flags, Ads)
     match /appConfig/{configDoc} {
       allow read: if true;
-      allow write: if false; // server-side only via Admin SDK
+      allow write: if false; // Admin SDK only
     }
     
-    // All other collections: server-side only
+    // 15. All other collections: strict server-side only
     match /{document=**} {
       allow read, write: if false;
     }
