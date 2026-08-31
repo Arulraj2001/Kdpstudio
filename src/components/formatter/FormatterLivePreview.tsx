@@ -227,7 +227,7 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
           paddingTop,
           paddingBottom,
         }}
-        className={`w-full ${viewMode === 'spread' ? 'max-w-[310px] max-h-[460px]' : 'max-w-[380px] max-h-[540px]'} rounded-sm shadow-md flex flex-col justify-between relative transition-all select-none border ${
+        className={`w-full ${viewMode === 'spread' ? 'max-w-[280px]' : 'max-w-[340px]'} h-auto rounded-sm shadow-md flex flex-col justify-between relative transition-all select-none border ${
           isCream
             ? 'bg-[#fbf7ee] text-[#1c1813] border-amber-200/70 shadow-amber-950/10'
             : 'bg-white text-slate-900 border-slate-200 shadow-slate-400/20'
