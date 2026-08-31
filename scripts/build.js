@@ -26,13 +26,13 @@ async function run() {
     outfile: 'dist/server.cjs',
   });
 
-  // Ensure sw.js and firebase-messaging-sw.js are present in dist/
+  // Ensure critical assets, sw.js and og-image are present and updated in dist/
   const distDir = path.resolve('dist');
   const publicDir = path.resolve('public');
-  ['sw.js', 'firebase-messaging-sw.js', 'manifest.json', 'site.webmanifest'].forEach(file => {
+  ['sw.js', 'firebase-messaging-sw.js', 'manifest.json', 'site.webmanifest', 'og-image.png', 'og-image.svg', 'brand-icon.png', 'logo.png'].forEach(file => {
     const src = path.join(publicDir, file);
     const dest = path.join(distDir, file);
-    if (fs.existsSync(src) && !fs.existsSync(dest)) {
+    if (fs.existsSync(src)) {
       fs.copyFileSync(src, dest);
     }
   });
