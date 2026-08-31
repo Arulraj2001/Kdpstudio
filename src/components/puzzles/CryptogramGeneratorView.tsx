@@ -17,6 +17,7 @@ import {
   CRYPTOGRAM_QUOTE_BANKS, 
   CryptogramPuzzle 
 } from '../../lib/puzzles/cryptogramEngine';
+import { exportCryptogramBookPdf } from '../../lib/toolsPdfExport';
 import { SEOHead } from '../seo/SEOHead';
 import { PageRoute } from '../../types';
 
@@ -31,6 +32,7 @@ export const CryptogramGeneratorView: React.FC<CryptogramGeneratorViewProps> = (
   const [showSolution, setShowSolution] = useState<boolean>(false);
   const [puzzle, setPuzzle] = useState<CryptogramPuzzle>(() => generateCryptogram(undefined, 'Steve Jobs', 'Inspiration', 2));
   const [copied, setCopied] = useState<boolean>(false);
+  const [isExporting, setIsExporting] = useState<boolean>(false);
 
   const handleGenerate = () => {
     setPuzzle(generateCryptogram(customText, author, 'Custom', hintCount));
@@ -42,8 +44,13 @@ export const CryptogramGeneratorView: React.FC<CryptogramGeneratorViewProps> = (
     setPuzzle(generateCryptogram(quote.text, quote.author, quote.category, hintCount));
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handleExportPdf = async () => {
+    setIsExporting(true);
+    try {
+      await exportCryptogramBookPdf(20, '8.5x11');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -172,11 +179,12 @@ export const CryptogramGeneratorView: React.FC<CryptogramGeneratorViewProps> = (
 
               <button
                 type="button"
-                onClick={handlePrint}
-                className="w-full py-3 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow transition-all cursor-pointer flex items-center justify-center gap-2"
+                onClick={handleExportPdf}
+                disabled={isExporting}
+                className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <Download size={14} />
-                <span>Export Print PDF (300 DPI)</span>
+                <span>{isExporting ? 'Generating PDF Manuscript...' : 'Export 20-Page Cryptogram Book PDF'}</span>
               </button>
             </div>
 

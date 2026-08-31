@@ -13,6 +13,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { generateMaze, MazeDifficulty, MazeShape, MazeGrid } from '../../lib/puzzles/mazeEngine';
+import { exportMazeBookPdf } from '../../lib/toolsPdfExport';
 import { SEOHead } from '../seo/SEOHead';
 import { PageRoute } from '../../types';
 
@@ -27,12 +28,19 @@ export const MazeGeneratorView: React.FC<MazeGeneratorViewProps> = ({ onNavigate
   const [batchCount, setBatchCount] = useState<number>(10);
   const [maze, setMaze] = useState<MazeGrid>(() => generateMaze(20, 20, 'medium', 'rectangle'));
 
+  const [isExporting, setIsExporting] = useState<boolean>(false);
+
   const handleRegenerate = () => {
     setMaze(generateMaze(20, 20, difficulty, shape));
   };
 
-  const handlePrintDownload = () => {
-    window.print();
+  const handleExportPdf = async () => {
+    setIsExporting(true);
+    try {
+      await exportMazeBookPdf(batchCount, difficulty, shape, '8.5x11');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const cellSize = 18;
@@ -171,12 +179,12 @@ export const MazeGeneratorView: React.FC<MazeGeneratorViewProps> = ({ onNavigate
                 Generate a complete 50-page or 100-page interior PDF complete with page numbers and back-of-book answer keys.
               </p>
               <button
-                type="button"
-                onClick={handlePrintDownload}
-                className="w-full py-2.5 rounded-xl bg-purple-900 hover:bg-purple-950 text-white font-bold text-xs shadow transition-all cursor-pointer flex items-center justify-center gap-2"
+                onClick={handleExportPdf}
+                disabled={isExporting}
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-purple-900/20 hover:shadow-2xl transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                <Download size={14} />
-                <span>Export {batchCount} Mazes + Answer Keys PDF</span>
+                <Download size={16} />
+                <span>{isExporting ? 'Generating PDF Manuscript...' : `Export Complete ${batchCount}-Page Book PDF`}</span>
               </button>
             </div>
 

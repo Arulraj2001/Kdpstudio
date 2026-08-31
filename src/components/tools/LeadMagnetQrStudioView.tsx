@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { SEOHead } from '../seo/SEOHead';
 import { PageRoute } from '../../types';
+import { exportLeadMagnetPagePdf } from '../../lib/toolsPdfExport';
 
 interface LeadMagnetQrStudioViewProps {
   onNavigate?: (route: PageRoute) => void;
@@ -32,8 +33,8 @@ export const LeadMagnetQrStudioView: React.FC<LeadMagnetQrStudioViewProps> = ({ 
   // Generate SVG QR Matrix URL
   const qrSvgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(targetUrl)}&format=svg&color=1e1b4b`;
 
-  const handlePrintDownload = () => {
-    window.print();
+  const handlePrintDownload = async () => {
+    await exportLeadMagnetPagePdf(targetUrl, headline, subheadline, ctaText, trimSize);
   };
 
   return (

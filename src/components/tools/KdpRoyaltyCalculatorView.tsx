@@ -22,6 +22,7 @@ import {
   TrimCategory, 
   calculateKdpRoyalty 
 } from '../../lib/kdpCalculatorEngine';
+import { exportRoyaltyReportPdf } from '../../lib/toolsPdfExport';
 import { SEOHead } from '../seo/SEOHead';
 import { PageRoute } from '../../types';
 
@@ -357,14 +358,23 @@ Calculated with KDP Studio Royalty Engine (https://kdpstudio-aio.web.app/tools/r
 
               {/* Actions */}
               <div className="pt-2 flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleCopySummary}
-                  className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 transition-all cursor-pointer flex items-center justify-center gap-2"
-                >
-                  {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                  <span>{copied ? 'Summary Copied!' : 'Copy Summary'}</span>
-                </button>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => exportRoyaltyReportPdf(calc, { binding, inkType, trimCategory, pageCount, listPrice, expandedDistribution, marketplaceCode: marketplace })}
+                    className="py-3 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <span>📄 Download PDF</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCopySummary}
+                    className="py-3 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                    <span>{copied ? 'Copied!' : 'Copy Summary'}</span>
+                  </button>
+                </div>
               </div>
 
             </div>
