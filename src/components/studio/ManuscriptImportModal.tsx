@@ -217,7 +217,7 @@ export const ManuscriptImportModal: React.FC<ManuscriptImportModalProps> = ({
               {/* Import Mode Toggle */}
               <div className="mb-5">
                 <p className="text-xs font-semibold text-slate-600 mb-2">Import Mode</p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <button
                     onClick={() => setImportMode('auto-split')}
                     className={`p-3 rounded-xl border-2 text-left transition-all ${importMode === 'auto-split' ? 'border-violet-500 bg-violet-50' : 'border-slate-200 bg-white hover:border-violet-200'}`}

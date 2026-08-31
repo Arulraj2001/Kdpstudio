@@ -218,7 +218,7 @@ export const WritingSprintModal: React.FC<WritingSprintModalProps> = ({
           {!isRunning && !isFinished && (
             <div className="mb-5">
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Sprint Duration</p>
-              <div className="grid grid-cols-7 gap-1">
+              <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5">
                 {PRESET_DURATIONS.map((d) => (
                   <button
                     key={d.minutes}

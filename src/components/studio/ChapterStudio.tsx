@@ -26,6 +26,8 @@ import {
   Upload,
   Moon,
   BarChart2,
+  MoreHorizontal,
+  ChevronDown,
 } from 'lucide-react';
 import { Book, Chapter, FrontMatter, BackMatter } from '../../types/index';
 import { ContentAuditReport } from '../../types/audit';
@@ -89,6 +91,7 @@ export const ChapterStudio: React.FC<ChapterStudioProps> = ({
   const [isDividerOpen, setIsDividerOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [showReadabilityPanel, setShowReadabilityPanel] = useState(false);
+  const [isToolsDropdownOpen, setIsToolsDropdownOpen] = useState(false);
 
   // Save states
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
@@ -369,130 +372,251 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2">
-          {/* Manuscript Import */}
-          <button
-            type="button"
-            id="btn-open-manuscript-import"
-            onClick={() => setIsImportOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
-            title="Import Manuscript (.txt, .md)"
-          >
-            <Upload className="w-3.5 h-3.5 text-purple-600" />
-            <span className="hidden lg:inline">Import</span>
-          </button>
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Desktop Direct Buttons (Visible on 2XL+ screens) */}
+          <div className="hidden 2xl:flex items-center gap-1.5">
+            <button
+              type="button"
+              id="btn-open-manuscript-import"
+              onClick={() => setIsImportOpen(true)}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+              title="Import Manuscript (.txt, .md)"
+            >
+              <Upload className="w-3.5 h-3.5 text-purple-600" />
+              <span>Import</span>
+            </button>
 
-          {/* Story Beats */}
-          <button
-            type="button"
-            id="btn-open-story-beats"
-            onClick={() => setIsStoryBeatsOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
-            title="Story Beat Frameworks"
-          >
-            <Layers className="w-3.5 h-3.5 text-purple-600" />
-            <span className="hidden lg:inline">Beats</span>
-          </button>
+            <button
+              type="button"
+              id="btn-open-story-beats"
+              onClick={() => setIsStoryBeatsOpen(true)}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+              title="Story Beat Frameworks"
+            >
+              <Layers className="w-3.5 h-3.5 text-purple-600" />
+              <span>Beats</span>
+            </button>
 
-          {/* Writing Sprint */}
-          <button
-            type="button"
-            id="btn-open-writing-sprint"
-            onClick={() => setIsSprintOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
-            title="Writing Sprint Timer"
-          >
-            <Timer className="w-3.5 h-3.5 text-purple-600" />
-            <span className="hidden lg:inline">Sprint</span>
-          </button>
+            <button
+              type="button"
+              id="btn-open-writing-sprint"
+              onClick={() => setIsSprintOpen(true)}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+              title="Writing Sprint Timer"
+            >
+              <Timer className="w-3.5 h-3.5 text-purple-600" />
+              <span>Sprint</span>
+            </button>
 
-          {/* Zen Mode */}
-          <button
-            type="button"
-            id="btn-open-zen-mode"
-            onClick={() => setIsZenModeOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
-            title="Zen Focus Mode"
-          >
-            <Moon className="w-3.5 h-3.5 text-purple-600" />
-            <span className="hidden lg:inline">Zen</span>
-          </button>
+            <button
+              type="button"
+              id="btn-open-zen-mode"
+              onClick={() => setIsZenModeOpen(true)}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+              title="Zen Focus Mode"
+            >
+              <Moon className="w-3.5 h-3.5 text-purple-600" />
+              <span>Zen</span>
+            </button>
 
-          {/* Ornamental Dividers */}
-          <button
-            type="button"
-            id="btn-open-dividers"
-            onClick={() => setIsDividerOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
-            title="Ornamental Dividers & Drop Caps"
-          >
-            <Flower2 className="w-3.5 h-3.5 text-purple-600" />
-            <span className="hidden lg:inline">Ornaments</span>
-          </button>
+            <button
+              type="button"
+              id="btn-open-dividers"
+              onClick={() => setIsDividerOpen(true)}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+              title="Ornamental Dividers & Drop Caps"
+            >
+              <Flower2 className="w-3.5 h-3.5 text-purple-600" />
+              <span>Ornaments</span>
+            </button>
 
-          {/* Front Matter Modal Button */}
-          <button
-            type="button"
-            id="btn-open-front-matter"
-            onClick={() => setIsFrontMatterOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
-          >
-            <FileText className="w-3.5 h-3.5 text-purple-600" />
-            <span className="hidden sm:inline">Front</span>
-          </button>
+            <button
+              type="button"
+              id="btn-open-front-matter"
+              onClick={() => setIsFrontMatterOpen(true)}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+            >
+              <FileText className="w-3.5 h-3.5 text-purple-600" />
+              <span>Front</span>
+            </button>
 
-          {/* Back Matter Modal Button */}
-          <button
-            type="button"
-            id="btn-open-back-matter"
-            onClick={() => setIsBackMatterOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
-          >
-            <BookmarkCheck className="w-3.5 h-3.5 text-purple-600" />
-            <span className="hidden sm:inline">Back</span>
-          </button>
+            <button
+              type="button"
+              id="btn-open-back-matter"
+              onClick={() => setIsBackMatterOpen(true)}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+            >
+              <BookmarkCheck className="w-3.5 h-3.5 text-purple-600" />
+              <span>Back</span>
+            </button>
 
-          {/* Version History Button */}
-          <button
-            type="button"
-            id="btn-open-version-history"
-            onClick={() => toggleDrawer('history')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
-              activeDrawer === 'history'
-                ? 'bg-purple-100 border-purple-400 text-purple-700'
-                : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-            }`}
-            title="View Version History & Snapshots"
-          >
-            <History className="w-3.5 h-3.5 text-purple-600" />
-            <span className="hidden sm:inline">History</span>
-          </button>
+            <button
+              type="button"
+              id="btn-open-version-history"
+              onClick={() => toggleDrawer('history')}
+              className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+                activeDrawer === 'history'
+                  ? 'bg-purple-100 border-purple-400 text-purple-700'
+                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+              }`}
+              title="View Version History & Snapshots"
+            >
+              <History className="w-3.5 h-3.5 text-purple-600" />
+              <span>History</span>
+            </button>
 
-          {/* Content Audit Button */}
-          <button
-            type="button"
-            id="btn-open-content-audit"
-            onClick={() => toggleDrawer('audit')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
-              activeDrawer === 'audit'
-                ? 'bg-purple-100 border-purple-400 text-purple-700'
-                : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-            }`}
-            title="Content Quality & KDP Policy Audit"
-          >
-            <Search className="w-3.5 h-3.5 text-purple-600" />
-            <span className="hidden sm:inline">Audit</span>
-          </button>
+            <button
+              type="button"
+              id="btn-open-content-audit"
+              onClick={() => toggleDrawer('audit')}
+              className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+                activeDrawer === 'audit'
+                  ? 'bg-purple-100 border-purple-400 text-purple-700'
+                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+              }`}
+              title="Content Quality & KDP Policy Audit"
+            >
+              <Search className="w-3.5 h-3.5 text-purple-600" />
+              <span>Audit</span>
+            </button>
+          </div>
+
+          {/* Responsive Studio Tools Dropdown (Visible on < 2XL screens) */}
+          <div className="relative 2xl:hidden">
+            <button
+              type="button"
+              id="btn-studio-tools-dropdown"
+              onClick={() => setIsToolsDropdownOpen(!isToolsDropdownOpen)}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+              <span>Tools</span>
+              <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${isToolsDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isToolsDropdownOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setIsToolsDropdownOpen(false)}
+                />
+                <div className="absolute right-0 top-full mt-1.5 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 animate-fade-in text-xs">
+                  <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                    Studio Suite Tools
+                  </div>
+                  <div className="py-1">
+                    <button
+                      type="button"
+                      onClick={() => { setIsImportOpen(true); setIsToolsDropdownOpen(false); }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition-colors text-left"
+                    >
+                      <Upload className="w-4 h-4 text-purple-600 shrink-0" />
+                      <div>
+                        <p className="font-semibold">Import Manuscript</p>
+                        <p className="text-[10px] text-slate-400">Import .txt or .md with chapter splitting</p>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { setIsStoryBeatsOpen(true); setIsToolsDropdownOpen(false); }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition-colors text-left"
+                    >
+                      <Layers className="w-4 h-4 text-purple-600 shrink-0" />
+                      <div>
+                        <p className="font-semibold">Story Beat Frameworks</p>
+                        <p className="text-[10px] text-slate-400">Save the Cat, Hero's Journey, 3-Act</p>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { setIsSprintOpen(true); setIsToolsDropdownOpen(false); }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition-colors text-left"
+                    >
+                      <Timer className="w-4 h-4 text-purple-600 shrink-0" />
+                      <div>
+                        <p className="font-semibold">Writing Sprint Timer</p>
+                        <p className="text-[10px] text-slate-400">Pomodoro timers, WPM & streaks</p>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { setIsZenModeOpen(true); setIsToolsDropdownOpen(false); }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition-colors text-left"
+                    >
+                      <Moon className="w-4 h-4 text-purple-600 shrink-0" />
+                      <div>
+                        <p className="font-semibold">Zen Focus Mode</p>
+                        <p className="text-[10px] text-slate-400">Distraction-free typewriter screen</p>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { setIsDividerOpen(true); setIsToolsDropdownOpen(false); }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition-colors text-left"
+                    >
+                      <Flower2 className="w-4 h-4 text-purple-600 shrink-0" />
+                      <div>
+                        <p className="font-semibold">Dividers & Drop Caps</p>
+                        <p className="text-[10px] text-slate-400">Scene breaks, ornaments, initial caps</p>
+                      </div>
+                    </button>
+
+                    <div className="border-t border-slate-100 my-1"></div>
+
+                    <button
+                      type="button"
+                      onClick={() => { setIsFrontMatterOpen(true); setIsToolsDropdownOpen(false); }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition-colors text-left"
+                    >
+                      <FileText className="w-4 h-4 text-purple-600 shrink-0" />
+                      <span>Front Matter (Title, Copyright, Dedication)</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { setIsBackMatterOpen(true); setIsToolsDropdownOpen(false); }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition-colors text-left"
+                    >
+                      <BookmarkCheck className="w-4 h-4 text-purple-600 shrink-0" />
+                      <span>Back Matter (About Author, Resources)</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { toggleDrawer('history'); setIsToolsDropdownOpen(false); }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition-colors text-left"
+                    >
+                      <History className="w-4 h-4 text-purple-600 shrink-0" />
+                      <span>Version History & Snapshots</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { toggleDrawer('audit'); setIsToolsDropdownOpen(false); }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition-colors text-left"
+                    >
+                      <Search className="w-4 h-4 text-purple-600 shrink-0" />
+                      <span>KDP Policy & Content Audit</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
 
           {/* AI Write Button */}
           <button
             type="button"
             id="btn-open-ai-write"
             onClick={() => setIsAiWriteOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 transition-colors"
+            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 transition-colors shrink-0"
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>AI Write</span>
+            <Sparkles className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden sm:inline">AI Write</span>
           </button>
 
           {/* AI Continue Button */}
@@ -678,30 +802,30 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
               const html = editor ? editor.getHTML() : '';
               const metrics = analyzeReadability(html);
               return (
-                <div className="border-t border-slate-100 py-2 px-1 grid grid-cols-4 sm:grid-cols-6 gap-3 text-[10px]">
-                  <div>
-                    <p className="text-slate-400">Readability</p>
-                    <p className="font-bold" style={{ color: metrics.readabilityColor }}>{metrics.readabilityLabel}</p>
+                <div className="border-t border-slate-100 py-2.5 px-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5 sm:gap-3 text-[10px] bg-slate-50/70 rounded-b-lg">
+                  <div className="bg-white p-2 rounded-lg border border-slate-200/80 shadow-2xs">
+                    <p className="text-slate-400 text-[9px] uppercase font-semibold">Readability</p>
+                    <p className="font-bold text-xs" style={{ color: metrics.readabilityColor }}>{metrics.readabilityLabel}</p>
                   </div>
-                  <div>
-                    <p className="text-slate-400">Grade Level</p>
-                    <p className="font-bold text-slate-700">Grade {metrics.fleschKincaidGrade.toFixed(1)}</p>
+                  <div className="bg-white p-2 rounded-lg border border-slate-200/80 shadow-2xs">
+                    <p className="text-slate-400 text-[9px] uppercase font-semibold">Grade Level</p>
+                    <p className="font-bold text-xs text-slate-800">Grade {metrics.fleschKincaidGrade.toFixed(1)}</p>
                   </div>
-                  <div>
-                    <p className="text-slate-400">Flesch Score</p>
-                    <p className="font-bold text-slate-700">{metrics.fleschReadingEase}</p>
+                  <div className="bg-white p-2 rounded-lg border border-slate-200/80 shadow-2xs">
+                    <p className="text-slate-400 text-[9px] uppercase font-semibold">Flesch Score</p>
+                    <p className="font-bold text-xs text-slate-800">{metrics.fleschReadingEase}</p>
                   </div>
-                  <div>
-                    <p className="text-slate-400">Read Time</p>
-                    <p className="font-bold text-slate-700">{metrics.readingTimeMinutes.toFixed(0)}m</p>
+                  <div className="bg-white p-2 rounded-lg border border-slate-200/80 shadow-2xs">
+                    <p className="text-slate-400 text-[9px] uppercase font-semibold">Read Time</p>
+                    <p className="font-bold text-xs text-slate-800">{metrics.readingTimeMinutes.toFixed(0)}m</p>
                   </div>
-                  <div className="hidden sm:block">
-                    <p className="text-slate-400">Audiobook</p>
-                    <p className="font-bold text-slate-700">{metrics.audiobookHours > 0 ? `${metrics.audiobookHours}h ` : ''}{metrics.audiobookMinutes}m</p>
+                  <div className="bg-white p-2 rounded-lg border border-slate-200/80 shadow-2xs">
+                    <p className="text-slate-400 text-[9px] uppercase font-semibold">Audiobook</p>
+                    <p className="font-bold text-xs text-slate-800">{metrics.audiobookHours > 0 ? `${metrics.audiobookHours}h ` : ''}{metrics.audiobookMinutes}m</p>
                   </div>
-                  <div className="hidden sm:block">
-                    <p className="text-slate-400">Dialogue</p>
-                    <p className="font-bold text-slate-700">{metrics.dialogueRatio}%</p>
+                  <div className="bg-white p-2 rounded-lg border border-slate-200/80 shadow-2xs">
+                    <p className="text-slate-400 text-[9px] uppercase font-semibold">Dialogue</p>
+                    <p className="font-bold text-xs text-slate-800">{metrics.dialogueRatio}%</p>
                   </div>
                 </div>
               );

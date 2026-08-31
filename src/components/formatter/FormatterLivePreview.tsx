@@ -371,7 +371,7 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
         </div>
 
         {/* View Mode & Zoom controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Spread toggle */}
           <div className="hidden sm:flex rounded-lg bg-slate-100 p-0.5 text-xs">
             <button
@@ -403,10 +403,10 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
           </div>
 
           {/* Zoom controls */}
-          <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
+          <div className="flex items-center gap-0.5 sm:gap-1 bg-slate-100 rounded-lg p-0.5">
             <button
               type="button"
-              onClick={() => setZoomLevel((prev) => Math.max(75, prev - 15))}
+              onClick={() => setZoomLevel((prev) => Math.max(60, prev - 15))}
               className="p-1 text-slate-500 hover:text-slate-900 rounded"
               title="Zoom Out"
             >
@@ -428,10 +428,10 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
       </div>
 
       {/* Main Preview Canvas */}
-      <div className="flex-1 overflow-auto p-4 sm:p-6 flex items-center justify-center relative bg-slate-100/60">
+      <div className="flex-1 overflow-auto p-2 sm:p-6 flex items-center justify-center relative bg-slate-100/60">
         <div
           style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'center center' }}
-          className="flex items-center justify-center gap-6 transition-transform duration-150 py-2"
+          className="flex items-center justify-center gap-4 sm:gap-6 transition-transform duration-150 py-2 max-w-full"
         >
           {/* Left Page (in spread mode, or single active page) */}
           {renderSingleBookPage(activePage, false)}
@@ -442,25 +442,26 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
       </div>
 
       {/* Bottom Page Navigation Bar */}
-      <div className="h-12 bg-white border-t border-slate-200 px-4 flex items-center justify-between shrink-0">
+      <div className="h-12 bg-white border-t border-slate-200 px-3 sm:px-4 flex items-center justify-between shrink-0">
         <button
           type="button"
           id="btn-preview-prev-page"
           onClick={() => setCurrentPage((prev) => Math.max(1, viewMode === 'spread' ? prev - 2 : prev - 1))}
           disabled={currentPage <= 1}
-          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors shadow-2xs"
+          className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors shadow-2xs shrink-0"
         >
           <ChevronLeft className="w-3.5 h-3.5" />
-          <span>Previous Page</span>
+          <span className="hidden sm:inline">Previous Page</span>
+          <span className="sm:hidden">Prev</span>
         </button>
 
-        <div className="flex items-center gap-2 text-xs font-mono">
+        <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-mono text-center truncate mx-1">
           <span className="font-bold text-slate-900">
             Page {viewMode === 'spread' && secondPage ? `${activePage.pageNumber}–${secondPage.pageNumber}` : activePage.pageNumber}
           </span>
           <span className="text-slate-300">/</span>
           <span className="text-slate-500">
-            {totalPreviewPages} preview pages ({estimatedPages} estimated total)
+            {totalPreviewPages} pages <span className="hidden md:inline">({estimatedPages} estimated total)</span>
           </span>
         </div>
 
@@ -473,9 +474,10 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
             )
           }
           disabled={currentPage >= totalPreviewPages || (viewMode === 'spread' && !secondPage)}
-          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors shadow-2xs"
+          className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors shadow-2xs shrink-0"
         >
-          <span>Next Page</span>
+          <span className="hidden sm:inline">Next Page</span>
+          <span className="sm:hidden">Next</span>
           <ChevronRight className="w-3.5 h-3.5" />
         </button>
       </div>
