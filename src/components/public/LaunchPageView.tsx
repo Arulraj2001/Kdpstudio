@@ -54,10 +54,10 @@ export const LaunchPageView: React.FC<LaunchPageViewProps> = ({ onNavigate }) =>
   return (
     <div className="w-full bg-white text-slate-900 font-sans">
       <SEOHead
+        pageKey="launch"
         title="KDP Studio on Product Hunt 🎉"
         description="Celebrate the launch of KDP Studio on Product Hunt! Get 40% off Pro for 24 hours only."
         canonicalPath="/launch"
-        noindex={true}
       />
 
       {/* ── Festive Header Banner ── */}

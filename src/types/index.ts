@@ -70,6 +70,7 @@ export type PageRoute =
   | 'admin-blog-seo'
   | 'admin-blog-newsletter'
   | 'admin-limits'
+  | 'admin-seo'
   | 'geo-test'
   | 'login'
   | 'signup'

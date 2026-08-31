@@ -58,7 +58,9 @@ import { SystemHealthPage } from '../admin/system/SystemHealthPage';
 import { BroadcastEmailPage } from '../admin/system/BroadcastEmailPage';
 import { AppSettingsPage } from '../admin/system/AppSettingsPage';
 import { PlanLimitsAdminPage } from '../admin/system/PlanLimitsAdminPage';
+import { SiteSeoAdminPage } from '../admin/system/SiteSeoAdminPage';
 import { initPlanLimitsSubscription } from '../../lib/planLimits';
+import { initSEOSubscription } from '../../lib/seoService';
 import { SupportCenterPage } from '../admin/support/SupportCenterPage';
 import { InstallPrompt } from '../pwa/InstallPrompt';
 import { UpdatePrompt } from '../pwa/UpdatePrompt';
@@ -257,6 +259,7 @@ export function parsePathToRoute(pathname: string): PageRoute | null {
   if (clean === 'admin/blog/seo') return 'admin-blog-seo';
   if (clean === 'admin/blog/newsletter') return 'admin-blog-newsletter';
   if (clean === 'admin/blog') return 'admin-blog';
+  if (clean === 'admin/system/seo' || clean === 'admin/seo' || clean === 'admin-seo') return 'admin-seo';
   if (clean === 'admin/system/limits' || clean === 'admin/limits' || clean === 'admin-limits') return 'admin-limits';
   if (clean === 'admin/system/usage' || clean === 'admin/usage') return 'admin-usage';
   if (clean === 'admin/system/health' || clean === 'admin/health') return 'admin-health';
@@ -380,14 +383,16 @@ export const AppShell: React.FC = () => {
       if (unsub) unsubscribeFCM = unsub;
     });
 
-    // Initialize dynamic plan limits real-time subscription from Firestore
+    // Initialize dynamic plan limits & SEO real-time subscriptions from Firestore
     const unsubscribePlanLimits = initPlanLimitsSubscription();
+    const unsubscribeSEO = initSEOSubscription();
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       if (unsubscribeFCM) unsubscribeFCM();
       if (unsubscribePlanLimits) unsubscribePlanLimits();
+      if (unsubscribeSEO) unsubscribeSEO();
     };
   }, [user?.uid]);
 
@@ -526,6 +531,7 @@ export const AppShell: React.FC = () => {
       case 'admin-broadcast': return 'Broadcast Email System';
       case 'admin-settings': return 'App Configuration & Feature Flags';
       case 'admin-limits': return 'Dynamic Plan Limits & Quota Manager';
+      case 'admin-seo': return 'Site-Wide SEO & Meta Manager';
       case 'admin-support': return 'Support Center';
       case 'admin-content': return 'Content Moderation Review Queue';
       case 'admin-content-audits': return 'Manuscript Audit Reports';
@@ -644,6 +650,7 @@ export const AppShell: React.FC = () => {
             {currentRoute === 'admin-broadcast' && <BroadcastEmailPage />}
             {currentRoute === 'admin-settings' && <AppSettingsPage />}
             {currentRoute === 'admin-limits' && <PlanLimitsAdminPage />}
+            {currentRoute === 'admin-seo' && <SiteSeoAdminPage />}
             {currentRoute === 'admin-support' && <SupportCenterPage />}
             {currentRoute === 'admin-content' && <ContentModerationPage />}
             {currentRoute === 'admin-content-audits' && <AuditReportsPage />}

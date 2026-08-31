@@ -186,6 +186,7 @@ export const BlogPageView: React.FC<BlogPageViewProps> = ({
   return (
     <div className="w-full bg-[#fcfcfd] text-slate-900 font-sans min-h-screen">
       <SEOHead
+        pageKey="blog"
         title="Amazon KDP Publishing Blog & Strategy Academy | KDP Studio"
         description="Actionable guides and data-backed strategies for Amazon KDP publishers. Niche research, cover formatting, pricing models, and AI tools."
         canonicalPath="/blog"

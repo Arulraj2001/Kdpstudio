@@ -198,6 +198,7 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
   return (
     <div id="pricing-page-view" className="w-full bg-white text-slate-900 font-sans">
       <SEOHead
+        pageKey="pricing"
         title="Pricing — KDP Studio"
         description="Simple, transparent pricing for KDP Studio. Free plan available. Starter from $6/month. Pro from $18/month. No credit card required."
         canonicalPath="/pricing"

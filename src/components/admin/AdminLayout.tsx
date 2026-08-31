@@ -211,6 +211,7 @@ export function AdminLayout({
     {
       title: 'SYSTEM & CONTROL',
       items: [
+        { id: 'admin-seo', label: 'Site-Wide SEO & Meta', href: '/admin/system/seo', icon: Search },
         { id: 'admin-limits', label: 'Plan Limits & Quotas', href: '/admin/system/limits', icon: Zap },
         { id: 'admin-usage', label: 'Feature Analytics', href: '/admin/system/usage', icon: Activity },
         { id: 'admin-health', label: 'System Health', href: '/admin/system/health', icon: HeartPulse },

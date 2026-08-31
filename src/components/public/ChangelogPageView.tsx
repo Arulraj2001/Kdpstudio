@@ -89,6 +89,7 @@ export const ChangelogPageView: React.FC<ChangelogPageViewProps> = ({ onNavigate
   return (
     <div className="w-full bg-white text-slate-900 font-sans">
       <SEOHead
+        pageKey="changelog"
         title="Changelog — KDP Studio"
         description="Latest updates, features, and improvements to KDP Studio."
         canonicalPath="/changelog"

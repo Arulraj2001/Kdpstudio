@@ -48,6 +48,7 @@ export const ContactPageView: React.FC<ContactPageViewProps> = ({ onNavigate }) 
   return (
     <div className="w-full bg-white text-slate-900 font-sans">
       <SEOHead
+        pageKey="contact"
         title="Contact — KDP Studio"
         description="Get in touch with the KDP Studio team. Support for billing, technical issues, and feature requests."
         canonicalPath="/contact"

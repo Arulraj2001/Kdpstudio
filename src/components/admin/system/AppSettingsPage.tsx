@@ -233,26 +233,49 @@ export function AppSettingsPage() {
         </div>
       )}
 
-      {/* ── Dynamic Plan Limits & Quotas Callout Card ── */}
-      <div className="bg-gradient-to-r from-purple-900/60 to-indigo-950/60 border border-purple-500/30 rounded-2xl p-5 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Sparkles size={18} className="text-amber-400" />
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-              Dynamic Plan Limits & Quota Management
-            </h3>
+      {/* ── Dynamic Plan Limits & SEO Callout Cards ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-gradient-to-r from-purple-900/60 to-indigo-950/60 border border-purple-500/30 rounded-2xl p-5 shadow-lg flex flex-col justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Sparkles size={18} className="text-amber-400" />
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                Plan Limits & Quotas
+              </h3>
+            </div>
+            <p className="text-xs text-purple-200">
+              Control Free tier bonuses, daily AI credits, puzzle quotas, and feature limits live from Firestore.
+            </p>
           </div>
-          <p className="text-xs text-purple-200">
-            Control Free tier bonuses, daily AI credits, puzzle quotas, and feature gates live from Firestore without code changes.
-          </p>
+          <a
+            href="/admin/system/limits"
+            className="w-fit px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shrink-0 flex items-center gap-1.5"
+          >
+            <span>Open Plan Limits Manager</span>
+            <span>→</span>
+          </a>
         </div>
-        <a
-          href="/admin/system/limits"
-          className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shrink-0 flex items-center gap-1.5"
-        >
-          <span>Open Plan Limits Manager</span>
-          <span>→</span>
-        </a>
+
+        <div className="bg-gradient-to-r from-indigo-900/60 to-slate-900/80 border border-indigo-500/30 rounded-2xl p-5 shadow-lg flex flex-col justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Sparkles size={18} className="text-cyan-400" />
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                Site-Wide SEO & Meta Manager
+              </h3>
+            </div>
+            <p className="text-xs text-indigo-200">
+              Manage Google search snippets, OpenGraph social cards, keywords, and sitemaps across all 20+ pages.
+            </p>
+          </div>
+          <a
+            href="/admin/system/seo"
+            className="w-fit px-4 py-2 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shrink-0 flex items-center gap-1.5"
+          >
+            <span>Open SEO Command Center</span>
+            <span>→</span>
+          </a>
+        </div>
       </div>
 
       {/* ── 1. Feature Flags (Kill Switches) ── */}

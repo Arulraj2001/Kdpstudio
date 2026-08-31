@@ -249,6 +249,7 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
     <div className="w-full bg-white text-slate-900 font-sans selection:bg-purple-600 selection:text-white">
       {/* SEO Head & JSON-LD Structured Data */}
       <SEOHead
+        pageKey="home"
         title="KDP Studio — The Complete AI Self-Publishing Studio for Amazon KDP"
         description="From blank idea to upload-ready Amazon KDP book. Write manuscripts with Gemini 2.0, generate 300 DPI wrap covers, format print interiors, and build puzzle books. Free plan available."
         canonicalPath="/"

@@ -11,6 +11,7 @@ export const AboutPageView: React.FC<AboutPageViewProps> = ({ onNavigate }) => {
   return (
     <div className="w-full bg-white text-slate-900 font-sans">
       <SEOHead
+        pageKey="about"
         title="About — KDP Studio"
         description="KDP Studio is an AI-powered book publishing suite built for Amazon KDP authors. Made in India, powered by Google AI."
         canonicalPath="/about"

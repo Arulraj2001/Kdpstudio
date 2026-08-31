@@ -59,6 +59,7 @@ export const FeaturesPageView: React.FC<FeaturesPageViewProps> = ({ onNavigate }
     <div className="w-full bg-white text-slate-900 font-sans selection:bg-purple-600 selection:text-white">
       {/* SEO Metadata */}
       <SEOHead
+        pageKey="features"
         title="Features — The Complete AI Self-Publishing Studio | KDP Studio"
         description="Explore the full suite of KDP Studio features: Gemini 2.0 writing studio, print interior formatter with KDP bleed & gutter math, 300 DPI wrap cover generator, and low-content puzzle engine."
         canonicalPath="/features"
