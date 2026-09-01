@@ -296,6 +296,30 @@ export const useBookStore = create<BookStore>()(
         });
       },
 
+      /** Phase 2: Replace the whole library with cloud-hydrated books (after sign-in.
+      */
+      replaceAllBooks: (newBooks) => {
+        const safeList = newBooks && newBooks.length > 0 ? newBooks : [SAMPLE_STARTER_BOOK];
+        const seen = new Map();
+        for (const bk of safeList) {
+          if (bk && bk.id && !seen.has(bk.id)) seen.set(bk.id, bk);
+        }
+        const dedupe = Array.from(seen.values());
+        set({
+          books: dedupe,
+          currentBook: dedupe.length > 0 ? dedupe[0] : get().currentBook,
+        });
+      },
+
+      /** Phase 2: Merge incoming (cloud) books into the local library, newest-first. */
+      addCloudBooks: (incomingBooks) => {
+        if (!incomingBooks || !Array.isArray(incomingBooks) || incomingBooks.length === 0) return;
+        const map = new Map(get().books.map((b) => [b.id, b]));
+        for (const bk of incomingBooks) {
+          if (bk && bk.id) { map.set(bk.id, bk); }
+        }
+        set({ books: Array.from(map.values()) , currentBook: get().currentBook });
+      },
       addChapter: (bookId, title, content) => {
         const books = get().books;
         const targetBook = books.find(b => b.id === bookId);

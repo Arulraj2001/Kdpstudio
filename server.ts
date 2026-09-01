@@ -3262,6 +3262,10 @@ Sitemap: ${baseUrl}/sitemap.xml`;
           width: `${widthInInches}in`,
           height: `${heightInInches}in`,
           printBackground: true,
+          // Let the @page xsize:/margin: rules embedded in the shared generator
+          // govern the layout so bio-header/page-number placements, bleed, and margins all
+          // match what the author configured in the Formatter (and match the preview).
+          preferCSSPageSize: true,
           margin: { top: '0in', right: '0in', bottom: '0in', left: '0in' },
         });
 
@@ -3278,10 +3282,11 @@ Sitemap: ${baseUrl}/sitemap.xml`;
         if (browser) {
           await browser.close().catch(() => {});
         }
+        // NOTE: never return `htmlContent` back to the client here — it is the
+        // user's full manuscript (a data-exposure vector). Return opaque error only.
         return res.status(500).json({
           error: 'Puppeteer generation error',
           message: launchErr.message,
-          html: htmlContent,
         });
       }
     } catch (error: any) {

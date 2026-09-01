@@ -37,15 +37,55 @@ export function generateBookHtml(
   const { top, bottom, inside, outside } = margins;
   const { width, height } = trimDimensions;
 
-  // Running header and page number positioning styles
-  const isOuterPageNum = settings.pageNumberPosition === 'bottom-outer';
-  const hasPageNum = settings.pageNumberPosition !== 'none';
-  const headerContent =
-    settings.runningHeader === 'book-title'
-      ? book.title
-      : settings.runningHeader === 'chapter-name'
-      ? ''
-      : '';
+  // Running header and page number positioning style inputs.
+  // NOTE: this generator is the single source of truth for the server-side
+  // PDF route (`server.ts /api/export-pdf`) sand the client-side print preview.
+  // The `@page` margin-box rules below are built conditionally from these
+  // settings so the exported artifact matches what the author configured
+  // (mirrors the same semantics enforced by the .docx exporter).
+  const pageNumPos = settings.pageNumberPosition || 'bottom-center';
+  const showPageNumbers = pageNumPos !== 'none';
+  const showHeader = settings.runningHeader === 'book-title' || settings.runningHeader === 'chapter-name';
+  const headerText = showHeader ? book.title : '';
+
+  // ── Conditional @page margin-box rules (built from the effective settings).
+  // Running headers render in the top margin; page numbers render per the
+  // configured position (bottom-center or bottom-outer); `none` silences them,
+  // mirroring exactly what the .docx exporter already does.
+  const cbHeader = showHeader
+    ? `
+    @top-center {
+      content: "${escapeHtml(headerText)}";
+      font-family: ${fontStack};
+      font-size: 8.5pt;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }`
+    : '';
+  const cbCenter = showPageNumbers
+    ? `
+    @bottom-center {
+      content: counter(page);
+      font-family: ${fontStack};
+      font-size: 8pt;
+    }`
+    : '';
+  const cbLeft = showPageNumbers
+    ? `
+    @bottom-left {
+      content: counter(page);
+      font-family: ${fontStack};
+      font-size: 8pt;
+    }`
+    : '';
+  const cbRight = showPageNumbers
+    ? `
+    @bottom-right {
+      content: counter(page);
+      font-family: ${fontStack};
+      font-size: 8pt;
+    }`
+    : '';
 
   // Generate sections
   let sectionsHtml = '';
@@ -103,7 +143,8 @@ export function generateBookHtml(
             <li class="toc-item">
               <span class="toc-title">${escapeHtml(c.title || `Chapter ${idx + 1}`)}</span>
               <span class="toc-dots"></span>
-              <span class="toc-page-num">${idx + 1}</span>
+              <!-- Placeholder: real folio targets require a pagination pass (Phase 1.3). Fabricating chapter indices here would print wrong page numbers. -->
+              <span class="toc-page-num">&mdash;</span>
             </li>
           `
             )
@@ -185,35 +226,15 @@ export function generateBookHtml(
     @page :left {
       margin-left: ${outside}in;
       margin-right: ${inside}in;
-      @top-left {
-        content: counter(page);
-        font-family: ${fontStack};
-        font-size: 8pt;
-      }
-      @top-center {
-        content: "${headerContent}";
-        font-family: ${fontStack};
-        font-size: 8.5pt;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-      }
+      ${cbHeader}
+      ${pageNumPos === 'bottom-outer' ? cbLeft : cbCenter}
     }
 
     @page :right {
       margin-left: ${inside}in;
       margin-right: ${outside}in;
-      @top-right {
-        content: counter(page);
-        font-family: ${fontStack};
-        font-size: 8pt;
-      }
-      @top-center {
-        content: "${escapeHtml(book.title)}";
-        font-family: ${fontStack};
-        font-size: 8.5pt;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-      }
+      ${cbHeader}
+      ${pageNumPos === 'bottom-outer' ? cbRight : cbCenter}
     }
 
     * {

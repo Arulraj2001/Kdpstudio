@@ -25,6 +25,7 @@ import {
   sendPasswordResetEmail as sendServicePasswordResetEmail 
 } from './emailService';
 import { showPaymentSuccessToast } from './postPayment';
+import { startBookSync, teardownBookSync } from './bookSyncManager';
 
 
 export interface AuthUser {
@@ -244,6 +245,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
 
           // Attach real-time Firestore document listener
           setupUserDocListener(fbUser.uid);
+          startBookSync(fbUser.uid);
         } catch (err: any) {
           console.error('Error synchronizing auth state:', err);
           set({ isLoading: false, isInitialized: true });
@@ -267,6 +269,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
               isInitialized: true,
               authError: null,
             });
+            startBookSync(parsed.uid);
             return;
           } catch {}
         }
@@ -279,6 +282,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
           authError: null,
         });
         notifyServerSession(undefined, true);
+        teardownBookSync();
       }
     });
   }
