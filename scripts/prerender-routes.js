@@ -18,10 +18,14 @@ const PUBLIC_ROUTES = [
     h1: 'Everything You Need to Publish Bestselling Books on Amazon KDP',
     subtitle: 'From initial manuscript outline to 300 DPI print-ready interior and cover design — all in one cloud workspace.',
     highlights: [
-      'AI-Powered Chapter Studio with beat sheets and continuation engine',
+      'AI-Powered Chapter Studio with beat sheets and consistent author tone',
       'Automated 300 DPI PDF & EPUB interior formatting for 16 trim sizes',
-      'Cover builder with automated spine width calculations',
+      'Spine-calculated wrap cover builder with barcode safe areas',
       'Algorithmic puzzle generation suite for low-content publishing',
+      '100% KDP & FTC compliant ARC Reader Lounge for early book discovery',
+      'Author Newsletter Cross-Promotion Hub with click attribution tracking',
+      'Multi-Format Manuscript Importer (.docx, .epub, .md, .txt) with chapter detection',
+      '100% Author IP Guarantee with Zero AI Training on manuscripts',
     ],
   },
   {
