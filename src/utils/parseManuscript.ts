@@ -24,7 +24,7 @@ export const BLOCK_TYPES: Record<string, BlockType> = {
 };
 
 /**
- * Detects the block type of an individual line with 15-level precedence rules
+ * Detects the block type of an individual line with high-precedence semantic matching
  */
 export function detectBlockType(line: string, nextLine?: string): BlockType {
   const trimmed = line.trim();
@@ -38,47 +38,33 @@ export function detectBlockType(line: string, nextLine?: string): BlockType {
     return BLOCK_TYPES.TITLE;
   }
 
-  // 2. Front Matter Detection (e.g. ## COPYRIGHT PAGE, ## DISCLAIMER, ## CONTENTS, ## DEDICATION)
+  // 2. Front & Back Matter (e.g. ## COPYRIGHT PAGE, ## DISCLAIMER, ## CONTENTS, ## A NOTE TO THE READER, ## HOW TO USE, ## INTRODUCTION)
   if (
-    /^##?\s+(COPYRIGHT|DISCLAIMER|CONTENTS|TABLE OF CONTENTS|DEDICATION|TITLE PAGE|ABOUT THE AUTHOR|PRAISE FOR|ACKNOWLEDGEMENTS?|PREFACE)\b/i.test(
+    /^##?\s+(COPYRIGHT|DISCLAIMER|CONTENTS|TABLE OF CONTENTS|DEDICATION|TITLE PAGE|ABOUT THE AUTHOR|PRAISE FOR|ACKNOWLEDGEMENTS?|PREFACE|A NOTE TO THE READER|NOTE TO THE READER|HOW TO USE|INTRODUCTION|PROLOGUE|EPILOGUE|AFTERWORD|APPENDICES|APPENDIX)\b/i.test(
       trimmed
     )
   ) {
     return BLOCK_TYPES.FRONT_MATTER;
   }
 
-  // 3. Markdown H2 = chapter
-  if (/^##\s+/.test(line)) {
-    return BLOCK_TYPES.CHAPTER_HEADING;
-  }
-
-  // 4. Markdown H3 = section
-  if (/^###\s+/.test(line)) {
-    return BLOCK_TYPES.SECTION_HEADING;
-  }
-
-  // 5. Markdown H4 = subsection
-  if (/^####\s+/.test(line)) {
-    return BLOCK_TYPES.SUBSECTION;
-  }
-
-  // 6. Exercise block
+  // 3. Special Workbook Elements (Matched BEFORE generic ### / ## / ** headings)
+  // Exercise block (handles `### EXERCISE 1.1`, `**Exercise 1.1**`, `EXERCISE 1.1:`)
   if (
-    /^(EXERCISE|Exercise)\s+\d+(\.\d+)?[:—]/i.test(trimmed) ||
-    /^\*\*(EXERCISE|Exercise)\s+\d+(\.\d+)?/i.test(trimmed)
+    /^(###?\s+|\*\*)?(EXERCISE|Exercise)\s+\d+(\.\d+)?[:—\s]/i.test(trimmed) ||
+    /^(###?\s+)?\*\*(EXERCISE|Exercise)\s+\d+(\.\d+)?/i.test(trimmed)
   ) {
     return BLOCK_TYPES.EXERCISE_HEADER;
   }
 
-  // 7. Scenario block
+  // Scenario block (handles `### SCENARIO A`, `**Scenario A**`, `SCENARIO A:`)
   if (
-    /^(SCENARIO\s+[A-Z]:?|Scenario\s+[A-Z]:?)/i.test(trimmed) ||
-    /^\*\*(SCENARIO\s+[A-Z])/i.test(trimmed)
+    /^(###?\s+|\*\*)?(SCENARIO\s+[A-Z]:?|Scenario\s+[A-Z]:?)/i.test(trimmed) ||
+    /^(###?\s+)?\*\*(SCENARIO\s+[A-Z])/i.test(trimmed)
   ) {
     return BLOCK_TYPES.SCENARIO_HEADER;
   }
 
-  // 8. Model response
+  // Model response (handles `**Model Response:**`, `MODEL RESPONSE:`, `--- **Model...`)
   if (
     /^(MODEL RESPONSE|Model Response|---\s*\*\*Model)/i.test(trimmed) ||
     /^\*\*(MODEL RESPONSE|Model Response)/i.test(trimmed)
@@ -86,7 +72,7 @@ export function detectBlockType(line: string, nextLine?: string): BlockType {
     return BLOCK_TYPES.MODEL_RESPONSE;
   }
 
-  // 9. Debrief
+  // Debrief (handles `**Debrief:**`, `DEBRIEF:`)
   if (
     /^(DEBRIEF|Debrief)[:—]/i.test(trimmed) ||
     /^\*\*(DEBRIEF|Debrief)/i.test(trimmed)
@@ -94,22 +80,22 @@ export function detectBlockType(line: string, nextLine?: string): BlockType {
     return BLOCK_TYPES.DEBRIEF;
   }
 
-  // 10. Reflection prompt
-  if (/^(REFLECTION PROMPT|Reflection Prompt|Reflection prompt)/i.test(trimmed)) {
+  // Reflection prompt (handles `### REFLECTION PROMPT`, `**Reflection Prompt:**`, `REFLECTION PROMPT:`)
+  if (/^(###?\s+|\*\*)?(REFLECTION PROMPT|Reflection Prompt|Reflection prompt)/i.test(trimmed)) {
     return BLOCK_TYPES.REFLECTION;
   }
 
-  // 11. Action plan
-  if (/^(ACTION PLAN|Action Plan)/i.test(trimmed)) {
+  // Action plan (handles `### ACTION PLAN: CHAPTER 1`, `ACTION PLAN:`)
+  if (/^(###?\s+|\*\*)?(ACTION PLAN|Action Plan)/i.test(trimmed)) {
     return BLOCK_TYPES.ACTION_PLAN;
   }
 
-  // 12. Table row
+  // 4. Markdown Table row
   if (/^\|/.test(trimmed) && /\|/.test(trimmed)) {
     return BLOCK_TYPES.TABLE;
   }
 
-  // 13. Writing lines (3+ underscores, escaped underscores \_\_\_\_, or continuous dashes)
+  // 5. Writing lines (3+ underscores, escaped underscores \_\_\_\_, or continuous dashes)
   if (
     /^(\\_{1,}|_{1,}|\s){3,}$/.test(trimmed) ||
     /^_{3,}$/.test(trimmed) ||
@@ -119,17 +105,28 @@ export function detectBlockType(line: string, nextLine?: string): BlockType {
     return BLOCK_TYPES.WRITING_LINES;
   }
 
-  // 14. Horizontal rule
+  // 6. Horizontal rule
   if (/^---+$/.test(trimmed) || /^\*\*\*+$/.test(trimmed)) {
     return BLOCK_TYPES.DIVIDER;
   }
 
-  // 15. Empty line
+  // 7. Empty line
   if (trimmed === '') {
     return BLOCK_TYPES.BLANK;
   }
 
-  // Non-markdown plain text fallback heuristics:
+  // 8. Markdown Headings (Hierarchical chapters, sections, subsections)
+  if (/^##\s+/.test(line)) {
+    return BLOCK_TYPES.CHAPTER_HEADING;
+  }
+  if (/^###\s+/.test(line)) {
+    return BLOCK_TYPES.SECTION_HEADING;
+  }
+  if (/^####\s+/.test(line)) {
+    return BLOCK_TYPES.SUBSECTION;
+  }
+
+  // 9. Plain text fallback heuristics
   if (/^(CHAPTER\s+\d+|Chapter\s+\d+)[:\s—]/i.test(trimmed)) {
     return BLOCK_TYPES.CHAPTER_HEADING;
   }
@@ -137,7 +134,7 @@ export function detectBlockType(line: string, nextLine?: string): BlockType {
     return BLOCK_TYPES.PART_HEADER;
   }
 
-  // 16. Default: paragraph
+  // 10. Default: paragraph
   return BLOCK_TYPES.PARAGRAPH;
 }
 
@@ -170,7 +167,7 @@ export function detectStructure(rawText: string): ContentBlock[] {
       const content = line.replace(/^##\s+/, '').trim();
       if (
         !/^(CHAPTER\s+\d+|Chapter\s+\d+|PART\s+|Part\s+|\d+\.)/i.test(content) &&
-        !/^(COPYRIGHT|DISCLAIMER|CONTENTS|TABLE OF CONTENTS|DEDICATION)\b/i.test(content)
+        !/^(COPYRIGHT|DISCLAIMER|CONTENTS|TABLE OF CONTENTS|DEDICATION|A NOTE TO THE READER|HOW TO USE|INTRODUCTION)\b/i.test(content)
       ) {
         type = 'subtitle';
         hasSubtitle = true;
