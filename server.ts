@@ -1773,6 +1773,100 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   // BUY ME A COFFEE (BMaC) ENDPOINTS
   // ─────────────────────────────────────────
 
+  // Buy Me a Coffee User Payment Confirmation / Claim Submission
+  app.post('/api/payment/bmac/submit', async (req: any, res: any) => {
+    try {
+      const { getUserDocument } = await import('./src/lib/userService');
+      const { getBmacUnmatchedPayments, resolveBmacUnmatchedPayment, matchBmacTier, saveBmacUnmatchedPayment } = await import('./src/lib/bmac');
+      const { activateUserPlan, createPaymentRecord } = await import('./src/lib/paymentService');
+
+      const uid = await requireVerifiedUser(req, res);
+      if (!uid) return;
+
+      const { plan, billingCycle, amount, supporterEmail, supporterName, orderId, notes } = req.body || {};
+      if (!supporterEmail || !plan) {
+        return res.status(400).json({ error: 'Plan and supporter email are required' });
+      }
+
+      const emailClean = supporterEmail.trim().toLowerCase();
+      const unmatchedList = await getBmacUnmatchedPayments();
+
+      // Check if there is already an unmatched payment matching this supporter email or order ID
+      const matchingRecord = unmatchedList.find((p) => {
+        if (p.status !== 'unmatched') return false;
+        const pEmail = (p.supporterEmail || '').toLowerCase().trim();
+        if (pEmail && pEmail === emailClean) return true;
+        if (orderId && String(p.bmacPaymentId) === String(orderId)) return true;
+        return false;
+      });
+
+      if (matchingRecord) {
+        // Immediate automated match!
+        const planTier = matchBmacTier(matchingRecord.amount || amount || 18);
+        const planToSet = planTier?.plan || plan || 'pro';
+        const cycleToSet = planTier?.billingCycle || billingCycle || 'monthly';
+
+        await activateUserPlan(uid, planToSet, cycleToSet, 'bmac', String(matchingRecord.bmacPaymentId || matchingRecord.id));
+        await createPaymentRecord({
+          uid,
+          email: emailClean,
+          gateway: 'bmac',
+          gatewayPaymentId: String(matchingRecord.bmacPaymentId || matchingRecord.id),
+          gatewaySubscriptionId: null,
+          gatewayCustomerId: null,
+          plan: planToSet,
+          billingCycle: cycleToSet,
+          amount: matchingRecord.amount || amount || 18,
+          currency: 'USD',
+          status: 'completed',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          planStartDate: new Date().toISOString(),
+          planEndDate: cycleToSet === 'lifetime' ? null : (cycleToSet === 'annual' ? new Date(Date.now() + 365 * 86400000).toISOString() : new Date(Date.now() + 30 * 86400000).toISOString()),
+          metadata: {
+            supporterEmail: emailClean,
+            supporterName: supporterName || '',
+            orderId: orderId || '',
+            matchedVia: 'user_claim',
+          },
+        });
+
+        await resolveBmacUnmatchedPayment(
+          matchingRecord.id,
+          uid,
+          'auto_claim@kdpstudio.app',
+          `${planToSet} (${cycleToSet}) via instant claim`
+        );
+
+        return res.json({
+          success: true,
+          matched: true,
+          message: `Payment matched and ${planToSet.toUpperCase()} plan activated!`,
+        });
+      }
+
+      // If no unmatched record is found yet, log claim for automatic triage
+      await saveBmacUnmatchedPayment({
+        bmacPaymentId: orderId || `claim_${Date.now()}`,
+        amount: Number(amount) || 18,
+        supportCoffees: Math.max(1, Math.floor((Number(amount) || 18) / 6)),
+        supporterEmail: emailClean,
+        supporterName: supporterName || 'Kindle Creator Supporter',
+        supportNote: notes ? `User claim: ${notes}` : `User claim for ${plan} (${billingCycle})`,
+        isSubscription: billingCycle === 'monthly' || billingCycle === 'annual',
+      });
+
+      return res.json({
+        success: true,
+        matched: false,
+        message: 'Payment confirmation received. We will verify and activate your plan shortly.',
+      });
+    } catch (err: any) {
+      console.error('[server.ts BMaC submit claim] Error:', err);
+      return res.status(500).json({ error: err.message || 'Failed to submit payment confirmation' });
+    }
+  });
+
   // Buy Me a Coffee Webhook
   app.post('/api/webhooks/bmac', async (req, res) => {
     try {

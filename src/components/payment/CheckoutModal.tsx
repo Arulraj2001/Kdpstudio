@@ -22,6 +22,7 @@ import { PRICING_TABLE, formatPrice } from '../../lib/geo';
 import { StripeCheckout } from './StripeCheckout';
 import { UpiPayment } from './UpiPayment';
 import { BmacButton } from './BmacButton';
+import { BmacPayment } from './BmacPayment';
 import { getAvailablePaymentTabs } from '../../lib/paymentConfig';
 import { showPaymentSuccessToast } from '../../lib/postPayment';
 import { CurrencySelector } from '../ui/CurrencySelector';
@@ -512,38 +513,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 {/* 3. BUY ME A COFFEE */}
                 {currentActiveTab === 'bmac' && availableTabs.includes('bmac') && (
                   <div className="space-y-4">
-                    <div className="p-3 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-1.5">
-                      <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
-                        <Zap size={14} className="text-amber-700" />
-                        Buy Me a Coffee Direct Plan Upgrade
-                      </span>
-                      <p className="text-xs text-slate-600 leading-relaxed">
-                        Supporter payments match automatically to your account. Pay the exact plan amount below:
-                      </p>
-                    </div>
-
-                    <div className="space-y-3">
-                      {/* Dynamic exact plan checkout button */}
-                      <BmacButton
-                        variant="plan"
-                        plan={selectedPlan}
-                        billingCycle={billingCycle}
-                        amount={currentPrice}
-                        currency={currency}
-                        showNotice={true}
-                      />
-
-                      {/* Secondary options divider */}
-                      <div className="pt-2 border-t border-slate-100">
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-                          Other Support Options
-                        </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          <BmacButton variant="credits" showNotice={false} />
-                          <BmacButton variant="lifetime" showNotice={false} />
-                        </div>
-                      </div>
-                    </div>
+                    <BmacPayment
+                      plan={selectedPlan}
+                      billingCycle={billingCycle}
+                      amount={currentPrice}
+                      onSubmitted={handlePaymentSuccess}
+                      onBack={() => handleClose()}
+                    />
                   </div>
                 )}
               </div>

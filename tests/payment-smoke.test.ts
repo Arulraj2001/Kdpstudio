@@ -102,6 +102,7 @@ test('user payment mutations require a verified token (401 without auth)', async
   const endpoints = [
     ['POST', '/api/payment/stripe/create-checkout'],
     ['POST', '/api/payment/upi/submit'],
+    ['POST', '/api/payment/bmac/submit'],
     ['POST', '/api/payment/cancel-subscription'],
   ] as const;
   for (const [method, url] of endpoints) {
