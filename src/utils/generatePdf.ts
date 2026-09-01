@@ -279,19 +279,39 @@ export async function generatePdf(
         if (settings.chapterPageBreaks) {
           newPage();
         } else {
-          ensureSpace(40);
-          y += 16;
+          ensureSpace(50);
+          y += 18;
         }
-        doc.setFont(headFont, 'bold');
-        doc.setFontSize(16);
-        const chapLines = wrapText(doc, stripMd(block.text), contentW);
-        chapLines.forEach((line) => {
-          doc.text(line, marginInside, y);
-          y += 22;
-        });
-        y += 2;
-        drawRule(marginInside, contentW, [50, 50, 50]);
-        y += 8;
+        const fullTitle = stripMd(block.text);
+        const match = fullTitle.match(/^(CHAPTER\s+\d+|Chapter\s+\d+|PROLOGUE|EPILOGUE|CONCLUSION|INTRODUCTION)[:—\-]\s*(.*)$/i);
+        if (match) {
+          doc.setFont(headFont, 'bold');
+          doc.setFontSize(9);
+          doc.setTextColor(124, 58, 237);
+          doc.text(match[1].toUpperCase(), pageW / 2, y, { align: 'center' });
+          y += 14;
+          doc.setFont(headFont, 'bold');
+          doc.setFontSize(15);
+          doc.setTextColor(15, 23, 42);
+          const titleLines = wrapText(doc, match[2] || match[1], contentW);
+          titleLines.forEach((line) => {
+            doc.text(line, pageW / 2, y, { align: 'center' });
+            y += 18;
+          });
+          doc.setTextColor(0, 0, 0);
+          drawRule(pageW / 2 - 20, 40, [203, 213, 225]);
+          y += 10;
+        } else {
+          doc.setFont(headFont, 'bold');
+          doc.setFontSize(16);
+          const chapLines = wrapText(doc, fullTitle, contentW);
+          chapLines.forEach((line) => {
+            doc.text(line, marginInside, y);
+            y += 22;
+          });
+          drawRule(marginInside, contentW, [203, 213, 225]);
+          y += 8;
+        }
         break;
       }
 
@@ -331,15 +351,14 @@ export async function generatePdf(
         if (settings.formatExerciseBoxes) {
           exerciseX = marginInside;
           exerciseW = contentW;
-          drawBoxHeader(stripMd(block.text), exerciseX, exerciseW, 238, 238, 238, 0, 0, 0);
-          // Draw thin border left+right to start the box
-          doc.setDrawColor(0, 0, 0);
+          drawBoxHeader(stripMd(block.text), exerciseX, exerciseW, 241, 245, 249, 15, 23, 42);
+          doc.setDrawColor(226, 232, 240);
           doc.setLineWidth(0.5);
         } else {
           doc.setFont(headFont, 'bold');
           doc.setFontSize(bodyFontSizePt);
           doc.text(stripMd(block.text), marginInside, y);
-          y += bodyLineH + 4;
+          y += 14;
         }
         break;
       }
@@ -350,33 +369,37 @@ export async function generatePdf(
         inScenario = true;
         inExercise = false;
         if (settings.formatScenarioBlocks) {
-          exerciseX = marginInside;
-          exerciseW = contentW;
+          scenarioX = marginInside;
+          scenarioW = contentW;
           const isBw = settings.interiorColor === 'bw';
-          const [r, g, b] = isBw ? [51, 65, 85] : [26, 107, 114];
-          drawBoxHeader(stripMd(block.text), exerciseX, exerciseW, r, g, b, 255, 255, 255);
+          if (isBw) {
+            drawBoxHeader(stripMd(block.text), scenarioX, scenarioW, 51, 65, 85, 255, 255, 255);
+          } else {
+            drawBoxHeader(stripMd(block.text), scenarioX, scenarioW, 15, 118, 110, 255, 255, 255);
+          }
+          doc.setDrawColor(isBw ? 226 : 204, isBw ? 232 : 251, isBw ? 240 : 241);
+          doc.setLineWidth(0.5);
         } else {
           doc.setFont(headFont, 'bold');
           doc.setFontSize(bodyFontSizePt);
           doc.text(stripMd(block.text), marginInside, y);
-          y += bodyLineH + 4;
+          y += 14;
         }
         break;
       }
 
       case 'exercise_body':
       case 'scenario_body': {
-        const bodyX = inExercise || inScenario ? marginInside + 5 : marginInside;
-        const bodyW = inExercise || inScenario ? contentW - 10 : contentW;
-        if (block.metadata?.isList) {
-          const items: string[] = block.metadata?.items ?? block.text.split('\n').filter(Boolean);
-          const isOrd = block.metadata?.ordered ?? false;
-          items.forEach((item, idx) => {
-            const prefix = isOrd ? `${idx + 1}. ` : '\u2022  ';
-            const itemLines = wrapText(doc, stripMd(prefix + item), bodyW - 14);
+        const bodyX = inExercise ? exerciseX + 6 : inScenario ? scenarioX + 6 : marginInside;
+        const bodyW = inExercise ? exerciseW - 12 : inScenario ? scenarioW - 12 : contentW;
+
+        if (block.metadata?.isList && Array.isArray(block.metadata.items)) {
+          doc.setFont(bodyFont, 'normal');
+          doc.setFontSize(bodyFontSizePt);
+          block.metadata.items.forEach((item: string, idx: number) => {
+            const prefix = block.metadata?.ordered ? `${idx + 1}. ` : '\u2022  ';
+            const itemLines = wrapText(doc, stripMd(prefix + item), bodyW - 12);
             ensureSpace(itemLines.length * bodyLineH);
-            doc.setFont(bodyFont, 'normal');
-            doc.setFontSize(bodyFontSizePt);
             itemLines.forEach((line, li) => {
               doc.text(line, bodyX + (li === 0 ? 0 : 12), y);
               y += bodyLineH;
@@ -400,69 +423,174 @@ export async function generatePdf(
 
       case 'model_response': {
         if (settings.formatModelResponses) {
-          ensureSpace(24);
+          const bodyText = stripMd(block.text).replace(/^MODEL RESPONSE[:—]?\s*/i, '');
+          const lines = wrapText(doc, bodyText, contentW - 16);
+          const boxH = lines.length * bodyLineH + 18;
+          ensureSpace(boxH + 4);
           y += 4;
+          doc.setFillColor(248, 250, 252);
+          doc.rect(marginInside, y - 4, contentW, boxH, 'F');
+          doc.setDrawColor(56, 189, 248);
+          doc.setLineWidth(2.5);
+          doc.line(marginInside, y - 4, marginInside, y - 4 + boxH);
           doc.setFont(headFont, 'bold');
           doc.setFontSize(8);
-          doc.setTextColor(100, 100, 100);
-          doc.text('MODEL RESPONSE', marginInside + 8, y);
-          doc.setTextColor(0, 0, 0);
+          doc.setTextColor(2, 132, 199);
+          doc.text('MODEL RESPONSE', marginInside + 8, y + 4);
           y += 12;
+          doc.setFont(bodyFont, 'italic');
+          doc.setFontSize(bodyFontSizePt - 0.5);
+          doc.setTextColor(51, 65, 85);
+          lines.forEach((l) => {
+            doc.text(l, marginInside + 8, y);
+            y += bodyLineH;
+          });
+          doc.setTextColor(0, 0, 0);
+          y += 4;
         }
         break;
       }
 
       case 'debrief': {
         if (settings.formatDebriefBlocks) {
-          ensureSpace(20);
+          const bodyText = stripMd(block.text).replace(/^DEBRIEF[:—]?\s*/i, '');
+          const lines = wrapText(doc, bodyText, contentW - 16);
+          const boxH = lines.length * bodyLineH + 18;
+          ensureSpace(boxH + 4);
           y += 4;
-          const debriefText = stripMd(block.text).replace(/^DEBRIEF[:—]?\s*/i, '');
-          if (debriefText) {
-            drawLeftBorderBlock(debriefText, marginInside, contentW, [136, 136, 136]);
-          } else {
-            doc.setFont(headFont, 'bold');
-            doc.setFontSize(9);
-            doc.setTextColor(80, 80, 80);
-            doc.text('DEBRIEF', marginInside + 8, y);
-            doc.setTextColor(0, 0, 0);
-            y += 14;
-          }
+          doc.setFillColor(250, 245, 255);
+          doc.rect(marginInside, y - 4, contentW, boxH, 'F');
+          doc.setDrawColor(168, 85, 247);
+          doc.setLineWidth(2.5);
+          doc.line(marginInside, y - 4, marginInside, y - 4 + boxH);
+          doc.setFont(headFont, 'bold');
+          doc.setFontSize(8);
+          doc.setTextColor(147, 51, 234);
+          doc.text('DEBRIEF', marginInside + 8, y + 4);
+          y += 12;
+          doc.setFont(bodyFont, 'normal');
+          doc.setFontSize(bodyFontSizePt - 0.5);
+          doc.setTextColor(51, 65, 85);
+          lines.forEach((l) => {
+            doc.text(l, marginInside + 8, y);
+            y += bodyLineH;
+          });
+          doc.setTextColor(0, 0, 0);
+          y += 4;
         }
         break;
       }
 
       case 'reflection': {
         if (settings.formatReflectionPrompts) {
-          ensureSpace(20);
+          const bodyText = stripMd(block.text);
+          const lines = wrapText(doc, bodyText, contentW - 16);
+          const boxH = lines.length * bodyLineH + 18;
+          ensureSpace(boxH + 4);
           y += 4;
-          doc.setFont(headFont, 'bolditalic');
-          doc.setFontSize(bodyFontSizePt);
-          const refText = stripMd(block.text);
-          const refLines = wrapText(doc, refText, contentW - 10);
-          doc.setFillColor(245, 245, 245);
-          const refH = refLines.length * bodyLineH + 8;
-          doc.rect(marginInside, y - 4, contentW, refH, 'F');
-          refLines.forEach((line) => {
-            doc.text(line, marginInside + 5, y + 4);
+          doc.setFillColor(255, 251, 235);
+          doc.rect(marginInside, y - 4, contentW, boxH, 'F');
+          doc.setDrawColor(245, 158, 11);
+          doc.setLineWidth(2.5);
+          doc.line(marginInside, y - 4, marginInside, y - 4 + boxH);
+          doc.setFont(headFont, 'bold');
+          doc.setFontSize(8);
+          doc.setTextColor(217, 119, 6);
+          doc.text('REFLECTION PROMPT', marginInside + 8, y + 4);
+          y += 12;
+          doc.setFont(bodyFont, 'italic');
+          doc.setFontSize(bodyFontSizePt - 0.5);
+          doc.setTextColor(51, 65, 85);
+          lines.forEach((l) => {
+            doc.text(l, marginInside + 8, y);
             y += bodyLineH;
           });
-          y += 6;
+          doc.setTextColor(0, 0, 0);
+          y += 4;
         }
         break;
       }
 
       case 'action': {
-        ensureSpace(24);
-        y += 6;
+        const bodyText = stripMd(block.text).replace(/^ACTION PLAN[:—]?\s*/i, '');
+        const lines = wrapText(doc, bodyText, contentW - 16);
+        const boxH = lines.length * bodyLineH + 18;
+        ensureSpace(boxH + 4);
+        y += 4;
         doc.setFillColor(254, 243, 199);
-        doc.rect(marginInside, y - 4, contentW, 18, 'F');
+        doc.rect(marginInside, y - 4, contentW, boxH, 'F');
         doc.setDrawColor(245, 158, 11);
         doc.setLineWidth(2.5);
-        doc.line(marginInside, y - 4, marginInside, y + 14);
+        doc.line(marginInside, y - 4, marginInside, y - 4 + boxH);
         doc.setFont(headFont, 'bold');
-        doc.setFontSize(bodyFontSizePt);
-        doc.text(stripMd(block.text), marginInside + 8, y + 8);
-        y += 22;
+        doc.setFontSize(8.5);
+        doc.setTextColor(180, 83, 9);
+        doc.text('📋 ACTION PLAN', marginInside + 8, y + 4);
+        y += 12;
+        doc.setFont(bodyFont, 'normal');
+        doc.setFontSize(bodyFontSizePt - 0.5);
+        doc.setTextColor(30, 41, 59);
+        lines.forEach((l) => {
+          doc.text(l, marginInside + 8, y);
+          y += bodyLineH;
+        });
+        doc.setTextColor(0, 0, 0);
+        y += 4;
+        break;
+      }
+
+      case 'key_takeaways': {
+        if (settings.formatKeyTakeaways ?? true) {
+          const ktText = stripMd(block.text).replace(/^(KEY TAKEAWAYS|Key Takeaways|SUMMARY|Summary|IN SUMMARY)[:—]?\s*/i, '');
+          const ktLines = wrapText(doc, ktText, contentW - 16);
+          const ktH = Math.max(26, ktLines.length * bodyLineH + 20);
+          ensureSpace(ktH + 6);
+          y += 4;
+          doc.setFillColor(236, 253, 245);
+          doc.rect(marginInside, y - 4, contentW, ktH, 'F');
+          doc.setDrawColor(5, 150, 105);
+          doc.setLineWidth(3);
+          doc.line(marginInside, y - 4, marginInside, y - 4 + ktH);
+          doc.setFont(headFont, 'bold');
+          doc.setFontSize(8.5);
+          doc.setTextColor(6, 95, 70);
+          doc.text('✦ KEY TAKEAWAYS', marginInside + 8, y + 4);
+          y += 12;
+          doc.setFont(bodyFont, 'normal');
+          doc.setFontSize(bodyFontSizePt - 0.5);
+          doc.setTextColor(30, 41, 59);
+          ktLines.forEach((line) => {
+            doc.text(line, marginInside + 8, y);
+            y += bodyLineH;
+          });
+          doc.setTextColor(0, 0, 0);
+          y += 6;
+        }
+        break;
+      }
+
+      case 'quote': {
+        if (settings.formatCalloutBoxes ?? true) {
+          const qText = stripMd(block.text).replace(/^>\s*/, '');
+          const qLines = wrapText(doc, qText, contentW - 16);
+          const qH = qLines.length * bodyLineH + 10;
+          ensureSpace(qH + 4);
+          y += 3;
+          doc.setFillColor(248, 250, 252);
+          doc.rect(marginInside, y - 4, contentW, qH, 'F');
+          doc.setDrawColor(124, 58, 237);
+          doc.setLineWidth(2.5);
+          doc.line(marginInside, y - 4, marginInside, y - 4 + qH);
+          doc.setFont(bodyFont, 'italic');
+          doc.setFontSize(bodyFontSizePt);
+          doc.setTextColor(51, 65, 85);
+          qLines.forEach((line) => {
+            doc.text(line, marginInside + 8, y + 4);
+            y += bodyLineH;
+          });
+          doc.setTextColor(0, 0, 0);
+          y += 6;
+        }
         break;
       }
 
@@ -585,10 +713,21 @@ export async function generatePdf(
       }
 
       case 'divider': {
-        ensureSpace(12);
-        y += 4;
-        drawRule(marginInside, contentW, [180, 180, 180]);
-        y += 4;
+        if (settings.ornamentalDividers) {
+          ensureSpace(16);
+          y += 4;
+          doc.setFont(bodyFont, 'normal');
+          doc.setFontSize(10);
+          doc.setTextColor(148, 163, 184);
+          doc.text('✦   ✦   ✦', pageW / 2, y, { align: 'center' });
+          doc.setTextColor(0, 0, 0);
+          y += 10;
+        } else {
+          ensureSpace(12);
+          y += 4;
+          drawRule(marginInside, contentW, [226, 232, 240]);
+          y += 4;
+        }
         break;
       }
 

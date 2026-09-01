@@ -407,9 +407,42 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
 
       case 'action':
         return (
-          <div key={block.id} id={`preview-block-${idx}`} className="my-3 p-2.5 rounded-lg bg-amber-50/80 border-l-3 border-amber-500 text-[11px] text-slate-900">
-            <div className="font-bold uppercase text-[9px] text-amber-900 mb-0.5 tracking-wider">Action Plan</div>
+          <div key={block.id} id={`preview-block-${idx}`} className="my-3.5 p-3 rounded-xl bg-amber-50/80 border border-amber-200 border-l-4 border-l-amber-500 text-[10.5px] text-slate-900 shadow-2xs">
+            <div className="font-bold uppercase text-[9px] text-amber-950 mb-1 tracking-wider flex items-center gap-1.5">
+              <span>📋 Action Plan</span>
+            </div>
             <div>{renderFormattedText(cleanText(block.text).replace(/^ACTION PLAN[:—]?\s*/i, ''))}</div>
+          </div>
+        );
+
+      case 'key_takeaways':
+        if (settings.formatKeyTakeaways ?? true) {
+          return (
+            <div key={block.id} id={`preview-block-${idx}`} className="my-3.5 p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 border-l-4 border-l-emerald-600 text-[10.5px] text-slate-800 shadow-2xs">
+              <div className="font-bold uppercase text-[9px] text-emerald-950 mb-1 tracking-wider flex items-center gap-1.5">
+                <span>✦ Key Takeaways</span>
+              </div>
+              <div className="leading-relaxed">{renderFormattedText(cleanText(block.text).replace(/^(KEY TAKEAWAYS|Key Takeaways|SUMMARY|Summary|IN SUMMARY)[:—]?\s*/i, ''))}</div>
+            </div>
+          );
+        }
+        return (
+          <div key={block.id} id={`preview-block-${idx}`} className="font-bold text-[11px] text-slate-900 my-2">
+            {cleanText(block.text)}
+          </div>
+        );
+
+      case 'quote':
+        if (settings.formatCalloutBoxes ?? true) {
+          return (
+            <div key={block.id} id={`preview-block-${idx}`} className="my-3 pl-3.5 pr-2.5 py-2 border-l-3 border-purple-500 italic text-[11px] text-slate-700 bg-purple-50/30 rounded-r">
+              {renderFormattedText(cleanText(block.text).replace(/^>\s*/, ''))}
+            </div>
+          );
+        }
+        return (
+          <div key={block.id} id={`preview-block-${idx}`} className="preview-paragraph italic">
+            {renderFormattedText(cleanText(block.text).replace(/^>\s*/, ''))}
           </div>
         );
 
@@ -429,7 +462,13 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
         return <div key={block.id} id={`preview-block-${idx}`}>{renderTable(block)}</div>;
 
       case 'divider':
-        return <hr key={block.id} id={`preview-block-${idx}`} className="border-t border-slate-300 my-3" />;
+        return settings.ornamentalDividers ? (
+          <div key={block.id} id={`preview-block-${idx}`} className="text-center my-4 text-slate-400 text-xs tracking-widest select-none">
+            ✦ &nbsp; ✦ &nbsp; ✦
+          </div>
+        ) : (
+          <hr key={block.id} id={`preview-block-${idx}`} className="border-t border-slate-200 my-3.5" />
+        );
 
       case 'blank':
         return <div key={block.id} className="h-2" />;
@@ -440,9 +479,21 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
         const ListTagSingle = isOrderedSingle ? 'ol' : 'ul';
         return (
           <ListTagSingle key={block.id} id={`preview-block-${idx}`} className="preview-list">
-            {listItemsSingle.map((item, li) => (
-              <li key={li}>{renderFormattedText(item)}</li>
-            ))}
+            {listItemsSingle.map((item, li) => {
+              const isChecked = /^\[[xX]\]\s*/.test(item);
+              const isUnchecked = /^\[\s*\]\s*/.test(item);
+              const cleanItem = item.replace(/^\[[ xX]\]\s*/, '');
+              return (
+                <li key={li} className={isChecked || isUnchecked ? 'list-none flex items-start gap-2 my-1' : ''}>
+                  {isChecked ? (
+                    <span className="font-mono text-purple-600 font-bold shrink-0">☑</span>
+                  ) : isUnchecked ? (
+                    <span className="font-mono text-slate-400 font-bold shrink-0">▢</span>
+                  ) : null}
+                  <span>{renderFormattedText(cleanItem)}</span>
+                </li>
+              );
+            })}
           </ListTagSingle>
         );
       }

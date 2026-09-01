@@ -91,8 +91,21 @@ export function detectBlockType(line: string, _nextLine?: string): BlockType {
   }
 
   // Action plan (handles `### ACTION PLAN: CHAPTER 1`, `ACTION PLAN:`)
-  if (/^(###?\s+|\*\*)?(ACTION PLAN|Action Plan)/i.test(trimmed)) {
+  if (/^(###?\s+|\*\*)?(ACTION PLAN|Action Plan|Action plan)/i.test(trimmed)) {
     return BLOCK_TYPES.ACTION_PLAN;
+  }
+
+  // Key takeaways / Summary (handles `### KEY TAKEAWAYS`, `KEY TAKEAWAYS:`, `SUMMARY:`, `IN SUMMARY:`)
+  if (
+    /^(###?\s+|\*\*)?(KEY TAKEAWAYS|Key Takeaways|Key takeaways|SUMMARY|Summary|IN SUMMARY|In Summary)[:—\s]/i.test(trimmed) ||
+    /^(###?\s+)?\*\*(KEY TAKEAWAYS|Key Takeaways|SUMMARY|Summary)\*\*/i.test(trimmed)
+  ) {
+    return 'key_takeaways';
+  }
+
+  // Blockquote / pull quote (handles `> quote text`)
+  if (/^>\s+/.test(trimmed)) {
+    return 'quote';
   }
 
   // 4. Markdown Table row
@@ -115,8 +128,8 @@ export function detectBlockType(line: string, _nextLine?: string): BlockType {
     return BLOCK_TYPES.WRITING_LINES;
   }
 
-  // 7. List items — unordered (-, *, +) or ordered (1., 2., etc.)
-  if (/^[-*+]\s+\S/.test(trimmed) || /^\d+\.\s+\S/.test(trimmed)) {
+  // 7. List items — unordered (-, *, +), checklist (- [ ]), or ordered (1., 2., etc.)
+  if (/^[-*+]\s+(\[[ xX]\]\s+)?\S/.test(trimmed) || /^\d+\.\s+\S/.test(trimmed)) {
     return BLOCK_TYPES.LIST;
   }
 

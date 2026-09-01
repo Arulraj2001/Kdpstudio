@@ -226,6 +226,56 @@ export async function generateDocx(
     });
   }
 
+  // Helper: creates a 1-cell container table with a background fill and colored accent
+  function calloutCard(
+    title: string,
+    body: string,
+    fillColor: string,
+    titleColor: string
+  ): Table {
+    return new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [
+        new TableRow({
+          children: [
+            new TableCell({
+              children: [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: title,
+                      bold: true,
+                      font: fontName,
+                      size: Math.max(14, fontSize - 4),
+                      allCaps: true,
+                      color: titleColor,
+                    }),
+                  ],
+                  spacing: { before: 60, after: 40 },
+                }),
+                new Paragraph({
+                  children: parseInlineFormatting(body, {
+                    font: fontName,
+                    size: fontSize,
+                  }),
+                  spacing: { before: 40, after: 60, line: lineSpacing },
+                  alignment: AlignmentType.LEFT,
+                }),
+              ],
+              shading: { type: ShadingType.CLEAR, fill: fillColor },
+              margins: {
+                top: convertInchesToTwip(0.08),
+                bottom: convertInchesToTwip(0.08),
+                left: convertInchesToTwip(0.12),
+                right: convertInchesToTwip(0.12),
+              },
+            }),
+          ],
+        }),
+      ],
+    });
+  }
+
   // Helper: converts markdown table rows to native DOCX Table with modern editorial styling
   function markdownTableToDocx(tableLines: string[]): Table {
     const isBw = settings.interiorColor === 'bw';
@@ -517,27 +567,71 @@ export async function generateDocx(
         );
         break;
 
-      case 'chapter':
+      case 'chapter': {
         if (settings.chapterPageBreaks) {
           docElements.push(new Paragraph({ children: [new PageBreak()] }));
         }
-        docElements.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: cleanText(block.text),
-                bold: true,
-                font: fontName,
-                size: 36, // 18pt
-              }),
-            ],
-            spacing: { before: 720, after: 360 },
-            border: {
-              bottom: { color: '333333', style: BorderStyle.SINGLE, size: 6, space: 6 },
-            },
-          })
-        );
+        const fullTitle = cleanText(block.text);
+        const match = fullTitle.match(/^(CHAPTER\s+\d+|Chapter\s+\d+|PROLOGUE|EPILOGUE|CONCLUSION|INTRODUCTION)[:—\-]\s*(.*)$/i);
+        if (match) {
+          // Tier 1: Category Tracker
+          docElements.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: match[1].toUpperCase(),
+                  bold: true,
+                  font: fontName,
+                  size: 20, // 10pt
+                  allCaps: true,
+                  color: '7C3AED',
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 720, after: 80 },
+              keepWithNext: true,
+            })
+          );
+          // Tier 2: Chapter Title
+          docElements.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: match[2] || match[1],
+                  bold: true,
+                  font: fontName,
+                  size: 36, // 18pt
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 80, after: 360 },
+              border: {
+                bottom: { color: 'CCCCCC', style: BorderStyle.SINGLE, size: 6, space: 8 },
+              },
+              keepWithNext: true,
+            })
+          );
+        } else {
+          docElements.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: fullTitle,
+                  bold: true,
+                  font: fontName,
+                  size: 36,
+                }),
+              ],
+              spacing: { before: 720, after: 360 },
+              border: {
+                bottom: { color: '333333', style: BorderStyle.SINGLE, size: 6, space: 6 },
+              },
+              keepWithNext: true,
+            })
+          );
+        }
         break;
+      }
 
       case 'section':
         docElements.push(
@@ -605,27 +699,12 @@ export async function generateDocx(
         break;
 
       case 'model_response': {
+        const bodyText = cleanText(block.text).replace(/^MODEL RESPONSE[:—]?\s*/i, '');
         if (settings.formatModelResponses) {
-          const p = new Paragraph({
-            children: [
-              new TextRun({
-                text: 'MODEL RESPONSE',
-                bold: true,
-                font: fontName,
-                size: Math.max(16, fontSize - 4),
-                allCaps: true,
-                color: '666666',
-              }),
-            ],
-            spacing: { before: 180, after: 60 },
-            border: {
-              left: { color: 'AAAAAA', style: BorderStyle.SINGLE, size: 18, space: 8 },
-            },
-          });
-          if (inScenario) currentScenarioBuffer.push(p);
-          else docElements.push(p);
+          const card = calloutCard('MODEL RESPONSE', bodyText, 'F8FAFC', '0284C7');
+          if (inScenario) currentScenarioBuffer.push(card as any);
+          else docElements.push(card);
         } else {
-          // Toggle off: render as plain bold heading
           const p = new Paragraph({
             children: [new TextRun({ text: cleanText(block.text), bold: true, font: fontName, size: fontSize })],
             spacing: { before: 120, after: 60 },
@@ -637,25 +716,11 @@ export async function generateDocx(
       }
 
       case 'debrief': {
+        const bodyText = cleanText(block.text).replace(/^DEBRIEF[:—]?\s*/i, '');
         if (settings.formatDebriefBlocks) {
-          const p = new Paragraph({
-            children: [
-              new TextRun({
-                text: 'DEBRIEF',
-                bold: true,
-                font: fontName,
-                size: Math.max(16, fontSize - 4),
-                allCaps: true,
-                color: '555555',
-              }),
-            ],
-            spacing: { before: 180, after: 60 },
-            border: {
-              left: { color: '888888', style: BorderStyle.SINGLE, size: 18, space: 8 },
-            },
-          });
-          if (inScenario) currentScenarioBuffer.push(p);
-          else docElements.push(p);
+          const card = calloutCard('DEBRIEF', bodyText, 'FAF5FF', '9333EA');
+          if (inScenario) currentScenarioBuffer.push(card as any);
+          else docElements.push(card);
         } else {
           const p = new Paragraph({
             children: [new TextRun({ text: cleanText(block.text), bold: true, font: fontName, size: fontSize })],
@@ -667,23 +732,10 @@ export async function generateDocx(
         break;
       }
 
-      case 'reflection':
+      case 'reflection': {
         if (settings.formatReflectionPrompts) {
-          docElements.push(
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: 'Reflection Prompt',
-                  bold: true,
-                  italics: true,
-                  font: fontName,
-                  size: fontSize,
-                }),
-              ],
-              spacing: { before: 240, after: 80 },
-              shading: { type: ShadingType.CLEAR, fill: 'F5F5F5' },
-            })
-          );
+          const card = calloutCard('REFLECTION PROMPT', block.text, 'FFFBEB', 'D97706');
+          docElements.push(card);
         } else {
           docElements.push(
             new Paragraph({
@@ -693,22 +745,28 @@ export async function generateDocx(
           );
         }
         break;
+      }
 
       case 'action': {
-        const actionPara = new Paragraph({
-          children: [
-            new TextRun({
-              text: cleanText(block.text),
-              bold: true,
-              font: fontName,
-              size: fontSize + 2,
-            }),
-          ],
-          spacing: { before: 200, after: 100 },
-        });
-        if (inExercise) currentExerciseBuffer.push(actionPara);
-        else if (inScenario) currentScenarioBuffer.push(actionPara);
-        else docElements.push(actionPara);
+        const bodyText = cleanText(block.text).replace(/^ACTION PLAN[:—]?\s*/i, '');
+        const card = calloutCard('📋 ACTION PLAN', bodyText, 'FEF3C7', 'B45309');
+        if (inExercise) currentExerciseBuffer.push(card as any);
+        else if (inScenario) currentScenarioBuffer.push(card as any);
+        else docElements.push(card);
+        break;
+      }
+
+      case 'key_takeaways': {
+        const bodyText = cleanText(block.text).replace(/^(KEY TAKEAWAYS|Key Takeaways|SUMMARY|Summary|IN SUMMARY)[:—]?\s*/i, '');
+        const card = calloutCard('✦ KEY TAKEAWAYS', bodyText, 'ECFDF5', '047857');
+        docElements.push(card);
+        break;
+      }
+
+      case 'quote': {
+        const bodyText = cleanText(block.text).replace(/^>\s*/, '');
+        const card = calloutCard('QUOTE', bodyText, 'F8FAFC', '7C3AED');
+        docElements.push(card);
         break;
       }
 
@@ -753,15 +811,32 @@ export async function generateDocx(
         break;
 
       case 'divider':
-        docElements.push(
-          new Paragraph({
-            children: [new TextRun({ text: '' })],
-            border: {
-              bottom: { color: 'CCCCCC', style: BorderStyle.SINGLE, size: 6, space: 4 },
-            },
-            spacing: { before: 120, after: 120 },
-          })
-        );
+        if (settings.ornamentalDividers) {
+          docElements.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: '✦   ✦   ✦',
+                  color: '888888',
+                  font: fontName,
+                  size: fontSize,
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 240, after: 240 },
+            })
+          );
+        } else {
+          docElements.push(
+            new Paragraph({
+              children: [new TextRun({ text: '' })],
+              border: {
+                bottom: { color: 'CCCCCC', style: BorderStyle.SINGLE, size: 6, space: 4 },
+              },
+              spacing: { before: 120, after: 120 },
+            })
+          );
+        }
         break;
 
       case 'blank':
