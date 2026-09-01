@@ -47,14 +47,14 @@ export function calculateStats(blocks: ContentBlock[], rawText: string): Formatt
 export function extractChapterNavigation(blocks: ContentBlock[]): ChapterNavNode[] {
   const nodes: ChapterNavNode[] = [];
   blocks.forEach((block, idx) => {
-    if (block.type === 'chapter' || block.type === 'part') {
+    if (block.type === 'chapter' || block.type === 'part' || block.type === 'front_matter') {
       const cleanTitle = block.text
         .replace(/^#+\s*/, '')
         .replace(/\*\*/g, '')
         .trim();
       nodes.push({
         id: block.id,
-        title: cleanTitle || (block.type === 'part' ? 'Part' : 'Chapter'),
+        title: cleanTitle || (block.type === 'part' ? 'Part' : block.type === 'front_matter' ? 'Front Matter' : 'Chapter'),
         type: block.type,
         blockIndex: idx,
       });

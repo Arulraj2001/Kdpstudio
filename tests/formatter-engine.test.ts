@@ -9,10 +9,13 @@ import { calculateStats, extractChapterNavigation, generateMetadataClipboardStri
 import { generateDocx, cleanText, parseInlineFormatting } from '../src/utils/generateDocx';
 import type { KdpFormatSettings } from '../src/types/formatter';
 
-test('detectBlockType: classifies all 15 block categories correctly', () => {
+test('detectBlockType: classifies all block categories correctly including front matter and escaped lines', () => {
   assert.equal(detectBlockType('# THE ASSERTIVE NURSE'), BLOCK_TYPES.TITLE);
   assert.equal(detectBlockType('# PART ONE: THE FOUNDATION'), BLOCK_TYPES.PART_HEADER);
   assert.equal(detectBlockType('# PART 2: ADVANCED SKILLS'), BLOCK_TYPES.PART_HEADER);
+  assert.equal(detectBlockType('## COPYRIGHT PAGE'), BLOCK_TYPES.FRONT_MATTER);
+  assert.equal(detectBlockType('## DISCLAIMER'), BLOCK_TYPES.FRONT_MATTER);
+  assert.equal(detectBlockType('## CONTENTS'), BLOCK_TYPES.FRONT_MATTER);
   assert.equal(detectBlockType('## CHAPTER 1: KNOW YOUR COMMUNICATION STYLE'), BLOCK_TYPES.CHAPTER_HEADING);
   assert.equal(detectBlockType('### The Assertive Spectrum'), BLOCK_TYPES.SECTION_HEADING);
   assert.equal(detectBlockType('#### Passive vs. Assertive Response'), BLOCK_TYPES.SUBSECTION);
@@ -28,6 +31,7 @@ test('detectBlockType: classifies all 15 block categories correctly', () => {
   assert.equal(detectBlockType('ACTION PLAN: Next Shift Checklist'), BLOCK_TYPES.ACTION_PLAN);
   assert.equal(detectBlockType('| Header 1 | Header 2 |'), BLOCK_TYPES.TABLE);
   assert.equal(detectBlockType('______'), BLOCK_TYPES.WRITING_LINES);
+  assert.equal(detectBlockType('\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_'), BLOCK_TYPES.WRITING_LINES);
   assert.equal(detectBlockType('---'), BLOCK_TYPES.DIVIDER);
   assert.equal(detectBlockType('   '), BLOCK_TYPES.BLANK);
   assert.equal(detectBlockType('Standard body paragraph text here.'), BLOCK_TYPES.PARAGRAPH);

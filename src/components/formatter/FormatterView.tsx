@@ -99,8 +99,12 @@ export const FormatterView: React.FC = () => {
       const blocks = detectStructure(rawText);
       setParsedBlocks(blocks);
       const { title, subtitle } = extractAutoMetadata(blocks);
-      if (title && !settings.title) {
-        setSettings((prev) => ({ ...prev, title, subtitle }));
+      if (title || subtitle) {
+        setSettings((prev) => ({
+          ...prev,
+          title: title || prev.title,
+          subtitle: subtitle || prev.subtitle,
+        }));
       }
       setIsParsing(false);
     }, 120);

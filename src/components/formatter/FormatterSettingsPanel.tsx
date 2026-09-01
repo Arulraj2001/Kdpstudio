@@ -385,7 +385,20 @@ export const FormatterSettingsPanel: React.FC<FormatterSettingsPanelProps> = ({
                 onClick={() => onSelectChapter(node.blockIndex)}
                 className="w-full text-left px-2 py-1.5 rounded-lg text-xs hover:bg-purple-50 text-slate-700 hover:text-purple-900 flex items-center justify-between group transition-colors cursor-pointer"
               >
-                <span className="truncate font-medium">{node.title}</span>
+                <div className="flex items-center gap-1.5 truncate">
+                  <span
+                    className={`text-[9px] font-mono font-bold px-1 py-0.2 rounded shrink-0 ${
+                      node.type === 'part'
+                        ? 'bg-purple-100 text-purple-800'
+                        : node.type === 'front_matter'
+                        ? 'bg-slate-200/70 text-slate-600'
+                        : 'bg-indigo-50 text-indigo-700'
+                    }`}
+                  >
+                    {node.type === 'part' ? 'PART' : node.type === 'front_matter' ? 'FM' : 'CH'}
+                  </span>
+                  <span className="truncate font-medium">{node.title}</span>
+                </div>
                 <ChevronRight size={12} className="text-slate-400 group-hover:text-purple-600 shrink-0 ml-1" />
               </button>
             ))}

@@ -6,14 +6,17 @@
 export type BlockType =
   | 'title'           // # THE ASSERTIVE NURSE
   | 'subtitle'        // ## Subtitle line
+  | 'front_matter'    // ## COPYRIGHT PAGE, ## DISCLAIMER, ## CONTENTS
   | 'part'            // # PART ONE: THE FOUNDATION
   | 'chapter'         // ## CHAPTER 1: KNOW YOUR...
   | 'section'         // ### Section title
   | 'subsection'      // #### Subsection
   | 'exercise_header' // EXERCISE 1.1: NAME
   | 'exercise_body'   // Exercise instructions / body text
+  | 'exercise_group'  // Unified composite exercise container
   | 'scenario_header' // SCENARIO A: NAME
   | 'scenario_body'   // Scenario description
+  | 'scenario_group'  // Unified composite scenario container
   | 'model_response'  // MODEL RESPONSE: or **Model Response:**
   | 'debrief'         // DEBRIEF: or **Debrief:**
   | 'reflection'      // REFLECTION PROMPT or Reflection prompt:
@@ -91,6 +94,6 @@ export interface FormatterStats {
 export interface ChapterNavNode {
   id: string;
   title: string;
-  type: 'chapter' | 'part';
+  type: 'chapter' | 'part' | 'front_matter';
   blockIndex: number;
 }

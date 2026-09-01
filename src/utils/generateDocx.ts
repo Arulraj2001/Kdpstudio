@@ -29,6 +29,10 @@ export function cleanText(text: string): string {
     .replace(/\*(.*?)\*/g, '$1')      // italic markers
     .replace(/`(.*?)`/g, '$1')        // code markers
     .replace(/^#+\s*/, '')            // heading markers
+    .replace(/\\\[/g, '[')
+    .replace(/\\\]/g, ']')
+    .replace(/\\\*/g, '*')
+    .replace(/\\_/g, '_')
     .trim();
 }
 
@@ -38,8 +42,13 @@ export function cleanText(text: string): string {
 export function parseInlineFormatting(text: string, baseStyle: Record<string, any> = {}): TextRun[] {
   if (!text) return [new TextRun({ text: '', ...baseStyle })];
 
+  const clean = text
+    .replace(/\\\[/g, '[')
+    .replace(/\\\]/g, ']')
+    .replace(/\\\*/g, '*');
+
   const runs: TextRun[] = [];
-  const parts = text.split(/(\*\*.*?\*\*|\*.*?\*)/g);
+  const parts = clean.split(/(\*\*.*?\*\*|\*.*?\*)/g);
 
   parts.forEach((part) => {
     if (!part) return;
@@ -47,7 +56,7 @@ export function parseInlineFormatting(text: string, baseStyle: Record<string, an
     if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
       runs.push(
         new TextRun({
-          text: part.slice(2, -2),
+          text: part.slice(2, -2).replace(/\\_/g, '_'),
           bold: true,
           ...baseStyle,
         })
@@ -55,7 +64,7 @@ export function parseInlineFormatting(text: string, baseStyle: Record<string, an
     } else if (part.startsWith('*') && part.endsWith('*') && part.length >= 2) {
       runs.push(
         new TextRun({
-          text: part.slice(1, -1),
+          text: part.slice(1, -1).replace(/\\_/g, '_'),
           italics: true,
           ...baseStyle,
         })
@@ -63,14 +72,14 @@ export function parseInlineFormatting(text: string, baseStyle: Record<string, an
     } else {
       runs.push(
         new TextRun({
-          text: part,
+          text: part.replace(/\\_/g, '_'),
           ...baseStyle,
         })
       );
     }
   });
 
-  return runs.length ? runs : [new TextRun({ text, ...baseStyle })];
+  return runs.length ? runs : [new TextRun({ text: clean.replace(/\\_/g, '_'), ...baseStyle })];
 }
 
 /**
@@ -434,6 +443,25 @@ export async function generateDocx(
             ],
             alignment: AlignmentType.CENTER,
             spacing: { before: 120, after: 360 },
+          })
+        );
+        break;
+
+      case 'front_matter':
+        docElements.push(new Paragraph({ children: [new PageBreak()] }));
+        docElements.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: cleanText(block.text),
+                bold: true,
+                font: fontName,
+                size: 28, // 14pt
+                allCaps: true,
+              }),
+            ],
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 720, after: 360 },
           })
         );
         break;

@@ -3,6 +3,7 @@ import { BlockType, ContentBlock } from '../types/formatter';
 export const BLOCK_TYPES: Record<string, BlockType> = {
   TITLE: 'title',
   SUBTITLE: 'subtitle',
+  FRONT_MATTER: 'front_matter',
   PART_HEADER: 'part',
   CHAPTER_HEADING: 'chapter',
   SECTION_HEADING: 'section',
@@ -37,22 +38,31 @@ export function detectBlockType(line: string, nextLine?: string): BlockType {
     return BLOCK_TYPES.TITLE;
   }
 
-  // 2. Markdown H2 = chapter
+  // 2. Front Matter Detection (e.g. ## COPYRIGHT PAGE, ## DISCLAIMER, ## CONTENTS, ## DEDICATION)
+  if (
+    /^##?\s+(COPYRIGHT|DISCLAIMER|CONTENTS|TABLE OF CONTENTS|DEDICATION|TITLE PAGE|ABOUT THE AUTHOR|PRAISE FOR|ACKNOWLEDGEMENTS?|PREFACE)\b/i.test(
+      trimmed
+    )
+  ) {
+    return BLOCK_TYPES.FRONT_MATTER;
+  }
+
+  // 3. Markdown H2 = chapter
   if (/^##\s+/.test(line)) {
     return BLOCK_TYPES.CHAPTER_HEADING;
   }
 
-  // 3. Markdown H3 = section
+  // 4. Markdown H3 = section
   if (/^###\s+/.test(line)) {
     return BLOCK_TYPES.SECTION_HEADING;
   }
 
-  // 4. Markdown H4 = subsection
+  // 5. Markdown H4 = subsection
   if (/^####\s+/.test(line)) {
     return BLOCK_TYPES.SUBSECTION;
   }
 
-  // 5. Exercise block
+  // 6. Exercise block
   if (
     /^(EXERCISE|Exercise)\s+\d+(\.\d+)?[:—]/i.test(trimmed) ||
     /^\*\*(EXERCISE|Exercise)\s+\d+(\.\d+)?/i.test(trimmed)
@@ -60,7 +70,7 @@ export function detectBlockType(line: string, nextLine?: string): BlockType {
     return BLOCK_TYPES.EXERCISE_HEADER;
   }
 
-  // 6. Scenario block
+  // 7. Scenario block
   if (
     /^(SCENARIO\s+[A-Z]:?|Scenario\s+[A-Z]:?)/i.test(trimmed) ||
     /^\*\*(SCENARIO\s+[A-Z])/i.test(trimmed)
@@ -68,7 +78,7 @@ export function detectBlockType(line: string, nextLine?: string): BlockType {
     return BLOCK_TYPES.SCENARIO_HEADER;
   }
 
-  // 7. Model response
+  // 8. Model response
   if (
     /^(MODEL RESPONSE|Model Response|---\s*\*\*Model)/i.test(trimmed) ||
     /^\*\*(MODEL RESPONSE|Model Response)/i.test(trimmed)
@@ -76,7 +86,7 @@ export function detectBlockType(line: string, nextLine?: string): BlockType {
     return BLOCK_TYPES.MODEL_RESPONSE;
   }
 
-  // 8. Debrief
+  // 9. Debrief
   if (
     /^(DEBRIEF|Debrief)[:—]/i.test(trimmed) ||
     /^\*\*(DEBRIEF|Debrief)/i.test(trimmed)
@@ -84,32 +94,37 @@ export function detectBlockType(line: string, nextLine?: string): BlockType {
     return BLOCK_TYPES.DEBRIEF;
   }
 
-  // 9. Reflection prompt
+  // 10. Reflection prompt
   if (/^(REFLECTION PROMPT|Reflection Prompt|Reflection prompt)/i.test(trimmed)) {
     return BLOCK_TYPES.REFLECTION;
   }
 
-  // 10. Action plan
+  // 11. Action plan
   if (/^(ACTION PLAN|Action Plan)/i.test(trimmed)) {
     return BLOCK_TYPES.ACTION_PLAN;
   }
 
-  // 11. Table row
+  // 12. Table row
   if (/^\|/.test(trimmed) && /\|/.test(trimmed)) {
     return BLOCK_TYPES.TABLE;
   }
 
-  // 12. Writing lines (3+ underscores)
-  if (/^_{3,}$/.test(trimmed) || /^\\_{3,}/.test(trimmed)) {
+  // 13. Writing lines (3+ underscores, escaped underscores \_\_\_\_, or continuous dashes)
+  if (
+    /^(\\_{1,}|_{1,}|\s){3,}$/.test(trimmed) ||
+    /^_{3,}$/.test(trimmed) ||
+    /^\\_{3,}/.test(trimmed) ||
+    /^[_\-—\s]{4,}$/.test(trimmed)
+  ) {
     return BLOCK_TYPES.WRITING_LINES;
   }
 
-  // 13. Horizontal rule
+  // 14. Horizontal rule
   if (/^---+$/.test(trimmed) || /^\*\*\*+$/.test(trimmed)) {
     return BLOCK_TYPES.DIVIDER;
   }
 
-  // 14. Empty line
+  // 15. Empty line
   if (trimmed === '') {
     return BLOCK_TYPES.BLANK;
   }
@@ -122,7 +137,7 @@ export function detectBlockType(line: string, nextLine?: string): BlockType {
     return BLOCK_TYPES.PART_HEADER;
   }
 
-  // 15. Default: paragraph
+  // 16. Default: paragraph
   return BLOCK_TYPES.PARAGRAPH;
 }
 
@@ -150,10 +165,13 @@ export function detectStructure(rawText: string): ContentBlock[] {
     const nextLine = i + 1 < rawLines.length ? rawLines[i + 1] : undefined;
     let type = detectBlockType(line, nextLine);
 
-    // Contextual refinement for Subtitle following Title
+    // Contextual refinement for Subtitle following Title (before front matter / chapters)
     if (hasTitle && !hasSubtitle && /^##\s+/.test(line)) {
       const content = line.replace(/^##\s+/, '').trim();
-      if (!/^(CHAPTER\s+\d+|Chapter\s+\d+|PART\s+|Part\s+|\d+\.)/i.test(content)) {
+      if (
+        !/^(CHAPTER\s+\d+|Chapter\s+\d+|PART\s+|Part\s+|\d+\.)/i.test(content) &&
+        !/^(COPYRIGHT|DISCLAIMER|CONTENTS|TABLE OF CONTENTS|DEDICATION)\b/i.test(content)
+      ) {
         type = 'subtitle';
         hasSubtitle = true;
       }
@@ -161,7 +179,7 @@ export function detectStructure(rawText: string): ContentBlock[] {
 
     if (type === 'title') {
       hasTitle = true;
-    } else if (type === 'chapter' || type === 'part') {
+    } else if (type === 'chapter' || type === 'part' || type === 'front_matter') {
       hasSubtitle = true;
     }
 
@@ -182,7 +200,7 @@ export function detectStructure(rawText: string): ContentBlock[] {
       continue;
     }
 
-    // 2. Headings & Special Container Headers
+    // 2. Headings & Container Boundaries
     if (type === 'exercise_header') {
       inExercise = true;
       inScenario = false;
@@ -207,15 +225,24 @@ export function detectStructure(rawText: string): ContentBlock[] {
       continue;
     }
 
-    // Check if new major structural boundary breaks active exercise or scenario containers
-    if (
-      ['title', 'part', 'chapter', 'section', 'subsection', 'divider'].includes(type)
-    ) {
+    // Check if new major structural boundary breaks active container
+    if (['title', 'part', 'chapter', 'section', 'subsection', 'front_matter', 'divider'].includes(type)) {
       inExercise = false;
       inScenario = false;
     }
 
-    // 3. Paragraph Grouping: Accumulate consecutive body lines until empty line or new block
+    // 3. Writing lines detection (including within exercises or body text)
+    if (type === 'lines') {
+      blocks.push({
+        id: `block-${++blockCounter}`,
+        type: 'lines',
+        text: line,
+      });
+      i++;
+      continue;
+    }
+
+    // 4. Paragraph Grouping
     if (type === 'paragraph') {
       const paraLines: string[] = [line.trim()];
       while (
@@ -252,7 +279,7 @@ export function detectStructure(rawText: string): ContentBlock[] {
       continue;
     }
 
-    // 4. Standalone Special Blocks (Model Response, Debrief, Reflection, Lines, Blank, Divider, etc.)
+    // 5. Standalone Special Blocks (Front Matter, Model Response, Debrief, Reflection, Divider, Blank)
     blocks.push({
       id: `block-${++blockCounter}`,
       type,
@@ -276,11 +303,17 @@ export function extractAutoMetadata(blocks: ContentBlock[]): { title: string; su
     const block = blocks[i];
     if (block.type === 'title' && !title) {
       title = block.text.replace(/^#\s*/, '').replace(/\*\*/g, '').trim();
-      // If next block is a subtitle or short paragraph, use as subtitle
-      if (i + 1 < blocks.length) {
-        const next = blocks[i + 1];
-        if (next.type === 'subtitle' || (next.type === 'paragraph' && next.text.length < 120)) {
+      // If next block is a subtitle or short non-heading paragraph, use as subtitle
+      for (let j = i + 1; j < Math.min(blocks.length, i + 4); j++) {
+        const next = blocks[j];
+        if (next.type === 'subtitle') {
           subtitle = next.text.replace(/^##\s*/, '').replace(/\*\*/g, '').trim();
+          break;
+        } else if (next.type === 'paragraph' && next.text.length > 0 && next.text.length < 160 && !subtitle) {
+          subtitle = next.text.replace(/^##\s*/, '').replace(/\*\*/g, '').trim();
+          break;
+        } else if (next.type === 'part' || next.type === 'chapter' || next.type === 'front_matter') {
+          break;
         }
       }
       break;
