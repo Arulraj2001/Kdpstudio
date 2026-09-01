@@ -126,7 +126,7 @@ export const PendingPaymentBanner: React.FC<PendingPaymentBannerProps> = ({
                   new CustomEvent('open-contact-modal', {
                     detail: {
                       subject: 'UPI Verification / Billing',
-                      message: `Please verify my manual UPI payment for plan ${pendingPayment.planId || 'Pro'}. My transaction UTR is: ${pendingPayment.utr || ''}`,
+                      message: `Please verify my manual UPI payment for plan ${pendingPayment.plan || 'Pro'}. My transaction UTR is: ${pendingPayment.utrNumber || ''}`,
                     },
                   })
                 );

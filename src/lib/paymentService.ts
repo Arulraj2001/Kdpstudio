@@ -732,12 +732,12 @@ export async function rejectUpiPayment(
 /**
  * Authoritative Plan Activation Function
  * SINGLE source of truth that upgrades a user's plan across Firestore and user document.
- * Called by Razorpay, PayPal, BMAC, and UPI verification handlers.
+ * Called by Stripe, BMAC, and UPI verification handlers.
  * 
  * @param uid User ID to upgrade
  * @param plan Target plan ('starter' | 'pro' | 'agency' | 'free')
  * @param billingCycle Billing interval ('monthly' | 'annual' | 'lifetime')
- * @param gateway Payment gateway ('razorpay' | 'paypal' | 'upi' | 'bmac')
+ * @param gateway Payment gateway ('stripe' | 'upi' | 'bmac')
  * @param paymentId Gateway transaction reference
  */
 export async function activateUserPlan(

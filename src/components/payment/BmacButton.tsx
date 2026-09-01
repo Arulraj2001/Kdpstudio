@@ -1,12 +1,18 @@
 import React from 'react';
-import { Coffee, Zap, Sparkles, ExternalLink, ShieldCheck } from 'lucide-react';
+import { Coffee, Zap, Sparkles, ExternalLink, ShieldCheck, Check } from 'lucide-react';
 import { useAuthStore } from '../../lib/authStore';
 import { useGeoStore } from '../../lib/geoStore';
+import { PlanName, BillingCycle } from '../../types/payment';
+import { getBmacDetailsForPlan } from '../../lib/bmac';
 
-export type BmacButtonVariant = 'support' | 'credits' | 'lifetime';
+export type BmacButtonVariant = 'support' | 'credits' | 'lifetime' | 'plan';
 
 interface BmacButtonProps {
   variant?: BmacButtonVariant;
+  plan?: PlanName;
+  billingCycle?: BillingCycle;
+  amount?: number;
+  currency?: string;
   coffees?: number;
   className?: string;
   showNotice?: boolean;
@@ -15,6 +21,10 @@ interface BmacButtonProps {
 
 export const BmacButton: React.FC<BmacButtonProps> = ({
   variant = 'support',
+  plan = 'pro',
+  billingCycle = 'monthly',
+  amount,
+  currency = 'USD',
   coffees,
   className = '',
   showNotice = true,
@@ -24,7 +34,7 @@ export const BmacButton: React.FC<BmacButtonProps> = ({
   const { pricingTable, pricingOverrides } = useGeoStore();
 
   const lifetimeUsd = pricingOverrides?.lifetime || pricingTable?.lifetime?.USD || 129;
-  const lifetimeCoffees = Math.ceil(lifetimeUsd / 3) || 43;
+  const lifetimeCoffees = Math.ceil(lifetimeUsd / 6) || 22;
 
   const rawBmacUrl = 
     (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_BMAC_URL) ||
@@ -38,7 +48,14 @@ export const BmacButton: React.FC<BmacButtonProps> = ({
   let badgeText = '$6 / coffee';
   let Icon = Coffee;
 
-  if (variant === 'credits') {
+  if (variant === 'plan') {
+    const details = getBmacDetailsForPlan(plan, billingCycle, amount);
+    targetCoffees = coffees || details.coffees;
+    title = details.title;
+    subtitle = details.subtitle;
+    badgeText = details.badgeText;
+    Icon = plan === 'pro' || plan === 'agency' ? Sparkles : Coffee;
+  } else if (variant === 'credits') {
     targetCoffees = coffees || 1;
     title = 'Buy 50 Bonus AI Credits';
     subtitle = 'Never expires • Extends daily generation quotas';
@@ -58,7 +75,7 @@ export const BmacButton: React.FC<BmacButtonProps> = ({
     targetUrl.searchParams.set('coffees', targetCoffees.toString());
   }
 
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleClick = () => {
     if (onClick) {
       onClick();
     }
@@ -67,7 +84,7 @@ export const BmacButton: React.FC<BmacButtonProps> = ({
   return (
     <div className={`space-y-2 ${className}`}>
       <a
-        id={`bmac-btn-${variant}`}
+        id={`bmac-btn-${variant}-${plan || 'custom'}`}
         href={targetUrl.toString()}
         target="_blank"
         rel="noopener noreferrer"
@@ -102,7 +119,7 @@ export const BmacButton: React.FC<BmacButtonProps> = ({
             <span className="text-slate-800 font-bold underline">
               ({user?.email || 'your account email'})
             </span>{' '}
-            on the checkout page so your credits/plan activate automatically.
+            on the checkout page so your plan / credits activate automatically.
           </span>
         </div>
       )}

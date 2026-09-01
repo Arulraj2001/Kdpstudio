@@ -57,7 +57,7 @@ async function runTests() {
       billingCycle: 'monthly',
       amount: '$19.00',
       currency: 'USD',
-      gateway: 'Razorpay',
+      gateway: 'Stripe',
       planEndDate: '2026-09-29',
       features: getPlanFeatures('pro'),
     });
@@ -125,7 +125,7 @@ async function runTests() {
       name: 'John Doe',
       plan: 'pro',
       amount: '$19.00',
-      gateway: 'Razorpay',
+      gateway: 'Stripe',
       retryUrl: 'http://localhost:3000/settings/billing'
     });
     results['9. Payment Failed Email'] = true;

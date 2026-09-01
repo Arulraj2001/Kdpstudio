@@ -14,7 +14,7 @@ export interface PaymentRecord {
   uid: string;
   email: string;
   gateway: PaymentGateway;
-  gatewayPaymentId: string; // ID from Razorpay / PayPal / UPI
+  gatewayPaymentId: string; // ID from Stripe / UPI / BMAC
   gatewaySubscriptionId: string | null;
   gatewayCustomerId: string | null;
   plan: PlanName;

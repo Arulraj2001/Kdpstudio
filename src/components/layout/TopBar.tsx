@@ -63,7 +63,7 @@ const ROUTE_TITLES: Record<PageRoute, { title: string; subtitle: string }> = {
   'admin-users': { title: 'All Users', subtitle: 'Search, filter and manage user accounts' },
   'admin-user-detail': { title: 'User Detail', subtitle: 'Full user profile, history, and actions' },
   'admin-revenue': { title: 'Revenue & MRR Analytics', subtitle: 'Recurring revenue, ARPU, churn, and financial charts' },
-  'admin-payments': { title: 'Payment History', subtitle: 'Unified ledger across Razorpay, PayPal, UPI, and BMaC' },
+  'admin-payments': { title: 'Payment History', subtitle: 'Unified ledger across Stripe, UPI, and BMaC' },
   'admin-payments-upi': { title: 'UPI Pending Queue', subtitle: 'Verify UTR transfer numbers and activate subscriptions' },
   'admin-payments-bmac': { title: 'Buy Me a Coffee Queue', subtitle: 'Match supporter tips and donations to user accounts' },
   'admin-usage': { title: 'Feature Usage Analytics', subtitle: 'User engagement, feature funnels, and plan adoption metrics' },

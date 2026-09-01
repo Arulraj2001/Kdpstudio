@@ -30,7 +30,7 @@ export const ChangelogPageView: React.FC<ChangelogPageViewProps> = ({ onNavigate
       features: [
         'Claude AI & Imagen 3 Integration — Ultra-fast AI drafting, chapter expansion, and high-fidelity cover illustration generation.',
         'Dynamic IP Geolocation & Localized Pricing — Auto-detects visitor country and displays localized pricing in INR (₹), USD ($), GBP (£), EUR (€), CAD (CA$), and AUD (A$).',
-        'Multi-Gateway Payment Engine — Direct checkouts for Razorpay, UPI (GPay/PhonePe), PayPal, and Buy Me a Coffee with automated activation webhooks.'
+        'Multi-Gateway Payment Engine — Direct checkouts for Stripe, UPI (GPay/PhonePe), and Buy Me a Coffee with automated activation webhooks.'
       ],
       improvements: [
         'Automated KDP Pre-Flight Inspector — Live calculation of exact spine thickness, gutter safety margins, and 300 DPI resolution checks.',

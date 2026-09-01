@@ -1,6 +1,6 @@
 /**
  * API Route: POST /api/admin/payments/refund
- * Admin endpoint to process refunds across Razorpay, PayPal, or manual UPI/BMaC.
+ * Admin endpoint to process refunds across Stripe or manual UPI/BMaC.
  */
 
 import { adminAuth } from '../../../../../lib/firebase-admin';

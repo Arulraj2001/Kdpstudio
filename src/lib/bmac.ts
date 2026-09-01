@@ -51,22 +51,47 @@ export interface BmacUnmatchedPayment {
 
 export const BMAC_TIERS: BmacTier[] = [
   {
-    coffees: 1,
-    amount: 6,
-    reward: 'credits',
-    credits: 50,
-    description: '50 bonus AI credits',
+    coffees: 82,
+    amount: 490,
+    reward: 'plan',
+    plan: 'agency',
+    billingCycle: 'annual',
+    description: '1 year Agency plan',
+  },
+  {
+    coffees: 30,
+    amount: 180,
+    reward: 'plan',
+    plan: 'pro',
+    billingCycle: 'annual',
+    description: '1 year Pro plan',
+  },
+  {
+    coffees: 22,
+    amount: 129,
+    reward: 'plan',
+    plan: 'pro',
+    billingCycle: 'lifetime',
+    description: 'Lifetime Pro access',
+  },
+  {
+    coffees: 10,
+    amount: 60,
+    reward: 'plan',
+    plan: 'starter',
+    billingCycle: 'annual',
+    description: '1 year Starter plan',
+  },
+  {
+    coffees: 8,
+    amount: 49,
+    reward: 'plan',
+    plan: 'agency',
+    billingCycle: 'monthly',
+    description: '1 month Agency plan',
   },
   {
     coffees: 3,
-    amount: 9,
-    reward: 'plan',
-    plan: 'starter',
-    billingCycle: 'monthly',
-    description: '1 month Starter plan',
-  },
-  {
-    coffees: 6,
     amount: 18,
     reward: 'plan',
     plan: 'pro',
@@ -74,12 +99,12 @@ export const BMAC_TIERS: BmacTier[] = [
     description: '1 month Pro plan',
   },
   {
-    coffees: 43,
-    amount: 129,
+    coffees: 1,
+    amount: 6,
     reward: 'plan',
-    plan: 'pro',
-    billingCycle: 'lifetime',
-    description: 'Lifetime Pro access',
+    plan: 'starter',
+    billingCycle: 'monthly',
+    description: '1 month Starter plan',
   },
 ];
 
@@ -95,6 +120,31 @@ export function matchBmacTier(amountPaid: number): BmacTier | null {
     .sort((a, b) => b.amount - a.amount);
 
   return matching[0] || null;
+}
+
+/**
+ * Computes exact BMAC checkout metadata and parameters for a selected plan
+ */
+export function getBmacDetailsForPlan(
+  plan: PlanName,
+  billingCycle: BillingCycle = 'monthly',
+  amountUsd?: number
+): { coffees: number; amount: number; title: string; subtitle: string; badgeText: string; urlParam: string } {
+  let amount = amountUsd;
+  if (!amount || amount <= 0) {
+    if (plan === 'starter') amount = billingCycle === 'annual' ? 60 : 6;
+    else if (plan === 'pro') amount = billingCycle === 'annual' ? 180 : 18;
+    else if (plan === 'agency') amount = billingCycle === 'annual' ? 490 : 49;
+    else if (plan === 'lifetime') amount = 129;
+    else amount = 6;
+  }
+  const coffees = Math.max(1, Math.ceil(amount / 6));
+  const planLabel = plan.charAt(0).toUpperCase() + plan.slice(1);
+  const cycleLabel = billingCycle === 'annual' ? '1 Year' : billingCycle === 'lifetime' ? 'Lifetime' : '1 Month';
+  const title = `Pay $${amount} for ${cycleLabel} ${planLabel}`;
+  const subtitle = `Direct Buy Me a Coffee checkout • Instant plan activation`;
+  const badgeText = `$${amount} (${coffees} ${coffees === 1 ? 'Coffee' : 'Coffees'})`;
+  return { coffees, amount, title, subtitle, badgeText, urlParam: `coffees=${coffees}` };
 }
 
 const LOCAL_BMAC_UNMATCHED_KEY = 'kdp_bmac_unmatched_records';

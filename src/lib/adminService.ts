@@ -1580,7 +1580,7 @@ export async function getUnmatchedBmac(): Promise<BmacQueueItem[]> {
 }
 
 /**
- * Processes a refund for a payment record across Razorpay, PayPal, or manual UPI/BMaC.
+ * Processes a refund for a payment record across Stripe, or manual UPI/BMaC.
  */
 export async function processRefund(params: {
   paymentId: string;
@@ -1619,8 +1619,8 @@ export async function processRefund(params: {
   const createdAt = toTimestamp(payment.createdAt);
   if (createdAt) {
     const ageDays = (Date.now() - new Date(createdAt).getTime()) / 86400000;
-    if (ageDays > 180 && ['razorpay', 'paypal'].includes(gateway)) {
-      throw new Error(`Payment is older than 180 days (${Math.floor(ageDays)} days). Gateway API refunds are expired. Process manual refund instead.`);
+    if (ageDays > 180 && gateway === 'stripe') {
+      throw new Error(`Payment is older than 180 days (${Math.floor(ageDays)} days). Stripe API refunds may be expired. Process manual refund instead.`);
     }
   }
 

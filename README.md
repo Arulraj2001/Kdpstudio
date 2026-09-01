@@ -38,10 +38,9 @@
 - Comprehensive **Series Bible PDF** exporter.
 
 ### 💳 6. Global Multi-Gateway Monetization & Usage Limits
-- **Razorpay**: Tier-based INR subscriptions + UPI autopay.
-- **PayPal**: Global USD/EUR card & wallet subscriptions.
-- **Buy Me a Coffee**: One-time donation / tipping integrations.
-- **UPI QR**: Indian direct QR code verification flow.
+- **Stripe**: Global card checkout, monthly & annual recurring subscriptions, and lifetime access.
+- **Buy Me a Coffee**: Universal fallback for exact plan amounts, lifetime upgrades, and bonus credit refills.
+- **UPI QR**: Indian direct QR code verification flow (GPay, PhonePe, Paytm).
 - IP Geolocation auto-detection with multi-currency pricing switch.
 - Feature access middleware with daily/monthly token and generation quotas.
 

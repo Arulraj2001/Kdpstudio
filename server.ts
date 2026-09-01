@@ -891,9 +891,11 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       console.log(`[API /api/contact] Received inquiry from ${email} (${name || 'Anonymous'}): ${subject}`);
       
       // Store in firestore if admin initialized
-      if (admin && admin.firestore) {
-        try {
-          await admin.firestore().collection('contact_messages').add({
+      try {
+        const { getAdminDb } = await import('./src/lib/firebase-admin');
+        const db = getAdminDb();
+        if (db) {
+          await db.collection('contact_messages').add({
             name: name || 'Anonymous',
             email,
             subject: subject || 'General',
@@ -901,9 +903,9 @@ Sitemap: ${baseUrl}/sitemap.xml`;
             status: 'unread',
             createdAt: new Date().toISOString(),
           });
-        } catch (dbErr) {
-          console.warn('[API /api/contact] Firestore save error:', dbErr);
         }
+      } catch (dbErr) {
+        console.warn('[API /api/contact] Firestore save error:', dbErr);
       }
 
       return res.json({ success: true, message: 'Message received successfully' });
@@ -1226,7 +1228,26 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
-// Stripe Create Checkout Session
+  // Public Payment Gateways Configuration Discovery
+  app.get('/api/payment/config', async (req, res) => {
+    try {
+      const { isStripeConfigured } = await import('./src/lib/stripe');
+      const stripeActive = isStripeConfigured();
+      const upiActive = Boolean(process.env.NEXT_PUBLIC_UPI_ID || process.env.UPI_ID || process.env.VITE_UPI_ID || process.env.NEXT_PUBLIC_UPI_QR_CODE_URL);
+      const bmacActive = Boolean(process.env.NEXT_PUBLIC_BMAC_URL || process.env.VITE_BMAC_URL || process.env.BMAC_ACCESS_TOKEN || true);
+
+      return res.json({
+        stripe: stripeActive,
+        upi: upiActive,
+        bmac: bmacActive,
+        publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || process.env.VITE_STRIPE_PUBLISHABLE_KEY || null,
+      });
+    } catch (err) {
+      return res.json({ stripe: false, upi: true, bmac: true });
+    }
+  });
+
+  // Stripe Create Checkout Session
   app.post('/api/payment/stripe/create-checkout', async (req, res) => {
     try {
       const { getStripeClient, isStripeConfigured } = await import('./src/lib/stripe');
@@ -1237,63 +1258,86 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       if (!uid) return;
 
       const { plan, billingCycle, currency = 'USD' } = req.body || {};
-      if (!['starter', 'pro', 'agency'].includes(plan) || !['monthly', 'annual'].includes(billingCycle)) {
-        return res.status(400).json({ error: 'Invalid plan or billing cycle' });
+      if (!['starter', 'pro', 'agency', 'lifetime'].includes(plan)) {
+        return res.status(400).json({ error: 'Invalid plan selected' });
       }
+
+      const cycle = plan === 'lifetime' ? 'lifetime' : (billingCycle === 'annual' ? 'annual' : 'monthly');
+
       if (!isStripeConfigured()) {
-        if (process.env.NODE_ENV === 'production') {
-          return res.status(503).json({ error: 'Stripe is not configured. Contact support.' });
-        }
+        return res.status(503).json({ 
+          error: 'Stripe is not currently configured. Please use Buy Me a Coffee fallback or contact support.' 
+        });
       }
 
       const userDoc = uid ? await getUserDocument(uid) : null;
       const email = userDoc?.email || req.body?.email || 'customer@kdpstudio.app';
 
-      // Resolve the dynamic published price (respects live overrides)
-      let pricingData: any = null;
-      const hasAdminServiceAccount = Boolean(
-        process.env.FIREBASE_ADMIN_PROJECT_ID &&
-        process.env.FIREBASE_ADMIN_CLIENT_EMAIL &&
-        process.env.FIREBASE_ADMIN_PRIVATE_KEY
-      );
-      if (hasAdminServiceAccount) {
+      // Resolve dynamic live price
+      let pricingData = null;
+      try {
         const { getAdminDb } = await import('./src/lib/firebase-admin');
         const db = getAdminDb();
         if (db) {
           const snap = await db.collection('appConfig').doc('pricing').get();
           if (snap.exists) pricingData = snap.data();
         }
-      }
+      } catch {}
+
       const table = computeDynamicPricingTable(pricingData);
       const supportedCurr = ['INR', 'USD', 'GBP', 'EUR', 'CAD', 'AUD'].includes(currency) ? currency : 'USD';
-      const monthly = table[plan]?.[supportedCurr] || table[plan]?.USD || 19;
-      const amount = billingCycle === 'annual' ? Math.round(monthly * 10) : monthly;
-      const unitAmount = Math.round(amount * 100);
+      
+      let amount = 19;
+      if (plan === 'lifetime') {
+        amount = table.lifetime?.[supportedCurr] || table.lifetime?.USD || 129;
+      } else {
+        const monthly = table[plan]?.[supportedCurr] || table[plan]?.USD || 19;
+        amount = cycle === 'annual' ? Math.round(monthly * 10) : monthly;
+      }
 
+      const unitAmount = Math.round(amount * 100);
       const stripe = getStripeClient();
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://kdpstudio-aio.web.app';
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://kdpstudioaio.web.app';
+      const isOneTime = plan === 'lifetime' || cycle === 'lifetime';
+
+      const lineItem: any = {
+        quantity: 1,
+        price_data: {
+          currency: supportedCurr.toLowerCase(),
+          unit_amount: unitAmount,
+          product_data: { 
+            name: 'KDP Studio ' + plan.charAt(0).toUpperCase() + plan.slice(1) + ' Plan (' + cycle + ')',
+            description: isOneTime 
+              ? 'Permanent lifetime access to KDP Studio Pro publishing tools' 
+              : 'Recurring ' + cycle + ' subscription to KDP Studio ' + plan + ' plan',
+          },
+        },
+      };
+
+      if (!isOneTime) {
+        lineItem.price_data.recurring = {
+          interval: 'month',
+          interval_count: cycle === 'annual' ? 12 : 1,
+        };
+      }
 
       const session = await stripe.checkout.sessions.create({
-        mode: 'subscription',
+        mode: isOneTime ? 'payment' : 'subscription',
         customer_email: email || undefined,
-        line_items: [
-          {
-            quantity: 1,
-            price_data: {
-              currency: supportedCurr.toLowerCase(),
-              unit_amount: unitAmount,
-              recurring: {
-                interval: 'month',
-                interval_count: billingCycle === 'annual' ? 12 : 1,
-              },
-              product_data: { name: `KDP Studio ${plan} Plan (${billingCycle})` },
-            },
-          },
-        ],
-        metadata: { uid, plan, billingCycle },
-        success_url: `${appUrl}/dashboard?payment=success&plan=${plan}`,
-        cancel_url: `${appUrl}/pricing?cancelled=true`,
-        allow_promotion_codes: false,
+        line_items: [lineItem],
+        metadata: { 
+          uid, 
+          plan, 
+          billingCycle: cycle, 
+          userEmail: email,
+          currency: supportedCurr,
+        },
+        subscription_data: !isOneTime ? {
+          metadata: { uid, plan, billingCycle: cycle },
+        } : undefined,
+        success_url: appUrl + '/dashboard?payment=success&plan=' + plan,
+        cancel_url: appUrl + '/pricing?cancelled=true',
+        allow_promotion_codes: true,
       });
 
       return res.json({ url: session.url, sessionId: session.id });
@@ -1303,61 +1347,65 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
-// Stripe Webhook
-  app.post('/api/webhooks/stripe', async (req: any, res) => {
+  // Stripe Webhook Handler
+  app.post('/api/webhooks/stripe', async (req: any, res: any) => {
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
     const signature = (req.headers['stripe-signature'] as string) || '';
-    const rawBody = req.rawBody || JSON.stringify(req.body || {});
+    const rawBody = req.rawBody || (typeof req.body === 'string' ? req.body : JSON.stringify(req.body || {}));
 
     try {
       const { default: Stripe } = await import('stripe');
       const secret = process.env.STRIPE_SECRET_KEY;
-      if (!secret) throw new Error('STRIPE_SECRET_KEY not configured');
-      const stripe = new Stripe(secret, { apiVersion: '2024-06-20' });
+      if (!secret) throw new Error('STRIPE_SECRET_KEY not configured in environment');
+      const stripe = new Stripe(secret, { apiVersion: '2026-08-26.dahlia' as any });
 
       let event: any;
-      if (endpointSecret) {
+      if (endpointSecret && signature) {
         event = stripe.webhooks.constructEvent(rawBody, signature, endpointSecret);
       } else {
-        event = JSON.parse(rawBody);
+        event = typeof req.body === 'object' && req.body.type ? req.body : JSON.parse(rawBody);
       }
 
       const { activateUserPlan, createPaymentRecord, createSubscriptionRecord, updateSubscriptionRecord } = await import('./src/lib/paymentService');
-      const { updateUserDocument } = await import('./src/lib/userService');
+      const { updateUserDocument, getUserDocument } = await import('./src/lib/userService');
+      const { sendPaymentFailedEmail } = await import('./src/lib/emailService');
 
       if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
         const { uid, plan, billingCycle } = session.metadata || {};
-        if (uid && plan && billingCycle) {
-          await activateUserPlan(uid, plan, billingCycle, 'stripe', session.id);
+        if (uid && plan) {
+          const cycle = billingCycle || (session.mode === 'payment' ? 'lifetime' : 'monthly');
+          await activateUserPlan(uid, plan, cycle, 'stripe', session.id);
+
           await createPaymentRecord({
             uid,
-            email: session.customer_email || 'customer@kdpstudio.app',
+            email: session.customer_email || session.customer_details?.email || 'customer@kdpstudio.app',
             gateway: 'stripe',
             gatewayPaymentId: session.payment_intent || session.id,
             gatewaySubscriptionId: session.subscription || null,
             gatewayCustomerId: session.customer || null,
             plan,
-            billingCycle,
+            billingCycle: cycle,
             amount: session.amount_total || 0,
             currency: (session.currency || 'usd').toUpperCase(),
             status: 'completed',
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             planStartDate: new Date().toISOString(),
-            planEndDate: null,
+            planEndDate: cycle === 'lifetime' ? null : (cycle === 'annual' ? new Date(Date.now() + 365 * 86400000).toISOString() : new Date(Date.now() + 30 * 86400000).toISOString()),
             metadata: { sessionId: session.id, stripeEvent: event.type },
           });
+
           if (session.subscription) {
             await createSubscriptionRecord({
               uid,
               gateway: 'stripe',
               gatewaySubscriptionId: session.subscription,
               plan,
-              billingCycle,
+              billingCycle: cycle,
               status: 'active',
               currentPeriodStart: new Date().toISOString(),
-              currentPeriodEnd: null,
+              currentPeriodEnd: cycle === 'annual' ? new Date(Date.now() + 365 * 86400000).toISOString() : new Date(Date.now() + 30 * 86400000).toISOString(),
               cancelAtPeriodEnd: false,
               currency: (session.currency || 'usd').toUpperCase(),
               amount: session.amount_total || 0,
@@ -1366,26 +1414,69 @@ Sitemap: ${baseUrl}/sitemap.xml`;
             });
           }
         }
+      } else if (event.type === 'invoice.payment_succeeded' || event.type === 'invoice.paid') {
+        const invoice = event.data.object;
+        if (invoice.subscription && invoice.billing_reason === 'subscription_cycle') {
+          try {
+            const sub = await stripe.subscriptions.retrieve(invoice.subscription);
+            const uid = sub.metadata?.uid;
+            const plan = sub.metadata?.plan || 'pro';
+            const cycle = sub.metadata?.billingCycle || 'monthly';
+            if (uid) {
+              await activateUserPlan(uid, plan as any, cycle as any, 'stripe', invoice.payment_intent || invoice.id);
+              await createPaymentRecord({
+                uid,
+                email: invoice.customer_email || 'customer@kdpstudio.app',
+                gateway: 'stripe',
+                gatewayPaymentId: invoice.payment_intent || invoice.id,
+                gatewaySubscriptionId: invoice.subscription,
+                gatewayCustomerId: invoice.customer || null,
+                plan: plan as any,
+                billingCycle: cycle as any,
+                amount: invoice.amount_paid || 0,
+                currency: (invoice.currency || 'usd').toUpperCase(),
+                status: 'completed',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                planStartDate: new Date().toISOString(),
+                planEndDate: cycle === 'annual' ? new Date(Date.now() + 365 * 86400000).toISOString() : new Date(Date.now() + 30 * 86400000).toISOString(),
+                metadata: { invoiceId: invoice.id, stripeEvent: event.type },
+              });
+            }
+          } catch (renewErr) {
+            console.warn('[server.ts Stripe] invoice renewal handler notice:', renewErr);
+          }
+        }
+      } else if (event.type === 'customer.subscription.updated') {
+        const sub = event.data.object;
+        if (sub.id) {
+          try {
+            await updateSubscriptionRecord(sub.id, {
+              status: sub.status === 'active' ? 'active' : sub.status === 'past_due' ? 'past_due' : 'cancelled',
+              cancelAtPeriodEnd: Boolean(sub.cancel_at_period_end),
+            });
+          } catch (subErr) {
+            console.warn('[server.ts Stripe] subscription.updated handler notice:', subErr);
+          }
+        }
       } else if (event.type === 'invoice.payment_failed') {
         const invoice = event.data.object;
         try {
           if (invoice.subscription) {
             const sub = await stripe.subscriptions.retrieve(invoice.subscription);
             const uid = sub.metadata?.uid;
-            const plan = sub.metadata?.plan;
+            const plan = sub.metadata?.plan || 'pro';
             if (uid) {
               await updateUserDocument(uid, { paymentFailed: true });
-              const { sendPaymentFailedEmail } = await import('./src/lib/emailService');
-              const { getUserDocument } = await import('./src/lib/userService');
               const doc = await getUserDocument(uid);
               if (doc?.email) {
                 sendPaymentFailedEmail({
                   to: doc.email,
                   name: doc.name || doc.displayName || doc.email.split('@')[0],
-                  plan: plan || doc.plan || 'pro',
-                  amount: invoice.amount_due ? `$${(invoice.amount_due / 100)}` : '$19.00',
+                  plan: plan,
+                  amount: invoice.amount_due ? '$' + (invoice.amount_due / 100).toFixed(2) : '$18.00',
                   gateway: 'Stripe',
-                  retryUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://kdpstudio-aio.web.app'}/settings/billing`,
+                  retryUrl: (process.env.NEXT_PUBLIC_APP_URL || 'https://kdpstudioaio.web.app') + '/settings/billing',
                 }).catch(console.error);
               }
             }
@@ -1397,13 +1488,17 @@ Sitemap: ${baseUrl}/sitemap.xml`;
         const sub = event.data.object;
         try {
           if (sub.id) await updateSubscriptionRecord(sub.id, { status: 'cancelled', cancelAtPeriodEnd: true });
+          const uid = sub.metadata?.uid;
+          if (uid) {
+            await updateUserDocument(uid, { subscriptionCancelled: true });
+          }
         } catch (e) {
           console.warn('[server.ts Stripe] subscription.deleted handler note:', e);
         }
       }
 
       return res.json({ received: true });
-    } catch (err: any) {
+    } catch (err) {
       console.error('[server.ts Stripe Webhook] Error:', err);
       return res.status(400).json({ error: err.message });
     }
@@ -1412,7 +1507,6 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   // ─────────────────────────────────────────
   // UPI DIRECT & ADMIN ENDPOINTS
   // ─────────────────────────────────────────
-
   // UPI Submit Manual Payment
   app.post('/api/payment/upi/submit', async (req, res) => {
     try {
