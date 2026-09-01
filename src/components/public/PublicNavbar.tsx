@@ -431,12 +431,12 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
       {isMobileMenuOpen && (
         <div
           id="mobile-nav-overlay"
-          className="fixed inset-0 z-50 bg-[#0f0f1a] text-white flex flex-col justify-between p-6 sm:p-8 animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 bg-white text-slate-900 flex flex-col justify-between p-6 sm:p-8 animate-in fade-in duration-200 shadow-2xl"
         >
           {/* Top Bar inside Drawer */}
-          <div className="flex items-center justify-between border-b border-slate-800 pb-5">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white border border-slate-200/80 p-0.5 flex items-center justify-center shadow-md overflow-hidden">
+              <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 p-0.5 flex items-center justify-center shadow-sm overflow-hidden">
                 <img
                   src="/brand-icon.png?v=20260831"
                   alt="KDP Studio Logo"
@@ -444,10 +444,10 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
                 />
               </div>
               <div className="flex flex-col">
-                <span className="text-lg font-black tracking-tight text-white leading-tight">
+                <span className="text-lg font-black tracking-tight text-slate-900 leading-tight">
                   KDP Studio
                 </span>
-                <span className="text-[9px] font-bold text-purple-400 tracking-[0.2em] uppercase leading-none mt-0.5">
+                <span className="text-[9px] font-bold text-purple-600 tracking-[0.2em] uppercase leading-none mt-0.5">
                   PUBLISHING SUITE
                 </span>
               </div>
@@ -455,7 +455,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
 
             <button
               onClick={() => setIsMobileMenuOpen(false)}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="p-2 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
               aria-label="Close mobile menu"
             >
               <X size={24} />
@@ -465,70 +465,46 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
           {/* Centered Large Navigation Links */}
           <div className="flex flex-col items-center justify-center space-y-5 py-6">
             <button
-              onClick={() => handleNav('tools')}
-              className="text-2xl font-bold text-purple-400 hover:text-purple-300 transition-colors"
-            >
-              🛠️ Creator Tools Hub
-            </button>
-            <button
               onClick={() => handleNav('features')}
-              className="text-2xl font-bold text-slate-200 hover:text-purple-400 transition-colors"
+              className="text-xl sm:text-2xl font-bold text-slate-800 hover:text-purple-600 transition-colors cursor-pointer"
             >
               Features
             </button>
             <button
+              onClick={() => handleNav('tools')}
+              className="text-xl sm:text-2xl font-bold text-purple-600 hover:text-purple-700 transition-colors cursor-pointer flex items-center gap-2"
+            >
+              <span>🛠️ Free Tools Hub</span>
+            </button>
+            <button
+              onClick={() => handleNav('arc-lounge')}
+              className="text-xl sm:text-2xl font-bold text-slate-800 hover:text-purple-600 transition-colors flex items-center gap-2 cursor-pointer"
+            >
+              <span>📖 ARC Reader Lounge</span>
+              <span className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full border border-purple-200 font-bold">
+                New
+              </span>
+            </button>
+            <button
               onClick={() => handleNav('pricing')}
-              className="text-2xl font-bold text-slate-200 hover:text-purple-400 transition-colors"
+              className="text-xl sm:text-2xl font-bold text-slate-800 hover:text-purple-600 transition-colors cursor-pointer"
             >
               Pricing
             </button>
             <button
-              onClick={() => handleNav('arc-lounge')}
-              className="text-2xl font-bold text-purple-400 hover:text-purple-300 transition-colors flex items-center gap-2"
-            >
-              <span>📖 ARC Reader Lounge</span>
-              <span className="text-xs bg-purple-900 text-purple-200 px-2 py-0.5 rounded-full border border-purple-600">
-                New
-              </span>
-            </button>
-            <button
               onClick={() => handleNav('blog')}
-              className="text-2xl font-bold text-slate-200 hover:text-purple-400 transition-colors"
+              className="text-xl sm:text-2xl font-bold text-slate-800 hover:text-purple-600 transition-colors cursor-pointer"
             >
-              Blog & Guides
-            </button>
-            <button
-              onClick={() => handleNav('about')}
-              className="text-2xl font-bold text-slate-200 hover:text-purple-400 transition-colors"
-            >
-              About
-            </button>
-            <button
-              onClick={() => handleNav('contact')}
-              className="text-2xl font-bold text-slate-200 hover:text-purple-400 transition-colors"
-            >
-              Contact
-            </button>
-            <button
-              onClick={() => {
-                setIsMobileMenuOpen(false);
-                handleNav(user ? 'puzzles' : 'signup');
-              }}
-              className="text-2xl font-bold text-purple-400 flex items-center gap-2"
-            >
-              <span>Puzzle Generator</span>
-              <span className="text-xs bg-purple-900/80 text-purple-200 px-2 py-0.5 rounded-full border border-purple-600">
-                New
-              </span>
+              Blog &amp; Guides
             </button>
           </div>
 
           {/* Bottom CTAs */}
-          <div className="pt-6 border-t border-slate-800 space-y-3">
+          <div className="pt-5 border-t border-slate-100 space-y-3">
             {user ? (
               <button
                 onClick={() => handleNav('dashboard')}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-center shadow-lg shadow-purple-950/50 flex items-center justify-center gap-2"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-center shadow-md shadow-purple-600/20 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Go to Dashboard</span>
                 <ArrowRight size={16} />
@@ -537,14 +513,14 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
               <>
                 <button
                   onClick={() => handleNav('signup')}
-                  className="w-full py-3.5 rounded-xl bg-[#7c3aed] text-white font-bold text-center shadow-lg shadow-purple-950/50 flex items-center justify-center gap-2"
+                  className="w-full py-3.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-center shadow-md shadow-purple-600/25 flex items-center justify-center gap-2 cursor-pointer transition-colors"
                 >
-                  <span>Start Free</span>
+                  <span>Start Free with 15 Daily Credits</span>
                   <span>→</span>
                 </button>
                 <button
                   onClick={() => handleNav('login')}
-                  className="w-full py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-semibold text-center hover:text-white transition-colors"
+                  className="w-full py-3 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 font-semibold text-center transition-colors cursor-pointer"
                 >
                   Log In to Existing Account
                 </button>
