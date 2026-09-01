@@ -33,6 +33,7 @@ import { SEOHead } from '../seo/SEOHead';
 import { JsonLd } from '../seo/JsonLd';
 import { SectionShadowTransition } from './SectionShadowTransition';
 import { AuthorIpShieldBanner } from '../ui/AuthorIpShieldBanner';
+import { HeroInteractiveSandbox } from './HeroInteractiveSandbox';
 
 interface HomePageViewProps {
   onNavigate: (route: PageRoute) => void;
@@ -361,64 +362,9 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          {/* ── 3D Hero Product Composite Preview ── */}
+          {/* ── Interactive Live Formatting Sandbox (Try Before You Sign Up) ── */}
           <div className="pt-6 max-w-5xl mx-auto">
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-purple-950/80 border border-white/15 bg-slate-900/90 p-4 sm:p-6">
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-                
-                {/* Left: Open Interior Spread */}
-                <div className="md:col-span-7 rounded-2xl overflow-hidden shadow-lg border border-white/10 relative group">
-                  <img
-                    src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1000&q=80"
-                    alt="Open book interior formatting spread with drop caps"
-                    className="w-full h-56 sm:h-72 object-cover rounded-2xl transition-transform duration-500 group-hover:scale-103"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent flex flex-col justify-end p-4 text-left">
-                    <span className="text-[10px] font-mono uppercase font-bold text-purple-300">
-                      Typeset Interior PDF
-                    </span>
-                    <span className="text-xs sm:text-sm font-bold text-white">
-                      Drop caps, chapter fleurons & mathematically calculated 0.750″ binding gutters
-                    </span>
-                  </div>
-                </div>
-
-                {/* Right: Spine-Calculated Wrap Cover */}
-                <div className="md:col-span-5 rounded-2xl overflow-hidden shadow-lg border border-white/10 relative group">
-                  <img
-                    src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80"
-                    alt="Print ready paperback wrap book cover"
-                    className="w-full h-56 sm:h-72 object-cover rounded-2xl transition-transform duration-500 group-hover:scale-103"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent flex flex-col justify-end p-4 text-left">
-                    <span className="text-[10px] font-mono uppercase font-bold text-emerald-300">
-                      300 DPI Wrap Cover
-                    </span>
-                    <span className="text-xs sm:text-sm font-bold text-white">
-                      Front artwork, calculated spine width & barcode safe zone
-                    </span>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Floating Feature Pills */}
-              <div className="flex flex-wrap items-center justify-center gap-2.5 pt-4 text-[11px] font-bold">
-                <span className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-400/30">
-                  ✓ 0.125″ Bleed Safe
-                </span>
-                <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                  ✓ 300 DPI High-Res PDF
-                </span>
-                <span className="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
-                  ✓ Claude AI Core
-                </span>
-                <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
-                  ✓ Amazon 7-Keywords Included
-                </span>
-              </div>
-
-            </div>
+            <HeroInteractiveSandbox onNavigate={onNavigate} />
           </div>
 
         </div>

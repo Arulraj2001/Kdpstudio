@@ -76,6 +76,30 @@ export const FrontMatterModal: React.FC<FrontMatterModalProps> = ({
               />
             </label>
 
+            {data.copyrightPage && (
+              <div className="p-3 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 ml-2 space-y-1">
+                <label className="flex items-start justify-between gap-3 cursor-pointer">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-purple-950 dark:text-purple-200">
+                      <span>✨ "Formatted with KDP Studio" Imprint</span>
+                      <span className="px-1.5 py-0.2 rounded text-[10px] font-black bg-purple-200 dark:bg-purple-900 text-purple-800 dark:text-purple-200 uppercase">
+                        +50 AI Credits
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-purple-800/80 dark:text-purple-300 leading-snug">
+                      Adds a discreet typographic credit on the copyright page: <em>“Typeset and formatted using KDP Studio (kdpstudio.com)”</em>
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={data.includeKdpStudioImprint ?? true}
+                    onChange={(e) => setData({ ...data, includeKdpStudioImprint: e.target.checked })}
+                    className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500 shrink-0 mt-0.5"
+                  />
+                </label>
+              </div>
+            )}
+
             <label className="flex items-center justify-between cursor-pointer">
               <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
                 Generate Auto Table of Contents

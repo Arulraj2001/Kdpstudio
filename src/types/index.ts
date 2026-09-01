@@ -119,6 +119,7 @@ export interface FrontMatter {
   titlePage: boolean;
   copyrightPage: boolean;
   copyrightText?: string;
+  includeKdpStudioImprint?: boolean;
   dedication: string;
   tableOfContents: boolean;
   preface: string;

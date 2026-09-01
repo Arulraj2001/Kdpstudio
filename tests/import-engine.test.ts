@@ -9,6 +9,7 @@ import * as XLSX from 'xlsx';
 import { analyzeManuscriptStructure } from '../src/lib/manuscriptImport/structureEngine';
 import { sanitizeManuscriptHtml } from '../src/lib/manuscriptImport/sanitizer';
 import { parseKdpRoyaltyReport, parseKdpExcelReport, normalizeMarketplace, normalizeRoyaltyType } from '../src/lib/kdpCsvParser';
+import { formatCopyrightText } from '../src/lib/brandService';
 
 // ─── 1. Structure & Chapter Detection Engine ──────────────────────────────
 
@@ -306,4 +307,23 @@ test('useBookStore: handles bulk chapter deletion, replacement, and rollback', a
 
   // Cleanup test book
   useBookStore.getState().deleteBook(testBook.id);
+});
+
+test('brandService: formatCopyrightText injects viral KDP Studio imprint line', () => {
+  const renderedWithImprint = formatCopyrightText('Copyright {year} by {author}. All rights reserved.', {
+    year: 2026,
+    author: 'Jane Austen',
+    includeImprint: true,
+  });
+
+  assert.ok(renderedWithImprint.includes('Copyright 2026 by Jane Austen.'));
+  assert.ok(renderedWithImprint.includes('Typeset and formatted using KDP Studio'));
+  assert.ok(renderedWithImprint.includes('https://kdpstudio.com'));
+
+  const renderedWithoutImprint = formatCopyrightText('Copyright {year} by {author}. All rights reserved.', {
+    year: 2026,
+    author: 'Jane Austen',
+    includeImprint: false,
+  });
+  assert.ok(!renderedWithoutImprint.includes('Typeset and formatted using KDP Studio'));
 });

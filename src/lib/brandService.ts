@@ -140,15 +140,21 @@ export function formatCopyrightText(
     publisher?: string;
     website?: string;
     isbn?: string;
+    includeImprint?: boolean;
   }
 ): string {
   const currentYear = vars.year || new Date().getFullYear();
-  return (template || DEFAULT_BRAND_KIT.copyrightTemplate)
+  let text = (template || DEFAULT_BRAND_KIT.copyrightTemplate)
     .replace(/\{year\}/g, String(currentYear))
     .replace(/\{author\}/g, vars.author || 'Author')
     .replace(/\{publisher\}/g, vars.publisher || 'Independent Publisher')
     .replace(/\{website\}/g, vars.website || '')
     .replace(/\{isbn\}/g, vars.isbn || '[ISBN-13]');
+
+  if (vars.includeImprint !== false) {
+    text += '\n\nTypeset and formatted using KDP Studio (https://kdpstudio.com)';
+  }
+  return text;
 }
 
 /**
