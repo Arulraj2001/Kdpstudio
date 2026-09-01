@@ -587,13 +587,13 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
           </div>
 
           {/* Exploded Package Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
             
             {/* 1. Interior PDF */}
-            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 hover:border-purple-400 hover:shadow-lg transition-all group">
+            <div className="bg-slate-50 p-5 sm:p-6 rounded-2xl border border-slate-200/80 space-y-4 hover:border-purple-400 hover:shadow-md transition-all group shadow-xs">
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
-                  <FileText size={22} />
+                <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
+                  <FileText size={20} />
                 </div>
                 <span className="px-2.5 py-1 rounded-lg bg-purple-100 text-purple-800 text-[10px] font-mono font-black">
                   PDF • 300 DPI
@@ -612,10 +612,10 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
             </div>
 
             {/* 2. Wrap Cover Spread */}
-            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 hover:border-indigo-400 hover:shadow-lg transition-all group">
+            <div className="bg-slate-50 p-5 sm:p-6 rounded-2xl border border-slate-200/80 space-y-4 hover:border-indigo-400 hover:shadow-md transition-all group shadow-xs">
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
-                  <Palette size={22} />
+                <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
+                  <Palette size={20} />
                 </div>
                 <span className="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-800 text-[10px] font-mono font-black">
                   WRAP PDF • CMYK
@@ -634,10 +634,10 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
             </div>
 
             {/* 3. SEO & 7 Keywords */}
-            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 hover:border-emerald-400 hover:shadow-lg transition-all group">
+            <div className="bg-slate-50 p-5 sm:p-6 rounded-2xl border border-slate-200/80 space-y-4 hover:border-emerald-400 hover:shadow-md transition-all group shadow-xs">
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
-                  <Search size={22} />
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
+                  <Search size={20} />
                 </div>
                 <span className="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-[10px] font-mono font-black">
                   TXT & HTML
@@ -656,10 +656,10 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
             </div>
 
             {/* 4. Kindle ePub */}
-            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 hover:border-amber-400 hover:shadow-lg transition-all group">
+            <div className="bg-slate-50 p-5 sm:p-6 rounded-2xl border border-slate-200/80 space-y-4 hover:border-amber-400 hover:shadow-md transition-all group shadow-xs">
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
-                  <BookOpen size={22} />
+                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
+                  <BookOpen size={20} />
                 </div>
                 <span className="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 text-[10px] font-mono font-black">
                   EPUB 3.0
@@ -678,10 +678,10 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
             </div>
 
             {/* 5. Pre-flight Quality Audit */}
-            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 hover:border-rose-400 hover:shadow-lg transition-all group">
+            <div className="bg-slate-50 p-5 sm:p-6 rounded-2xl border border-slate-200/80 space-y-4 hover:border-rose-400 hover:shadow-md transition-all group shadow-xs">
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
-                  <ShieldCheck size={22} />
+                <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
+                  <ShieldCheck size={20} />
                 </div>
                 <span className="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-800 text-[10px] font-mono font-black">
                   100/100 AUDIT
@@ -700,10 +700,10 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
             </div>
 
             {/* 6. Instant ZIP Download */}
-            <div className="bg-gradient-to-br from-purple-900 via-indigo-950 to-slate-950 p-6 rounded-3xl text-white space-y-4 flex flex-col justify-between shadow-xl border border-purple-500/30">
+            <div className="bg-gradient-to-br from-purple-900 via-indigo-950 to-slate-950 p-5 sm:p-6 rounded-2xl text-white space-y-4 flex flex-col justify-between shadow-xl border border-purple-500/30">
               <div className="space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center font-bold shadow-lg shadow-purple-600/30">
-                  <Download size={22} />
+                <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold shadow-md shadow-purple-600/30">
+                  <Download size={20} />
                 </div>
                 <h3 className="text-base sm:text-lg font-bold text-white">6. One-Click ZIP Download</h3>
                 <p className="text-xs text-purple-200 leading-relaxed">
@@ -712,7 +712,7 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
               </div>
               <button
                 onClick={handleStart}
-                className="w-full py-3 rounded-xl bg-white text-slate-950 hover:bg-purple-50 font-bold text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-xl bg-white text-slate-950 hover:bg-purple-50 font-bold text-xs shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2"
               >
                 <span>Download Sample Package</span>
                 <ArrowRight size={14} />
@@ -729,12 +729,12 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
       {/* ─────────────────────────────────────────────────────────────────────────────
           5. HOW IT WORKS (3-Step Pipeline, Classic Dark #0f0f1a Section)
          ───────────────────────────────────────────────────────────────────────────── */}
-      <section id="how-it-works" className="py-20 sm:py-28 bg-[#0f0f1a] text-white relative overflow-hidden scroll-mt-16">
+      <section id="how-it-works" className="py-16 sm:py-24 bg-[#0f0f1a] text-white relative overflow-hidden scroll-mt-16">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-purple-600/15 rounded-full blur-[160px] pointer-events-none" />
 
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
-          <div className="text-center max-w-3xl mx-auto space-y-4">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-xs font-bold uppercase tracking-wider text-purple-400 bg-purple-950/70 px-3 py-1 rounded-full border border-purple-500/30">
               Simple 3-Step Process
             </span>
@@ -748,18 +748,18 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
           </div>
 
           {/* 3 Step Cards Horizontal Row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
             
             {/* Step 1 */}
-            <div className="bg-[#16162a] rounded-3xl p-8 border border-white/10 space-y-4 relative group hover:border-purple-500/50 transition-all">
-              <span className="text-6xl sm:text-7xl font-black text-purple-900/40 absolute top-4 right-6 pointer-events-none group-hover:text-purple-800/40 transition-colors">
+            <div className="bg-[#16162a] rounded-2xl p-6 sm:p-7 border border-white/10 space-y-3.5 relative group hover:border-purple-500/50 transition-all shadow-md">
+              <span className="text-5xl sm:text-6xl font-black text-purple-900/30 absolute top-4 right-5 pointer-events-none group-hover:text-purple-800/40 transition-colors">
                 01
               </span>
-              <div className="w-12 h-12 rounded-2xl bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-xl shadow-lg">
+              <div className="w-10 h-10 rounded-xl bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-lg shadow-md">
                 💡
               </div>
-              <h3 className="text-xl font-bold text-white">Describe Your Book</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
+              <h3 className="text-lg sm:text-xl font-bold text-white">Describe Your Book</h3>
+              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
                 Tell us the topic, genre, audience, and style. Takes 30 seconds.
               </p>
               <p className="text-xs text-purple-300 font-medium pt-2 border-t border-white/10">
@@ -768,15 +768,15 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
             </div>
 
             {/* Step 2 */}
-            <div className="bg-[#16162a] rounded-3xl p-8 border border-white/10 space-y-4 relative group hover:border-purple-500/50 transition-all">
-              <span className="text-6xl sm:text-7xl font-black text-purple-900/40 absolute top-4 right-6 pointer-events-none group-hover:text-purple-800/40 transition-colors">
+            <div className="bg-[#16162a] rounded-2xl p-6 sm:p-7 border border-white/10 space-y-3.5 relative group hover:border-purple-500/50 transition-all shadow-md">
+              <span className="text-5xl sm:text-6xl font-black text-purple-900/30 absolute top-4 right-5 pointer-events-none group-hover:text-purple-800/40 transition-colors">
                 02
               </span>
-              <div className="w-12 h-12 rounded-2xl bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-xl shadow-lg">
+              <div className="w-10 h-10 rounded-xl bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-lg shadow-md">
                 ⚡
               </div>
-              <h3 className="text-xl font-bold text-white">AI Builds Everything</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
+              <h3 className="text-lg sm:text-xl font-bold text-white">AI Builds Everything</h3>
+              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
                 Gemini writes your chapters. Imagen creates illustrations. We format the interior and design the layout.
               </p>
               <p className="text-xs text-purple-300 font-medium pt-2 border-t border-white/10">
@@ -785,15 +785,15 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
             </div>
 
             {/* Step 3 */}
-            <div className="bg-[#16162a] rounded-3xl p-8 border border-white/10 space-y-4 relative group hover:border-purple-500/50 transition-all">
-              <span className="text-6xl sm:text-7xl font-black text-purple-900/40 absolute top-4 right-6 pointer-events-none group-hover:text-purple-800/40 transition-colors">
+            <div className="bg-[#16162a] rounded-2xl p-6 sm:p-7 border border-white/10 space-y-3.5 relative group hover:border-purple-500/50 transition-all shadow-md">
+              <span className="text-5xl sm:text-6xl font-black text-purple-900/30 absolute top-4 right-5 pointer-events-none group-hover:text-purple-800/40 transition-colors">
                 03
               </span>
-              <div className="w-12 h-12 rounded-2xl bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-xl shadow-lg">
+              <div className="w-10 h-10 rounded-xl bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-lg shadow-md">
                 📤
               </div>
-              <h3 className="text-xl font-bold text-white">Export & Publish</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
+              <h3 className="text-lg sm:text-xl font-bold text-white">Export & Publish</h3>
+              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
                 Download your KDP-ready interior PDF and cover. Upload directly to Amazon. Start earning.
               </p>
               <p className="text-xs text-purple-300 font-medium pt-2 border-t border-white/10">
@@ -885,11 +885,11 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
               return (
                 <div 
                   key={idx} 
-                  className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs hover:shadow-lg hover:border-purple-300 transition-all duration-300 flex flex-col justify-between space-y-4 group"
+                  className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-purple-300 transition-all duration-300 flex flex-col justify-between space-y-4 group"
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white font-black text-xs flex items-center justify-center group-hover:bg-purple-600 transition-colors">
+                      <div className="w-9 h-9 rounded-xl bg-slate-900 text-white font-black text-xs flex items-center justify-center group-hover:bg-purple-600 transition-colors">
                         {step.num}
                       </div>
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
@@ -921,10 +921,10 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
           <div className="text-center pt-2">
             <button
               onClick={() => onNavigate('features')}
-              className="px-8 py-3.5 rounded-2xl bg-purple-100 hover:bg-purple-200 text-purple-900 font-bold text-xs sm:text-sm transition-all cursor-pointer inline-flex items-center gap-2 shadow-xs"
+              className="px-5 py-2.5 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-900 font-bold text-xs sm:text-sm transition-all cursor-pointer inline-flex items-center gap-2 shadow-xs"
             >
               <span>Explore All Studio Features in Depth</span>
-              <ArrowRight size={16} />
+              <ArrowRight size={15} />
             </button>
           </div>
 
@@ -934,8 +934,8 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
       {/* ─────────────────────────────────────────────────────────────────────────────
           6. PRICING PREVIEW (Connected to Live Firestore Limits)
          ───────────────────────────────────────────────────────────────────────────── */}
-      <section className="py-20 sm:py-28 bg-white border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14">
+      <section className="py-16 sm:py-24 bg-white border-b border-slate-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black uppercase tracking-wider">
@@ -944,145 +944,145 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
             <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight font-display">
               Start Free, Scale as <span className="font-serif italic font-normal text-purple-600">You Publish</span>
             </h2>
-            <p className="text-sm text-slate-600">
+            <p className="text-xs sm:text-sm text-slate-600">
               No hidden fees. 100% royalty ownership. Cancel anytime.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-7 items-stretch">
             
             {/* Free */}
-            <div className="bg-white rounded-3xl border border-slate-200 p-8 flex flex-col justify-between shadow-xs space-y-6">
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-7 flex flex-col justify-between shadow-xs space-y-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-slate-900 text-xl">Free Tier</h3>
-                  <span className="text-2xl">🌱</span>
+                  <h3 className="font-bold text-slate-900 text-lg sm:text-xl">Free Tier</h3>
+                  <span className="text-xl">🌱</span>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-4xl font-black text-slate-900">
+                  <div className="text-3xl sm:text-4xl font-black text-slate-900">
                     {formatPrice(0, currency)}
                   </div>
                   <p className="text-xs text-slate-500 font-medium">Free forever, no credit card required</p>
                 </div>
-                <ul className="space-y-3 text-xs text-slate-700 font-semibold pt-4 border-t border-slate-100">
+                <ul className="space-y-2.5 text-xs text-slate-700 font-semibold pt-4 border-t border-slate-100">
                   <li className="flex items-center gap-2.5">
-                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <Check size={15} className="text-emerald-600 shrink-0" />
                     <span><strong>{freeLimits.total.bookProjects}</strong> Active Book Projects</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <Check size={15} className="text-emerald-600 shrink-0" />
                     <span><strong>{freeLimits.daily.aiGenerations}</strong> Daily AI Generation Runs</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <Check size={15} className="text-emerald-600 shrink-0" />
                     <span><strong>{freeLimits.daily.pdfExports}</strong> Daily PDF Exports</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <Check size={15} className="text-emerald-600 shrink-0" />
                     <span><strong>{freeLimits.daily.puzzleGenerations}</strong> Daily Puzzle & Activity Generations</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <Check size={15} className="text-emerald-600 shrink-0" />
                     <span>Spine Width & Gutter Calculator</span>
                   </li>
                 </ul>
               </div>
               <button
                 onClick={handleStart}
-                className="w-full py-3.5 rounded-2xl border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white font-bold text-sm transition-all cursor-pointer"
+                className="w-full py-2.5 rounded-xl border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white font-bold text-xs sm:text-sm transition-all cursor-pointer"
               >
                 Start Free
               </button>
             </div>
 
             {/* Pro (Most Popular) */}
-            <div className="bg-slate-950 text-white rounded-3xl border-2 border-purple-500 p-8 flex flex-col justify-between shadow-2xl shadow-purple-950/50 space-y-6 relative scale-103">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-[11px] px-4 py-1 rounded-full uppercase tracking-wider shadow-md">
+            <div className="bg-slate-950 text-white rounded-2xl border-2 border-purple-500 p-6 sm:p-7 flex flex-col justify-between shadow-xl shadow-purple-950/40 space-y-6 relative sm:scale-102">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-[10px] px-3.5 py-0.5 rounded-full uppercase tracking-wider shadow-md">
                 Most Popular
               </div>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-white text-xl">Pro Plan</h3>
-                  <span className="text-2xl">⚡</span>
+                  <h3 className="font-bold text-white text-lg sm:text-xl">Pro Plan</h3>
+                  <span className="text-xl">⚡</span>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-4xl font-black text-white">
+                  <div className="text-3xl sm:text-4xl font-black text-white">
                     {getFormattedPrice('pro')}
-                    <span className="text-sm font-normal text-slate-400">/mo</span>
+                    <span className="text-xs sm:text-sm font-normal text-slate-400">/mo</span>
                   </div>
                   <p className="text-xs text-purple-300 font-medium">For serious indie authors & publishers</p>
                 </div>
-                <ul className="space-y-3 text-xs text-slate-200 font-semibold pt-4 border-t border-slate-800">
+                <ul className="space-y-2.5 text-xs text-slate-200 font-semibold pt-4 border-t border-slate-800">
                   <li className="flex items-center gap-2.5">
-                    <Check size={16} className="text-purple-400 shrink-0" />
+                    <Check size={15} className="text-purple-400 shrink-0" />
                     <span><strong>Unlimited</strong> Book Projects</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check size={16} className="text-purple-400 shrink-0" />
+                    <Check size={15} className="text-purple-400 shrink-0" />
                     <span><strong>Unlimited</strong> AI Writing with Claude AI</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check size={16} className="text-purple-400 shrink-0" />
+                    <Check size={15} className="text-purple-400 shrink-0" />
                     <span><strong>Google Imagen 3</strong> AI Cover Art</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check size={16} className="text-purple-400 shrink-0" />
+                    <Check size={15} className="text-purple-400 shrink-0" />
                     <span>Amazon Niche & Keyword Analysis</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check size={16} className="text-purple-400 shrink-0" />
+                    <Check size={15} className="text-purple-400 shrink-0" />
                     <span>100% Unbranded 300 DPI PDF Exports</span>
                   </li>
                 </ul>
               </div>
               <button
                 onClick={handleGoToPricingCards}
-                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-purple-600/40 transition-all cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-purple-600/30 transition-all cursor-pointer"
               >
                 Start with Pro
               </button>
             </div>
 
             {/* Agency */}
-            <div className="bg-white rounded-3xl border border-slate-200 p-8 flex flex-col justify-between shadow-xs space-y-6">
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-7 flex flex-col justify-between shadow-xs space-y-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-slate-900 text-xl">Agency Plan</h3>
-                  <span className="text-2xl">🚀</span>
+                  <h3 className="font-bold text-slate-900 text-lg sm:text-xl">Agency Plan</h3>
+                  <span className="text-xl">🚀</span>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-4xl font-black text-slate-900">
+                  <div className="text-3xl sm:text-4xl font-black text-slate-900">
                     {getFormattedPrice('agency')}
-                    <span className="text-sm font-normal text-slate-400">/mo</span>
+                    <span className="text-xs sm:text-sm font-normal text-slate-400">/mo</span>
                   </div>
                   <p className="text-xs text-slate-500 font-medium">For publishing teams & high volume</p>
                 </div>
-                <ul className="space-y-3 text-xs text-slate-700 font-semibold pt-4 border-t border-slate-100">
+                <ul className="space-y-2.5 text-xs text-slate-700 font-semibold pt-4 border-t border-slate-100">
                   <li className="flex items-center gap-2.5">
-                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <Check size={15} className="text-emerald-600 shrink-0" />
                     <span>Everything in Pro Unlimited</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <Check size={15} className="text-emerald-600 shrink-0" />
                     <span><strong>5 Team Member Seats</strong></span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <Check size={15} className="text-emerald-600 shrink-0" />
                     <span>Bulk Batch Series Generator</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <Check size={15} className="text-emerald-600 shrink-0" />
                     <span>Brand Kit & Shared Style Guide</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <Check size={15} className="text-emerald-600 shrink-0" />
                     <span>Dedicated VIP Account Manager</span>
                   </li>
                 </ul>
               </div>
               <button
                 onClick={handleGoToPricingCards}
-                className="w-full py-3.5 rounded-2xl border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white font-bold text-sm transition-all cursor-pointer"
+                className="w-full py-2.5 rounded-xl border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white font-bold text-xs sm:text-sm transition-all cursor-pointer"
               >
                 View Full Pricing
               </button>
@@ -1096,9 +1096,9 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
       {/* ─────────────────────────────────────────────────────────────────────────────
           7. FAQ ACCORDION
          ───────────────────────────────────────────────────────────────────────────── */}
-      <section className="py-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+      <section className="py-16 sm:py-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         <div className="text-center space-y-2">
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
             Frequently Asked Questions
           </h2>
           <p className="text-xs sm:text-sm text-slate-500">
@@ -1115,16 +1115,16 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
           ].map((faq, idx) => {
             const isOpen = openFaqIndex === idx;
             return (
-              <div key={idx} className="rounded-2xl border border-slate-200 bg-white overflow-hidden transition-all">
+              <div key={idx} className="rounded-xl border border-slate-200/80 bg-white overflow-hidden transition-all shadow-2xs">
                 <button
                   onClick={() => toggleFaq(idx)}
-                  className="w-full px-6 py-4 text-left font-bold text-sm sm:text-base text-slate-900 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                  className="w-full px-5 py-3.5 text-left font-bold text-xs sm:text-sm text-slate-900 flex items-center justify-between hover:bg-slate-50 transition-colors"
                 >
                   <span>{faq.q}</span>
-                  {isOpen ? <ChevronUp size={18} className="text-purple-600 shrink-0" /> : <ChevronDown size={18} className="text-slate-400 shrink-0" />}
+                  {isOpen ? <ChevronUp size={16} className="text-purple-600 shrink-0" /> : <ChevronDown size={16} className="text-slate-400 shrink-0" />}
                 </button>
                 {isOpen && (
-                  <div className="px-6 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
+                  <div className="px-5 pb-4 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-2.5">
                     {faq.a}
                   </div>
                 )}
@@ -1139,23 +1139,23 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
       {/* ─────────────────────────────────────────────────────────────────────────────
           8. FINAL CALL TO ACTION BANNER
          ───────────────────────────────────────────────────────────────────────────── */}
-      <section className="bg-slate-950 text-white py-20 relative overflow-hidden">
+      <section className="bg-slate-950 text-white py-16 sm:py-20 relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-purple-600/20 rounded-full blur-[120px] pointer-events-none" />
         
-        <div className="relative max-w-4xl mx-auto px-4 text-center space-y-6">
-          <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight font-display">
+        <div className="relative max-w-4xl mx-auto px-4 text-center space-y-5">
+          <h2 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight font-display">
             Ready to Publish Your Next <span className="font-serif italic font-normal text-purple-400">Amazon Bestseller?</span>
           </h2>
-          <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto">
+          <p className="text-xs sm:text-sm text-slate-300 max-w-2xl mx-auto">
             Join authors, publishers, and creators creating books with KDP Studio. Start with free credits today.
           </p>
           <div className="pt-2">
             <button
               onClick={handleStart}
-              className="px-10 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-base shadow-xl shadow-purple-600/30 transition-all cursor-pointer inline-flex items-center gap-2.5 active:scale-95"
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-purple-600/30 transition-all cursor-pointer inline-flex items-center gap-2 active:scale-95"
             >
               <span>{user ? 'Open Studio Dashboard' : 'Start Publishing Free'}</span>
-              <ArrowRight size={18} />
+              <ArrowRight size={16} />
             </button>
           </div>
         </div>

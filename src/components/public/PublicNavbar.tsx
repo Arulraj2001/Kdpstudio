@@ -148,7 +148,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
 
               {/* Dropdown Menu (Hover Flyout) */}
               <div className="absolute top-full left-0 w-[540px] -ml-20 pt-2 opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 z-50">
-                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-2xl space-y-4">
+                <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xl space-y-3.5">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                     <span className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
                       <Sparkles size={14} className="text-purple-600" />

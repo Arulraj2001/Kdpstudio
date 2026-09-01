@@ -178,48 +178,48 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
       {/* 1. Welcome Banner */}
       <section 
         id="welcome-banner"
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-7 sm:p-9 text-white shadow-xl shadow-indigo-950/20 border border-slate-800/80"
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 sm:p-7 text-white shadow-xl shadow-indigo-950/20 border border-slate-800/80"
       >
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 right-32 -mb-12 w-64 h-64 rounded-full bg-violet-500/20 blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div className="max-w-2xl space-y-3">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+          <div className="max-w-2xl space-y-2.5">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
               <Sparkles size={14} className="text-indigo-400" />
               <span>KDP Studio Creator OS</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
               Welcome to KDP Studio
             </h1>
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed font-medium">
+            <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-medium">
               Your unified Amazon Kindle Direct Publishing command center. Write manuscripts, format print interiors, calculate cover spines, and optimize metadata in one place.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
               id="banner-start-book-btn"
               onClick={onNewBook}
-              className="px-5 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-900/40 flex items-center gap-2 transition-all transform hover:-translate-y-0.5 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-900/40 flex items-center gap-2 transition-all transform hover:-translate-y-0.5 cursor-pointer"
             >
-              <PlusCircle size={16} />
+              <PlusCircle size={15} />
               <span>New Book Project</span>
             </button>
             <button
               id="banner-explore-formatter-btn"
               onClick={() => onNavigate(user ? 'publish' : 'signup')}
-              className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-slate-100 text-xs sm:text-sm font-semibold border border-white/15 flex items-center gap-2 transition-all cursor-pointer backdrop-blur-xs"
+              className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-100 text-xs sm:text-sm font-semibold border border-white/15 flex items-center gap-2 transition-all cursor-pointer backdrop-blur-xs"
             >
-              <ShieldCheck size={16} />
+              <ShieldCheck size={15} />
               <span>Publish Checklist</span>
             </button>
             <button
               id="banner-view-homepage-btn"
               onClick={() => onNavigate('home')}
-              className="px-4 py-3 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-200 text-xs sm:text-sm font-bold border border-indigo-400/30 flex items-center gap-2 transition-all cursor-pointer"
+              className="px-3.5 py-2.5 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-200 text-xs sm:text-sm font-bold border border-indigo-400/30 flex items-center gap-2 transition-all cursor-pointer"
             >
-              <Home size={16} />
+              <Home size={15} />
               <span>Home</span>
             </button>
           </div>
@@ -317,10 +317,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
       {/* 4. Main Work Area: Manuscripts & Daily Quota */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* Recent Books section */}
-        <section id="recent-books-section" className="lg:col-span-2 bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-xs">
-          <div className="flex items-center justify-between pb-5 border-b border-slate-100">
+        <section id="recent-books-section" className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
             <div>
-              <h3 className="text-base font-bold text-slate-900 tracking-tight">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
                 Recent Manuscripts
               </h3>
               <p className="text-xs text-slate-500">Your most recently updated manuscripts and titles</p>
@@ -335,26 +335,26 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
               <button
                 id="create-book-empty-btn"
                 onClick={onNewBook}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-2xs cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-2xs cursor-pointer"
               >
-                <PlusCircle size={15} />
+                <PlusCircle size={14} />
                 <span>New Book</span>
               </button>
             </div>
           </div>
 
           {books.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
               {books.slice(0, 4).map((book) => {
                 const totalWords = book.chapters.reduce((acc, c) => acc + (c.wordCount || 0), 0);
                 return (
                   <div
                     key={book.id}
-                    className="p-4 sm:p-5 rounded-2xl border border-slate-200/80 bg-slate-50/50 hover:bg-white hover:border-indigo-300 hover:shadow-xs transition-all space-y-3.5 flex flex-col justify-between"
+                    className="p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-white hover:border-indigo-300 hover:shadow-xs transition-all space-y-3 flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-100">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
                           {book.genre}
                         </span>
                         <span className="text-[11px] text-slate-400 font-medium">
@@ -362,34 +362,34 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
                         </span>
                       </div>
 
-                      <h4 className="font-bold text-slate-900 text-sm mt-2.5 line-clamp-1">
+                      <h4 className="font-bold text-slate-900 text-sm mt-2 line-clamp-1">
                         {book.title}
                       </h4>
                       <p className="text-xs text-slate-500 mt-0.5">by {book.author}</p>
 
-                      <div className="text-xs text-slate-600 mt-2 font-medium">
+                      <div className="text-xs text-slate-600 mt-1.5 font-medium">
                         {totalWords.toLocaleString()} words · {book.chapters.length} chapters
                       </div>
                     </div>
 
-                    <div className="pt-3 border-t border-slate-200/70 flex items-center justify-between gap-2">
+                    <div className="pt-2.5 border-t border-slate-200/70 flex items-center justify-between gap-2">
                       <button
                         onClick={() => handleSelectBook(book, 'studio')}
-                        className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                        className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
                       >
                         <Edit3 size={13} />
                         <span>Write</span>
                       </button>
                       <button
                         onClick={() => handleSelectBook(book, 'formatter')}
-                        className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                        className="px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                       >
                         <FileText size={13} />
                         <span>Format</span>
                       </button>
                       <button
                         onClick={() => handleSelectBook(book, 'cover')}
-                        className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                        className="px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                       >
                         <ImageIcon size={13} />
                         <span>Cover</span>
@@ -402,28 +402,28 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
           ) : (
             <div 
               id="empty-books-state"
-              className="py-12 px-4 flex flex-col items-center justify-center text-center max-w-md mx-auto"
+              className="py-10 px-4 flex flex-col items-center justify-center text-center max-w-md mx-auto"
             >
-              <div className="relative mb-4">
-                <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-xs">
-                  <BookOpen size={30} className="stroke-[1.7]" />
+              <div className="relative mb-3.5">
+                <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-xs">
+                  <BookOpen size={26} className="stroke-[1.7]" />
                 </div>
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-xs">
-                  <Sparkles size={12} />
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+                  <Sparkles size={11} />
                 </div>
               </div>
 
-              <h4 className="text-base font-bold text-slate-900 mb-1">
+              <h4 className="text-sm sm:text-base font-bold text-slate-900 mb-1">
                 No books yet. Start your first title.
               </h4>
-              <p className="text-xs text-slate-500 leading-relaxed mb-5 font-normal">
+              <p className="text-xs text-slate-500 leading-relaxed mb-4 font-normal">
                 Create a manuscript draft, configure Amazon KDP trim sizes, calculate paper spine thicknesses, and export print-ready PDFs.
               </p>
 
               <button
                 id="start-first-book-cta"
                 onClick={onNewBook}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-950/20 transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-950/20 transition-all cursor-pointer"
               >
                 <Pencil size={14} />
                 <span>Start Your First Book</span>
@@ -433,9 +433,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
         </section>
 
         {/* Right Sidebar Widgets: Niche Research & Usage */}
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* Niche Research Widget */}
-          <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <Search size={16} className="text-indigo-600" />
@@ -504,7 +504,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
                 </div>
               </div>
             ) : (
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-center space-y-2.5">
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-center space-y-2.5">
                 <div className="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center mx-auto">
                   <Lock size={16} />
                 </div>
@@ -531,7 +531,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
           </div>
 
           {/* Analytics & Royalties Widget */}
-          <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <BarChart3 size={16} className="text-indigo-600" />

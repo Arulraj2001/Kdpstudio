@@ -302,7 +302,7 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
       {/* ─────────────────────────────────────────────────────────────────── */}
       {/* TOP HEADER & TIME PERIOD SELECTOR */}
       {/* ─────────────────────────────────────────────────────────────────── */}
-      <div className="bg-white border border-slate-200/90 rounded-3xl p-6 md:p-8 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-[11px] font-bold uppercase tracking-wider text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200 flex items-center gap-1">
@@ -311,7 +311,7 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
             </span>
             <span className="text-xs text-slate-500">· {books.length} Published Titles</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
             KDP Publishing Analytics
           </h1>
           <p className="text-xs text-slate-500 mt-1 max-w-xl">
@@ -356,7 +356,7 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
       </div>
 
       {/* Manual Data Disclaimer Banner */}
-      <div className="p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex items-center justify-between text-xs text-slate-500">
+      <div className="p-3 sm:p-3.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs flex items-center justify-between text-xs text-slate-500">
         <div className="flex items-center gap-2">
           <Info size={15} className="text-purple-600 shrink-0" />
           <span>
@@ -385,10 +385,10 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
       {/* PLAN GATE BANNER (IF FREE / STARTER) */}
       {/* ─────────────────────────────────────────────────────────────────── */}
       {!isPro && (
-        <div className="p-6 rounded-3xl bg-gradient-to-r from-amber-950/60 via-purple-950/60 to-slate-900 border border-amber-500/40 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-amber-950/60 via-purple-950/60 to-slate-900 border border-amber-500/40 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center justify-center shrink-0">
-              <Lock size={22} />
+            <div className="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center justify-center shrink-0">
+              <Lock size={20} />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -405,7 +405,7 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
 
           <button
             onClick={() => open('pro')}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-extrabold shadow-md transition-all shrink-0 cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-extrabold shadow-md transition-all shrink-0 cursor-pointer"
           >
             Upgrade to Pro ➔
           </button>
@@ -417,7 +417,7 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
       {/* ─────────────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Total Royalties */}
-        <div className="p-5 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-2">
+        <div className="p-4 sm:p-5 rounded-xl bg-white border border-slate-200/90 shadow-xs space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Total Royalties
@@ -446,7 +446,7 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
         </div>
 
         {/* Card 2: Units Sold */}
-        <div className="p-5 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-2">
+        <div className="p-4 sm:p-5 rounded-xl bg-white border border-slate-200/90 shadow-xs space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Units Sold
@@ -475,7 +475,7 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
         </div>
 
         {/* Card 3: Books Tracked */}
-        <div className="p-5 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-2">
+        <div className="p-4 sm:p-5 rounded-xl bg-white border border-slate-200/90 shadow-xs space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Books Tracked
@@ -493,7 +493,7 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
         </div>
 
         {/* Card 4: Best BSR Rank */}
-        <div className="p-5 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-2">
+        <div className="p-4 sm:p-5 rounded-xl bg-white border border-slate-200/90 shadow-xs space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Best BSR Peak
@@ -514,7 +514,7 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
       {/* ─────────────────────────────────────────────────────────────────── */}
       {/* STREAK WIDGET */}
       {/* ─────────────────────────────────────────────────────────────────── */}
-      <div className="p-5 rounded-3xl bg-white border border-slate-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-4 sm:p-5 rounded-xl bg-white border border-slate-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-200 text-orange-600 flex items-center justify-center shrink-0">
             <Flame size={24} className="animate-pulse" />
@@ -577,7 +577,7 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
         {/* Left Column: Revenue Over Time Chart (2 Cols) */}
         <div className="lg:col-span-2 space-y-6">
           {/* Revenue Line Chart Card */}
-          <div className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-4">
+          <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-bold text-slate-900">Revenue Over Time</h3>
@@ -609,7 +609,7 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
                         contentStyle={{
                           backgroundColor: '#ffffff',
                           borderColor: '#e2e8f0',
-                          borderRadius: '1rem',
+                          borderRadius: '0.75rem',
                           color: '#0f172a',
                           fontSize: '12px',
                           boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
@@ -618,62 +618,56 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
                       <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
                       <Line
                         type="monotone"
-                        dataKey="Total"
-                        stroke="#a855f7"
+                        dataKey="royalties"
+                        name="Total Royalties ($)"
+                        stroke="#7c3aed"
                         strokeWidth={3}
-                        dot={{ r: 3, fill: '#a855f7' }}
+                        dot={{ r: 3, fill: '#7c3aed' }}
                         activeDot={{ r: 6 }}
                       />
-                      {books.slice(0, 5).map((b, idx) => (
-                        <Line
-                          key={b.id}
-                          type="monotone"
-                          dataKey={b.title}
-                          stroke={LINE_COLORS[(idx + 1) % LINE_COLORS.length]}
-                          strokeWidth={1.5}
-                          dot={false}
-                        />
-                      ))}
+                      <Line
+                        type="monotone"
+                        dataKey="units"
+                        name="Units Sold"
+                        stroke="#06b6d4"
+                        strokeWidth={2}
+                        strokeDasharray="4 4"
+                        dot={false}
+                      />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div className="h-64 flex flex-col items-center justify-center text-center p-6 border border-dashed border-slate-800 rounded-2xl">
-                  <BarChart3 size={32} className="text-slate-600 mb-2" />
-                  <span className="text-xs font-bold text-slate-300">No Sales Data for this Period</span>
-                  <p className="text-[11px] text-slate-500 max-w-sm mt-1">
-                    Record your first daily sales or import your KDP royalty report to populate interactive trends.
+                <div className="h-56 flex flex-col items-center justify-center text-center p-6 border border-dashed border-slate-200 rounded-2xl space-y-2">
+                  <BarChart3 size={32} className="text-slate-400" />
+                  <h4 className="text-xs font-bold text-slate-900">No Sales Data for Selected Period</h4>
+                  <p className="text-[11px] text-slate-500 max-w-sm">
+                    Add entries manually or import your KDP monthly report CSV to visualize sales velocity.
                   </p>
                   <button
                     onClick={() => {
                       if (books.length > 0) setEntryBookTarget(books[0]);
                       else setIsAddBookOpen(true);
                     }}
-                    className="mt-3 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-bold transition-all cursor-pointer"
                   >
                     + Record Sales Entry
                   </button>
                 </div>
               )
             ) : (
-              /* Locked Chart Placeholder */
-              <div className="h-64 relative rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-center overflow-hidden p-6 text-center">
-                <div className="absolute inset-0 opacity-10 flex items-center justify-center">
-                  <BarChart3 size={180} />
-                </div>
-                <div className="relative z-10 max-w-sm space-y-2">
-                  <Lock size={24} className="text-amber-400 mx-auto" />
-                  <h4 className="text-sm font-bold text-white">Revenue Timeline Locked</h4>
-                  <p className="text-xs text-slate-400">
-                    Upgrade to Pro to visualize royalties over time, filter by title, and compare performance trends.
-                  </p>
-                  <button
-                    onClick={() => open('pro')}
-                    className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-md cursor-pointer"
-                  >
-                    Unlock Pro Charts ➔
-                  </button>
-                </div>
+              <div className="h-56 flex flex-col items-center justify-center text-center p-6 bg-slate-50/50 border border-slate-200 rounded-2xl space-y-2">
+                <Lock size={28} className="text-amber-500" />
+                <h4 className="text-xs font-bold text-slate-900">Interactive Visual Trends Locked</h4>
+                <p className="text-[11px] text-slate-500 max-w-sm">
+                  Upgrade to Pro to view multi-marketplace royalty curves, unit velocity, and date-range zoom.
+                </p>
+                <button
+                  onClick={() => open('pro')}
+                  className="px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold transition-all cursor-pointer"
+                >
+                  Upgrade to View Charts
+                </button>
               </div>
             )}
           </div>
@@ -681,7 +675,7 @@ export const AnalyticsOverviewView: React.FC<AnalyticsOverviewViewProps> = ({
           {/* ───────────────────────────────────────────────────────────────── */}
           {/* BOOKS PERFORMANCE TABLE */}
           {/* ───────────────────────────────────────────────────────────────── */}
-          <div className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-4">
+          <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-bold text-slate-900">Book Catalog Performance</h3>

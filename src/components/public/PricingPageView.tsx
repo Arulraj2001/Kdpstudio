@@ -251,10 +251,10 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
 
       {/* ── VIRAL GROWTH PROMOTION CELEBRATION CARD ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-violet-900 via-purple-900 to-indigo-950 p-6 sm:p-8 text-white border border-purple-400/40 shadow-2xl shadow-purple-950/50">
+        <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-violet-900 via-purple-900 to-indigo-950 p-5 sm:p-7 text-white border border-purple-400/40 shadow-xl shadow-purple-950/40">
           <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
           
-          <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6">
+          <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-5">
             <div className="space-y-2 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-300 text-xs font-black uppercase tracking-wider">
                 <span>🔥 VIRAL GROWTH PROMO</span>
@@ -270,7 +270,7 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
             <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
               <button
                 onClick={() => onNavigate(user ? 'dashboard' : 'signup')}
-                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-amber-500/30 transition-all cursor-pointer hover:scale-105 active:scale-95"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-lg shadow-amber-500/30 transition-all cursor-pointer hover:scale-103 active:scale-95"
               >
                 <span>Claim Free Creator Account</span>
                 <span className="ml-1.5">→</span>
@@ -279,18 +279,18 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
           </div>
 
           {/* 3 Highlight Metric Pills */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-6 mt-6 border-t border-white/15 text-xs font-semibold">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-5 mt-5 border-t border-white/15 text-xs font-semibold">
             <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-white/10">
-              <Sparkles size={16} className="text-amber-400 shrink-0" />
-              <span><strong>20 AI Generations / Day</strong> (Manuscript & Ideas)</span>
+              <Sparkles size={15} className="text-amber-400 shrink-0" />
+              <span><strong>20 AI Generations / Day</strong></span>
             </div>
             <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-white/10">
-              <Zap size={16} className="text-cyan-400 shrink-0" />
-              <span><strong>10 Daily Puzzles</strong> (Word Search, Sudoku & Color)</span>
+              <Zap size={15} className="text-cyan-400 shrink-0" />
+              <span><strong>10 Daily Puzzles</strong></span>
             </div>
             <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-white/10">
-              <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
-              <span><strong>5 Active Book Projects</strong> with 100% Royalties</span>
+              <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
+              <span><strong>5 Active Book Projects</strong></span>
             </div>
           </div>
         </div>
@@ -544,10 +544,10 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
             
             {/* India Column */}
-            <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-4 shadow-xs hover:border-purple-300 transition-all">
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 space-y-4 shadow-xs hover:border-purple-300 transition-all">
               <div className="flex items-center gap-2.5 font-black text-base text-slate-900">
                 <span className="text-2xl">🇮🇳</span>
                 <div>
@@ -559,17 +559,17 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
                 UPI (Google Pay, PhonePe, Paytm, BHIM), Indian Net Banking, and Debit/Credit cards.
               </p>
               <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-bold text-slate-700">
-                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">UPI Instant</span>
-                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Google Pay</span>
-                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">PhonePe</span>
-                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Paytm</span>
-                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">RuPay</span>
-                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Net Banking</span>
+                <span className="px-2.5 py-1 bg-slate-100 rounded-lg border border-slate-200">UPI Instant</span>
+                <span className="px-2.5 py-1 bg-slate-100 rounded-lg border border-slate-200">Google Pay</span>
+                <span className="px-2.5 py-1 bg-slate-100 rounded-lg border border-slate-200">PhonePe</span>
+                <span className="px-2.5 py-1 bg-slate-100 rounded-lg border border-slate-200">Paytm</span>
+                <span className="px-2.5 py-1 bg-slate-100 rounded-lg border border-slate-200">RuPay</span>
+                <span className="px-2.5 py-1 bg-slate-100 rounded-lg border border-slate-200">Net Banking</span>
               </div>
             </div>
 
             {/* International Column */}
-            <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-4 shadow-xs hover:border-indigo-300 transition-all">
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 space-y-4 shadow-xs hover:border-indigo-300 transition-all">
               <div className="flex items-center gap-2.5 font-black text-base text-slate-900">
                 <span className="text-2xl">🌍</span>
                 <div>
@@ -581,21 +581,21 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
                 Stripe and Google Pay in USD, GBP, EUR, CAD, AUD with instant license activation.
               </p>
               <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-bold text-slate-700">
-                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Stripe</span>
-                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Google Pay</span>
-                <span className="px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">Instant Activation</span>
+                <span className="px-2.5 py-1 bg-slate-100 rounded-lg border border-slate-200">Stripe</span>
+                <span className="px-2.5 py-1 bg-slate-100 rounded-lg border border-slate-200">Google Pay</span>
+                <span className="px-2.5 py-1 bg-slate-100 rounded-lg border border-slate-200">Instant Activation</span>
               </div>
             </div>
 
           </div>
 
-          <div className="pt-4 max-w-3xl mx-auto">
-            <div className="bg-gradient-to-b from-amber-50/90 via-amber-50/60 to-amber-100/40 border border-amber-200/90 rounded-3xl p-6 sm:p-8 text-center space-y-5 shadow-xs">
+          <div className="pt-2 max-w-3xl mx-auto">
+            <div className="bg-gradient-to-b from-amber-50/90 via-amber-50/60 to-amber-100/40 border border-amber-200/90 rounded-2xl p-5 sm:p-7 text-center space-y-4 shadow-xs">
               <div className="space-y-1.5 max-w-xl mx-auto">
                 <span className="inline-block px-3 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-200/80 text-amber-900 border border-amber-300">
                   Bonus Quota Refills
                 </span>
-                <h4 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                <h4 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
                   Need Extra AI Generations Without Upgrading?
                 </h4>
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">

@@ -67,7 +67,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onNavigateToPricing 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-white rounded-3xl border border-slate-200 shadow-2xl shadow-purple-950/20 overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-lg bg-white rounded-2xl border border-slate-200 shadow-2xl shadow-purple-950/20 overflow-hidden animate-in zoom-in-95 duration-200">
         
         {/* Top Accent Header Banner */}
         <div className="bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-800 p-6 text-white relative">

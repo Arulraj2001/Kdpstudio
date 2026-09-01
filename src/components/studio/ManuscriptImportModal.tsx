@@ -274,12 +274,12 @@ export const ManuscriptImportModal: React.FC<ManuscriptImportModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden my-auto">
+      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden my-auto">
         
         {/* Modal Top Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/80 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-xs">
+            <div className="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-xs">
               <UploadCloud size={18} />
             </div>
             <div>
@@ -304,7 +304,7 @@ export const ManuscriptImportModal: React.FC<ManuscriptImportModalProps> = ({
         {/* Modal Main Body */}
         <div className="flex-1 overflow-y-auto p-6">
           {error && (
-            <div className="mb-5 p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800 flex items-start gap-2.5">
+            <div className="mb-5 p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-2.5">
               <AlertCircle size={16} className="text-rose-600 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
@@ -316,29 +316,29 @@ export const ManuscriptImportModal: React.FC<ManuscriptImportModalProps> = ({
           {step === 'upload' && (
             <div className="space-y-5">
               {/* Tab Selector */}
-              <div className="flex items-center p-1 bg-slate-100 rounded-2xl w-fit max-w-full">
+              <div className="flex items-center p-1 bg-slate-100 rounded-xl w-fit max-w-full">
                 <button
                   type="button"
                   onClick={() => setUploadTab('file')}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
                     uploadTab === 'file'
                       ? 'bg-white text-purple-700 shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  <UploadCloud size={15} />
+                  <UploadCloud size={14} />
                   <span>Upload File (.docx, .epub, .md, .txt)</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setUploadTab('paste')}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
                     uploadTab === 'paste'
                       ? 'bg-white text-purple-700 shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  <ClipboardList size={15} />
+                  <ClipboardList size={14} />
                   <span>Paste Markdown / Text</span>
                 </button>
               </div>
@@ -353,7 +353,7 @@ export const ManuscriptImportModal: React.FC<ManuscriptImportModalProps> = ({
                   onDragLeave={() => setDragOver(false)}
                   onDrop={handleDrop}
                   onClick={() => !isProcessing && fileRef.current?.click()}
-                  className={`border-2 border-dashed rounded-3xl p-8 sm:p-12 text-center transition-all cursor-pointer ${
+                  className={`border-2 border-dashed rounded-2xl p-6 sm:p-8 text-center transition-all cursor-pointer ${
                     dragOver
                       ? 'border-purple-600 bg-purple-50/80 scale-[0.99]'
                       : 'border-slate-300 hover:border-purple-400 bg-slate-50/50 hover:bg-slate-50'

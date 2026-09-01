@@ -181,7 +181,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     >
       <div 
         id="unified-checkout-modal-container"
-        className="relative w-full max-w-5xl bg-white rounded-3xl border border-slate-200 shadow-2xl shadow-purple-950/20 overflow-hidden my-auto flex flex-col max-h-[92vh]"
+        className="relative w-full max-w-5xl bg-white rounded-2xl border border-slate-200/80 shadow-2xl shadow-purple-950/20 overflow-hidden my-auto flex flex-col max-h-[92vh]"
       >
         {/* Top Header Strip */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/80 gap-3">

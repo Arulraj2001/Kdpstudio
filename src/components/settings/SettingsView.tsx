@@ -205,10 +205,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onNavigate }) => {
       )}
 
       {/* Author Brand Kit Banner */}
-      <div className="p-6 rounded-3xl bg-gradient-to-r from-purple-900 to-indigo-900 text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4 border border-purple-500/30">
+      <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-purple-900 to-indigo-900 text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4 border border-purple-500/30">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 border border-white/20 text-purple-300">
-            <Palette size={24} />
+          <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-white/20 text-purple-300">
+            <Palette size={22} />
           </div>
           <div>
             <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-400/20 text-purple-200 text-[10px] font-bold mb-1 border border-purple-400/30">
@@ -225,7 +225,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onNavigate }) => {
           <button
             type="button"
             onClick={() => onNavigate('brand-kit')}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-purple-950 font-extrabold text-xs shadow-md transition-all shrink-0 cursor-pointer flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-purple-950 font-extrabold text-xs shadow-md transition-all shrink-0 cursor-pointer flex items-center justify-center gap-2"
           >
             <span>Open Brand Kit</span>
             <ArrowRight size={14} />

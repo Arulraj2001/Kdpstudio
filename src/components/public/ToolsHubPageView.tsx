@@ -67,22 +67,22 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-16">
         
         {/* COLUMN GROUP 1: MARKET RESEARCH & FINANCIAL CALCULATORS (2 COLUMNS) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           
           {/* COLUMN 1: MARKET RESEARCH & REVERSE ENGINEERING */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl space-y-6 flex flex-col justify-between">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-5 flex flex-col justify-between">
+            <div className="space-y-3.5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                  <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
                     🔍
                   </div>
                   <div>
-                    <h2 className="text-lg font-black text-slate-900">Market Research &amp; Competitor Spy</h2>
+                    <h2 className="text-base sm:text-lg font-black text-slate-900">Market Research &amp; Competitor Spy</h2>
                     <p className="text-xs text-slate-500">Reverse-engineer bestselling books and reader demand</p>
                   </div>
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
                   Intelligence
                 </span>
               </div>
@@ -90,12 +90,12 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
               {/* Tool Item 1: Reverse ASIN Spy */}
               <div 
                 onClick={() => onNavigate('asin-spy')}
-                className="group p-4 rounded-2xl border border-slate-200 hover:border-purple-500 bg-slate-50/60 hover:bg-purple-50/40 transition-all cursor-pointer space-y-2"
+                className="group p-3.5 sm:p-4 rounded-xl border border-slate-200/80 hover:border-purple-500 bg-slate-50/70 hover:bg-purple-50/40 transition-all cursor-pointer space-y-1.5 shadow-2xs"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Compass size={18} className="text-purple-600" />
-                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-purple-700 transition-colors">
+                    <Compass size={16} className="text-purple-600" />
+                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-purple-700 transition-colors">
                       Reverse ASIN &amp; BSR Sales Spy
                     </h3>
                   </div>
@@ -111,12 +111,12 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
               {/* Tool Item 2: Review Pain-Point Miner */}
               <div 
                 onClick={() => onNavigate('review-miner')}
-                className="group p-4 rounded-2xl border border-slate-200 hover:border-rose-500 bg-slate-50/60 hover:bg-rose-50/40 transition-all cursor-pointer space-y-2"
+                className="group p-3.5 sm:p-4 rounded-xl border border-slate-200/80 hover:border-rose-500 bg-slate-50/70 hover:bg-rose-50/40 transition-all cursor-pointer space-y-1.5 shadow-2xs"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <AlertOctagon size={18} className="text-rose-600" />
-                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-rose-700 transition-colors">
+                    <AlertOctagon size={16} className="text-rose-600" />
+                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-rose-700 transition-colors">
                       Customer Review &amp; Pain-Point Miner
                     </h3>
                   </div>
@@ -132,12 +132,12 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
               {/* Tool Item 3: Niche Research Explorer */}
               <div 
                 onClick={() => onNavigate('research')}
-                className="group p-4 rounded-2xl border border-slate-200 hover:border-indigo-500 bg-slate-50/60 hover:bg-indigo-50/40 transition-all cursor-pointer space-y-2"
+                className="group p-3.5 sm:p-4 rounded-xl border border-slate-200/80 hover:border-indigo-500 bg-slate-50/70 hover:bg-indigo-50/40 transition-all cursor-pointer space-y-1.5 shadow-2xs"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Search size={18} className="text-indigo-600" />
-                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-indigo-700 transition-colors">
+                    <Search size={16} className="text-indigo-600" />
+                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-indigo-700 transition-colors">
                       Amazon 7-Keyword &amp; Category Explorer
                     </h3>
                   </div>
@@ -153,19 +153,19 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
           </div>
 
           {/* COLUMN 2: FINANCIAL & ROYALTY CALCULATORS */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl space-y-6 flex flex-col justify-between">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-5 flex flex-col justify-between">
+            <div className="space-y-3.5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
                     💰
                   </div>
                   <div>
-                    <h2 className="text-lg font-black text-slate-900">Royalty &amp; Print Cost Engines</h2>
+                    <h2 className="text-base sm:text-lg font-black text-slate-900">Royalty &amp; Print Cost Engines</h2>
                     <p className="text-xs text-slate-500">Official mathematical Amazon KDP pricing formulas</p>
                   </div>
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                   Financial
                 </span>
               </div>
@@ -238,22 +238,22 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
         </div>
 
         {/* COLUMN GROUP 2: ACTIVITY & PUZZLE STUDIOS (2 COLUMNS) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           
           {/* COLUMN 3: ALGORITHMIC PUZZLE GENERATORS */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl space-y-6 flex flex-col justify-between">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-5 flex flex-col justify-between">
+            <div className="space-y-3.5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
                     🧩
                   </div>
                   <div>
-                    <h2 className="text-lg font-black text-slate-900">Algorithmic Puzzle Studios</h2>
+                    <h2 className="text-base sm:text-lg font-black text-slate-900">Algorithmic Puzzle Studios</h2>
                     <p className="text-xs text-slate-500">Pure algorithmic generation with instant answer keys</p>
                   </div>
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
                   Vector Engine
                 </span>
               </div>
@@ -261,12 +261,12 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
               {/* Tool Item 1: Sudoku 9x9 Studio */}
               <div 
                 onClick={() => onNavigate('sudoku-generator')}
-                className="group p-4 rounded-2xl border border-slate-200 hover:border-purple-500 bg-slate-50/60 hover:bg-purple-50/40 transition-all cursor-pointer space-y-2"
+                className="group p-3.5 sm:p-4 rounded-xl border border-slate-200/80 hover:border-purple-500 bg-slate-50/70 hover:bg-purple-50/40 transition-all cursor-pointer space-y-1.5 shadow-2xs"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Grid3X3 size={18} className="text-purple-600" />
-                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-purple-700 transition-colors">
+                    <Grid3X3 size={16} className="text-purple-600" />
+                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-purple-700 transition-colors">
                       Classic 9×9 Sudoku Generator Studio
                     </h3>
                   </div>
@@ -282,12 +282,12 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
               {/* Tool Item 2: Clued Crossword Studio */}
               <div 
                 onClick={() => onNavigate('crossword-generator')}
-                className="group p-4 rounded-2xl border border-slate-200 hover:border-indigo-500 bg-slate-50/60 hover:bg-indigo-50/40 transition-all cursor-pointer space-y-2"
+                className="group p-3.5 sm:p-4 rounded-xl border border-slate-200/80 hover:border-indigo-500 bg-slate-50/70 hover:bg-indigo-50/40 transition-all cursor-pointer space-y-1.5 shadow-2xs"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Grid3X3 size={18} className="text-indigo-600" />
-                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-indigo-700 transition-colors">
+                    <Grid3X3 size={16} className="text-indigo-600" />
+                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-indigo-700 transition-colors">
                       Clued Crossword Puzzle Studio
                     </h3>
                   </div>
@@ -303,12 +303,12 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
               {/* Tool Item 3: Algorithmic Mazes */}
               <div 
                 onClick={() => onNavigate('maze-generator')}
-                className="group p-4 rounded-2xl border border-slate-200 hover:border-indigo-500 bg-slate-50/60 hover:bg-indigo-50/40 transition-all cursor-pointer space-y-2"
+                className="group p-3.5 sm:p-4 rounded-xl border border-slate-200/80 hover:border-indigo-500 bg-slate-50/70 hover:bg-indigo-50/40 transition-all cursor-pointer space-y-1.5 shadow-2xs"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Compass size={18} className="text-indigo-600" />
-                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-indigo-700 transition-colors">
+                    <Compass size={16} className="text-indigo-600" />
+                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-indigo-700 transition-colors">
                       Algorithmic Maze Generator Studio
                     </h3>
                   </div>
@@ -324,12 +324,12 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
               {/* Tool Item 4: Cryptograms & Ciphers */}
               <div 
                 onClick={() => onNavigate('cryptogram-generator')}
-                className="group p-4 rounded-2xl border border-slate-200 hover:border-purple-500 bg-slate-50/60 hover:bg-purple-50/40 transition-all cursor-pointer space-y-2"
+                className="group p-3.5 sm:p-4 rounded-xl border border-slate-200/80 hover:border-purple-500 bg-slate-50/70 hover:bg-purple-50/40 transition-all cursor-pointer space-y-1.5 shadow-2xs"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <KeyRound size={18} className="text-purple-600" />
-                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-purple-700 transition-colors">
+                    <KeyRound size={16} className="text-purple-600" />
+                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-purple-700 transition-colors">
                       Cryptogram &amp; Substitution Cipher Studio
                     </h3>
                   </div>
@@ -345,19 +345,19 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
           </div>
 
           {/* COLUMN 4: COLORING & ACTIVITY BOOK STUDIOS */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl space-y-6 flex flex-col justify-between">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-5 flex flex-col justify-between">
+            <div className="space-y-3.5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-pink-100 text-pink-700 flex items-center justify-center font-bold">
+                  <div className="w-9 h-9 rounded-xl bg-pink-100 text-pink-700 flex items-center justify-center font-bold">
                     🎨
                   </div>
                   <div>
-                    <h2 className="text-lg font-black text-slate-900">Coloring &amp; Activity Studios</h2>
+                    <h2 className="text-base sm:text-lg font-black text-slate-900">Coloring &amp; Activity Studios</h2>
                     <p className="text-xs text-slate-500">AI line art, word fit, and color-by-number generators</p>
                   </div>
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-pink-50 text-pink-700 border border-pink-200">
+                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-pink-50 text-pink-700 border border-pink-200">
                   Creative
                 </span>
               </div>
@@ -365,12 +365,12 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
               {/* Tool Item 1: Non-Fiction & Business */}
               <div 
                 onClick={() => onNavigate('nonfiction-studio')}
-                className="group p-4 rounded-2xl border border-slate-200 hover:border-indigo-500 bg-slate-50/60 hover:bg-indigo-50/40 transition-all cursor-pointer space-y-2"
+                className="group p-3.5 sm:p-4 rounded-xl border border-slate-200/80 hover:border-indigo-500 bg-slate-50/70 hover:bg-indigo-50/40 transition-all cursor-pointer space-y-1.5 shadow-2xs"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Briefcase size={18} className="text-indigo-600" />
-                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-indigo-700 transition-colors">
+                    <Briefcase size={16} className="text-indigo-600" />
+                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-indigo-700 transition-colors">
                       Non-Fiction &amp; Business Blueprint Studio
                     </h3>
                   </div>
@@ -386,12 +386,12 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
               {/* Tool Item 2: Fiction & Novel Outliner */}
               <div 
                 onClick={() => onNavigate('fiction-studio')}
-                className="group p-4 rounded-2xl border border-slate-200 hover:border-rose-500 bg-slate-50/60 hover:bg-rose-50/40 transition-all cursor-pointer space-y-2"
+                className="group p-3.5 sm:p-4 rounded-xl border border-slate-200/80 hover:border-rose-500 bg-slate-50/70 hover:bg-rose-50/40 transition-all cursor-pointer space-y-1.5 shadow-2xs"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <BookOpen size={18} className="text-rose-600" />
-                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-rose-700 transition-colors">
+                    <BookOpen size={16} className="text-rose-600" />
+                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-rose-700 transition-colors">
                       Fiction &amp; Novel Storyboard Studio
                     </h3>
                   </div>
@@ -407,12 +407,12 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
               {/* Tool Item 3: Interactive Workbooks */}
               <div 
                 onClick={() => onNavigate('workbook-studio')}
-                className="group p-4 rounded-2xl border border-slate-200 hover:border-sky-500 bg-slate-50/60 hover:bg-sky-50/40 transition-all cursor-pointer space-y-2"
+                className="group p-3.5 sm:p-4 rounded-xl border border-slate-200/80 hover:border-sky-500 bg-slate-50/70 hover:bg-sky-50/40 transition-all cursor-pointer space-y-1.5 shadow-2xs"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <FileText size={18} className="text-sky-600" />
-                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-sky-700 transition-colors">
+                    <FileText size={16} className="text-sky-600" />
+                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-sky-700 transition-colors">
                       Interactive Workbook &amp; Quiz Studio
                     </h3>
                   </div>
@@ -428,12 +428,12 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
               {/* Tool Item 4: Children's Books */}
               <div 
                 onClick={() => onNavigate('childrens-book-studio')}
-                className="group p-4 rounded-2xl border border-slate-200 hover:border-pink-500 bg-slate-50/60 hover:bg-pink-50/40 transition-all cursor-pointer space-y-2"
+                className="group p-3.5 sm:p-4 rounded-xl border border-slate-200/80 hover:border-pink-500 bg-slate-50/70 hover:bg-pink-50/40 transition-all cursor-pointer space-y-1.5 shadow-2xs"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Baby size={18} className="text-pink-600" />
-                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-pink-700 transition-colors">
+                    <Baby size={16} className="text-pink-600" />
+                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-pink-700 transition-colors">
                       Children's Illustrated Storyboard Studio
                     </h3>
                   </div>
@@ -449,12 +449,12 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
               {/* Tool Item 5: Cookbook Studio */}
               <div 
                 onClick={() => onNavigate('cookbook-studio')}
-                className="group p-4 rounded-2xl border border-slate-200 hover:border-amber-500 bg-slate-50/60 hover:bg-amber-50/40 transition-all cursor-pointer space-y-2"
+                className="group p-3.5 sm:p-4 rounded-xl border border-slate-200/80 hover:border-amber-500 bg-slate-50/70 hover:bg-amber-50/40 transition-all cursor-pointer space-y-1.5 shadow-2xs"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <UtensilsCrossed size={18} className="text-amber-600" />
-                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-amber-700 transition-colors">
+                    <UtensilsCrossed size={16} className="text-amber-600" />
+                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-amber-700 transition-colors">
                       Cookbook &amp; Structured Recipe Studio
                     </h3>
                   </div>
@@ -470,12 +470,12 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
               {/* Tool Item 6: Low-Content Planner */}
               <div 
                 onClick={() => onNavigate('planner-studio')}
-                className="group p-4 rounded-2xl border border-slate-200 hover:border-cyan-500 bg-slate-50/60 hover:bg-cyan-50/40 transition-all cursor-pointer space-y-2"
+                className="group p-3.5 sm:p-4 rounded-xl border border-slate-200/80 hover:border-cyan-500 bg-slate-50/70 hover:bg-cyan-50/40 transition-all cursor-pointer space-y-1.5 shadow-2xs"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Calendar size={18} className="text-cyan-600" />
-                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-cyan-700 transition-colors">
+                    <Calendar size={16} className="text-cyan-600" />
+                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-cyan-700 transition-colors">
                       Planners, Habit &amp; Journal Studio
                     </h3>
                   </div>
@@ -487,16 +487,15 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
                   Parametric vector daily productivity planners, 10-habit matrices, gratitude journals, and 5mm dot grid interiors with 0.75" gutter safe margins.
                 </p>
               </div>
-
-              {/* Tool Item 4: Coloring Books */}
+              {/* Tool Item 7: AI Coloring Books */}
               <div 
                 onClick={() => onNavigate('puzzles')}
-                className="group p-4 rounded-2xl border border-slate-200 hover:border-pink-500 bg-slate-50/60 hover:bg-pink-50/40 transition-all cursor-pointer space-y-2"
+                className="group p-3.5 sm:p-4 rounded-xl border border-slate-200/80 hover:border-pink-500 bg-slate-50/70 hover:bg-pink-50/40 transition-all cursor-pointer space-y-1.5 shadow-2xs"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Palette size={18} className="text-pink-600" />
-                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-pink-700 transition-colors">
+                    <Palette size={16} className="text-pink-600" />
+                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-pink-700 transition-colors">
                       AI Line Art Coloring Book Studio
                     </h3>
                   </div>
@@ -509,15 +508,15 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
                 </p>
               </div>
 
-              {/* Tool Item 5: Color By Number */}
+              {/* Tool Item 8: Color By Number */}
               <div 
                 onClick={() => onNavigate('puzzles')}
-                className="group p-4 rounded-2xl border border-slate-200 hover:border-amber-500 bg-slate-50/60 hover:bg-amber-50/40 transition-all cursor-pointer space-y-2"
+                className="group p-3.5 sm:p-4 rounded-xl border border-slate-200/80 hover:border-amber-500 bg-slate-50/70 hover:bg-amber-50/40 transition-all cursor-pointer space-y-1.5 shadow-2xs"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Hash size={18} className="text-amber-600" />
-                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-amber-700 transition-colors">
+                    <Hash size={16} className="text-amber-600" />
+                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-amber-700 transition-colors">
                       Color By Number Activity Studio
                     </h3>
                   </div>
@@ -530,15 +529,15 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
                 </p>
               </div>
 
-              {/* Tool Item 6: Word Fit Crosswords */}
+              {/* Tool Item 9: Word Fit Crosswords */}
               <div 
                 onClick={() => onNavigate('puzzles')}
-                className="group p-4 rounded-2xl border border-slate-200 hover:border-indigo-500 bg-slate-50/60 hover:bg-indigo-50/40 transition-all cursor-pointer space-y-2"
+                className="group p-3.5 sm:p-4 rounded-xl border border-slate-200/80 hover:border-indigo-500 bg-slate-50/70 hover:bg-indigo-50/40 transition-all cursor-pointer space-y-1.5 shadow-2xs"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Grid3X3 size={18} className="text-indigo-600" />
-                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-indigo-700 transition-colors">
+                    <Grid3X3 size={16} className="text-indigo-600" />
+                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-indigo-700 transition-colors">
                       Word Fit &amp; Fill-In Studio
                     </h3>
                   </div>
@@ -560,3 +559,4 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
     </div>
   );
 };
+

@@ -168,7 +168,7 @@ export const BillingPageView: React.FC<BillingPageViewProps> = ({ onNavigate }) 
       {/* ─────────────────────────────────────────
           SECTION 1 — Current Plan Overview
          ───────────────────────────────────────── */}
-      <div id="billing-current-plan" className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-xs">
+      <div id="billing-current-plan" className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 space-y-5 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2 flex-wrap">
@@ -185,7 +185,7 @@ export const BillingPageView: React.FC<BillingPageViewProps> = ({ onNavigate }) 
               )}
             </div>
 
-            <h3 className="text-2xl font-black text-slate-900 pt-1">
+            <h3 className="text-xl sm:text-2xl font-black text-slate-900 pt-1">
               {currentPlan === 'free'
                 ? 'Kindle Creator Free Tier'
                 : `Kindle Creator ${planNameUpper} Edition`}
@@ -203,9 +203,9 @@ export const BillingPageView: React.FC<BillingPageViewProps> = ({ onNavigate }) 
               id="billing-upgrade-plan-btn"
               type="button"
               onClick={() => checkout.open(currentPlan === 'free' ? 'pro' : 'agency')}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-purple-600/20 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-purple-600/20 transition-all cursor-pointer"
             >
-              <Sparkles size={16} />
+              <Sparkles size={15} />
               <span>{currentPlan === 'free' ? 'Upgrade Plan' : 'Change / Upgrade Plan'}</span>
             </button>
           </div>
@@ -213,7 +213,7 @@ export const BillingPageView: React.FC<BillingPageViewProps> = ({ onNavigate }) 
 
         {/* Subscription Meta Details Strip */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100">
-          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-1">
+          <div className="bg-slate-50 rounded-xl p-3.5 sm:p-4 border border-slate-100 space-y-1">
             <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Plan Cost</div>
             <div className="text-xl font-black text-slate-900">
               {currentPlan === 'free' 
@@ -225,7 +225,7 @@ export const BillingPageView: React.FC<BillingPageViewProps> = ({ onNavigate }) 
             </div>
           </div>
 
-          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-1">
+          <div className="bg-slate-50 rounded-xl p-3.5 sm:p-4 border border-slate-100 space-y-1">
             <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
               {isCancelled ? 'Access Valid Until' : 'Next Renewal Date'}
             </div>
@@ -237,7 +237,7 @@ export const BillingPageView: React.FC<BillingPageViewProps> = ({ onNavigate }) 
             </div>
           </div>
 
-          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-1">
+          <div className="bg-slate-50 rounded-xl p-3.5 sm:p-4 border border-slate-100 space-y-1">
             <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Payment Method</div>
             <div className="text-xl font-black text-slate-900">
               {userDoc?.paymentFailed ? 'Payment Issue' : isPaidPlan ? 'Card / UPI / Coffee' : 'Free Account'}
@@ -250,7 +250,7 @@ export const BillingPageView: React.FC<BillingPageViewProps> = ({ onNavigate }) 
 
         {/* Cancellation Message Banner if active */}
         {cancelSuccessMsg && (
-          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-3">
+          <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-3">
             <AlertCircle size={16} className="shrink-0 text-amber-600 mt-0.5" />
             <div>
               <strong>Cancellation confirmed:</strong> {cancelSuccessMsg}
@@ -262,10 +262,10 @@ export const BillingPageView: React.FC<BillingPageViewProps> = ({ onNavigate }) 
       {/* ─────────────────────────────────────────
           SECTION 2 — Usage This Month & Bonus Credits
          ───────────────────────────────────────── */}
-      <div id="billing-usage-section" className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-xs">
+      <div id="billing-usage-section" className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 space-y-5 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Monthly Usage Quotas</h3>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900">Monthly Usage Quotas</h3>
             <p className="text-xs text-slate-500">
               Real-time monitoring of your daily and monthly generation limits.
             </p>
@@ -289,7 +289,7 @@ export const BillingPageView: React.FC<BillingPageViewProps> = ({ onNavigate }) 
       {/* ─────────────────────────────────────────
           SECTION 3 — Payment History & Receipts
          ───────────────────────────────────────── */}
-      <div id="billing-payment-history" className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-xs">
+      <div id="billing-payment-history" className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 space-y-5 shadow-xs">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-bold text-slate-900">Payment History & Invoices</h3>
@@ -386,10 +386,10 @@ export const BillingPageView: React.FC<BillingPageViewProps> = ({ onNavigate }) 
       </div>
 
       {/* ─────────────────────────────────────────
-          SECTION 4 — Cancel Subscription Accordion
+          SECTION 4 — Cancellation Area (Accordion)
          ───────────────────────────────────────── */}
       {isPaidPlan && !isCancelled && (
-        <div id="billing-cancel-subscription" className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-4 shadow-xs">
+        <div id="billing-cancel-subscription" className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 space-y-4 shadow-xs">
           <button
             type="button"
             onClick={() => setIsCancelSectionOpen(!isCancelSectionOpen)}
@@ -410,7 +410,7 @@ export const BillingPageView: React.FC<BillingPageViewProps> = ({ onNavigate }) 
 
           {isCancelSectionOpen && (
             <div className="pt-4 border-t border-slate-100 space-y-5 animate-in fade-in duration-200">
-              <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
+              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
                 <strong>Important Notice:</strong> Your plan will remain active with full {planNameUpper} features until{' '}
                 <span className="font-bold">{planEndDateStr || 'the end of your current cycle'}</span>. After that, your account will move to the Free tier. Your books and projects are always preserved safely.
               </div>
@@ -470,7 +470,7 @@ export const BillingPageView: React.FC<BillingPageViewProps> = ({ onNavigate }) 
                   type="button"
                   disabled={confirmCancelText.trim() !== 'CANCEL' || isCancelling}
                   onClick={handleCancelSubscription}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white border border-rose-300 hover:bg-rose-50 text-rose-700 text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-rose-300 hover:bg-rose-50 text-rose-700 text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {isCancelling ? <Loader2 size={14} className="animate-spin" /> : null}
                   <span>Confirm Subscription Cancellation</span>
@@ -486,7 +486,7 @@ export const BillingPageView: React.FC<BillingPageViewProps> = ({ onNavigate }) 
          ───────────────────────────────────────── */}
       {selectedReceipt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="relative w-full max-w-lg bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden p-6 sm:p-8 space-y-6">
+          <div className="relative w-full max-w-lg bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden p-5 sm:p-6 space-y-5">
             
             {/* Close Button */}
             <button
