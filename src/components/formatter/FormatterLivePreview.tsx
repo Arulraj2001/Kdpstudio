@@ -5,13 +5,14 @@ import {
   FormatterStats,
 } from '../../types/formatter';
 import { cleanText } from '../../utils/generateDocx';
-import { BookOpen, AlertCircle, FileSpreadsheet, Eye } from 'lucide-react';
+import { BookOpen, Eye } from 'lucide-react';
 
 interface FormatterLivePreviewProps {
   blocks: ContentBlock[];
   settings: KdpFormatSettings;
   stats: FormatterStats;
   targetBlockIndex: number | null;
+  parsedButEmpty?: boolean;
 }
 
 export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
@@ -19,6 +20,7 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
   settings,
   stats,
   targetBlockIndex,
+  parsedButEmpty = false,
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -43,6 +45,7 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
       /^_{3,}$/.test(trimmed) ||
       /^[_\-—\s]{4,}$/.test(trimmed)
     ) {
+      if (!settings.addWritingLines) return null;
       return (
         <div className="my-1.5 space-y-1">
           <div className="preview-writing-lines" />
@@ -67,6 +70,7 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
         return <em key={idx}>{part.slice(1, -1)}</em>;
       }
       if (/^(\\_{3,}|_{3,})/.test(part)) {
+        if (!settings.addWritingLines) return null;
         return <div key={idx} className="preview-writing-lines my-1" />;
       }
       return part.replace(/\\_/g, '_');
@@ -122,6 +126,251 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
         : 'Georgia, serif',
   };
 
+  const renderToc = (chapterList: ContentBlock[]) => (
+    <div className="my-6 p-4 rounded-lg bg-slate-50 border border-slate-200/90 text-xs">
+      <div className="text-center font-bold text-xs uppercase tracking-widest text-slate-800 mb-3 border-b border-slate-200 pb-1.5">
+        Table of Contents
+      </div>
+      <div className="space-y-1.5">
+        {chapterList.map((ch, cIdx) => (
+          <div key={cIdx} className="flex items-center justify-between text-[10px] text-slate-700">
+            <span className={ch.type === 'part' ? 'font-bold text-slate-900' : 'font-medium truncate max-w-[200px]'}>
+              {cleanText(ch.text)}
+            </span>
+            <span className="text-slate-400 font-mono">. . . . . . . [ ... ]</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderBodyBlock = (block: ContentBlock, idx: number) => {
+    switch (block.type) {
+      case 'lines':
+        if (!settings.addWritingLines) return null;
+        return (
+          <div key={block.id || idx} id={`preview-block-${idx}`} className="my-2 space-y-1">
+            <div className="preview-writing-lines" />
+            <div className="preview-writing-lines" />
+            <div className="preview-writing-lines" />
+          </div>
+        );
+
+      case 'model_response':
+        if (settings.formatModelResponses) {
+          return (
+            <div key={block.id || idx} id={`preview-block-${idx}`} className="preview-model-response">
+              <div className="font-bold uppercase text-[8.5px] text-slate-600 mb-0.5 tracking-wider">
+                Model Response
+              </div>
+              <div>{renderFormattedText(cleanText(block.text).replace(/^MODEL RESPONSE[:—]?\s*/i, ''))}</div>
+            </div>
+          );
+        }
+        return (
+          <div key={block.id || idx} id={`preview-block-${idx}`} className="font-bold text-[10px] text-slate-800 my-1">
+            {cleanText(block.text)}
+          </div>
+        );
+
+      case 'debrief':
+        if (settings.formatDebriefBlocks) {
+          return (
+            <div key={block.id || idx} id={`preview-block-${idx}`} className="preview-debrief">
+              <div className="font-bold uppercase text-[8.5px] text-slate-600 mb-0.5 tracking-wider">
+                Debrief
+              </div>
+              <div>{renderFormattedText(cleanText(block.text).replace(/^DEBRIEF[:—]?\s*/i, ''))}</div>
+            </div>
+          );
+        }
+        return (
+          <div key={block.id || idx} id={`preview-block-${idx}`} className="font-bold text-[10px] text-slate-800 my-1">
+            {cleanText(block.text)}
+          </div>
+        );
+
+      case 'blank':
+        return <div key={block.id || idx} className="h-1.5" />;
+
+      case 'exercise_body':
+      case 'scenario_body':
+      case 'paragraph':
+      default:
+        return (
+          <p key={block.id || idx} id={`preview-block-${idx}`} className="preview-paragraph">
+            {renderFormattedText(block.text)}
+          </p>
+        );
+    }
+  };
+
+  const renderSingleBlock = (block: ContentBlock, idx: number, isTargeted: boolean) => {
+    switch (block.type) {
+      case 'title':
+        return (
+          <div
+            key={block.id}
+            id={`preview-block-${idx}`}
+            className="text-base font-black text-center uppercase tracking-tight my-5 text-slate-900 border-b-2 border-slate-900 pb-3"
+          >
+            {cleanText(block.text)}
+          </div>
+        );
+
+      case 'subtitle':
+        return (
+          <div
+            key={block.id}
+            id={`preview-block-${idx}`}
+            className="text-xs italic font-medium text-center text-slate-600 mb-5 max-w-[300px] mx-auto leading-relaxed"
+          >
+            {cleanText(block.text)}
+          </div>
+        );
+
+      case 'front_matter':
+        return (
+          <div
+            key={block.id}
+            id={`preview-block-${idx}`}
+            className="my-5 text-center"
+          >
+            <div className="text-[11px] font-bold uppercase tracking-widest text-slate-700 pb-1 border-b border-slate-300 inline-block px-3">
+              {cleanText(block.text)}
+            </div>
+          </div>
+        );
+
+      case 'part':
+        return (
+          <div
+            key={block.id}
+            id={`preview-block-${idx}`}
+            className="preview-part-header"
+          >
+            {cleanText(block.text)}
+          </div>
+        );
+
+      case 'chapter':
+        return (
+          <div
+            key={block.id}
+            id={`preview-block-${idx}`}
+            className={`preview-chapter ${isTargeted ? 'bg-purple-100/60 ring-2 ring-purple-400 rounded' : ''}`}
+          >
+            {cleanText(block.text)}
+          </div>
+        );
+
+      case 'section':
+        return (
+          <div
+            key={block.id}
+            id={`preview-block-${idx}`}
+            className="preview-section"
+          >
+            {cleanText(block.text)}
+          </div>
+        );
+
+      case 'subsection':
+        return (
+          <div
+            key={block.id}
+            id={`preview-block-${idx}`}
+            className="preview-subsection"
+          >
+            {cleanText(block.text)}
+          </div>
+        );
+
+      case 'model_response':
+        if (settings.formatModelResponses) {
+          return (
+            <div key={block.id} id={`preview-block-${idx}`} className="preview-model-response">
+              <div className="font-bold uppercase text-[8.5px] text-slate-600 mb-0.5 tracking-wider">
+                Model Response
+              </div>
+              <div>{renderFormattedText(cleanText(block.text).replace(/^MODEL RESPONSE[:—]?\s*/i, ''))}</div>
+            </div>
+          );
+        }
+        return (
+          <div key={block.id} id={`preview-block-${idx}`} className="font-bold text-[11px] text-slate-900 my-2">
+            {cleanText(block.text)}
+          </div>
+        );
+
+      case 'debrief':
+        if (settings.formatDebriefBlocks) {
+          return (
+            <div key={block.id} id={`preview-block-${idx}`} className="preview-debrief">
+              <div className="font-bold uppercase text-[8.5px] text-slate-600 mb-0.5 tracking-wider">
+                Debrief
+              </div>
+              <div>{renderFormattedText(cleanText(block.text).replace(/^DEBRIEF[:—]?\s*/i, ''))}</div>
+            </div>
+          );
+        }
+        return (
+          <div key={block.id} id={`preview-block-${idx}`} className="font-bold text-[11px] text-slate-900 my-2">
+            {cleanText(block.text)}
+          </div>
+        );
+
+      case 'reflection':
+        if (settings.formatReflectionPrompts) {
+          return (
+            <div key={block.id} id={`preview-block-${idx}`} className="preview-reflection">
+              <div className="font-bold text-[9px] text-slate-800 mb-0.5">Reflection Prompt</div>
+              <div>{renderFormattedText(block.text)}</div>
+            </div>
+          );
+        }
+        return (
+          <div key={block.id} id={`preview-block-${idx}`} className="font-bold text-[11px] text-slate-900 my-2">
+            {cleanText(block.text)}
+          </div>
+        );
+
+      case 'action':
+        return (
+          <div key={block.id} id={`preview-block-${idx}`} className="font-bold text-[11px] text-slate-900 my-2">
+            {cleanText(block.text)}
+          </div>
+        );
+
+      case 'lines':
+        if (!settings.addWritingLines) return null;
+        return (
+          <div key={block.id} id={`preview-block-${idx}`} className="my-2 space-y-1">
+            <div className="preview-writing-lines" />
+            <div className="preview-writing-lines" />
+            <div className="preview-writing-lines" />
+          </div>
+        );
+
+      case 'table':
+        return <div key={block.id} id={`preview-block-${idx}`}>{renderTable(block)}</div>;
+
+      case 'divider':
+        return <hr key={block.id} id={`preview-block-${idx}`} className="border-t border-slate-300 my-3" />;
+
+      case 'blank':
+        return <div key={block.id} className="h-2" />;
+
+      case 'paragraph':
+      default:
+        return (
+          <p key={block.id} id={`preview-block-${idx}`} className="preview-paragraph">
+            {renderFormattedText(block.text)}
+          </p>
+        );
+    }
+  };
+
   return (
     <div className="w-full lg:w-[400px] shrink-0 flex flex-col bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden max-h-[calc(100vh-140px)]">
       {/* 1. Preview Stats Bar */}
@@ -148,223 +397,140 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
           /* Empty State */
           <div className="h-full min-h-[400px] flex flex-col items-center justify-center p-6 text-center text-slate-400">
             <BookOpen size={40} className="mb-3 text-slate-300" />
-            <h4 className="text-sm font-bold text-slate-700 mb-1">Live KDP Print Preview</h4>
-            <p className="text-xs max-w-xs text-slate-500 leading-relaxed">
-              Paste or upload your manuscript on the left, then click <strong>"Parse &amp; Preview"</strong> to see the formatted book spread here.
-            </p>
+            {parsedButEmpty ? (
+              <>
+                <h4 className="text-sm font-bold text-amber-700 mb-1">No Structure Detected</h4>
+                <p className="text-xs max-w-xs text-slate-500 leading-relaxed">
+                  We couldn't detect any structure in your text. Make sure your chapter titles use <strong>#</strong> or <strong>##</strong> heading markers, or start with <strong>CHAPTER</strong>.
+                </p>
+              </>
+            ) : (
+              <>
+                <h4 className="text-sm font-bold text-slate-700 mb-1">Live KDP Print Preview</h4>
+                <p className="text-xs max-w-xs text-slate-500 leading-relaxed">
+                  Paste or upload your manuscript on the left, then click <strong>"Parse &amp; Preview"</strong> to see the formatted book spread here.
+                </p>
+              </>
+            )}
           </div>
         ) : (
           /* Styled Formatted Book Page */
-          <div className="preview-page" style={fontStyle}>
+          <div
+            className="preview-page"
+            style={{
+              ...fontStyle,
+              background: settings.paperColor === 'cream' ? '#F5F0E8' : 'white',
+            }}
+          >
             {/* Simulated Header */}
             <div className="text-[8px] font-bold text-slate-400 uppercase tracking-widest text-center border-b border-slate-200 pb-1.5 mb-4">
               {settings.title || 'KDP Studio Book'}
             </div>
 
-            {/* Block Loop */}
+            {/* Block Loop — pre-pass groups exercise+scenario headers with their body blocks */}
             {(() => {
+              type GroupedBlock =
+                | { kind: 'single'; block: ContentBlock; idx: number }
+                | { kind: 'exercise'; header: ContentBlock; headerIdx: number; bodyBlocks: { block: ContentBlock; idx: number }[] }
+                | { kind: 'scenario'; header: ContentBlock; headerIdx: number; bodyBlocks: { block: ContentBlock; idx: number }[] };
+
+              const grouped: GroupedBlock[] = [];
+              let gi = 0;
+              while (gi < blocks.length) {
+                const b = blocks[gi];
+                if (b.type === 'exercise_header') {
+                  const bodyBlocks: { block: ContentBlock; idx: number }[] = [];
+                  let bi = gi + 1;
+                  while (bi < blocks.length && ['exercise_body', 'lines', 'blank'].includes(blocks[bi].type)) {
+                    bodyBlocks.push({ block: blocks[bi], idx: bi });
+                    bi++;
+                  }
+                  grouped.push({ kind: 'exercise', header: b, headerIdx: gi, bodyBlocks });
+                  gi = bi;
+                } else if (b.type === 'scenario_header') {
+                  const bodyBlocks: { block: ContentBlock; idx: number }[] = [];
+                  let bi = gi + 1;
+                  while (bi < blocks.length && ['scenario_body', 'lines', 'blank', 'model_response', 'debrief'].includes(blocks[bi].type)) {
+                    bodyBlocks.push({ block: blocks[bi], idx: bi });
+                    bi++;
+                  }
+                  grouped.push({ kind: 'scenario', header: b, headerIdx: gi, bodyBlocks });
+                  gi = bi;
+                } else if (b.type === 'exercise_body' || b.type === 'scenario_body') {
+                  // If orphaned outside a header, still render as single block gracefully
+                  grouped.push({ kind: 'single', block: b, idx: gi });
+                  gi++;
+                } else {
+                  grouped.push({ kind: 'single', block: b, idx: gi });
+                  gi++;
+                }
+              }
+
               // TOC only lists actual chapters and parts (excludes front matter)
-              const firstChapterIdx = blocks.findIndex((b) => b.type === 'chapter' || b.type === 'part');
+              const firstChapterGroupIdx = grouped.findIndex(
+                (g) => g.kind === 'single' && (g.block.type === 'chapter' || g.block.type === 'part')
+              );
               const chapterList = blocks.filter((b) => b.type === 'chapter' || b.type === 'part');
 
-              return blocks.map((block, idx) => {
-                const isTargeted = targetBlockIndex === idx;
+              return grouped.map((item, gIdx) => {
                 const shouldRenderTocBefore =
                   settings.generateTocPlaceholder &&
-                  idx === firstChapterIdx &&
+                  gIdx === firstChapterGroupIdx &&
                   chapterList.length > 0;
 
-                const blockContent = (() => {
-                  switch (block.type) {
-                    case 'title':
-                      return (
-                        <div
-                          key={block.id}
-                          id={`preview-block-${idx}`}
-                          className="text-base font-black text-center uppercase tracking-tight my-5 text-slate-900 border-b-2 border-slate-900 pb-3"
-                        >
-                          {cleanText(block.text)}
-                        </div>
-                      );
-
-                    case 'subtitle':
-                      return (
-                        <div
-                          key={block.id}
-                          id={`preview-block-${idx}`}
-                          className="text-xs italic font-medium text-center text-slate-600 mb-5 max-w-[300px] mx-auto leading-relaxed"
-                        >
-                          {cleanText(block.text)}
-                        </div>
-                      );
-
-                    case 'front_matter':
-                      return (
-                        <div
-                          key={block.id}
-                          id={`preview-block-${idx}`}
-                          className="my-5 text-center"
-                        >
-                          <div className="text-[11px] font-bold uppercase tracking-widest text-slate-700 pb-1 border-b border-slate-300 inline-block px-3">
-                            {cleanText(block.text)}
+                if (item.kind === 'exercise') {
+                  const { header, headerIdx, bodyBlocks } = item;
+                  const isTargeted = targetBlockIndex === headerIdx;
+                  return (
+                    <React.Fragment key={header.id || headerIdx}>
+                      {shouldRenderTocBefore && renderToc(chapterList)}
+                      {settings.formatExerciseBoxes ? (
+                        <div id={`preview-block-${headerIdx}`} className={`preview-exercise ${isTargeted ? 'ring-2 ring-purple-400' : ''}`}>
+                          <div className="preview-exercise-header">{cleanText(header.text)}</div>
+                          <div className="preview-exercise-body">
+                            {bodyBlocks.map(({ block, idx }) => renderBodyBlock(block, idx))}
                           </div>
                         </div>
-                      );
-
-                    case 'part':
-                      return (
-                        <div
-                          key={block.id}
-                          id={`preview-block-${idx}`}
-                          className="preview-part-header"
-                        >
-                          {cleanText(block.text)}
+                      ) : (
+                        <div id={`preview-block-${headerIdx}`} className="my-3">
+                          <div className="font-bold text-[11px] text-slate-900 mb-1">{cleanText(header.text)}</div>
+                          {bodyBlocks.map(({ block, idx }) => renderBodyBlock(block, idx))}
                         </div>
-                      );
+                      )}
+                    </React.Fragment>
+                  );
+                }
 
-                    case 'chapter':
-                      return (
-                        <div
-                          key={block.id}
-                          id={`preview-block-${idx}`}
-                          className={`preview-chapter ${isTargeted ? 'bg-purple-100/60 ring-2 ring-purple-400 rounded' : ''}`}
-                        >
-                          {cleanText(block.text)}
-                        </div>
-                      );
-
-                    case 'section':
-                      return (
-                        <div
-                          key={block.id}
-                          id={`preview-block-${idx}`}
-                          className="preview-section"
-                        >
-                          {cleanText(block.text)}
-                        </div>
-                      );
-
-                    case 'subsection':
-                      return (
-                        <div
-                          key={block.id}
-                          id={`preview-block-${idx}`}
-                          className="preview-subsection"
-                        >
-                          {cleanText(block.text)}
-                        </div>
-                      );
-
-                    case 'exercise_header':
-                      return (
-                        <div key={block.id} id={`preview-block-${idx}`} className="preview-exercise">
-                          <div className="preview-exercise-header">{cleanText(block.text)}</div>
-                        </div>
-                      );
-
-                    case 'exercise_body':
-                      return (
-                        <div key={block.id} id={`preview-block-${idx}`} className="preview-exercise-body">
-                          <p className="preview-paragraph">{renderFormattedText(block.text)}</p>
-                        </div>
-                      );
-
-                    case 'scenario_header':
-                      return (
-                        <div key={block.id} id={`preview-block-${idx}`} className="preview-scenario">
-                          <div className="preview-scenario-header">{cleanText(block.text)}</div>
-                        </div>
-                      );
-
-                    case 'scenario_body':
-                      return (
-                        <div key={block.id} id={`preview-block-${idx}`} className="preview-scenario-body">
-                          <p className="preview-paragraph">{renderFormattedText(block.text)}</p>
-                        </div>
-                      );
-
-                    case 'model_response':
-                      return (
-                        <div key={block.id} id={`preview-block-${idx}`} className="preview-model-response">
-                          <div className="font-bold uppercase text-[8.5px] text-slate-600 mb-0.5 tracking-wider">
-                            Model Response
+                if (item.kind === 'scenario') {
+                  const { header, headerIdx, bodyBlocks } = item;
+                  const isTargeted = targetBlockIndex === headerIdx;
+                  return (
+                    <React.Fragment key={header.id || headerIdx}>
+                      {shouldRenderTocBefore && renderToc(chapterList)}
+                      {settings.formatScenarioBlocks ? (
+                        <div id={`preview-block-${headerIdx}`} className={`preview-scenario ${isTargeted ? 'ring-2 ring-purple-400' : ''}`}>
+                          <div className="preview-scenario-header">{cleanText(header.text)}</div>
+                          <div className="preview-scenario-body">
+                            {bodyBlocks.map(({ block, idx }) => renderBodyBlock(block, idx))}
                           </div>
-                          <div>{renderFormattedText(cleanText(block.text).replace(/^MODEL RESPONSE[:—]?\s*/i, ''))}</div>
                         </div>
-                      );
-
-                    case 'debrief':
-                      return (
-                        <div key={block.id} id={`preview-block-${idx}`} className="preview-debrief">
-                          <div className="font-bold uppercase text-[8.5px] text-slate-600 mb-0.5 tracking-wider">
-                            Debrief
-                          </div>
-                          <div>{renderFormattedText(cleanText(block.text).replace(/^DEBRIEF[:—]?\s*/i, ''))}</div>
+                      ) : (
+                        <div id={`preview-block-${headerIdx}`} className="my-3">
+                          <div className="font-bold text-[11px] text-slate-900 mb-1">{cleanText(header.text)}</div>
+                          {bodyBlocks.map(({ block, idx }) => renderBodyBlock(block, idx))}
                         </div>
-                      );
+                      )}
+                    </React.Fragment>
+                  );
+                }
 
-                    case 'reflection':
-                      return (
-                        <div key={block.id} id={`preview-block-${idx}`} className="preview-reflection">
-                          <div className="font-bold text-[9px] text-slate-800 mb-0.5">Reflection Prompt</div>
-                          <div>{renderFormattedText(block.text)}</div>
-                        </div>
-                      );
-
-                    case 'action':
-                      return (
-                        <div key={block.id} id={`preview-block-${idx}`} className="font-bold text-[11px] text-slate-900 my-2">
-                          {cleanText(block.text)}
-                        </div>
-                      );
-
-                    case 'lines':
-                      return (
-                        <div key={block.id} id={`preview-block-${idx}`} className="my-2 space-y-1">
-                          <div className="preview-writing-lines" />
-                          <div className="preview-writing-lines" />
-                          <div className="preview-writing-lines" />
-                        </div>
-                      );
-
-                    case 'table':
-                      return <div key={block.id} id={`preview-block-${idx}`}>{renderTable(block)}</div>;
-
-                    case 'divider':
-                      return <hr key={block.id} id={`preview-block-${idx}`} className="border-t border-slate-300 my-3" />;
-
-                    case 'blank':
-                      return <div key={block.id} className="h-2" />;
-
-                    case 'paragraph':
-                    default:
-                      return (
-                        <p key={block.id} id={`preview-block-${idx}`} className="preview-paragraph">
-                          {renderFormattedText(block.text)}
-                        </p>
-                      );
-                  }
-                })();
-
+                // Single block
+                const { block, idx } = item;
+                const isTargeted = targetBlockIndex === idx;
+                const blockContent = renderSingleBlock(block, idx, isTargeted);
                 return (
                   <React.Fragment key={block.id || idx}>
-                    {shouldRenderTocBefore && (
-                      <div className="my-6 p-4 rounded-lg bg-slate-50 border border-slate-200/90 text-xs">
-                        <div className="text-center font-bold text-xs uppercase tracking-widest text-slate-800 mb-3 border-b border-slate-200 pb-1.5">
-                          Table of Contents
-                        </div>
-                        <div className="space-y-1.5">
-                          {chapterList.map((ch, cIdx) => (
-                            <div key={cIdx} className="flex items-center justify-between text-[10px] text-slate-700">
-                              <span className={ch.type === 'part' ? 'font-bold text-slate-900' : 'font-medium truncate max-w-[200px]'}>
-                                {cleanText(ch.text)}
-                              </span>
-                              <span className="text-slate-400 font-mono">. . . . . . . [ ... ]</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    {shouldRenderTocBefore && renderToc(chapterList)}
                     {blockContent}
                   </React.Fragment>
                 );
@@ -383,9 +549,7 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
       <style>{`
         .preview-page {
           width: 350px;
-          background: white;
           padding: 28px 24px;
-          font-family: Georgia, serif;
           font-size: 11px;
           line-height: 1.25;
           color: #111;
@@ -431,8 +595,8 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
 
         .preview-exercise {
           border: 1px solid #000;
-          margin: 12px 0 0;
-          border-radius: 3px 3px 0 0;
+          margin: 12px 0;
+          border-radius: 3px;
           overflow: hidden;
         }
 
@@ -450,16 +614,12 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
         .preview-exercise-body {
           padding: 8px 10px;
           background: #FAFAFA;
-          border: 1px solid #000;
-          border-top: none;
-          border-radius: 0 0 3px 3px;
-          margin-bottom: 12px;
         }
 
         .preview-scenario {
           border: 1px solid #1A6B72;
-          margin: 12px 0 0;
-          border-radius: 3px 3px 0 0;
+          margin: 12px 0;
+          border-radius: 3px;
           overflow: hidden;
         }
 
@@ -476,10 +636,6 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
         .preview-scenario-body {
           padding: 8px 10px;
           background: #F4F9F9;
-          border: 1px solid #1A6B72;
-          border-top: none;
-          border-radius: 0 0 3px 3px;
-          margin-bottom: 12px;
         }
 
         .preview-model-response {

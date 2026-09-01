@@ -56,6 +56,7 @@ export const FormatterView: React.FC = () => {
     detectStructure(INITIAL_SAMPLE_MANUSCRIPT)
   );
   const [isParsing, setIsParsing] = useState<boolean>(false);
+  const [parsedButEmpty, setParsedButEmpty] = useState<boolean>(false);
   const [targetBlockIndex, setTargetBlockIndex] = useState<number | null>(null);
 
   // KDP Format Settings State
@@ -98,6 +99,7 @@ export const FormatterView: React.FC = () => {
     setTimeout(() => {
       const blocks = detectStructure(rawText);
       setParsedBlocks(blocks);
+      setParsedButEmpty(blocks.length === 0 && rawText.trim().length > 0);
       const { title, subtitle } = extractAutoMetadata(blocks);
       if (title || subtitle) {
         setSettings((prev) => ({
@@ -185,6 +187,7 @@ export const FormatterView: React.FC = () => {
             settings={settings}
             stats={stats}
             targetBlockIndex={targetBlockIndex}
+            parsedButEmpty={parsedButEmpty}
           />
         </div>
       </div>

@@ -165,3 +165,25 @@ test('parseInlineFormatting: splits bold and italic text tokens into TextRuns', 
   const boldRun = runs.find((r: any) => (r as any).root && (r as any).root[1]?.root?.bold);
   assert.ok(runs);
 });
+
+test('detectBlockType & detectStructure: correctly differentiates dividers from writing lines', () => {
+  assert.equal(detectBlockType('---'), BLOCK_TYPES.DIVIDER);
+  assert.equal(detectBlockType('-----'), BLOCK_TYPES.DIVIDER);
+  assert.equal(detectBlockType('___'), BLOCK_TYPES.WRITING_LINES);
+  assert.equal(detectBlockType('\\_\\_\\_\\_\\_'), BLOCK_TYPES.WRITING_LINES);
+
+  const blocks = detectStructure('Paragraph\n\n---\n\n## Chapter 1\n___');
+  const dividerBlock = blocks.find((b) => b.type === 'divider');
+  assert.ok(dividerBlock, 'Divider block must be detected separately from writing lines');
+});
+
+test('detectStructure: extracts inline model response text into body blocks', () => {
+  const text = `SCENARIO A: MEDICATION CHECK\nMODEL RESPONSE: "Doctor, I am requesting a hold on this potassium."\nDEBRIEF: Clear objective data.`;
+  const blocks = detectStructure(text);
+  const modelHeader = blocks.find((b) => b.type === 'model_response');
+  assert.ok(modelHeader);
+  const inlineBody = blocks.find((b) => b.metadata?.parentType === 'model_response');
+  assert.ok(inlineBody);
+  assert.ok(inlineBody.text.includes('Doctor, I am requesting'));
+});
+

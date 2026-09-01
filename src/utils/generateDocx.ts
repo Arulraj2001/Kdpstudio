@@ -486,7 +486,7 @@ export async function generateDocx(
         break;
 
       case 'chapter':
-        if (settings.chapterPageBreaks || docElements.length > 0) {
+        if (settings.chapterPageBreaks) {
           docElements.push(new Paragraph({ children: [new PageBreak()] }));
         }
         docElements.push(
@@ -573,66 +573,93 @@ export async function generateDocx(
         break;
 
       case 'model_response': {
-        const mrText = cleanText(block.text);
-        const p = new Paragraph({
-          children: [
-            new TextRun({
-              text: 'MODEL RESPONSE',
-              bold: true,
-              font: fontName,
-              size: Math.max(16, fontSize - 4),
-              allCaps: true,
-              color: '666666',
-            }),
-          ],
-          spacing: { before: 180, after: 60 },
-          border: {
-            left: { color: 'AAAAAA', style: BorderStyle.SINGLE, size: 18, space: 8 },
-          },
-        });
-        if (inScenario) currentScenarioBuffer.push(p);
-        else docElements.push(p);
+        if (settings.formatModelResponses) {
+          const p = new Paragraph({
+            children: [
+              new TextRun({
+                text: 'MODEL RESPONSE',
+                bold: true,
+                font: fontName,
+                size: Math.max(16, fontSize - 4),
+                allCaps: true,
+                color: '666666',
+              }),
+            ],
+            spacing: { before: 180, after: 60 },
+            border: {
+              left: { color: 'AAAAAA', style: BorderStyle.SINGLE, size: 18, space: 8 },
+            },
+          });
+          if (inScenario) currentScenarioBuffer.push(p);
+          else docElements.push(p);
+        } else {
+          // Toggle off: render as plain bold heading
+          const p = new Paragraph({
+            children: [new TextRun({ text: cleanText(block.text), bold: true, font: fontName, size: fontSize })],
+            spacing: { before: 120, after: 60 },
+          });
+          if (inScenario) currentScenarioBuffer.push(p);
+          else docElements.push(p);
+        }
         break;
       }
 
       case 'debrief': {
-        const p = new Paragraph({
-          children: [
-            new TextRun({
-              text: 'DEBRIEF',
-              bold: true,
-              font: fontName,
-              size: Math.max(16, fontSize - 4),
-              allCaps: true,
-              color: '555555',
-            }),
-          ],
-          spacing: { before: 180, after: 60 },
-          border: {
-            left: { color: '888888', style: BorderStyle.SINGLE, size: 18, space: 8 },
-          },
-        });
-        if (inScenario) currentScenarioBuffer.push(p);
-        else docElements.push(p);
+        if (settings.formatDebriefBlocks) {
+          const p = new Paragraph({
+            children: [
+              new TextRun({
+                text: 'DEBRIEF',
+                bold: true,
+                font: fontName,
+                size: Math.max(16, fontSize - 4),
+                allCaps: true,
+                color: '555555',
+              }),
+            ],
+            spacing: { before: 180, after: 60 },
+            border: {
+              left: { color: '888888', style: BorderStyle.SINGLE, size: 18, space: 8 },
+            },
+          });
+          if (inScenario) currentScenarioBuffer.push(p);
+          else docElements.push(p);
+        } else {
+          const p = new Paragraph({
+            children: [new TextRun({ text: cleanText(block.text), bold: true, font: fontName, size: fontSize })],
+            spacing: { before: 120, after: 60 },
+          });
+          if (inScenario) currentScenarioBuffer.push(p);
+          else docElements.push(p);
+        }
         break;
       }
 
       case 'reflection':
-        docElements.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: 'Reflection Prompt',
-                bold: true,
-                italics: true,
-                font: fontName,
-                size: fontSize,
-              }),
-            ],
-            spacing: { before: 240, after: 80 },
-            shading: { type: ShadingType.CLEAR, fill: 'F5F5F5' },
-          })
-        );
+        if (settings.formatReflectionPrompts) {
+          docElements.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: 'Reflection Prompt',
+                  bold: true,
+                  italics: true,
+                  font: fontName,
+                  size: fontSize,
+                }),
+              ],
+              spacing: { before: 240, after: 80 },
+              shading: { type: ShadingType.CLEAR, fill: 'F5F5F5' },
+            })
+          );
+        } else {
+          docElements.push(
+            new Paragraph({
+              children: [new TextRun({ text: cleanText(block.text), bold: true, font: fontName, size: fontSize })],
+              spacing: { before: 180, after: 60 },
+            })
+          );
+        }
         break;
 
       case 'action':

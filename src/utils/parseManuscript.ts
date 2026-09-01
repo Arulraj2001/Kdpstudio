@@ -23,10 +23,17 @@ export const BLOCK_TYPES: Record<string, BlockType> = {
   BLANK: 'blank',
 };
 
+// Front matter keyword pattern — centralised so detectStructure can also reference it
+const FRONT_MATTER_PATTERN =
+  /^##?\s+(COPYRIGHT|DISCLAIMER|CONTENTS|TABLE OF CONTENTS|DEDICATION|TITLE PAGE|ABOUT THE AUTHOR|PRAISE FOR|ACKNOWLEDGEMENTS?|PREFACE|A NOTE TO THE READER|NOTE TO THE READER|HOW TO USE|INTRODUCTION[:—]?|PROLOGUE|EPILOGUE|AFTERWORD|APPENDICES|APPENDIX)\b/i;
+
 /**
- * Detects the block type of an individual line with high-precedence semantic matching
+ * Detects the block type of an individual line with high-precedence semantic matching.
+ * Fixed order:
+ *   H1 → Front Matter → Workbook Elements → Table → Divider (BEFORE writing-lines) →
+ *   Writing Lines (underscore-only) → Blank → H2/H3/H4 → Fallbacks → Paragraph
  */
-export function detectBlockType(line: string, nextLine?: string): BlockType {
+export function detectBlockType(line: string, _nextLine?: string): BlockType {
   const trimmed = line.trim();
 
   // 1. Markdown H1
@@ -38,16 +45,13 @@ export function detectBlockType(line: string, nextLine?: string): BlockType {
     return BLOCK_TYPES.TITLE;
   }
 
-  // 2. Front & Back Matter (e.g. ## COPYRIGHT PAGE, ## DISCLAIMER, ## CONTENTS, ## A NOTE TO THE READER, ## HOW TO USE, ## INTRODUCTION)
-  if (
-    /^##?\s+(COPYRIGHT|DISCLAIMER|CONTENTS|TABLE OF CONTENTS|DEDICATION|TITLE PAGE|ABOUT THE AUTHOR|PRAISE FOR|ACKNOWLEDGEMENTS?|PREFACE|A NOTE TO THE READER|NOTE TO THE READER|HOW TO USE|INTRODUCTION|PROLOGUE|EPILOGUE|AFTERWORD|APPENDICES|APPENDIX)\b/i.test(
-      trimmed
-    )
-  ) {
+  // 2. Front & Back Matter — checked BEFORE generic ## so "## INTRODUCTION:" stays front_matter
+  if (FRONT_MATTER_PATTERN.test(trimmed)) {
     return BLOCK_TYPES.FRONT_MATTER;
   }
 
-  // 3. Special Workbook Elements (Matched BEFORE generic ### / ## / ** headings)
+  // 3. Special Workbook Elements — checked BEFORE generic ### / ## headings
+
   // Exercise block (handles `### EXERCISE 1.1`, `**Exercise 1.1**`, `EXERCISE 1.1:`)
   if (
     /^(###?\s+|\*\*)?(EXERCISE|Exercise)\s+\d+(\.\d+)?[:—\s]/i.test(trimmed) ||
@@ -80,7 +84,7 @@ export function detectBlockType(line: string, nextLine?: string): BlockType {
     return BLOCK_TYPES.DEBRIEF;
   }
 
-  // Reflection prompt (handles `### REFLECTION PROMPT`, `**Reflection Prompt:**`, `REFLECTION PROMPT:`)
+  // Reflection prompt (handles `### REFLECTION PROMPT`, `**Reflection Prompt:**`)
   if (/^(###?\s+|\*\*)?(REFLECTION PROMPT|Reflection Prompt|Reflection prompt)/i.test(trimmed)) {
     return BLOCK_TYPES.REFLECTION;
   }
@@ -95,19 +99,18 @@ export function detectBlockType(line: string, nextLine?: string): BlockType {
     return BLOCK_TYPES.TABLE;
   }
 
-  // 5. Writing lines (3+ underscores, escaped underscores \_\_\_\_, or continuous dashes)
+  // 5. Horizontal rule — MUST come BEFORE writing-lines so `---` is never swallowed
+  if (/^---+$/.test(trimmed) || /^\*\*\*+$/.test(trimmed)) {
+    return BLOCK_TYPES.DIVIDER;
+  }
+
+  // 6. Writing lines — underscore-only (dashes handled as dividers above)
   if (
     /^(\\_{1,}|_{1,}|\s){3,}$/.test(trimmed) ||
     /^_{3,}$/.test(trimmed) ||
-    /^\\_{3,}/.test(trimmed) ||
-    /^[_\-—\s]{4,}$/.test(trimmed)
+    /^\\_{3,}/.test(trimmed)
   ) {
     return BLOCK_TYPES.WRITING_LINES;
-  }
-
-  // 6. Horizontal rule
-  if (/^---+$/.test(trimmed) || /^\*\*\*+$/.test(trimmed)) {
-    return BLOCK_TYPES.DIVIDER;
   }
 
   // 7. Empty line
@@ -115,7 +118,7 @@ export function detectBlockType(line: string, nextLine?: string): BlockType {
     return BLOCK_TYPES.BLANK;
   }
 
-  // 8. Markdown Headings (Hierarchical chapters, sections, subsections)
+  // 8. Generic Markdown Headings (lower priority than workbook elements above)
   if (/^##\s+/.test(line)) {
     return BLOCK_TYPES.CHAPTER_HEADING;
   }
@@ -139,7 +142,7 @@ export function detectBlockType(line: string, nextLine?: string): BlockType {
 }
 
 /**
- * Parses raw manuscript text into structured and grouped ContentBlocks
+ * Parses raw manuscript text into structured and grouped ContentBlocks.
  */
 export function detectStructure(rawText: string): ContentBlock[] {
   if (!rawText || !rawText.trim()) {
@@ -162,12 +165,15 @@ export function detectStructure(rawText: string): ContentBlock[] {
     const nextLine = i + 1 < rawLines.length ? rawLines[i + 1] : undefined;
     let type = detectBlockType(line, nextLine);
 
-    // Contextual refinement for Subtitle following Title (before front matter / chapters)
-    if (hasTitle && !hasSubtitle && /^##\s+/.test(line)) {
+    // Contextual refinement: first ## line after the title that detectBlockType classified as
+    // CHAPTER_HEADING (i.e. not front_matter, not part) and has no chapter/part markers
+    // → promote to subtitle. Front matter is already handled by detectBlockType, so only
+    // generic chapter headings that look like subtitles are promoted here.
+    if (hasTitle && !hasSubtitle && /^##\s+/.test(line) && type === BLOCK_TYPES.CHAPTER_HEADING) {
       const content = line.replace(/^##\s+/, '').trim();
       if (
         !/^(CHAPTER\s+\d+|Chapter\s+\d+|PART\s+|Part\s+|\d+\.)/i.test(content) &&
-        !/^(COPYRIGHT|DISCLAIMER|CONTENTS|TABLE OF CONTENTS|DEDICATION|A NOTE TO THE READER|HOW TO USE|INTRODUCTION)\b/i.test(content)
+        !/^(COPYRIGHT|DISCLAIMER|CONTENTS|TABLE OF CONTENTS|DEDICATION|A NOTE TO THE READER|NOTE TO THE READER|HOW TO USE|INTRODUCTION|PROLOGUE|EPILOGUE|APPENDIX)/i.test(content)
       ) {
         type = 'subtitle';
         hasSubtitle = true;
@@ -180,7 +186,7 @@ export function detectStructure(rawText: string): ContentBlock[] {
       hasSubtitle = true;
     }
 
-    // 1. Table Grouping: Accumulate consecutive table rows
+    // 1. Table Grouping: accumulate consecutive table rows into one block
     if (type === 'table') {
       const tableLines: string[] = [line];
       while (i + 1 < rawLines.length && detectBlockType(rawLines[i + 1]) === 'table') {
@@ -197,7 +203,7 @@ export function detectStructure(rawText: string): ContentBlock[] {
       continue;
     }
 
-    // 2. Headings & Container Boundaries
+    // 2. Exercise / Scenario Headers open a container context
     if (type === 'exercise_header') {
       inExercise = true;
       inScenario = false;
@@ -222,13 +228,37 @@ export function detectStructure(rawText: string): ContentBlock[] {
       continue;
     }
 
-    // Check if new major structural boundary breaks active container
+    // Major structural boundary resets active container
     if (['title', 'part', 'chapter', 'section', 'subsection', 'front_matter', 'divider'].includes(type)) {
       inExercise = false;
       inScenario = false;
     }
 
-    // 3. Writing lines detection (including within exercises or body text)
+    // 3. Model response: emit header block + extract inline body text after the colon
+    if (type === 'model_response') {
+      blocks.push({
+        id: `block-${++blockCounter}`,
+        type: 'model_response',
+        text: line.trim(),
+      });
+      // Extract any inline body text appearing after "MODEL RESPONSE:" on the same line
+      const inlineBody = line.trim()
+        .replace(/^(---\s*\*\*Model\s+Response\*\*:?|MODEL RESPONSE|Model Response)[:—]?\s*/i, '')
+        .replace(/^\*\*/, '').replace(/\*\*$/, '')
+        .trim();
+      if (inlineBody && inlineBody.length > 2) {
+        blocks.push({
+          id: `block-${++blockCounter}`,
+          type: inScenario ? 'scenario_body' : inExercise ? 'exercise_body' : 'paragraph',
+          text: inlineBody,
+          metadata: { parentType: 'model_response' },
+        });
+      }
+      i++;
+      continue;
+    }
+
+    // 4. Writing lines
     if (type === 'lines') {
       blocks.push({
         id: `block-${++blockCounter}`,
@@ -239,7 +269,7 @@ export function detectStructure(rawText: string): ContentBlock[] {
       continue;
     }
 
-    // 4. Paragraph Grouping
+    // 5. Paragraph Grouping — consecutive paragraph lines merge into one block
     if (type === 'paragraph') {
       const paraLines: string[] = [line.trim()];
       while (
@@ -276,7 +306,7 @@ export function detectStructure(rawText: string): ContentBlock[] {
       continue;
     }
 
-    // 5. Standalone Special Blocks (Front Matter, Model Response, Debrief, Reflection, Divider, Blank)
+    // 6. All other block types emitted as-is
     blocks.push({
       id: `block-${++blockCounter}`,
       type,
@@ -290,7 +320,7 @@ export function detectStructure(rawText: string): ContentBlock[] {
 }
 
 /**
- * Auto-extracts Title and Subtitle from manuscript blocks
+ * Auto-extracts Title and Subtitle from manuscript blocks.
  */
 export function extractAutoMetadata(blocks: ContentBlock[]): { title: string; subtitle: string } {
   let title = '';
@@ -300,7 +330,7 @@ export function extractAutoMetadata(blocks: ContentBlock[]): { title: string; su
     const block = blocks[i];
     if (block.type === 'title' && !title) {
       title = block.text.replace(/^#\s*/, '').replace(/\*\*/g, '').trim();
-      // If next block is a subtitle or short non-heading paragraph, use as subtitle
+      // Look ahead for subtitle
       for (let j = i + 1; j < Math.min(blocks.length, i + 4); j++) {
         const next = blocks[j];
         if (next.type === 'subtitle') {
@@ -317,7 +347,7 @@ export function extractAutoMetadata(blocks: ContentBlock[]): { title: string; su
     }
   }
 
-  // Fallback to first chapter heading if no title
+  // Fallback to first chapter heading if no title found
   if (!title) {
     const firstChap = blocks.find((b) => b.type === 'chapter');
     if (firstChap) {
