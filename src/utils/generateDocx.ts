@@ -117,9 +117,9 @@ export async function generateDocx(
   function writingLine(): Paragraph {
     return new Paragraph({
       children: [new TextRun({ text: '', size: 36, font: fontName })],
-      spacing: { before: 80, after: 80 },
+      spacing: { before: 100, after: 100 },
       border: {
-        bottom: { color: '333333', space: 1, style: BorderStyle.SINGLE, size: 6 },
+        bottom: { color: 'CBD5E1', space: 1, style: BorderStyle.SINGLE, size: 6 },
       },
     });
   }
@@ -128,6 +128,14 @@ export async function generateDocx(
   function exerciseBox(headerText: string, bodyParagraphs: Paragraph[]): Table {
     return new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: {
+        top: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
+        bottom: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
+        left: { style: BorderStyle.SINGLE, size: 18, color: '64748B' },
+        right: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
+        insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: 'E2E8F0' },
+        insideVertical: { style: BorderStyle.NONE },
+      },
       rows: [
         new TableRow({
           children: [
@@ -177,9 +185,18 @@ export async function generateDocx(
   // Helper: scenario box with teal header (#1A6B72 for color, #333333 for B&W) and white text
   function scenarioBox(headerText: string, bodyParagraphs: Paragraph[]): Table {
     const isBw = settings.interiorColor === 'bw';
-    const headerFill = isBw ? '333333' : '1A6B72';
+    const headerFill = isBw ? '333333' : '0F766E';
+    const borderColor = isBw ? '64748B' : '0F766E';
     return new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: {
+        top: { style: BorderStyle.SINGLE, size: 4, color: borderColor },
+        bottom: { style: BorderStyle.SINGLE, size: 4, color: borderColor },
+        left: { style: BorderStyle.SINGLE, size: 18, color: borderColor },
+        right: { style: BorderStyle.SINGLE, size: 4, color: borderColor },
+        insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: 'E2E8F0' },
+        insideVertical: { style: BorderStyle.NONE },
+      },
       rows: [
         new TableRow({
           children: [
@@ -231,10 +248,17 @@ export async function generateDocx(
     title: string,
     body: string,
     fillColor: string,
+    borderColor: string,
     titleColor: string
   ): Table {
     return new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: {
+        top: { style: BorderStyle.SINGLE, size: 4, color: 'E2E8F0' },
+        bottom: { style: BorderStyle.SINGLE, size: 4, color: 'E2E8F0' },
+        left: { style: BorderStyle.SINGLE, size: 24, color: borderColor },
+        right: { style: BorderStyle.SINGLE, size: 4, color: 'E2E8F0' },
+      },
       rows: [
         new TableRow({
           children: [
@@ -307,6 +331,14 @@ export async function generateDocx(
 
     return new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: {
+        top: { style: BorderStyle.SINGLE, size: 8, color: 'CBD5E1' },
+        bottom: { style: BorderStyle.SINGLE, size: 8, color: 'CBD5E1' },
+        left: { style: BorderStyle.NONE },
+        right: { style: BorderStyle.NONE },
+        insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: 'E2E8F0' },
+        insideVertical: { style: BorderStyle.NONE },
+      },
       rows: rows.map((cells, rowIndex) =>
         new TableRow({
           children: cells.map(
@@ -504,10 +536,17 @@ export async function generateDocx(
       case 'title':
         docElements.push(
           new Paragraph({
-            text: cleanText(block.text),
-            heading: HeadingLevel.TITLE,
+            children: [
+              new TextRun({
+                text: cleanText(block.text),
+                bold: true,
+                font: fontName,
+                size: 48, // 24pt
+                color: '0F172A',
+              }),
+            ],
             alignment: AlignmentType.CENTER,
-            spacing: { before: 480, after: 240 },
+            spacing: { before: 1440, after: 200 },
           })
         );
         break;
@@ -521,32 +560,37 @@ export async function generateDocx(
                 italics: true,
                 font: fontName,
                 size: fontSize + 2,
+                color: '475569',
               }),
             ],
             alignment: AlignmentType.CENTER,
-            spacing: { before: 120, after: 360 },
+            spacing: { before: 80, after: 480 },
           })
         );
         break;
 
-      case 'front_matter':
+      case 'front_matter': {
+        const fmText = cleanText(block.text);
+        const isDedication = /DEDICATION/i.test(fmText);
         docElements.push(new Paragraph({ children: [new PageBreak()] }));
         docElements.push(
           new Paragraph({
             children: [
               new TextRun({
-                text: cleanText(block.text),
+                text: fmText,
                 bold: true,
                 font: fontName,
-                size: 28, // 14pt
+                size: 24, // 12pt
                 allCaps: true,
+                color: '475569',
               }),
             ],
             alignment: AlignmentType.CENTER,
-            spacing: { before: 720, after: 360 },
+            spacing: { before: isDedication ? 1800 : 720, after: 360 },
           })
         );
         break;
+      }
 
       case 'part':
         docElements.push(new Paragraph({ children: [new PageBreak()] }));
@@ -701,7 +745,7 @@ export async function generateDocx(
       case 'model_response': {
         const bodyText = cleanText(block.text).replace(/^MODEL RESPONSE[:—]?\s*/i, '');
         if (settings.formatModelResponses) {
-          const card = calloutCard('MODEL RESPONSE', bodyText, 'F8FAFC', '0284C7');
+          const card = calloutCard('MODEL RESPONSE', bodyText, 'F8FAFC', '0284C7', '0369A1');
           if (inScenario) currentScenarioBuffer.push(card as any);
           else docElements.push(card);
         } else {
@@ -718,7 +762,7 @@ export async function generateDocx(
       case 'debrief': {
         const bodyText = cleanText(block.text).replace(/^DEBRIEF[:—]?\s*/i, '');
         if (settings.formatDebriefBlocks) {
-          const card = calloutCard('DEBRIEF', bodyText, 'FAF5FF', '9333EA');
+          const card = calloutCard('DEBRIEF', bodyText, 'FAF5FF', '9333EA', '6B21A8');
           if (inScenario) currentScenarioBuffer.push(card as any);
           else docElements.push(card);
         } else {
@@ -734,7 +778,7 @@ export async function generateDocx(
 
       case 'reflection': {
         if (settings.formatReflectionPrompts) {
-          const card = calloutCard('REFLECTION PROMPT', block.text, 'FFFBEB', 'D97706');
+          const card = calloutCard('REFLECTION PROMPT', block.text, 'FFFBEB', 'D97706', '92400E');
           docElements.push(card);
         } else {
           docElements.push(
@@ -749,7 +793,7 @@ export async function generateDocx(
 
       case 'action': {
         const bodyText = cleanText(block.text).replace(/^ACTION PLAN[:—]?\s*/i, '');
-        const card = calloutCard('📋 ACTION PLAN', bodyText, 'FEF3C7', 'B45309');
+        const card = calloutCard('📋 ACTION PLAN', bodyText, 'FEF3C7', 'F59E0B', '78350F');
         if (inExercise) currentExerciseBuffer.push(card as any);
         else if (inScenario) currentScenarioBuffer.push(card as any);
         else docElements.push(card);
@@ -758,14 +802,14 @@ export async function generateDocx(
 
       case 'key_takeaways': {
         const bodyText = cleanText(block.text).replace(/^(KEY TAKEAWAYS|Key Takeaways|SUMMARY|Summary|IN SUMMARY)[:—]?\s*/i, '');
-        const card = calloutCard('✦ KEY TAKEAWAYS', bodyText, 'ECFDF5', '047857');
+        const card = calloutCard('✦ KEY TAKEAWAYS', bodyText, 'ECFDF5', '059669', '065F46');
         docElements.push(card);
         break;
       }
 
       case 'quote': {
         const bodyText = cleanText(block.text).replace(/^>\s*/, '');
-        const card = calloutCard('QUOTE', bodyText, 'F8FAFC', '7C3AED');
+        const card = calloutCard('QUOTE', bodyText, 'F8FAFC', '7C3AED', '475569');
         docElements.push(card);
         break;
       }

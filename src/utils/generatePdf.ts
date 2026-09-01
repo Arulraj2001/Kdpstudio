@@ -174,6 +174,8 @@ export async function generatePdf(
   let inScenario = false;
   let exerciseX = marginInside;
   let exerciseW = contentW;
+  let scenarioX = marginInside;
+  let scenarioW = contentW;
 
   for (let i = 0; i < blocks.length; i++) {
     const block = blocks[i];
@@ -184,6 +186,8 @@ export async function generatePdf(
       inScenario = false;
       exerciseX = marginInside;
       exerciseW = contentW;
+      scenarioX = marginInside;
+      scenarioW = contentW;
     }
 
     // Emit generated TOC before first part/chapter (if manuscript doesn't have one)
