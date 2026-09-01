@@ -118,6 +118,9 @@ import { PlannerGeneratorView } from '../studios/PlannerGeneratorView';
 import { NonFictionStudioView } from '../studios/NonFictionStudioView';
 import { FictionStudioView } from '../studios/FictionStudioView';
 import { WorkbookStudioView } from '../studios/WorkbookStudioView';
+import { ArcLoungePageView } from '../arc/ArcLoungePageView';
+import { AuthorArcManagerView } from '../arc/AuthorArcManagerView';
+import { NewsletterSwapHubView } from '../arc/NewsletterSwapHubView';
 import { useGeoStore } from '../../lib/geoStore';
 import { useAuthStore } from '../../lib/authStore';
 import { useBookStore } from '../../lib/store';
@@ -129,6 +132,9 @@ export const ROUTE_PATH_MAP: Record<PageRoute, string> = {
   features: '/features',
   pricing: '/pricing',
   tools: '/tools',
+  'arc-lounge': '/arc-lounge',
+  'arc-manager': '/arc-manager',
+  'newsletter-swaps': '/newsletter-swaps',
   about: '/about',
   terms: '/terms',
   privacy: '/privacy',
@@ -447,7 +453,7 @@ export const AppShell: React.FC = () => {
     const isPublicMarketingRoute = [
       'home', 'features', 'pricing', 'tools', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'blog-detail', 'launch', 'payment-success',
       'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator', 'sudoku-generator', 'crossword-generator',
-      'childrens-book-studio', 'cookbook-studio', 'planner-studio', 'nonfiction-studio', 'fiction-studio', 'workbook-studio'
+      'childrens-book-studio', 'cookbook-studio', 'planner-studio', 'nonfiction-studio', 'fiction-studio', 'workbook-studio', 'arc-lounge'
     ].includes(currentRoute);
 
     const isAuth = ['login', 'signup', 'forgot-password', 'verify-email'].includes(currentRoute);
@@ -1194,6 +1200,10 @@ export const AppShell: React.FC = () => {
               )}
 
               {currentRoute === 'brand-kit' && <BrandKitView />}
+
+              {currentRoute === 'arc-lounge' && <ArcLoungePageView user={user} onNavigate={handleNavigate} />}
+              {currentRoute === 'arc-manager' && <AuthorArcManagerView user={user} onNavigate={handleNavigate} />}
+              {currentRoute === 'newsletter-swaps' && <NewsletterSwapHubView user={user} onNavigate={handleNavigate} />}
 
               {currentRoute === 'settings' && <SettingsView onNavigate={handleNavigate} />}
 

@@ -525,6 +525,162 @@ ${posts.map((p) => {
     }
   });
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ARC READER LOUNGE & NEWSLETTER CROSS-PROMO API (100% Amazon/FTC Compliant)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // Browse Public ARC Lounge
+  app.get('/api/arc/browse', async (req, res) => {
+    try {
+      const { genre, search } = req.query as { genre?: string; search?: string };
+      const { getPublicArcCampaigns } = await import('./src/lib/arcService');
+      const campaigns = await getPublicArcCampaigns(genre, search);
+      return res.json({ success: true, count: campaigns.length, campaigns });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Failed to browse ARC Lounge' });
+    }
+  });
+
+  // Author Creates ARC Campaign
+  app.post('/api/arc/campaigns', async (req, res) => {
+    try {
+      const authorId = await requireVerifiedUser(req, res);
+      if (!authorId) return;
+
+      const { title, genre, blurb, totalSlots, reviewWindowDays, amazonAsin, amazonUrl, format, watermarkingEnabled, screeningQuestion } = req.body || {};
+      if (!title || !genre || !blurb) {
+        return res.status(400).json({ error: 'Title, genre, and blurb are required' });
+      }
+
+      const { createArcCampaign } = await import('./src/lib/arcService');
+      const campaign = await createArcCampaign(authorId, {
+        authorName: req.body.authorName || 'Independent Author',
+        authorEmail: req.body.authorEmail,
+        bookId: req.body.bookId,
+        title,
+        subtitle: req.body.subtitle,
+        coverUrl: req.body.coverUrl,
+        genre,
+        blurb,
+        pageCount: Number(req.body.pageCount) || 150,
+        format: format || 'both',
+        totalSlots: Math.min(Math.max(Number(totalSlots) || 25, 5), 500),
+        reviewWindowDays: Number(reviewWindowDays) || 14,
+        amazonAsin,
+        amazonUrl,
+        watermarkingEnabled: !!watermarkingEnabled,
+        targetMarketplace: req.body.targetMarketplace || 'US',
+        status: 'active',
+        tags: Array.isArray(req.body.tags) ? req.body.tags : [],
+        screeningQuestion,
+      });
+
+      return res.status(201).json({ success: true, campaign });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Failed to create ARC campaign' });
+    }
+  });
+
+  // Reader Claims ARC Copy
+  app.post('/api/arc/claim', async (req, res) => {
+    try {
+      const { campaignId, readerEmail, readerName, answer } = req.body || {};
+      if (!campaignId || !readerEmail) {
+        return res.status(400).json({ error: 'campaignId and readerEmail are required' });
+      }
+
+      const { getPublicArcCampaigns, claimArcCopy } = await import('./src/lib/arcService');
+      const all = await getPublicArcCampaigns();
+      const campaign = all.find((c) => c.id === campaignId);
+      if (!campaign) {
+        return res.status(404).json({ error: 'Campaign not found' });
+      }
+      if (campaign.claimedSlots >= campaign.totalSlots) {
+        return res.status(400).json({ error: 'All ARC slots for this book have been claimed' });
+      }
+
+      const readerId = req.headers['x-user-id'] ? String(req.headers['x-user-id']) : `reader-${Date.now()}`;
+      const claim = await claimArcCopy(campaign, {
+        uid: readerId,
+        email: readerEmail,
+        name: readerName || readerEmail.split('@')[0],
+        answer,
+      });
+
+      return res.status(201).json({
+        success: true,
+        claim,
+        ftcDisclaimer: "I received an Advance Review Copy of this book from KDP Studio and am leaving this review voluntarily.",
+      });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Failed to claim ARC copy' });
+    }
+  });
+
+  // Reader Submits Voluntary Review Proof
+  app.post('/api/arc/submit-review', async (req, res) => {
+    try {
+      const { claimId, reviewUrl, rating, feedback } = req.body || {};
+      if (!claimId || !reviewUrl) {
+        return res.status(400).json({ error: 'claimId and reviewUrl are required' });
+      }
+
+      const { submitVoluntaryReview } = await import('./src/lib/arcService');
+      await submitVoluntaryReview(claimId, reviewUrl, rating ? Number(rating) : undefined, feedback);
+
+      return res.json({ success: true, message: 'Review proof submitted successfully. Thank you for supporting the author!' });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Failed to submit review proof' });
+    }
+  });
+
+  // Author Proposes Newsletter Swap
+  app.post('/api/promo/propose', async (req, res) => {
+    try {
+      const requesterAuthorId = await requireVerifiedUser(req, res);
+      if (!requesterAuthorId) return;
+
+      const { proposeNewsletterSwap } = await import('./src/lib/arcService');
+      const swap = await proposeNewsletterSwap({
+        requesterAuthorId,
+        requesterAuthorName: req.body.requesterAuthorName || 'Author',
+        requesterBookTitle: req.body.requesterBookTitle || 'Untitled Book',
+        requesterAmazonUrl: req.body.requesterAmazonUrl || '',
+        requesterNewsletterSize: Number(req.body.requesterNewsletterSize) || 200,
+        requesterGenre: req.body.requesterGenre || 'Fiction',
+        targetDateForRequester: req.body.targetDateForRequester || new Date().toISOString().split('T')[0],
+
+        recipientAuthorId: req.body.recipientAuthorId || 'demo-peer',
+        recipientAuthorName: req.body.recipientAuthorName || 'Peer Author',
+        recipientBookTitle: req.body.recipientBookTitle || 'Peer Book',
+        recipientAmazonUrl: req.body.recipientAmazonUrl || '',
+        recipientNewsletterSize: Number(req.body.recipientNewsletterSize) || 200,
+        recipientGenre: req.body.recipientGenre || 'Fiction',
+        targetDateForRecipient: req.body.targetDateForRecipient || new Date().toISOString().split('T')[0],
+        notes: req.body.notes,
+      });
+
+      return res.status(201).json({ success: true, swap });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Failed to propose newsletter swap' });
+    }
+  });
+
+  // Anonymous Click Redirect for Newsletter Cross-Promotion Links
+  app.get('/go/:token', async (req, res) => {
+    try {
+      const token = req.params.token;
+      const { recordSwapClick } = await import('./src/lib/arcService');
+      const targetUrl = await recordSwapClick(token);
+      if (targetUrl) {
+        return res.redirect(302, targetUrl);
+      }
+      return res.redirect(302, '/arc-lounge');
+    } catch {
+      return res.redirect(302, '/arc-lounge');
+    }
+  });
+
   // Newsletter Double Opt-In Subscribe
   app.post('/api/newsletter/subscribe', async (req, res) => {
     try {

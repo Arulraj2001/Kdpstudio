@@ -25,7 +25,8 @@ import {
   UtensilsCrossed,
   Calendar,
   Briefcase,
-  FileText
+  FileText,
+  Users
 } from 'lucide-react';
 import { PageRoute } from '../../types';
 import { useAuthStore } from '../../lib/authStore';
@@ -105,6 +106,8 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'puzzles', label: 'Puzzles Suite', icon: Puzzle, badge: 'Updated' },
   { id: 'bulk', label: 'Bulk Generator', icon: BatchLayersIcon, badge: 'Agency' },
   { id: 'publish', label: 'Publish Checklist', icon: ShieldCheck },
+  { id: 'arc-manager', label: 'ARC Campaigns', icon: BookOpen, badge: 'New' },
+  { id: 'newsletter-swaps', label: 'Cross-Promos', icon: Users, badge: 'New' },
   { id: 'brand-kit', label: 'Brand Kit', icon: Palette },
   { id: 'billing', label: 'Billing & Plan', icon: CreditCard },
   { id: 'settings', label: 'Settings', icon: Settings },

@@ -383,6 +383,17 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
               Pricing
             </button>
             <button
+              onClick={() => handleNav('arc-lounge')}
+              className={`hover:text-purple-600 transition-colors cursor-pointer flex items-center gap-1.5 ${
+                currentRoute === 'arc-lounge' ? 'text-purple-600 font-bold' : ''
+              }`}
+            >
+              <span>ARC Lounge</span>
+              <span className="px-1.5 py-0.2 rounded-full text-[9px] font-extrabold uppercase bg-purple-100 text-purple-800 border border-purple-200">
+                New
+              </span>
+            </button>
+            <button
               onClick={() => handleNav('blog')}
               className={`hover:text-purple-600 transition-colors cursor-pointer ${
                 currentRoute === 'blog' ? 'text-purple-600 font-bold' : ''
@@ -502,6 +513,15 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
               className="text-2xl font-bold text-slate-200 hover:text-purple-400 transition-colors"
             >
               Pricing
+            </button>
+            <button
+              onClick={() => handleNav('arc-lounge')}
+              className="text-2xl font-bold text-purple-400 hover:text-purple-300 transition-colors flex items-center gap-2"
+            >
+              <span>📖 ARC Reader Lounge</span>
+              <span className="text-xs bg-purple-900 text-purple-200 px-2 py-0.5 rounded-full border border-purple-600">
+                New
+              </span>
             </button>
             <button
               onClick={() => handleNav('blog')}
