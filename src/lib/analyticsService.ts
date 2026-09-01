@@ -15,6 +15,7 @@ import {
   where,
   orderBy,
   runTransaction,
+  writeBatch,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import {
@@ -255,6 +256,86 @@ export async function addPerformanceEntry(
   await updateGoalProgress(uid).catch(() => {});
 
   return id;
+}
+
+/**
+ * Enterprise Batch Ingestion for Performance Entries with Hash Deduplication
+ */
+export async function batchAddPerformanceEntries(
+  uid: string,
+  entries: Omit<BookPerformanceEntry, 'id' | 'createdAt' | 'updatedAt' | 'netUnitsSold' | 'revenueUSD'>[]
+): Promise<{ added: number; skipped: number }> {
+  if (!entries || entries.length === 0) return { added: 0, skipped: 0 };
+
+  const existingLocal = getLocal<BookPerformanceEntry>(STORAGE_KEYS.ENTRIES);
+  const existingKeys = new Set(
+    existingLocal.map(
+      (e) => `${e.uid}_${e.bookId}_${e.date}_${e.marketplace}_${e.royaltyType}_${e.unitsSold}_${e.royaltyEarned}`
+    )
+  );
+
+  const newEntries: BookPerformanceEntry[] = [];
+  const affectedBookIds = new Set<string>();
+  let skipped = 0;
+
+  const now = new Date().toISOString();
+
+  for (const entry of entries) {
+    const key = `${uid}_${entry.bookId}_${entry.date}_${entry.marketplace}_${entry.royaltyType}_${entry.unitsSold}_${entry.royaltyEarned}`;
+    if (existingKeys.has(key)) {
+      skipped++;
+      continue;
+    }
+    existingKeys.add(key);
+
+    const id = `ent_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    const netUnitsSold = (entry.unitsSold || 0) - (entry.unitsReturned || 0);
+    const revenueUSD = convertToUSD(entry.royaltyEarned || 0, entry.currency || 'USD');
+
+    newEntries.push({
+      ...entry,
+      id,
+      uid,
+      netUnitsSold,
+      revenueUSD,
+      createdAt: now,
+      updatedAt: now,
+    });
+    if (entry.bookId) affectedBookIds.add(entry.bookId);
+  }
+
+  if (newEntries.length === 0) {
+    return { added: 0, skipped };
+  }
+
+  // Firestore writeBatch in chunks of 450
+  if (db) {
+    try {
+      const CHUNK_SIZE = 450;
+      for (let i = 0; i < newEntries.length; i += CHUNK_SIZE) {
+        const chunk = newEntries.slice(i, i + CHUNK_SIZE);
+        const batch = writeBatch(db);
+        for (const item of chunk) {
+          batch.set(doc(db, 'performanceEntries', item.id), item);
+        }
+        await batch.commit();
+      }
+    } catch (err) {
+      console.warn('[AnalyticsService] Firestore batch write fallback:', err);
+    }
+  }
+
+  // Save to local storage
+  setLocal(STORAGE_KEYS.ENTRIES, [...newEntries, ...existingLocal]);
+
+  // Recalculate affected book totals & streaks
+  for (const bId of affectedBookIds) {
+    await updateBookTotals(uid, bId).catch(() => {});
+  }
+  await updatePublishingStreak(uid).catch(() => {});
+  await updateGoalProgress(uid).catch(() => {});
+
+  return { added: newEntries.length, skipped };
 }
 
 /**

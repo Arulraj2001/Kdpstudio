@@ -750,6 +750,10 @@ export const CoverBuilderView: React.FC = () => {
         const imgElement = new Image();
         imgElement.src = dataUrl;
         imgElement.onload = () => {
+          const imgW = imgElement.naturalWidth || imgElement.width || 1000;
+          const imgH = imgElement.naturalHeight || imgElement.height || 1000;
+          const effectiveDpi = Math.round((imgW / canvasWidthPx) * 300);
+
           const fabricImg = new fabric.FabricImage(imgElement, {
             left: canvasWidthPx / 2,
             top: canvasHeightPx / 2,

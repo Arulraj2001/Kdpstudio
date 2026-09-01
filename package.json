@@ -13,7 +13,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "node --import tsx --test tests/payment-smoke.test.ts",
+    "test": "node --import tsx --test tests/payment-smoke.test.ts tests/import-engine.test.ts",
     "generate-icons": "node scripts/generate-pwa-assets.cjs",
     "inject-sw": "node scripts/inject-sw-config.cjs"
   },
@@ -45,6 +45,7 @@
     "jspdf": "^4.2.1",
     "jszip": "^3.10.1",
     "lucide-react": "^0.546.0",
+    "mammoth": "^1.12.2",
     "motion": "^12.23.24",
     "papaparse": "^5.7.0",
     "puppeteer": "^25.9.0",
@@ -59,6 +60,7 @@
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.3",
+    "xlsx": "^0.18.5",
     "zustand": "^5.0.15"
   }
 }

@@ -19,8 +19,8 @@ import {
   Plus,
 } from 'lucide-react';
 import { PublishedBook, ParsedKdpReport, BookPerformanceEntry } from '../../types/analytics';
-import { parseKdpRoyaltyReport } from '../../lib/kdpCsvParser';
-import { addPerformanceEntry, addPublishedBook } from '../../lib/analyticsService';
+import { parseKdpReportFile } from '../../lib/kdpCsvParser';
+import { batchAddPerformanceEntries, addPublishedBook } from '../../lib/analyticsService';
 import { useToastStore } from '../../lib/toastStore';
 
 interface CsvImportModalProps {
@@ -53,37 +53,35 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleFileUpload = (file: File) => {
-    if (!file.name.endsWith('.csv')) {
-      alert('Please upload a valid .csv file');
+  const handleFileUpload = async (file: File) => {
+    const lowerName = file.name.toLowerCase();
+    if (!lowerName.endsWith('.csv') && !lowerName.endsWith('.xlsx') && !lowerName.endsWith('.xls')) {
+      alert('Please upload a valid .csv or .xlsx Amazon KDP report file');
       return;
     }
 
     setCsvFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const content = e.target?.result as string;
-      if (content) {
-        const report = parseKdpRoyaltyReport(content);
-        setParsedReport(report);
+    try {
+      const report = await parseKdpReportFile(file);
+      setParsedReport(report);
 
-        // Auto-match titles if exact/partial match exists in publishedBooks
-        const initialMappings: Record<string, string> = {};
-        for (const title of report.bookTitles) {
-          const match = publishedBooks.find(
-            (b) => b.title.toLowerCase() === title.toLowerCase() || title.toLowerCase().includes(b.title.toLowerCase())
-          );
-          if (match) {
-            initialMappings[title] = match.id;
-          } else {
-            initialMappings[title] = '__create__'; // default to auto-create
-          }
+      // Auto-match titles if exact/partial match exists in publishedBooks
+      const initialMappings: Record<string, string> = {};
+      for (const title of report.bookTitles) {
+        const match = publishedBooks.find(
+          (b) => b.title.toLowerCase() === title.toLowerCase() || title.toLowerCase().includes(b.title.toLowerCase())
+        );
+        if (match) {
+          initialMappings[title] = match.id;
+        } else {
+          initialMappings[title] = '__create__'; // default to auto-create
         }
-        setTitleMappings(initialMappings);
-        setStep(2);
       }
-    };
-    reader.readAsText(file);
+      setTitleMappings(initialMappings);
+      setStep(2);
+    } catch (err: any) {
+      alert(err.message || 'Failed to parse report file');
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -98,22 +96,21 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
 
     setStep(3);
     setIsImporting(true);
-    const entries = parsedReport.entries;
-    setTotalToImport(entries.length);
-    let success = 0;
-    let skipped = 0;
+    const rawEntries = parsedReport.entries;
+    setTotalToImport(rawEntries.length);
 
     // Cache of newly created books for this run: { csvTitle: newBookId }
     const createdBookMap: Record<string, string> = {};
+    const entriesToBatch: Omit<BookPerformanceEntry, 'id' | 'createdAt' | 'updatedAt' | 'netUnitsSold' | 'revenueUSD'>[] = [];
+    let initialSkipped = 0;
 
-    for (let i = 0; i < entries.length; i++) {
-      const entry = entries[i];
+    for (let i = 0; i < rawEntries.length; i++) {
+      const entry = rawEntries[i];
       const titleMatch = parsedReport.bookTitles.find((t) => (entry.notes || '').includes(t)) || parsedReport.bookTitles[0] || 'KDP Title';
       const mapping = titleMappings[titleMatch] || '__create__';
 
       if (mapping === '__skip__') {
-        skipped++;
-        setSkippedCount(skipped);
+        initialSkipped++;
         continue;
       }
 
@@ -144,52 +141,47 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
             });
             createdBookMap[titleMatch] = newId;
           } catch (err) {
-            console.warn('Auto-create book failed during CSV import:', err);
+            console.warn('Auto-create book failed during report import:', err);
           }
         }
         targetBookId = createdBookMap[titleMatch];
       }
 
       if (targetBookId && targetBookId !== '__skip__') {
-        try {
-          await addPerformanceEntry(uid, {
-            uid,
-            bookId: targetBookId,
-            date: entry.date || new Date().toISOString().substring(0, 10),
-            week: entry.date ? `${entry.year}-W01` : '2026-W01',
-            month: entry.month || new Date().toISOString().substring(0, 7),
-            year: entry.year || new Date().getFullYear(),
-            marketplace: entry.marketplace || 'amazon-us',
-            royaltyType: entry.royaltyType || 'paperback',
-            unitsSold: entry.unitsSold || 0,
-            unitsReturned: entry.unitsReturned || 0,
-            grossRevenue: entry.grossRevenue || 0,
-            royaltyEarned: entry.royaltyEarned || 0,
-            currency: entry.currency || 'USD',
-            bsr: entry.bsr || null,
-            categoryRank: null,
-            categoryName: null,
-            kenpPageReads: entry.kenpPageReads || 0,
-            kenpRoyalty: entry.kenpRoyalty || 0,
-            entryMethod: 'import',
-            notes: entry.notes || `Imported via CSV`,
-          });
-          success++;
-          setImportedCount(success);
-        } catch (err) {
-          console.warn('Import entry failed:', err);
-          skipped++;
-          setSkippedCount(skipped);
-        }
+        entriesToBatch.push({
+          uid,
+          bookId: targetBookId,
+          date: entry.date || new Date().toISOString().substring(0, 10),
+          week: entry.date ? `${entry.year}-W01` : '2026-W01',
+          month: entry.month || new Date().toISOString().substring(0, 7),
+          year: entry.year || new Date().getFullYear(),
+          marketplace: entry.marketplace || 'amazon-us',
+          royaltyType: entry.royaltyType || 'paperback',
+          unitsSold: entry.unitsSold || 0,
+          unitsReturned: entry.unitsReturned || 0,
+          grossRevenue: entry.grossRevenue || 0,
+          royaltyEarned: entry.royaltyEarned || 0,
+          currency: entry.currency || 'USD',
+          bsr: entry.bsr || null,
+          categoryRank: null,
+          categoryName: null,
+          kenpPageReads: entry.kenpPageReads || 0,
+          kenpRoyalty: entry.kenpRoyalty || 0,
+          entryMethod: 'import',
+          notes: entry.notes || `Imported via KDP Report`,
+        });
       } else {
-        skipped++;
-        setSkippedCount(skipped);
+        initialSkipped++;
       }
     }
 
+    // High-speed Firestore batch ingestion with deterministic deduplication
+    const batchResult = await batchAddPerformanceEntries(uid, entriesToBatch);
+    setImportedCount(batchResult.added);
+    setSkippedCount(initialSkipped + batchResult.skipped);
     setIsImporting(false);
     useToastStore.getState().addToast({
-      message: `Successfully imported ${success} KDP sales entries! 📊`,
+      message: `Successfully imported ${batchResult.added} KDP sales entries (${initialSkipped + batchResult.skipped} duplicate/skipped records)! 📊`,
       type: 'success',
     });
   };
@@ -206,47 +198,42 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
             <div>
               <h2 className="text-lg font-bold text-white">Import KDP Royalty Report</h2>
               <p className="text-xs text-slate-400">
-                Upload your official Amazon KDP royalty CSV report
+                Upload your official Amazon KDP royalty CSV or Excel (.xlsx) report
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            disabled={isImporting}
             className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
           >
             <X size={18} />
           </button>
         </div>
 
-        {/* STEP 1: UPLOAD CSV */}
+        {/* STEP 1: FILE UPLOAD */}
         {step === 1 && (
-          <div className="p-6 space-y-6">
-            {/* Drag and Drop Zone */}
+          <div className="p-6 space-y-5">
             <div
-              onDrop={handleDrop}
               onDragOver={(e) => e.preventDefault()}
-              className="border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-3xl p-8 text-center transition-all bg-slate-950/50 cursor-pointer flex flex-col items-center justify-center space-y-3 group"
-              onClick={() => {
-                const input = document.getElementById('csv-file-input');
-                input?.click();
-              }}
+              onDrop={handleDrop}
+              onClick={() => document.getElementById('csv-file-input')?.click()}
+              className="border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-3xl p-8 text-center cursor-pointer transition-all bg-slate-950/40 hover:bg-purple-950/10 flex flex-col items-center justify-center space-y-3"
             >
-              <div className="w-14 h-14 rounded-2xl bg-purple-950/80 border border-purple-800/60 text-purple-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-14 h-14 rounded-2xl bg-purple-950/60 border border-purple-800 text-purple-400 flex items-center justify-center">
                 <UploadCloud size={28} />
               </div>
               <div>
                 <span className="text-sm font-bold text-white block">
-                  Drop your KDP royalty report CSV here
+                  Drop your KDP royalty report here
                 </span>
                 <span className="text-xs text-slate-400 mt-1 block">
-                  or <span className="text-purple-400 underline font-semibold">browse files</span> from your computer (.csv only)
+                  or <span className="text-purple-400 underline font-semibold">browse files</span> (.csv or .xlsx)
                 </span>
               </div>
               <input
                 id="csv-file-input"
                 type="file"
-                accept=".csv"
+                accept=".csv,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
                 className="hidden"
                 onChange={(e) => {
                   if (e.target.files && e.target.files[0]) {
@@ -265,7 +252,7 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                 <li>Log in to <strong className="text-white">kdp.amazon.com</strong></li>
                 <li>Navigate to <strong className="text-white">Reports ➔ Royalties / Historical</strong></li>
                 <li>Select your desired date range (e.g. Last 90 Days or Year to Date)</li>
-                <li>Click <strong className="text-white">Download (.csv)</strong></li>
+                <li>Click <strong className="text-white">Download (.csv or .xlsx)</strong></li>
                 <li>Upload the generated file here</li>
               </ol>
             </div>

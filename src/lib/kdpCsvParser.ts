@@ -1,9 +1,10 @@
 /**
- * KDP Studio — Amazon KDP Royalty CSV Parser
- * Phase 15A
+ * KDP Studio — Enterprise Amazon KDP Royalty Parser (CSV & Excel .xlsx)
+ * Supports Amazon KDP US/UK/DE/FR/ES/IT/JP/CA/AU/IN, paperback, hardcover, eBook, and KENP reports.
  */
 
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 import { BookPerformanceEntry, MarketPlace, RoyaltyType, ParsedKdpReport } from '../types/analytics';
 import { convertToUSD } from './analyticsService';
 
@@ -31,7 +32,7 @@ export function normalizeMarketplace(val: string = ''): MarketPlace {
  */
 export function normalizeRoyaltyType(val: string = ''): RoyaltyType {
   const clean = val.toLowerCase().trim();
-  if (clean.includes('paperback') || clean.includes('print')) return 'paperback';
+  if (clean.includes('paperback') || clean.includes('print') || clean.includes('pod')) return 'paperback';
   if (clean.includes('hardcover')) return 'hardcover';
   return 'ebook';
 }
@@ -50,7 +51,7 @@ export function normalizeDate(val: string = ''): string {
     // fallback
   }
   // Try MM/DD/YYYY or DD/MM/YYYY
-  const parts = val.split(/[-/.]/);
+  const parts = String(val).split(/[-/.]/);
   if (parts.length === 3) {
     if (parts[0].length === 4) {
       return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
@@ -63,9 +64,9 @@ export function normalizeDate(val: string = ''): string {
 }
 
 /**
- * Safely parses numeric value from CSV fields
+ * Safely parses numeric value from CSV/Excel fields
  */
-function parseNumber(val: any): number {
+export function parseNumber(val: any): number {
   if (typeof val === 'number') return isNaN(val) ? 0 : val;
   if (!val) return 0;
   const clean = String(val).replace(/[^0-9.-]/g, '');
@@ -76,13 +77,27 @@ function parseNumber(val: any): number {
 /**
  * Finds value from row by checking multiple column alias variants
  */
-function getColumnValue(row: Record<string, any>, aliases: string[]): any {
+export function getColumnValue(row: Record<string, any>, aliases: string[]): any {
+  if (!row || typeof row !== 'object') return undefined;
   const keys = Object.keys(row);
+
+  // Pass 1: Exact matches (prevents 'Royalty Type' from matching 'Royalty')
   for (const alias of aliases) {
     const aliasClean = alias.toLowerCase().replace(/[^a-z0-9]/g, '');
     for (const key of keys) {
       const keyClean = key.toLowerCase().replace(/[^a-z0-9]/g, '');
-      if (keyClean === aliasClean || keyClean.includes(aliasClean)) {
+      if (keyClean === aliasClean) {
+        return row[key];
+      }
+    }
+  }
+
+  // Pass 2: Partial matches
+  for (const alias of aliases) {
+    const aliasClean = alias.toLowerCase().replace(/[^a-z0-9]/g, '');
+    for (const key of keys) {
+      const keyClean = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (keyClean.includes(aliasClean)) {
         return row[key];
       }
     }
@@ -91,9 +106,9 @@ function getColumnValue(row: Record<string, any>, aliases: string[]): any {
 }
 
 /**
- * Parses raw Amazon KDP royalty CSV reports
+ * Parses rows array into structured ParsedKdpReport
  */
-export function parseKdpRoyaltyReport(csvContent: string): ParsedKdpReport {
+export function parseKdpRows(rows: Record<string, any>[]): ParsedKdpReport {
   const result: ParsedKdpReport = {
     entries: [],
     bookTitles: [],
@@ -104,26 +119,8 @@ export function parseKdpRoyaltyReport(csvContent: string): ParsedKdpReport {
     warnings: [],
   };
 
-  if (!csvContent || typeof csvContent !== 'string') {
-    result.errors.push('Empty CSV file provided.');
-    return result;
-  }
-
-  const parsed = Papa.parse<Record<string, any>>(csvContent, {
-    header: true,
-    skipEmptyLines: 'greedy',
-    dynamicTyping: false,
-  });
-
-  if (parsed.errors && parsed.errors.length > 0) {
-    for (const err of parsed.errors.slice(0, 5)) {
-      result.warnings.push(`CSV Parse warning at row ${err.row || '?'}: ${err.message}`);
-    }
-  }
-
-  const rows = parsed.data || [];
-  if (rows.length === 0) {
-    result.errors.push('No data rows found in CSV report.');
+  if (!rows || rows.length === 0) {
+    result.errors.push('No data rows found in report.');
     return result;
   }
 
@@ -134,68 +131,146 @@ export function parseKdpRoyaltyReport(csvContent: string): ParsedKdpReport {
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     try {
-      const title = getColumnValue(row, ['Title', 'Book Title', 'Item Name', 'Product Name']) || 'Untitled Book';
-      const asin = getColumnValue(row, ['ASIN/ISBN', 'ASIN', 'ISBN', 'Product ID']) || '';
-      const rawDate = getColumnValue(row, ['Date', 'Transaction Date', 'Order Date', 'Royalty Date', 'Period']) || '';
+      const title = String(getColumnValue(row, ['Title', 'Book Title', 'Item Name', 'Product Name', 'Publication Title']) || 'Untitled Book').trim();
+      const asin = String(getColumnValue(row, ['ASIN/ISBN', 'ASIN', 'ISBN', 'Product ID', 'Item ID']) || '').trim();
+      const rawDate = getColumnValue(row, ['Date', 'Transaction Date', 'Order Date', 'Royalty Date', 'Period', 'Sales Date']) || '';
       const rawMarketplace = getColumnValue(row, ['Marketplace', 'Market Place', 'Store', 'Country']) || 'amazon-us';
-      const rawRoyaltyType = getColumnValue(row, ['Royalty Type', 'Format', 'Product Type', 'Edition']) || 'ebook';
-      const unitsSold = parseNumber(getColumnValue(row, ['Units Sold', 'Quantity Sold', 'Orders', 'Gross Units Sold']));
-      const unitsReturned = parseNumber(getColumnValue(row, ['Units Refunded', 'Returns', 'Refunds', 'Refunded Units']));
+      const rawRoyaltyType = getColumnValue(row, ['Royalty Type', 'Format', 'Product Type', 'Edition', 'Type']) || 'ebook';
+      const unitsSold = parseNumber(getColumnValue(row, ['Units Sold', 'Quantity Sold', 'Orders', 'Gross Units Sold', 'Gross Units']));
+      const unitsReturned = parseNumber(getColumnValue(row, ['Units Refunded', 'Returns', 'Refunds', 'Refunded Units', 'Free Units']));
       const netUnits = parseNumber(getColumnValue(row, ['Net Units Sold', 'Net Units', 'Total Units'])) || (unitsSold - unitsReturned);
-      const royaltyEarned = parseNumber(getColumnValue(row, ['Royalty', 'Estimated Royalty', 'Total Royalty', 'Net Royalty']));
-      const grossRevenue = parseNumber(getColumnValue(row, ['Gross Revenue', 'Average List Price', 'Sales Price', 'Total Sales'])) || (netUnits * 4.99);
-      const currency = String(getColumnValue(row, ['Currency', 'Royalty Currency']) || 'USD').toUpperCase();
+      const royaltyEarned = parseNumber(getColumnValue(row, ['Royalty', 'Estimated Royalty', 'Total Royalty', 'Net Royalty', 'Royalty (USD)']));
+      const grossRevenue = parseNumber(getColumnValue(row, ['Gross Revenue', 'Average List Price', 'Sales Price', 'Total Sales', 'List Price'])) || (netUnits * 4.99);
+      const currency = String(getColumnValue(row, ['Currency', 'Royalty Currency', 'Payment Currency']) || 'USD').toUpperCase();
       const kenpPages = parseNumber(getColumnValue(row, ['KENP Read', 'KENP Read Pages', 'Pages Read', 'KENP']));
       const kenpRoyalty = parseNumber(getColumnValue(row, ['KENP Royalty', 'KENP Estimated Royalty']));
 
-      const entryDate = normalizeDate(rawDate);
-      const marketplace = normalizeMarketplace(rawMarketplace);
-      const royaltyType = normalizeRoyaltyType(rawRoyaltyType);
-      const revenueUSD = convertToUSD(royaltyEarned, currency);
+      // Filter out total/header rows with 0 data
+      if (unitsSold === 0 && unitsReturned === 0 && royaltyEarned === 0 && kenpPages === 0) {
+        continue;
+      }
 
-      if (title) uniqueTitles.add(title);
+      const cleanDate = normalizeDate(rawDate);
+      const year = parseInt(cleanDate.substring(0, 4), 10) || new Date().getFullYear();
+      const month = cleanDate.substring(0, 7);
 
-      if (!minDate || entryDate < minDate) minDate = entryDate;
-      if (!maxDate || entryDate > maxDate) maxDate = entryDate;
+      if (!minDate || cleanDate < minDate) minDate = cleanDate;
+      if (!maxDate || cleanDate > maxDate) maxDate = cleanDate;
 
-      result.totalRevenue += revenueUSD;
-      result.totalUnits += netUnits;
+      if (title && title !== 'Untitled Book') {
+        uniqueTitles.add(title);
+      }
 
-      const dateObj = new Date(entryDate);
-      const year = isNaN(dateObj.getFullYear()) ? new Date().getFullYear() : dateObj.getFullYear();
-      const month = entryDate.substring(0, 7);
-
-      const entry: Partial<BookPerformanceEntry> = {
-        date: entryDate,
+      result.entries.push({
+        id: `kdp_row_${i + 1}`,
+        uid: '',
+        bookId: '',
+        date: cleanDate,
+        week: `${year}-W01`,
         month,
         year,
-        marketplace,
-        royaltyType,
+        marketplace: normalizeMarketplace(rawMarketplace),
+        royaltyType: normalizeRoyaltyType(rawRoyaltyType),
         unitsSold,
         unitsReturned,
         netUnitsSold: netUnits,
         grossRevenue,
         royaltyEarned,
         currency,
-        revenueUSD,
+        revenueUSD: convertToUSD(royaltyEarned, currency),
         bsr: null,
         categoryRank: null,
         categoryName: null,
         kenpPageReads: kenpPages,
         kenpRoyalty,
         entryMethod: 'import',
-        notes: `Imported from KDP report (${title}${asin ? ` - ${asin}` : ''})`,
-      };
+        notes: title,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
 
-      result.entries.push(entry);
-    } catch (rowErr: any) {
-      result.warnings.push(`Row ${i + 1} skipped: ${rowErr?.message || 'Invalid row data'}`);
+      result.totalRevenue += convertToUSD(royaltyEarned, currency);
+      result.totalUnits += netUnits;
+    } catch (err: any) {
+      result.warnings.push(`Row ${i + 1}: Skipped due to format error (${err.message})`);
     }
   }
 
   result.bookTitles = Array.from(uniqueTitles);
-  result.dateRange = { from: minDate || 'Recent', to: maxDate || 'Recent' };
+  result.dateRange = { from: minDate, to: maxDate };
   result.totalRevenue = Number(result.totalRevenue.toFixed(2));
 
   return result;
+}
+
+/**
+ * Parses raw Amazon KDP royalty CSV reports
+ */
+export function parseKdpRoyaltyReport(csvContent: string): ParsedKdpReport {
+  if (!csvContent || typeof csvContent !== 'string' || !csvContent.trim()) {
+    return {
+      entries: [],
+      bookTitles: [],
+      dateRange: { from: '', to: '' },
+      totalRevenue: 0,
+      totalUnits: 0,
+      errors: ['Empty CSV content provided.'],
+      warnings: [],
+    };
+  }
+
+  const parsed = Papa.parse<Record<string, any>>(csvContent.trim(), {
+    header: true,
+    skipEmptyLines: 'greedy',
+    dynamicTyping: false,
+  });
+
+  const rows = (parsed.data || []) as Record<string, any>[];
+  return parseKdpRows(rows);
+}
+
+/**
+ * Parses Excel (.xlsx / .xls) Amazon KDP Royalty Reports
+ */
+export function parseKdpExcelReport(buffer: ArrayBuffer | Uint8Array | Buffer): ParsedKdpReport {
+  try {
+    let workbook: XLSX.WorkBook;
+    if (buffer instanceof ArrayBuffer) {
+      workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
+    } else {
+      workbook = XLSX.read(buffer, { type: 'buffer' });
+    }
+    const firstSheetName = workbook.SheetNames[0];
+    if (!firstSheetName) {
+      throw new Error('Excel workbook contains no sheets.');
+    }
+
+    const sheet = workbook.Sheets[firstSheetName];
+    const rows = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, { defval: '' });
+    return parseKdpRows(rows);
+  } catch (err: any) {
+    return {
+      entries: [],
+      bookTitles: [],
+      dateRange: { from: '', to: '' },
+      totalRevenue: 0,
+      totalUnits: 0,
+      errors: [`Excel parse error: ${err.message || 'Failed to read workbook.'}`],
+      warnings: [],
+    };
+  }
+}
+
+/**
+ * Universal KDP Report Ingestion supporting both CSV and Excel (.xlsx) files
+ */
+export async function parseKdpReportFile(file: File): Promise<ParsedKdpReport> {
+  const fileName = file.name.toLowerCase();
+  if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+    const arrayBuffer = await file.arrayBuffer();
+    return parseKdpExcelReport(arrayBuffer);
+  }
+
+  const text = await file.text();
+  return parseKdpRoyaltyReport(text);
 }

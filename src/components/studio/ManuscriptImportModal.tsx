@@ -1,97 +1,40 @@
+/**
+ * KDP Studio — Enterprise SaaS Manuscript Importer Modal
+ * Supports Microsoft Word (.docx), EPUB (.epub), Markdown (.md), and TXT (.txt)
+ * Features intelligent chapter splitting, rich formatting preservation, and interactive preview table.
+ */
+
 import React, { useState, useRef } from 'react';
-import { X, Upload, FileText, Check, Loader2, AlertCircle, Scissors, BookOpen } from 'lucide-react';
+import { 
+  X, 
+  UploadCloud, 
+  FileText, 
+  Check, 
+  Loader2, 
+  AlertCircle, 
+  Scissors, 
+  BookOpen, 
+  Sparkles,
+  FileCode,
+  Layers,
+  Edit2,
+  Trash2,
+  Merge,
+  Eye,
+  CheckCircle2,
+  ArrowRight
+} from 'lucide-react';
+import { importManuscriptFile, ParsedManuscript, ParsedSection } from '../../lib/manuscriptImport';
 
 interface ManuscriptImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   bookTitle: string;
-  onImportChapters: (chapters: { title: string; content: string; wordCount: number }[]) => void;
-}
-
-type ImportMode = 'auto-split' | 'single-chapter';
-
-interface ParsedChapter {
-  title: string;
-  content: string;
-  wordCount: number;
-}
-
-// Chapter detection patterns (common chapter heading patterns)
-const CHAPTER_PATTERNS = [
-  /^chapter\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten|\w+)/i,
-  /^ch\.\s*(\d+)/i,
-  /^part\s+(\d+|one|two|three|\w+)/i,
-  /^epilogue/i,
-  /^prologue/i,
-  /^afterword/i,
-  /^introduction/i,
-  /^(\d+)\./,
-  /^(\d+)\s*\n/,
-];
-
-function isChapterHeading(line: string): boolean {
-  const trimmed = line.trim();
-  if (!trimmed || trimmed.length > 100) return false;
-  return CHAPTER_PATTERNS.some((p) => p.test(trimmed));
-}
-
-function parseTextIntoChapters(text: string): ParsedChapter[] {
-  const lines = text.split('\n');
-  const chapters: ParsedChapter[] = [];
-  let currentTitle = 'Chapter 1';
-  let currentLines: string[] = [];
-  let chapterCount = 0;
-
-  for (const line of lines) {
-    if (isChapterHeading(line) && chapterCount > 0) {
-      // Save previous chapter
-      const content = currentLines.join('\n').trim();
-      if (content.length > 50) {
-        const words = content.split(/\s+/).filter(Boolean);
-        chapters.push({
-          title: currentTitle,
-          content: textToHtml(content),
-          wordCount: words.length,
-        });
-      }
-      currentTitle = line.trim();
-      currentLines = [];
-    } else {
-      currentLines.push(line);
-    }
-    if (isChapterHeading(line)) chapterCount++;
-  }
-
-  // Last chapter
-  const content = currentLines.join('\n').trim();
-  if (content.length > 50) {
-    chapters.push({
-      title: currentTitle,
-      content: textToHtml(content),
-      wordCount: content.split(/\s+/).filter(Boolean).length,
-    });
-  }
-
-  // If no chapters found, treat as single chapter
-  if (chapters.length === 0) {
-    const words = text.split(/\s+/).filter(Boolean);
-    return [{
-      title: 'Imported Chapter',
-      content: textToHtml(text.trim()),
-      wordCount: words.length,
-    }];
-  }
-
-  return chapters;
-}
-
-function textToHtml(text: string): string {
-  // Convert plain text paragraphs to HTML
-  return text
-    .split(/\n{2,}/)
-    .filter((p) => p.trim().length > 0)
-    .map((p) => `<p>${p.trim().replace(/\n/g, ' ')}</p>`)
-    .join('');
+  onImportChapters: (
+    chapters: { title: string; content: string; wordCount: number }[],
+    frontMatter?: ParsedManuscript['frontMatter'],
+    backMatter?: ParsedManuscript['backMatter']
+  ) => void;
 }
 
 export const ManuscriptImportModal: React.FC<ManuscriptImportModalProps> = ({
@@ -100,69 +43,91 @@ export const ManuscriptImportModal: React.FC<ManuscriptImportModalProps> = ({
   bookTitle,
   onImportChapters,
 }) => {
-  const [importMode, setImportMode] = useState<ImportMode>('auto-split');
+  const [step, setStep] = useState<'upload' | 'preview'>('upload');
   const [dragOver, setDragOver] = useState(false);
   const [fileName, setFileName] = useState('');
+  const [fileSize, setFileSize] = useState('');
+  const [fileFormat, setFileFormat] = useState<'docx' | 'epub' | 'md' | 'txt' | 'other'>('docx');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [progressPercent, setProgressPercent] = useState(0);
+  const [progressText, setProgressText] = useState('');
   const [error, setError] = useState('');
-  const [parsedChapters, setParsedChapters] = useState<ParsedChapter[]>([]);
-  const [step, setStep] = useState<'upload' | 'preview'>('upload');
+  
+  // Parsed Chapters for interactive review
+  const [chapters, setChapters] = useState<{
+    id: string;
+    title: string;
+    content: string;
+    wordCount: number;
+    selected: boolean;
+    type?: string;
+  }[]>([]);
+  const [frontMatter, setFrontMatter] = useState<ParsedManuscript['frontMatter']>({});
+  const [backMatter, setBackMatter] = useState<ParsedManuscript['backMatter']>({});
+  const [previewChapterId, setPreviewChapterId] = useState<string | null>(null);
+  const [editingTitleId, setEditingTitleId] = useState<string | null>(null);
+  const [tempTitle, setTempTitle] = useState('');
   const [imported, setImported] = useState(false);
+
   const fileRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
+
+  const formatBytes = (bytes: number): string => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
 
   const processFile = async (file: File) => {
     setError('');
     setIsProcessing(true);
     setFileName(file.name);
+    setFileSize(formatBytes(file.size));
+    setProgressPercent(10);
+    setProgressText(`Reading ${file.name}...`);
+
+    const lowerName = file.name.toLowerCase();
+    if (lowerName.endsWith('.docx')) setFileFormat('docx');
+    else if (lowerName.endsWith('.epub')) setFileFormat('epub');
+    else if (lowerName.endsWith('.md')) setFileFormat('md');
+    else if (lowerName.endsWith('.txt')) setFileFormat('txt');
+    else setFileFormat('other');
 
     try {
-      let text = '';
+      const parsed = await importManuscriptFile(file, {
+        bookTitle,
+        onProgress: (percent, statusText) => {
+          setProgressPercent(percent);
+          setProgressText(statusText);
+        },
+      });
 
-      if (file.name.endsWith('.txt') || file.type === 'text/plain') {
-        text = await file.text();
-      } else if (file.name.endsWith('.md')) {
-        text = await file.text();
-        // Strip markdown headers and formatting
-        text = text
-          .replace(/^#{1,6}\s+/gm, '')
-          .replace(/\*\*([^*]+)\*\*/g, '$1')
-          .replace(/\*([^*]+)\*/g, '$1')
-          .replace(/__([^_]+)__/g, '$1')
-          .replace(/_([^_]+)_/g, '$1');
-      } else if (file.name.endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-        // For DOCX: requires mammoth.js — show note about .txt export
-        setError('DOCX import requires the "mammoth" library. Please export your manuscript as .txt from Word, then re-import. We\'ll add full DOCX support soon!');
-        setIsProcessing(false);
-        return;
-      } else {
-        setError('Unsupported file type. Please use .txt or .md files.');
-        setIsProcessing(false);
-        return;
+      if (!parsed || parsed.chapters.length === 0) {
+        throw new Error('No readable chapters or content could be found in the uploaded file.');
       }
 
-      if (!text.trim()) {
-        setError('The file appears to be empty.');
-        setIsProcessing(false);
-        return;
-      }
+      setFrontMatter(parsed.frontMatter || {});
+      setBackMatter(parsed.backMatter || {});
+      setChapters(
+        parsed.chapters.map((ch, idx) => ({
+          id: ch.id || `ch_${idx + 1}`,
+          title: ch.title || `Chapter ${idx + 1}`,
+          content: ch.content,
+          wordCount: ch.wordCount,
+          selected: true,
+        }))
+      );
 
-      const chapters = importMode === 'auto-split'
-        ? parseTextIntoChapters(text)
-        : [{
-            title: file.name.replace(/\.[^.]+$/, ''),
-            content: textToHtml(text.trim()),
-            wordCount: text.split(/\s+/).filter(Boolean).length,
-          }];
-
-      setParsedChapters(chapters);
       setStep('preview');
-    } catch (err) {
-      setError('Failed to read the file. Please try again.');
+    } catch (err: any) {
+      console.error('[ManuscriptImportModal] Error parsing file:', err);
+      setError(err.message || 'Failed to parse file. Please verify the document format and try again.');
+    } finally {
+      setIsProcessing(false);
     }
-
-    setIsProcessing(false);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -177,180 +142,477 @@ export const ManuscriptImportModal: React.FC<ManuscriptImportModalProps> = ({
     if (file) processFile(file);
   };
 
+  const handleToggleSelect = (id: string) => {
+    setChapters((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, selected: !c.selected } : c))
+    );
+  };
+
+  const handleToggleSelectAll = (select: boolean) => {
+    setChapters((prev) => prev.map((c) => ({ ...c, selected: select })));
+  };
+
+  const handleDeleteChapter = (id: string) => {
+    setChapters((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const handleMergeWithPrevious = (index: number) => {
+    if (index <= 0) return;
+    setChapters((prev) => {
+      const nextList = [...prev];
+      const prevChap = nextList[index - 1];
+      const currentChap = nextList[index];
+      nextList[index - 1] = {
+        ...prevChap,
+        content: `${prevChap.content}<hr class="scene-break" />${currentChap.content}`,
+        wordCount: prevChap.wordCount + currentChap.wordCount,
+      };
+      nextList.splice(index, 1);
+      return nextList;
+    });
+  };
+
+  const handleSaveTitleEdit = (id: string) => {
+    if (tempTitle.trim()) {
+      setChapters((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, title: tempTitle.trim() } : c))
+      );
+    }
+    setEditingTitleId(null);
+    setTempTitle('');
+  };
+
   const handleImport = () => {
-    if (parsedChapters.length === 0) return;
-    onImportChapters(parsedChapters);
+    const selectedChapters = chapters.filter((c) => c.selected);
+    if (selectedChapters.length === 0) {
+      setError('Please select at least one chapter to import.');
+      return;
+    }
+
+    onImportChapters(
+      selectedChapters.map((c) => ({
+        title: c.title,
+        content: c.content,
+        wordCount: c.wordCount,
+      })),
+      frontMatter,
+      backMatter
+    );
+
     setImported(true);
     setTimeout(() => {
       onClose();
       setImported(false);
       setStep('upload');
-      setParsedChapters([]);
+      setChapters([]);
       setFileName('');
-    }, 1500);
+    }, 1200);
   };
 
-  const totalWords = parsedChapters.reduce((sum, c) => sum + c.wordCount, 0);
+  const selectedChaptersCount = chapters.filter((c) => c.selected).length;
+  const totalSelectedWords = chapters
+    .filter((c) => c.selected)
+    .reduce((sum, c) => sum + c.wordCount, 0);
+
+  const previewChapter = chapters.find((c) => c.id === previewChapterId);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-violet-100 flex items-center justify-center">
-              <Upload className="w-4 h-4 text-violet-600" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden my-auto">
+        
+        {/* Modal Top Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/80 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-xs">
+              <UploadCloud size={18} />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-slate-900">Import Manuscript</h2>
-              <p className="text-xs text-slate-500">Import from .txt or .md — auto-splits into chapters</p>
+              <h2 className="text-base font-bold text-slate-900 leading-tight">
+                Import Manuscript
+              </h2>
+              <p className="text-xs text-slate-500">
+                Word (.docx), EPUB (.epub), Markdown (.md), or Plain Text (.txt)
+              </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
-            <X className="w-4 h-4" />
+
+          <button
+            onClick={onClose}
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors"
+            aria-label="Close"
+          >
+            <X size={18} />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          {step === 'upload' && (
-            <div className="p-6">
-              {/* Import Mode Toggle */}
-              <div className="mb-5">
-                <p className="text-xs font-semibold text-slate-600 mb-2">Import Mode</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setImportMode('auto-split')}
-                    className={`p-3 rounded-xl border-2 text-left transition-all ${importMode === 'auto-split' ? 'border-violet-500 bg-violet-50' : 'border-slate-200 bg-white hover:border-violet-200'}`}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <Scissors className="w-3.5 h-3.5 text-violet-600" />
-                      <span className="text-xs font-bold text-slate-800">Auto-Split Chapters</span>
-                    </div>
-                    <p className="text-[10px] text-slate-500">Detects "Chapter 1", "Part Two" etc. and splits automatically</p>
-                  </button>
-                  <button
-                    onClick={() => setImportMode('single-chapter')}
-                    className={`p-3 rounded-xl border-2 text-left transition-all ${importMode === 'single-chapter' ? 'border-violet-500 bg-violet-50' : 'border-slate-200 bg-white hover:border-violet-200'}`}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <BookOpen className="w-3.5 h-3.5 text-violet-600" />
-                      <span className="text-xs font-bold text-slate-800">Single Chapter</span>
-                    </div>
-                    <p className="text-[10px] text-slate-500">Import entire file as one chapter without splitting</p>
-                  </button>
-                </div>
-              </div>
+        {/* Modal Main Body */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {error && (
+            <div className="mb-5 p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800 flex items-start gap-2.5">
+              <AlertCircle size={16} className="text-rose-600 shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
+          )}
 
-              {/* Drop Zone */}
+          {/* ─────────────────────────────────────────
+              STEP 1: Upload & File Drop Zone
+             ───────────────────────────────────────── */}
+          {step === 'upload' && (
+            <div className="space-y-6">
+              {/* Dropzone */}
               <div
-                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragOver(true);
+                }}
                 onDragLeave={() => setDragOver(false)}
                 onDrop={handleDrop}
-                onClick={() => fileRef.current?.click()}
-                className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all ${
-                  dragOver ? 'border-violet-500 bg-violet-50' : 'border-slate-300 bg-slate-50 hover:border-violet-400 hover:bg-violet-50/50'
-                }`}
+                onClick={() => !isProcessing && fileRef.current?.click()}
+                className={`border-2 border-dashed rounded-3xl p-8 sm:p-12 text-center transition-all cursor-pointer ${
+                  dragOver
+                    ? 'border-purple-600 bg-purple-50/80 scale-[0.99]'
+                    : 'border-slate-300 hover:border-purple-400 bg-slate-50/50 hover:bg-slate-50'
+                } ${isProcessing ? 'pointer-events-none opacity-80' : ''}`}
               >
                 <input
                   ref={fileRef}
                   type="file"
-                  accept=".txt,.md,.docx"
+                  accept=".docx,.epub,.md,.txt,.html,.htm,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/epub+zip,text/plain,text/markdown"
                   onChange={handleFileInput}
                   className="hidden"
                 />
+
                 {isProcessing ? (
-                  <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="w-10 h-10 text-violet-600 animate-spin" />
-                    <p className="text-sm text-violet-700 font-semibold">Parsing manuscript...</p>
+                  <div className="flex flex-col items-center justify-center space-y-3 py-4">
+                    <Loader2 size={36} className="text-purple-600 animate-spin" />
+                    <div className="space-y-1">
+                      <p className="text-sm font-bold text-slate-800">{progressText}</p>
+                      <div className="w-56 h-2 bg-slate-200 rounded-full overflow-hidden mx-auto">
+                        <div
+                          className="h-full bg-purple-600 transition-all duration-300 rounded-full"
+                          style={{ width: `${progressPercent}%` }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-14 h-14 rounded-2xl bg-violet-100 flex items-center justify-center">
-                      <FileText className="w-7 h-7 text-violet-600" />
+                  <div className="flex flex-col items-center justify-center space-y-3">
+                    <div className="w-14 h-14 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center shadow-xs">
+                      <UploadCloud size={28} />
                     </div>
-                    <div>
-                      <p className="text-sm font-bold text-slate-800 mb-1">Drop your manuscript here</p>
-                      <p className="text-xs text-slate-500">or click to browse your files</p>
+                    <div className="space-y-1">
+                      <p className="text-base font-bold text-slate-800">
+                        Drag and drop your manuscript file here
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        or click to browse from your computer
+                      </p>
                     </div>
-                    <div className="flex gap-2 mt-1">
-                      {['.txt', '.md'].map((ext) => (
-                        <span key={ext} className="px-2 py-0.5 bg-slate-200 text-slate-600 rounded text-xs font-mono">{ext}</span>
-                      ))}
-                      <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-mono">.docx (soon)</span>
+
+                    {/* Supported Formats Badges */}
+                    <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                      <span className="px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 text-[11px] font-bold">
+                        .DOCX (Word)
+                      </span>
+                      <span className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold">
+                        .EPUB (eBook)
+                      </span>
+                      <span className="px-2.5 py-1 rounded-lg bg-purple-50 border border-purple-200 text-purple-800 text-[11px] font-bold">
+                        .MD (Markdown)
+                      </span>
+                      <span className="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold">
+                        .TXT (Plain Text)
+                      </span>
                     </div>
                   </div>
                 )}
               </div>
 
-              {error && (
-                <div className="mt-4 flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
-                  <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                  <p className="text-xs text-red-700">{error}</p>
+              {/* Feature Highlights Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1 text-left">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+                    <Sparkles size={14} className="text-purple-600" />
+                    <span>Preserves Rich Styling</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Retains bold, italics, blockquotes, scene dividers, and paragraph indentation.
+                  </p>
                 </div>
-              )}
 
-              <div className="mt-4 text-xs text-slate-400 text-center">
-                📌 Tip: Export from Microsoft Word via <strong>File → Save As → Plain Text (.txt)</strong> for best results
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1 text-left">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+                    <Scissors size={14} className="text-purple-600" />
+                    <span>Auto-Detects Chapters</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Identifies Roman numerals, custom chapter headings, prologues, and epilogues.
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1 text-left">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+                    <Layers size={14} className="text-purple-600" />
+                    <span>Front & Back Matter</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Automatically extracts Dedication, Copyright, and Author Bios into book settings.
+                  </p>
+                </div>
               </div>
             </div>
           )}
 
+          {/* ─────────────────────────────────────────
+              STEP 2: Interactive Review & Chapter Splitter
+             ───────────────────────────────────────── */}
           {step === 'preview' && (
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">
-                    {parsedChapters.length} chapter{parsedChapters.length !== 1 ? 's' : ''} detected
-                  </h3>
-                  <p className="text-xs text-slate-500">{totalWords.toLocaleString()} total words from "{fileName}"</p>
-                </div>
-                <button
-                  onClick={() => setStep('upload')}
-                  className="text-xs text-slate-500 hover:text-violet-700 underline"
-                >
-                  ← Upload different file
-                </button>
-              </div>
-
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {parsedChapters.map((ch, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                    <div className="w-8 h-8 rounded-lg bg-violet-100 text-violet-700 text-xs font-bold flex items-center justify-center shrink-0">
-                      {i + 1}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-slate-900 truncate">{ch.title}</p>
-                      <p className="text-xs text-slate-500">{ch.wordCount.toLocaleString()} words</p>
-                    </div>
+            <div className="space-y-5 animate-in fade-in duration-200">
+              {/* File Info Bar */}
+              <div className="p-4 rounded-2xl bg-purple-50/70 border border-purple-100 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold text-xs uppercase shadow-xs">
+                    {fileFormat}
                   </div>
-                ))}
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 truncate max-w-xs sm:max-w-md">
+                      {fileName}
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      {fileSize} • {chapters.length} sections found • {totalSelectedWords.toLocaleString()} total words
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep('upload');
+                    setChapters([]);
+                  }}
+                  className="text-xs font-bold text-purple-700 hover:text-purple-900 underline cursor-pointer"
+                >
+                  Choose Different File
+                </button>
               </div>
 
-              <div className="mt-5 flex items-center gap-3">
-                <button
-                  onClick={() => setStep('upload')}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
-                >
-                  ← Back
-                </button>
-                <button
-                  onClick={handleImport}
-                  disabled={imported}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm shadow transition-all ${
-                    imported ? 'bg-emerald-600 text-white' : 'bg-violet-600 hover:bg-violet-700 text-white'
-                  }`}
-                >
-                  {imported ? (
-                    <><Check className="w-4 h-4" /> Chapters Imported!</>
-                  ) : (
-                    <>Import {parsedChapters.length} Chapter{parsedChapters.length !== 1 ? 's' : ''} into "{bookTitle}"</>
-                  )}
-                </button>
+              {/* Selection Controls */}
+              <div className="flex items-center justify-between text-xs text-slate-600 border-b border-slate-100 pb-2">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleSelectAll(true)}
+                    className="font-bold text-purple-700 hover:underline cursor-pointer"
+                  >
+                    Select All ({chapters.length})
+                  </button>
+                  <span>•</span>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleSelectAll(false)}
+                    className="font-semibold text-slate-500 hover:underline cursor-pointer"
+                  >
+                    Deselect All
+                  </button>
+                </div>
+
+                <span className="font-bold text-slate-800">
+                  {selectedChaptersCount} of {chapters.length} chapters selected
+                </span>
+              </div>
+
+              {/* Chapters List Table */}
+              <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+                {chapters.map((chap, index) => {
+                  const isEditing = editingTitleId === chap.id;
+
+                  return (
+                    <div
+                      key={chap.id}
+                      className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                        chap.selected
+                          ? 'bg-white border-slate-200 hover:border-purple-300 shadow-2xs'
+                          : 'bg-slate-50/70 border-slate-200 opacity-60'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        {/* Checkbox */}
+                        <input
+                          type="checkbox"
+                          checked={chap.selected}
+                          onChange={() => handleToggleSelect(chap.id)}
+                          className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 cursor-pointer"
+                        />
+
+                        {/* Order Index */}
+                        <span className="w-6 text-xs font-mono font-bold text-slate-400">
+                          #{index + 1}
+                        </span>
+
+                        {/* Title (Editable) */}
+                        <div className="flex-1 min-w-0">
+                          {isEditing ? (
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="text"
+                                value={tempTitle}
+                                onChange={(e) => setTempTitle(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSaveTitleEdit(chap.id)}
+                                autoFocus
+                                className="w-full px-2.5 py-1 text-xs font-bold rounded-lg border border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-200 text-slate-900 bg-white"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleSaveTitleEdit(chap.id)}
+                                className="p-1 rounded-lg bg-purple-600 text-white text-xs font-bold hover:bg-purple-700"
+                              >
+                                <Check size={13} />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold text-slate-900 truncate">
+                                {chap.title}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingTitleId(chap.id);
+                                  setTempTitle(chap.title);
+                                }}
+                                className="text-slate-400 hover:text-slate-700 p-0.5"
+                                title="Edit Title"
+                              >
+                                <Edit2 size={12} />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right Meta & Actions */}
+                      <div className="flex items-center gap-2.5 shrink-0">
+                        <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                          {chap.wordCount.toLocaleString()} words
+                        </span>
+
+                        {/* Preview Content Button */}
+                        <button
+                          type="button"
+                          onClick={() => setPreviewChapterId(chap.id)}
+                          className="p-1.5 text-slate-400 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
+                          title="Preview Content"
+                        >
+                          <Eye size={15} />
+                        </button>
+
+                        {/* Merge with previous (if index > 0) */}
+                        {index > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => handleMergeWithPrevious(index)}
+                            className="p-1.5 text-slate-400 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                            title="Merge with Previous Chapter"
+                          >
+                            <Merge size={15} />
+                          </button>
+                        )}
+
+                        {/* Delete Chapter */}
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteChapter(chap.id)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                          title="Remove Chapter"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
         </div>
+
+        {/* Modal Bottom Footer */}
+        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/80 shrink-0">
+          {step === 'upload' ? (
+            <div className="text-xs text-slate-500">
+              Need sample manuscripts? Supports all standard Word and eBook export formats.
+            </div>
+          ) : (
+            <div className="text-xs font-medium text-slate-600">
+              Ready to import <strong className="text-purple-900">{selectedChaptersCount} chapters</strong> ({totalSelectedWords.toLocaleString()} words).
+            </div>
+          )}
+
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+
+            {step === 'preview' && (
+              <button
+                type="button"
+                id="manuscript-commit-import-btn"
+                onClick={handleImport}
+                disabled={selectedChaptersCount === 0 || imported}
+                className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-bold text-xs shadow-md shadow-purple-500/20 flex items-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {imported ? (
+                  <>
+                    <CheckCircle2 size={14} />
+                    <span>Imported Successfully!</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Import {selectedChaptersCount} Chapters</span>
+                    <ArrowRight size={14} />
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* Chapter Content Preview Modal */}
+      {previewChapter && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">{previewChapter.title}</h3>
+                <p className="text-xs text-slate-500">{previewChapter.wordCount.toLocaleString()} words</p>
+              </div>
+              <button
+                onClick={() => setPreviewChapterId(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto prose prose-sm max-w-none text-slate-800 leading-relaxed font-serif">
+              <div dangerouslySetInnerHTML={{ __html: previewChapter.content }} />
+            </div>
+            <div className="p-3 border-t border-slate-100 bg-slate-50 text-right">
+              <button
+                type="button"
+                onClick={() => setPreviewChapterId(null)}
+                className="px-4 py-1.5 rounded-xl bg-purple-600 text-white font-bold text-xs hover:bg-purple-700 cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

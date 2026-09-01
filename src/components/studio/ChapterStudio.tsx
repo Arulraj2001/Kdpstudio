@@ -71,6 +71,8 @@ export const ChapterStudio: React.FC<ChapterStudioProps> = ({
   const deleteChapter = useBookStore((state) => state.deleteChapter);
   const reorderChapters = useBookStore((state) => state.reorderChapters);
   const duplicateChapter = useBookStore((state) => state.duplicateChapter);
+  const updateFrontMatter = useBookStore((state) => state.updateFrontMatter);
+  const updateBackMatter = useBookStore((state) => state.updateBackMatter);
 
   // Selected chapter state
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(() => {
@@ -825,7 +827,7 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
         isOpen={isImportOpen}
         onClose={() => setIsImportOpen(false)}
         bookTitle={currentBook.title}
-        onImportChapters={(chapters) => {
+        onImportChapters={(chapters, frontMatter, backMatter) => {
           if (!currentBook) return;
           chapters.forEach((ch) => {
             const newChap = addChapter(currentBook.id, ch.title);
@@ -834,6 +836,24 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
               wordCount: ch.wordCount,
             });
           });
+
+          if (frontMatter && (frontMatter.dedication || frontMatter.copyrightText || frontMatter.preface)) {
+            updateFrontMatter(currentBook.id, {
+              ...currentBook.frontMatter,
+              ...(frontMatter.dedication ? { dedication: frontMatter.dedication } : {}),
+              ...(frontMatter.copyrightText ? { copyrightText: frontMatter.copyrightText } : {}),
+              ...(frontMatter.preface ? { preface: frontMatter.preface } : {}),
+            });
+          }
+
+          if (backMatter && (backMatter.aboutAuthor || backMatter.otherBooks)) {
+            updateBackMatter(currentBook.id, {
+              ...currentBook.backMatter,
+              ...(backMatter.aboutAuthor ? { aboutAuthor: backMatter.aboutAuthor } : {}),
+              ...(backMatter.otherBooks ? { otherBooks: backMatter.otherBooks } : {}),
+            });
+          }
+
           setIsImportOpen(false);
         }}
       />
