@@ -140,11 +140,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
     },
     {
       id: 'action-format-interior',
-      title: 'Interior Formatter',
-      description: 'Set trim sizes, margins, headers, and generate print-ready PDFs',
+      title: 'KDP Formatter',
+      description: 'Turn your manuscript into a KDP-ready DOCX in one click with mirror margins',
       route: 'formatter' as PageRoute,
       icon: Layout,
-      badge: 'Print Layouts',
+      badge: 'DOCX Engine',
     },
     {
       id: 'action-design-cover',

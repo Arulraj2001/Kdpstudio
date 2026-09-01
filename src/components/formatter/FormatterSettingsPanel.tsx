@@ -1,553 +1,387 @@
 import React from 'react';
 import {
-  BookOpen,
-  Type,
-  LayoutGrid,
-  CheckSquare,
-  Calculator,
-  FileText,
-  Sliders,
-  AlignLeft,
-  ChevronDown,
-  Layers,
-  Sparkles,
-} from 'lucide-react';
+  KdpFormatSettings,
+  TrimSizeOption,
+  FontOption,
+  FontSizeOption,
+  LineSpacingOption,
+  MarginPresetOption,
+  PaperColorOption,
+  InteriorColorOption,
+  FormatterStats,
+  ChapterNavNode,
+} from '../../types/formatter';
 import {
-  Book,
-  TrimSize,
-  PaperType,
-  FormatterFontFamily,
-  FormatterFontSize,
-  FormatterLineSpacing,
-  FormatterParagraphIndent,
-  PageNumberPosition,
-  ChapterStart,
-  RunningHeaderType,
-  FormatterSettings,
-  Margins,
-} from '../../types/index';
+  Sliders,
+  CheckCircle2,
+  AlertTriangle,
+  BookOpen,
+  Sparkles,
+  Layers,
+  ChevronRight,
+  Info,
+} from 'lucide-react';
 
 interface FormatterSettingsPanelProps {
-  books: Book[];
-  selectedBookId: string | null;
-  onSelectBook: (bookId: string) => void;
-  settings: FormatterSettings;
-  onUpdateSettings: (newSettings: Partial<FormatterSettings>) => void;
-  isCustomTextMode: boolean;
-  setIsCustomTextMode: (val: boolean) => void;
-  customText: string;
-  setCustomText: (text: string) => void;
-  calculatedMargins: Margins;
-  estimatedPages: number;
-  calculatedSpine: number;
-  coverDimensions: {
-    totalWidth: number;
-    totalHeight: number;
-    spineWidth: number;
-    bleed: number;
-  };
-  onRecalculate: () => void;
+  settings: KdpFormatSettings;
+  onUpdateSettings: (newPartial: Partial<KdpFormatSettings>) => void;
+  stats: FormatterStats;
+  chapterNodes: ChapterNavNode[];
+  onSelectChapter: (blockIndex: number) => void;
 }
 
 export const FormatterSettingsPanel: React.FC<FormatterSettingsPanelProps> = ({
-  books,
-  selectedBookId,
-  onSelectBook,
   settings,
   onUpdateSettings,
-  isCustomTextMode,
-  setIsCustomTextMode,
-  customText,
-  setCustomText,
-  calculatedMargins,
-  estimatedPages,
-  calculatedSpine,
-  coverDimensions,
-  onRecalculate,
+  stats,
+  chapterNodes,
+  onSelectChapter,
 }) => {
-  const fontFamilies: FormatterFontFamily[] = [
-    'Garamond',
-    'Times New Roman',
-    'Georgia',
-    'Palatino',
-    'Book Antiqua',
-  ];
+  const handleTrimChange = (val: TrimSizeOption) => {
+    let width = 7;
+    let height = 10;
+    if (val === '6x9') {
+      width = 6;
+      height = 9;
+    } else if (val === '5.5x8.5') {
+      width = 5.5;
+      height = 8.5;
+    } else if (val === '8.5x11') {
+      width = 8.5;
+      height = 11;
+    }
+    onUpdateSettings({ trimSize: val, trimWidth: width, trimHeight: height });
+  };
 
-  const fontSizes: FormatterFontSize[] = ['10pt', '11pt', '12pt'];
-  const lineSpacings: FormatterLineSpacing[] = ['1.0', '1.15', '1.5', '2.0'];
-  const indents: { value: FormatterParagraphIndent; label: string }[] = [
-    { value: 'none', label: 'None' },
-    { value: '0.25in', label: '0.25"' },
-    { value: '0.5in', label: '0.5"' },
-  ];
+  const handleFontSizeChange = (val: FontSizeOption) => {
+    const halfPoints = val === '10pt' ? 20 : val === '12pt' ? 24 : 22;
+    onUpdateSettings({ fontSizeLabel: val, fontSize: halfPoints });
+  };
 
-  const trimSizes: { value: TrimSize; label: string; desc: string }[] = [
-    { value: '5x8', label: '5" × 8"', desc: 'Fiction / Novellas' },
-    { value: '5.5x8.5', label: '5.5" × 8.5"', desc: 'Memoirs & Trade' },
-    { value: '6x9', label: '6" × 9"', desc: 'Standard Non-Fiction' },
-    { value: '8.5x11', label: '8.5" × 11"', desc: 'Workbooks / Manuals' },
-  ];
+  const handleLineSpacingChange = (val: LineSpacingOption) => {
+    const value = val === '1.0' ? 240 : val === '1.2' ? 288 : val === '1.5' ? 360 : 276;
+    onUpdateSettings({ lineSpacing: val, lineSpacingValue: value });
+  };
+
+  const handleMarginPresetChange = (val: MarginPresetOption) => {
+    if (val === 'workbook') {
+      onUpdateSettings({
+        marginPreset: val,
+        margins: { inside: 0.75, outside: 0.625, top: 0.75, bottom: 0.75 },
+      });
+    } else if (val === 'standard') {
+      onUpdateSettings({
+        marginPreset: val,
+        margins: { inside: 0.75, outside: 0.5, top: 0.75, bottom: 0.75 },
+      });
+    } else if (val === 'minimal') {
+      onUpdateSettings({
+        marginPreset: val,
+        margins: { inside: 0.625, outside: 0.5, top: 0.5, bottom: 0.5 },
+      });
+    }
+  };
 
   return (
-    <div className="space-y-6 text-sm text-gray-800 dark:text-gray-200">
-      {/* SECTION 1: BOOK SELECTION */}
-      <div className="bg-white dark:bg-[#1a1a2e] rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-xs space-y-3">
-        <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-800 font-semibold text-gray-900 dark:text-white">
-          <BookOpen className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-          <span>1. Book Selection</span>
-        </div>
-
-        <div className="flex rounded-lg bg-gray-100 dark:bg-gray-800/80 p-1 text-xs font-medium">
-          <button
-            type="button"
-            onClick={() => setIsCustomTextMode(false)}
-            className={`flex-1 py-1.5 rounded-md transition-all ${
-              !isCustomTextMode
-                ? 'bg-white dark:bg-[#131320] text-purple-600 dark:text-purple-300 font-bold shadow-xs'
-                : 'text-gray-500 hover:text-gray-800 dark:hover:text-white'
-            }`}
-          >
-            From Manuscript Store
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsCustomTextMode(true)}
-            className={`flex-1 py-1.5 rounded-md transition-all ${
-              isCustomTextMode
-                ? 'bg-white dark:bg-[#131320] text-purple-600 dark:text-purple-300 font-bold shadow-xs'
-                : 'text-gray-500 hover:text-gray-800 dark:hover:text-white'
-            }`}
-          >
-            Paste Raw Text
-          </button>
-        </div>
-
-        {!isCustomTextMode ? (
-          <div>
-            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-              Select Book Project
-            </label>
-            <div className="relative">
-              <select
-                id="select-book-project"
-                value={selectedBookId || ''}
-                onChange={(e) => onSelectBook(e.target.value)}
-                className="w-full appearance-none px-3 py-2 bg-gray-50 dark:bg-[#131320] border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-purple-500"
-              >
-                {books.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.title} — {b.trimSize} ({b.chapters.length} chapters)
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="w-4 h-4 absolute right-2.5 top-2.5 text-gray-400 pointer-events-none" />
-            </div>
-          </div>
-        ) : (
-          <div>
-            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-              Paste Raw Book Content
-            </label>
-            <textarea
-              id="textarea-custom-content"
-              rows={4}
-              value={customText}
-              onChange={(e) => setCustomText(e.target.value)}
-              placeholder="Paste raw chapter text or sample prose here..."
-              className="w-full px-3 py-2 bg-gray-50 dark:bg-[#131320] border border-gray-200 dark:border-gray-700 rounded-lg text-xs text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-purple-500 resize-y"
-            />
-          </div>
-        )}
+    <aside className="w-full lg:w-[280px] shrink-0 bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs space-y-5 overflow-y-auto max-h-[calc(100vh-140px)]">
+      {/* 1. Header */}
+      <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+        <Sliders size={18} className="text-purple-600" />
+        <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+          KDP Print Settings
+        </h2>
       </div>
 
-      {/* SECTION 2: TYPOGRAPHY */}
-      <div className="bg-white dark:bg-[#1a1a2e] rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-xs space-y-4">
-        <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-800 font-semibold text-gray-900 dark:text-white">
-          <Type className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-          <span>2. Typography</span>
+      {/* 2. Format Selectors */}
+      <div className="space-y-3.5 text-xs">
+        {/* Trim Size */}
+        <div className="space-y-1">
+          <label className="font-bold text-slate-700 flex items-center justify-between">
+            <span>Trim Size</span>
+            <span className="text-[10px] text-purple-600 font-mono font-bold">
+              {settings.trimWidth}" × {settings.trimHeight}"
+            </span>
+          </label>
+          <select
+            value={settings.trimSize}
+            onChange={(e) => handleTrimChange(e.target.value as TrimSizeOption)}
+            className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-1 focus:ring-purple-500 focus:outline-none"
+          >
+            <option value="7x10">7" × 10" (Workbook / Standard)</option>
+            <option value="6x9">6" × 9" (Trade Paperback)</option>
+            <option value="5.5x8.5">5.5" × 8.5" (Fiction / Digest)</option>
+            <option value="8.5x11">8.5" × 11" (Large Manual / Ledger)</option>
+          </select>
         </div>
 
         {/* Font Family */}
-        <div>
-          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-            Book Font Family
-          </label>
-          <div className="relative">
+        <div className="space-y-1">
+          <label className="font-bold text-slate-700">Body Font</label>
+          <select
+            value={settings.font}
+            onChange={(e) => onUpdateSettings({ font: e.target.value as FontOption })}
+            className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-1 focus:ring-purple-500 focus:outline-none"
+          >
+            <option value="Georgia">Georgia (Clean Serif)</option>
+            <option value="Garamond">Garamond (Classic Editorial)</option>
+            <option value="Times New Roman">Times New Roman (Academic)</option>
+            <option value="Palatino">Palatino (High Legibility)</option>
+          </select>
+        </div>
+
+        {/* Font Size & Line Spacing Row */}
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-1">
+            <label className="font-bold text-slate-700">Font Size</label>
             <select
-              id="select-font-family"
-              value={settings.fontFamily}
-              onChange={(e) =>
-                onUpdateSettings({ fontFamily: e.target.value as FormatterFontFamily })
-              }
-              className="w-full appearance-none px-3 py-2 bg-gray-50 dark:bg-[#131320] border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-purple-500"
+              value={settings.fontSizeLabel}
+              onChange={(e) => handleFontSizeChange(e.target.value as FontSizeOption)}
+              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-1 focus:ring-purple-500 focus:outline-none"
             >
-              {fontFamilies.map((font) => (
-                <option key={font} value={font}>
-                  {font} (Classic Serif)
-                </option>
-              ))}
+              <option value="10pt">10pt</option>
+              <option value="11pt">11pt (Recommended)</option>
+              <option value="12pt">12pt</option>
             </select>
-            <ChevronDown className="w-4 h-4 absolute right-2.5 top-2.5 text-gray-400 pointer-events-none" />
+          </div>
+
+          <div className="space-y-1">
+            <label className="font-bold text-slate-700">Line Spacing</label>
+            <select
+              value={settings.lineSpacing}
+              onChange={(e) => handleLineSpacingChange(e.target.value as LineSpacingOption)}
+              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-1 focus:ring-purple-500 focus:outline-none"
+            >
+              <option value="1.0">1.0 (Compact)</option>
+              <option value="1.15">1.15 (Standard)</option>
+              <option value="1.2">1.2 (Relaxed)</option>
+              <option value="1.5">1.5 (Large Print)</option>
+            </select>
           </div>
         </div>
 
-        {/* Font Size (Radio Group) */}
-        <div>
-          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-            Body Font Size
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            {fontSizes.map((size) => (
-              <button
-                key={size}
-                type="button"
-                id={`btn-size-${size}`}
-                onClick={() => onUpdateSettings({ fontSize: size })}
-                className={`py-1.5 px-3 rounded-lg border text-xs font-medium transition-all ${
-                  settings.fontSize === size
-                    ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-bold'
-                    : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
-                }`}
-              >
-                {size}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Line Spacing (Radio Group) */}
-        <div>
-          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-            Line Spacing (Leading)
-          </label>
-          <div className="grid grid-cols-4 gap-2">
-            {lineSpacings.map((spacing) => (
-              <button
-                key={spacing}
-                type="button"
-                id={`btn-spacing-${spacing}`}
-                onClick={() => onUpdateSettings({ lineSpacing: spacing })}
-                className={`py-1.5 px-2 rounded-lg border text-xs font-medium text-center transition-all ${
-                  settings.lineSpacing === spacing
-                    ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-bold'
-                    : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
-                }`}
-              >
-                {spacing}x
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Paragraph Indentation */}
-        <div>
-          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-            First-Line Paragraph Indent
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            {indents.map((indent) => (
-              <button
-                key={indent.value}
-                type="button"
-                id={`btn-indent-${indent.value}`}
-                onClick={() => onUpdateSettings({ paragraphIndent: indent.value })}
-                className={`py-1.5 px-2 rounded-lg border text-xs font-medium text-center transition-all ${
-                  settings.paragraphIndent === indent.value
-                    ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-bold'
-                    : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
-                }`}
-              >
-                {indent.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Drop Caps Toggle */}
-        <div className="flex items-center justify-between pt-1">
-          <div>
-            <div className="text-xs font-semibold text-gray-900 dark:text-white">
-              Drop Caps on Chapter Opening
-            </div>
-            <div className="text-[11px] text-gray-500 dark:text-gray-400">
-              Large decorative initial letter for chapter first paragraphs
-            </div>
-          </div>
-          <button
-            type="button"
-            id="toggle-drop-caps"
-            onClick={() => onUpdateSettings({ dropCaps: !settings.dropCaps })}
-            className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors ${
-              settings.dropCaps ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-700'
-            }`}
+        {/* Margin Preset */}
+        <div className="space-y-1">
+          <label className="font-bold text-slate-700">Margin Preset</label>
+          <select
+            value={settings.marginPreset}
+            onChange={(e) => handleMarginPresetChange(e.target.value as MarginPresetOption)}
+            className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-1 focus:ring-purple-500 focus:outline-none"
           >
-            <div
-              className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
-                settings.dropCaps ? 'translate-x-5' : 'translate-x-0'
-              }`}
+            <option value="workbook">KDP Workbook (Inside 0.75", Out 0.625")</option>
+            <option value="standard">KDP Standard (Inside 0.75", Out 0.50")</option>
+            <option value="minimal">KDP Minimal (Inside 0.625", Out 0.50")</option>
+          </select>
+        </div>
+
+        {/* Paper & Interior Color */}
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-1">
+            <label className="font-bold text-slate-700">Paper Color</label>
+            <select
+              value={settings.paperColor}
+              onChange={(e) => onUpdateSettings({ paperColor: e.target.value as PaperColorOption })}
+              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-1 focus:ring-purple-500 focus:outline-none"
+            >
+              <option value="white">White</option>
+              <option value="cream">Cream</option>
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <label className="font-bold text-slate-700">Interior Ink</label>
+            <select
+              value={settings.interiorColor}
+              onChange={(e) => onUpdateSettings({ interiorColor: e.target.value as InteriorColorOption })}
+              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-1 focus:ring-purple-500 focus:outline-none"
+            >
+              <option value="bw">Black & White</option>
+              <option value="color">Standard Color</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Content Feature Toggles */}
+      <div className="pt-3 border-t border-slate-100 space-y-2.5">
+        <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-wider">
+          Workbook & Style Toggles
+        </h3>
+
+        <div className="space-y-2 text-xs">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={settings.formatExerciseBoxes}
+              onChange={(e) => onUpdateSettings({ formatExerciseBoxes: e.target.checked })}
+              className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
             />
-          </button>
+            <span className="text-slate-700 font-medium">Exercise boxes (EXERCISE X.X:)</span>
+          </label>
+
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={settings.formatScenarioBlocks}
+              onChange={(e) => onUpdateSettings({ formatScenarioBlocks: e.target.checked })}
+              className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+            />
+            <span className="text-slate-700 font-medium">Scenario blocks (SCENARIO A/B:)</span>
+          </label>
+
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={settings.formatModelResponses}
+              onChange={(e) => onUpdateSettings({ formatModelResponses: e.target.checked })}
+              className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+            />
+            <span className="text-slate-700 font-medium">Model responses (MODEL RESPONSE:)</span>
+          </label>
+
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={settings.formatDebriefBlocks}
+              onChange={(e) => onUpdateSettings({ formatDebriefBlocks: e.target.checked })}
+              className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+            />
+            <span className="text-slate-700 font-medium">Debrief blocks (DEBRIEF:)</span>
+          </label>
+
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={settings.formatReflectionPrompts}
+              onChange={(e) => onUpdateSettings({ formatReflectionPrompts: e.target.checked })}
+              className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+            />
+            <span className="text-slate-700 font-medium">Reflection prompts (REFLECTION PROMPT:)</span>
+          </label>
+
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={settings.addWritingLines}
+              onChange={(e) => onUpdateSettings({ addWritingLines: e.target.checked })}
+              className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+            />
+            <span className="text-slate-700 font-medium">Add writing lines to blank spaces</span>
+          </label>
+
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={settings.chapterPageBreaks}
+              onChange={(e) => onUpdateSettings({ chapterPageBreaks: e.target.checked })}
+              className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+            />
+            <span className="text-slate-700 font-medium">New page for each chapter (H2)</span>
+          </label>
         </div>
       </div>
 
-      {/* SECTION 3: LAYOUT */}
-      <div className="bg-white dark:bg-[#1a1a2e] rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-xs space-y-4">
-        <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-800 font-semibold text-gray-900 dark:text-white">
-          <LayoutGrid className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-          <span>3. Trim Size & Layout</span>
+      {/* 4. KDP Metadata (Auto-Extracted, Editable) */}
+      <div className="pt-3 border-t border-slate-100 space-y-2.5 text-xs">
+        <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-wider">
+          KDP Metadata
+        </h3>
+
+        <div className="space-y-1">
+          <label className="text-[11px] font-bold text-slate-600">Title</label>
+          <input
+            type="text"
+            value={settings.title}
+            onChange={(e) => onUpdateSettings({ title: e.target.value })}
+            placeholder="Book Title"
+            className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 font-semibold focus:ring-1 focus:ring-purple-500 focus:outline-none"
+          />
         </div>
 
-        {/* Trim Size */}
-        <div>
-          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-            Trim Size (Inches)
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            {trimSizes.map((t) => (
+        <div className="space-y-1">
+          <label className="text-[11px] font-bold text-slate-600">Subtitle</label>
+          <input
+            type="text"
+            value={settings.subtitle}
+            onChange={(e) => onUpdateSettings({ subtitle: e.target.value })}
+            placeholder="Book Subtitle (Optional)"
+            className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:ring-1 focus:ring-purple-500 focus:outline-none"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-[11px] font-bold text-slate-600">Author Name</label>
+          <input
+            type="text"
+            value={settings.author}
+            onChange={(e) => onUpdateSettings({ author: e.target.value })}
+            placeholder="Author / Pen Name"
+            className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:ring-1 focus:ring-purple-500 focus:outline-none"
+          />
+        </div>
+      </div>
+
+      {/* 5. KDP Compliance Checklist */}
+      <div className="pt-3 border-t border-slate-100 space-y-2 p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 text-[11px]">
+        <h3 className="font-bold text-slate-900 flex items-center gap-1.5">
+          <CheckCircle2 size={14} className="text-emerald-600" />
+          <span>KDP Compliance Checklist</span>
+        </h3>
+
+        <ul className="space-y-1 text-slate-600">
+          <li className="flex items-center gap-1.5">
+            <span className="text-emerald-600 font-bold">✓</span>
+            <span>Trim size: {settings.trimSize} ({settings.trimWidth}" × {settings.trimHeight}")</span>
+          </li>
+          <li className="flex items-center gap-1.5">
+            <span className="text-emerald-600 font-bold">✓</span>
+            <span>Inside gutter: {settings.margins.inside}" (≥ 0.625" required)</span>
+          </li>
+          <li className="flex items-center gap-1.5">
+            <span className="text-emerald-600 font-bold">✓</span>
+            <span>Font: {settings.font} (100% embeddable)</span>
+          </li>
+          <li className="flex items-center gap-1.5">
+            <span className="text-amber-600 font-bold">⚠</span>
+            <span>Pages: ~{stats.estimatedPages} (Verify spine width matches)</span>
+          </li>
+          <li className="flex items-center gap-1.5">
+            <span className="text-emerald-600 font-bold">✓</span>
+            <span>{settings.interiorColor === 'bw' ? 'B&W Interior' : 'Color Interior'} selected</span>
+          </li>
+          <li className="flex items-center gap-1.5">
+            <span className="text-emerald-600 font-bold">✓</span>
+            <span>File size within KDP 650MB limit</span>
+          </li>
+        </ul>
+      </div>
+
+      {/* 6. Chapter Quick Navigator */}
+      {chapterNodes.length > 0 && (
+        <div className="pt-3 border-t border-slate-100 space-y-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+              <BookOpen size={13} className="text-purple-600" />
+              <span>Chapter Navigator</span>
+            </h3>
+            <span className="text-[10px] bg-purple-50 text-purple-700 font-bold px-1.5 py-0.5 rounded">
+              {chapterNodes.length}
+            </span>
+          </div>
+
+          <div className="space-y-1 max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 pr-1">
+            {chapterNodes.map((node) => (
               <button
-                key={t.value}
-                type="button"
-                id={`btn-trim-${t.value}`}
-                onClick={() => onUpdateSettings({ trimSize: t.value })}
-                className={`p-2 rounded-lg border text-left transition-all ${
-                  settings.trimSize === t.value
-                    ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-bold'
-                    : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
-                }`}
+                key={node.id}
+                onClick={() => onSelectChapter(node.blockIndex)}
+                className="w-full text-left px-2 py-1.5 rounded-lg text-xs hover:bg-purple-50 text-slate-700 hover:text-purple-900 flex items-center justify-between group transition-colors cursor-pointer"
               >
-                <div className="text-xs font-bold">{t.label}</div>
-                <div className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
-                  {t.desc}
-                </div>
+                <span className="truncate font-medium">{node.title}</span>
+                <ChevronRight size={12} className="text-slate-400 group-hover:text-purple-600 shrink-0 ml-1" />
               </button>
             ))}
           </div>
         </div>
-
-        {/* Paper Type */}
-        <div>
-          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-            Interior Paper Stock
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              id="btn-paper-white"
-              onClick={() => onUpdateSettings({ paperType: 'white' })}
-              className={`p-2 rounded-lg border text-left flex items-center gap-2 transition-all ${
-                settings.paperType === 'white'
-                  ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-bold'
-                  : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
-              }`}
-            >
-              <div className="w-4 h-4 rounded-full bg-white border border-gray-300 shadow-xs shrink-0" />
-              <div>
-                <div className="text-xs font-semibold">White Paper</div>
-                <div className="text-[10px] text-gray-500">Standard crisp</div>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              id="btn-paper-cream"
-              onClick={() => onUpdateSettings({ paperType: 'cream' })}
-              className={`p-2 rounded-lg border text-left flex items-center gap-2 transition-all ${
-                settings.paperType === 'cream'
-                  ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-bold'
-                  : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
-              }`}
-            >
-              <div className="w-4 h-4 rounded-full bg-[#fbf7ee] border border-amber-300 shadow-xs shrink-0" />
-              <div>
-                <div className="text-xs font-semibold">Cream Paper</div>
-                <div className="text-[10px] text-gray-500">Fiction favorite</div>
-              </div>
-            </button>
-          </div>
-        </div>
-
-        {/* Page Numbers Position */}
-        <div>
-          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-            Page Numbers Position
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { value: 'bottom-center' as PageNumberPosition, label: 'Bottom Center' },
-              { value: 'bottom-outer' as PageNumberPosition, label: 'Bottom Outer' },
-              { value: 'none' as PageNumberPosition, label: 'None' },
-            ].map((p) => (
-              <button
-                key={p.value}
-                type="button"
-                id={`btn-pagenum-${p.value}`}
-                onClick={() => onUpdateSettings({ pageNumberPosition: p.value })}
-                className={`py-1.5 px-2 rounded-lg border text-xs font-medium text-center transition-all ${
-                  settings.pageNumberPosition === p.value
-                    ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-bold'
-                    : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Chapter Start */}
-        <div>
-          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-            Chapter Start
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { value: 'always-new-page' as ChapterStart, label: 'Always New Page' },
-              { value: 'same-page' as ChapterStart, label: 'Continuous' },
-            ].map((c) => (
-              <button
-                key={c.value}
-                type="button"
-                id={`btn-chapterstart-${c.value}`}
-                onClick={() => onUpdateSettings({ chapterStart: c.value })}
-                className={`py-1.5 px-2 rounded-lg border text-xs font-medium text-center transition-all ${
-                  settings.chapterStart === c.value
-                    ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-bold'
-                    : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
-                }`}
-              >
-                {c.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Running Header */}
-        <div>
-          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-            Running Header (Top of Page)
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { value: 'none' as RunningHeaderType, label: 'None' },
-              { value: 'book-title' as RunningHeaderType, label: 'Book Title' },
-              { value: 'chapter-name' as RunningHeaderType, label: 'Chapter Name' },
-            ].map((h) => (
-              <button
-                key={h.value}
-                type="button"
-                id={`btn-header-${h.value}`}
-                onClick={() => onUpdateSettings({ runningHeader: h.value })}
-                className={`py-1.5 px-2 rounded-lg border text-xs font-medium text-center transition-all ${
-                  settings.runningHeader === h.value
-                    ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-bold'
-                    : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
-                }`}
-              >
-                {h.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* SECTION 4: SECTIONS TO INCLUDE */}
-      <div className="bg-white dark:bg-[#1a1a2e] rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-xs space-y-3">
-        <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-800 font-semibold text-gray-900 dark:text-white">
-          <CheckSquare className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-          <span>4. Sections to Include</span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-          {[
-            { key: 'titlePage', label: 'Title Page' },
-            { key: 'copyright', label: 'Copyright Page' },
-            { key: 'dedication', label: 'Dedication' },
-            { key: 'toc', label: 'Table of Contents' },
-            { key: 'preface', label: 'Preface' },
-            { key: 'chapters', label: 'Chapters / Body' },
-            { key: 'aboutAuthor', label: 'About Author' },
-          ].map((sec) => (
-            <label
-              key={sec.key}
-              className="flex items-center gap-2 p-1.5 rounded hover:bg-gray-50 dark:hover:bg-gray-800/60 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                id={`check-section-${sec.key}`}
-                checked={
-                  settings.includedSections[sec.key as keyof typeof settings.includedSections]
-                }
-                onChange={(e) =>
-                  onUpdateSettings({
-                    includedSections: {
-                      ...settings.includedSections,
-                      [sec.key]: e.target.checked,
-                    },
-                  })
-                }
-                className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900"
-              />
-              <span className="font-medium text-gray-700 dark:text-gray-300">{sec.label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* CALCULATE LAYOUT & SPEC SUMMARY */}
-      <div className="bg-purple-50/60 dark:bg-purple-950/30 rounded-xl p-4 border border-purple-200 dark:border-purple-800/50 shadow-xs space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 font-semibold text-purple-900 dark:text-purple-200 text-xs uppercase tracking-wider">
-            <Calculator className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-            <span>KDP Layout Spec Sheet</span>
-          </div>
-
-          <button
-            type="button"
-            onClick={onRecalculate}
-            className="px-2.5 py-1 text-xs bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg shadow-xs transition-colors"
-          >
-            Recalculate
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="p-2.5 bg-white dark:bg-[#131320] rounded-lg border border-purple-100 dark:border-purple-900/40">
-            <div className="text-gray-500 dark:text-gray-400 text-[11px]">Estimated Pages</div>
-            <div className="text-base font-bold text-gray-900 dark:text-white font-mono">
-              {estimatedPages} pages
-            </div>
-            <div className="text-[10px] text-gray-400">Min 24 for KDP paperback</div>
-          </div>
-
-          <div className="p-2.5 bg-white dark:bg-[#131320] rounded-lg border border-purple-100 dark:border-purple-900/40">
-            <div className="text-gray-500 dark:text-gray-400 text-[11px]">Spine Width</div>
-            <div className="text-base font-bold text-purple-700 dark:text-purple-300 font-mono">
-              {calculatedSpine}"
-            </div>
-            <div className="text-[10px] text-gray-400">
-              {settings.paperType === 'cream' ? '0.0025"/page' : '0.002252"/page'}
-            </div>
-          </div>
-
-          <div className="p-2.5 bg-white dark:bg-[#131320] rounded-lg border border-purple-100 dark:border-purple-900/40">
-            <div className="text-gray-500 dark:text-gray-400 text-[11px]">Gutter (Inside) Margin</div>
-            <div className="text-sm font-bold text-gray-900 dark:text-white font-mono">
-              {calculatedMargins.inside}"
-            </div>
-            <div className="text-[10px] text-gray-400">
-              Out: {calculatedMargins.outside}" | Top/Bot: {calculatedMargins.top}" / {calculatedMargins.bottom}"
-            </div>
-          </div>
-
-          <div className="p-2.5 bg-white dark:bg-[#131320] rounded-lg border border-purple-100 dark:border-purple-900/40">
-            <div className="text-gray-500 dark:text-gray-400 text-[11px]">Cover Dimensions</div>
-            <div className="text-sm font-bold text-gray-900 dark:text-white font-mono">
-              {coverDimensions.totalWidth}" × {coverDimensions.totalHeight}"
-            </div>
-            <div className="text-[10px] text-gray-400">Includes 0.125" bleed</div>
-          </div>
-        </div>
-      </div>
-    </div>
+      )}
+    </aside>
   );
 };

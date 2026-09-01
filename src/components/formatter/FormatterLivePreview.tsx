@@ -1,486 +1,461 @@
-import React, { useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
-  ChevronLeft,
-  ChevronRight,
-  ZoomIn,
-  ZoomOut,
-  Maximize2,
-  BookOpen,
-  Eye,
-  FileText,
-  Columns,
-  Square,
-} from 'lucide-react';
-import { Book, FormatterSettings, Margins, TrimDimensions } from '../../types/index';
-import { getFontFamilyStack } from '../../lib/bookHtmlGenerator';
+  ContentBlock,
+  KdpFormatSettings,
+  FormatterStats,
+} from '../../types/formatter';
+import { cleanText } from '../../utils/generateDocx';
+import { BookOpen, AlertCircle, FileSpreadsheet, Eye } from 'lucide-react';
 
 interface FormatterLivePreviewProps {
-  book: Book | null;
-  settings: FormatterSettings;
-  margins: Margins;
-  trimDimensions: TrimDimensions;
-  estimatedPages: number;
+  blocks: ContentBlock[];
+  settings: KdpFormatSettings;
+  stats: FormatterStats;
+  targetBlockIndex: number | null;
 }
 
 export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
-  book,
+  blocks,
   settings,
-  margins,
-  trimDimensions,
-  estimatedPages,
+  stats,
+  targetBlockIndex,
 }) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [viewMode, setViewMode] = useState<'single' | 'spread'>('single');
-  const [zoomLevel, setZoomLevel] = useState(100);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
-  if (!book) {
-    return (
-      <div className="h-full flex items-center justify-center p-8 bg-gray-100 dark:bg-[#0f0f17] rounded-xl border border-gray-200 dark:border-gray-800 text-center">
-        <div>
-          <BookOpen className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-          <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300">No Book Loaded</h3>
-          <p className="text-xs text-gray-500 max-w-sm mt-1">
-            Select a manuscript project from the left panel to generate a live formatted KDP preview.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // Generate simulated pages from the book's sections
-  interface PreviewPage {
-    pageNumber: number;
-    type: 'title' | 'copyright' | 'dedication' | 'toc' | 'preface' | 'chapter_start' | 'chapter_body' | 'about';
-    title?: string;
-    chapterNumber?: number;
-    headerText?: string;
-    content: string[];
-    isFirstParagraph?: boolean;
-  }
-
-  const pages: PreviewPage[] = [];
-  let pageCounter = 1;
-
-  // 1. Title Page
-  if (settings.includedSections.titlePage) {
-    pages.push({
-      pageNumber: pageCounter++,
-      type: 'title',
-      content: [],
-    });
-  }
-
-  // 2. Copyright Page
-  if (settings.includedSections.copyright) {
-    pages.push({
-      pageNumber: pageCounter++,
-      type: 'copyright',
-      content: [],
-    });
-  }
-
-  // 3. Dedication Page
-  if (settings.includedSections.dedication && book.frontMatter?.dedication) {
-    pages.push({
-      pageNumber: pageCounter++,
-      type: 'dedication',
-      content: [book.frontMatter.dedication],
-    });
-  }
-
-  // 4. TOC Page
-  if (settings.includedSections.toc && book.chapters.length > 0) {
-    pages.push({
-      pageNumber: pageCounter++,
-      type: 'toc',
-      content: book.chapters.map((c, i) => `${c.title || `Chapter ${i + 1}`}`),
-    });
-  }
-
-  // 5. Preface
-  if (settings.includedSections.preface && book.frontMatter?.preface) {
-    const prefaceParas = book.frontMatter.preface
-      .replace(/<[^>]*>/g, '')
-      .split(/\n\s*\n/)
-      .filter(Boolean);
-
-    pages.push({
-      pageNumber: pageCounter++,
-      type: 'preface',
-      headerText: settings.runningHeader === 'book-title' ? book.title : 'PREFACE',
-      content: prefaceParas.slice(0, 4),
-      isFirstParagraph: true,
-    });
-  }
-
-  // 6. Chapters (or custom text)
-  if (settings.includedSections.chapters) {
-    if (settings.customText && settings.customText.trim()) {
-      const paras = settings.customText.split(/\n\s*\n/).filter(Boolean);
-      // Split into 2-3 preview pages
-      const perPage = 3;
-      for (let i = 0; i < paras.length && pages.length < 15; i += perPage) {
-        pages.push({
-          pageNumber: pageCounter++,
-          type: i === 0 ? 'chapter_start' : 'chapter_body',
-          chapterNumber: 1,
-          title: book.title || 'Manuscript',
-          headerText: settings.runningHeader === 'book-title' ? book.title : 'MANUSCRIPT',
-          content: paras.slice(i, i + perPage),
-          isFirstParagraph: i === 0,
-        });
+  // Scroll to targeted chapter block when selected from navigator
+  useEffect(() => {
+    if (targetBlockIndex !== null && containerRef.current) {
+      const el = containerRef.current.querySelector(`#preview-block-${targetBlockIndex}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
-    } else if (book.chapters && book.chapters.length > 0) {
-      book.chapters.forEach((chap, idx) => {
-        const cleanContent = chap.content
-          .replace(/<\/p>/gi, '\n\n')
-          .replace(/<[^>]*>/g, '')
-          .trim();
-
-        const paras = cleanContent.split(/\n\s*\n/).filter(Boolean);
-        const chapterParas = paras.length > 0 ? paras : [
-          'The morning sunlight filtered through the sheer curtains, casting a pattern of soft geometric shadows against the wooden floorboards. Every detail seemed sharper today, as if the room itself were holding its breath in anticipation.',
-          'He sat at the desk, reviewing the notes one final time before making the decision. There had been months of planning, countless revisions, and late evenings spent perfecting every single passage.',
-          'Outside, the gentle hum of the coastal breeze stirred the leaves of the old oak tree. It was the kind of stillness that precedes a monumental transition—a moment frozen between intention and execution.',
-        ];
-
-        // Page 1 of this chapter: Chapter Title & opening paragraphs
-        pages.push({
-          pageNumber: pageCounter++,
-          type: 'chapter_start',
-          chapterNumber: idx + 1,
-          title: chap.title || `Chapter ${idx + 1}`,
-          headerText: settings.runningHeader === 'book-title' ? book.title : (chap.title || `Chapter ${idx + 1}`),
-          content: chapterParas.slice(0, 3),
-          isFirstParagraph: true,
-        });
-
-        // If there are more paragraphs, add continuation page
-        if (chapterParas.length > 3) {
-          pages.push({
-            pageNumber: pageCounter++,
-            type: 'chapter_body',
-            chapterNumber: idx + 1,
-            title: chap.title || `Chapter ${idx + 1}`,
-            headerText: settings.runningHeader === 'book-title' ? book.title : (chap.title || `Chapter ${idx + 1}`),
-            content: chapterParas.slice(3, 7),
-            isFirstParagraph: false,
-          });
-        }
-      });
     }
-  }
+  }, [targetBlockIndex]);
 
-  // 7. About the Author
-  if (settings.includedSections.aboutAuthor && book.backMatter?.aboutAuthor) {
-    const authorParas = book.backMatter.aboutAuthor
-      .replace(/<[^>]*>/g, '')
-      .split(/\n\s*\n/)
-      .filter(Boolean);
-
-    pages.push({
-      pageNumber: pageCounter++,
-      type: 'about',
-      headerText: 'ABOUT THE AUTHOR',
-      content: authorParas,
+  // Render markdown inline bold/italic
+  const renderFormattedText = (text: string) => {
+    if (!text) return '';
+    const parts = text.split(/(\*\*.*?\*\*|\*.*?\*)/g);
+    return parts.map((part, idx) => {
+      if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+        return <strong key={idx}>{part.slice(2, -2)}</strong>;
+      }
+      if (part.startsWith('*') && part.endsWith('*') && part.length >= 2) {
+        return <em key={idx}>{part.slice(1, -1)}</em>;
+      }
+      return part;
     });
-  }
+  };
 
-  const totalPreviewPages = Math.max(1, pages.length);
-  const safePageIdx = Math.min(currentPage, totalPreviewPages) - 1;
-  const activePage = pages[safePageIdx] || pages[0];
-  const secondPage = viewMode === 'spread' && safePageIdx + 1 < totalPreviewPages ? pages[safePageIdx + 1] : null;
+  // Render markdown table
+  const renderTable = (block: ContentBlock) => {
+    const rawLines = block.lines || block.text.split('\n');
+    const tableRows = rawLines
+      .filter((line) => !line.match(/^\|[\s\-:]+\|/)) // remove separator row
+      .map((line) =>
+        line
+          .split('|')
+          .filter((_, i, arr) => i > 0 && i < arr.length - 1)
+          .map((cell) => cell.trim())
+      );
 
-  // Aspect ratio calculation for realistic book proportions
-  const widthRatio = trimDimensions.width;
-  const heightRatio = trimDimensions.height;
-  const aspectRatio = `${widthRatio} / ${heightRatio}`;
+    if (tableRows.length === 0) return null;
 
-  // Font stack
-  const fontCss = getFontFamilyStack(settings.fontFamily);
-  const fontSizePx = settings.fontSize === '10pt' ? '13px' : settings.fontSize === '11pt' ? '14px' : '15px';
-  const lineHeightNum = parseFloat(settings.lineSpacing || '1.5');
-  const indentPx = settings.paragraphIndent === '0.5in' ? '28px' : settings.paragraphIndent === '0.25in' ? '16px' : '0px';
-
-  // Render a single simulated book page
-  const renderSingleBookPage = (pageData: PreviewPage, isRightSide: boolean) => {
-    const isCream = settings.paperType === 'cream';
-    const isEven = pageData.pageNumber % 2 === 0;
-
-    // Gutter margin is inside
-    const gutterOnLeft = isRightSide || !isEven;
-    const paddingLeft = gutterOnLeft ? `${margins.inside * 60}px` : `${margins.outside * 60}px`;
-    const paddingRight = gutterOnLeft ? `${margins.outside * 60}px` : `${margins.inside * 60}px`;
-    const paddingTop = `${margins.top * 50}px`;
-    const paddingBottom = `${margins.bottom * 50}px`;
+    const [headerRow, ...bodyRows] = tableRows;
 
     return (
-      <div
-        id={`preview-book-page-${pageData.pageNumber}`}
-        style={{
-          aspectRatio,
-          fontFamily: fontCss,
-          fontSize: fontSizePx,
-          lineHeight: lineHeightNum,
-          paddingLeft,
-          paddingRight,
-          paddingTop,
-          paddingBottom,
-        }}
-        className={`w-full ${viewMode === 'spread' ? 'max-w-[280px]' : 'max-w-[340px]'} h-auto rounded-sm shadow-md flex flex-col justify-between relative transition-all select-none border ${
-          isCream
-            ? 'bg-[#fbf7ee] text-[#1c1813] border-amber-200/70 shadow-amber-950/10'
-            : 'bg-white text-slate-900 border-slate-200 shadow-slate-400/20'
-        }`}
-      >
-        {/* Running Header (Odd/Even header) */}
-        <div className="h-6 flex items-center justify-between text-[10px] tracking-widest text-gray-500 uppercase border-b border-gray-300/40 pb-1 mb-2">
-          {pageData.type !== 'title' && pageData.type !== 'copyright' && (
-            <>
-              <span className="truncate">
-                {settings.runningHeader === 'book-title'
-                  ? book.title
-                  : settings.runningHeader === 'chapter-name'
-                  ? pageData.headerText || ''
-                  : ''}
-              </span>
-              {settings.pageNumberPosition === 'bottom-outer' && (
-                <span className="font-mono text-[9px]">{pageData.pageNumber}</span>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* Page Content Body */}
-        <div className="flex-1 flex flex-col justify-start overflow-hidden">
-          {pageData.type === 'title' && (
-            <div className="flex-1 flex flex-col items-center justify-center text-center my-auto py-8">
-              <h1 className="text-xl font-bold tracking-wider uppercase mb-1">{book.title}</h1>
-              {book.subtitle && <h2 className="text-xs italic text-gray-600 mb-6">{book.subtitle}</h2>}
-              <div className="text-xs font-semibold uppercase tracking-widest mt-auto">
-                By {book.author || 'Author'}
-              </div>
-            </div>
-          )}
-
-          {pageData.type === 'copyright' && (
-            <div className="flex-1 flex flex-col justify-end text-[9px] text-gray-700 leading-normal pb-4">
-              <p className="font-bold mb-1">{book.title}</p>
-              <p className="mb-2">Copyright © {new Date().getFullYear()} {book.author || 'Author'}. All rights reserved.</p>
-              <p className="mb-2">No part of this publication may be reproduced or transmitted without written permission from the publisher.</p>
-              <p>Published in the United States of America.</p>
-            </div>
-          )}
-
-          {pageData.type === 'dedication' && (
-            <div className="flex-1 flex items-center justify-center text-center py-12 px-4">
-              <p className="italic text-sm text-gray-800">
-                "{pageData.content[0] || 'Dedicated to seekers of truth and timeless stories.'}"
-              </p>
-            </div>
-          )}
-
-          {pageData.type === 'toc' && (
-            <div className="py-4">
-              <h2 className="text-center font-bold tracking-widest text-sm uppercase mb-4">Contents</h2>
-              <div className="space-y-1.5 text-[11px]">
-                {pageData.content.map((item, idx) => (
-                  <div key={idx} className="flex items-baseline justify-between">
-                    <span className="font-medium">{item}</span>
-                    <span className="flex-1 mx-2 border-b border-dotted border-gray-400"></span>
-                    <span className="font-mono text-[10px]">{idx + 1}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {(pageData.type === 'chapter_start' || pageData.type === 'preface' || pageData.type === 'about') && (
-            <div className="text-center mb-4 pt-2">
-              {pageData.chapterNumber && (
-                <div className="text-[10px] tracking-widest text-gray-500 font-semibold uppercase mb-0.5">
-                  CHAPTER {pageData.chapterNumber}
-                </div>
-              )}
-              <h2 className="text-base font-bold tracking-wide uppercase">
-                {pageData.title || (pageData.type === 'preface' ? 'Preface' : 'About the Author')}
-              </h2>
-            </div>
-          )}
-
-          {/* Body Paragraphs */}
-          {pageData.content.length > 0 && pageData.type !== 'dedication' && pageData.type !== 'toc' && (
-            <div className="space-y-0 text-justify hyphens-auto">
-              {pageData.content.map((p, pIdx) => {
-                const isFirst = pIdx === 0 && pageData.isFirstParagraph;
-                const hasDropCap = isFirst && settings.dropCaps;
-
-                if (hasDropCap) {
-                  const firstLetter = p.charAt(0);
-                  const restOfPara = p.slice(1);
-
-                  return (
-                    <p key={pIdx} className="mb-0 text-justify" style={{ textIndent: '0px' }}>
-                      <span
-                        className="float-left text-3xl font-bold leading-none pr-1.5 pt-0.5"
-                        style={{ color: '#1a1a1a' }}
-                      >
-                        {firstLetter}
-                      </span>
-                      {restOfPara}
-                    </p>
-                  );
-                }
-
-                return (
-                  <p
-                    key={pIdx}
-                    className="mb-0 text-justify"
-                    style={{ textIndent: isFirst ? '0px' : indentPx }}
-                  >
-                    {p}
-                  </p>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Bottom Page Number */}
-        <div className="h-6 flex items-center justify-center text-[10px] font-mono text-gray-600">
-          {settings.pageNumberPosition === 'bottom-center' && pageData.type !== 'title' && pageData.type !== 'copyright' && (
-            <span>{pageData.pageNumber}</span>
-          )}
-        </div>
-      </div>
+      <table className="preview-table">
+        <thead>
+          <tr>
+            {headerRow.map((col, idx) => (
+              <th key={idx}>{col}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {bodyRows.map((row, rIdx) => (
+            <tr key={rIdx}>
+              {row.map((cell, cIdx) => (
+                <td key={cIdx}>{cell}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     );
   };
 
+  const fontStyle = {
+    fontFamily:
+      settings.font === 'Garamond'
+        ? '"EB Garamond", Garamond, serif'
+        : settings.font === 'Times New Roman'
+        ? '"Times New Roman", Times, serif'
+        : settings.font === 'Palatino'
+        ? 'Palatino, "Book Antiqua", Georgia, serif'
+        : 'Georgia, serif',
+  };
+
   return (
-    <div className="flex flex-col h-[720px] max-h-[82vh] bg-slate-100/80 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      {/* Top Preview Control Bar */}
-      <div className="h-12 bg-white border-b border-slate-200 px-4 flex items-center justify-between z-10 shrink-0 shadow-2xs">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-            <Eye className="w-3.5 h-3.5 text-purple-600" />
-            <span>Interactive KDP Preview</span>
-          </span>
-          <span className="text-xs text-slate-400 font-mono">
-            ({trimDimensions.width}" × {trimDimensions.height}", {settings.paperType})
-          </span>
+    <div className="w-full lg:w-[400px] shrink-0 flex flex-col bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden max-h-[calc(100vh-140px)]">
+      {/* 1. Preview Stats Bar */}
+      <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-[11px] font-semibold text-slate-700 shrink-0">
+        <div className="flex items-center gap-1.5 truncate">
+          <span>📄 Pages: <strong className="font-mono text-purple-700">{stats.estimatedPages}</strong></span>
+          <span className="text-slate-300">|</span>
+          <span>📝 Words: <strong className="font-mono text-slate-900">{stats.wordCount.toLocaleString()}</strong></span>
+          <span className="text-slate-300">|</span>
+          <span>📚 Ch: <strong className="font-mono text-slate-900">{stats.chapterCount}</strong></span>
         </div>
+        <div className="flex items-center gap-1 text-[10px] text-purple-700 font-bold bg-purple-100/70 px-2 py-0.5 rounded-full border border-purple-200">
+          <Eye size={11} />
+          <span>Live 7x10</span>
+        </div>
+      </div>
 
-        {/* View Mode & Zoom controls */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Spread toggle */}
-          <div className="hidden sm:flex rounded-lg bg-slate-100 p-0.5 text-xs">
-            <button
-              type="button"
-              onClick={() => setViewMode('single')}
-              className={`px-2 py-1 rounded-md flex items-center gap-1 ${
-                viewMode === 'single'
-                  ? 'bg-white text-purple-700 font-bold shadow-2xs'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-              title="Single Page View"
-            >
-              <Square className="w-3 h-3" />
-              <span>Single</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('spread')}
-              className={`px-2 py-1 rounded-md flex items-center gap-1 ${
-                viewMode === 'spread'
-                  ? 'bg-white text-purple-700 font-bold shadow-2xs'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-              title="Two-Page Spread View"
-            >
-              <Columns className="w-3 h-3" />
-              <span>Spread</span>
-            </button>
+      {/* 2. Scrollable Canvas Area */}
+      <div
+        ref={containerRef}
+        className="flex-1 overflow-y-auto p-4 bg-slate-100/70 space-y-4 scrollbar-thin scrollbar-thumb-slate-300"
+      >
+        {blocks.length === 0 ? (
+          /* Empty State */
+          <div className="h-full min-h-[400px] flex flex-col items-center justify-center p-6 text-center text-slate-400">
+            <BookOpen size={40} className="mb-3 text-slate-300" />
+            <h4 className="text-sm font-bold text-slate-700 mb-1">Live KDP Print Preview</h4>
+            <p className="text-xs max-w-xs text-slate-500 leading-relaxed">
+              Paste or upload your manuscript on the left, then click <strong>"Parse &amp; Preview"</strong> to see the formatted book spread here.
+            </p>
           </div>
+        ) : (
+          /* Styled Formatted Book Page */
+          <div className="preview-page" style={fontStyle}>
+            {/* Simulated Header */}
+            <div className="text-[8px] font-bold text-slate-400 uppercase tracking-widest text-center border-b border-slate-200 pb-1.5 mb-4">
+              {settings.title || 'KDP Studio Book'}
+            </div>
 
-          {/* Zoom controls */}
-          <div className="flex items-center gap-0.5 sm:gap-1 bg-slate-100 rounded-lg p-0.5">
-            <button
-              type="button"
-              onClick={() => setZoomLevel((prev) => Math.max(60, prev - 15))}
-              className="p-1 text-slate-500 hover:text-slate-900 rounded"
-              title="Zoom Out"
-            >
-              <ZoomOut className="w-3.5 h-3.5" />
-            </button>
-            <span className="text-[11px] font-mono px-1 font-semibold text-slate-700">
-              {zoomLevel}%
-            </span>
-            <button
-              type="button"
-              onClick={() => setZoomLevel((prev) => Math.min(130, prev + 15))}
-              className="p-1 text-slate-500 hover:text-slate-900 rounded"
-              title="Zoom In"
-            >
-              <ZoomIn className="w-3.5 h-3.5" />
-            </button>
+            {/* Block Loop */}
+            {blocks.map((block, idx) => {
+              const isTargeted = targetBlockIndex === idx;
+
+              switch (block.type) {
+                case 'title':
+                  return (
+                    <div
+                      key={block.id}
+                      id={`preview-block-${idx}`}
+                      className="text-base font-black text-center uppercase tracking-tight my-4 text-slate-900"
+                    >
+                      {cleanText(block.text)}
+                    </div>
+                  );
+
+                case 'subtitle':
+                  return (
+                    <div
+                      key={block.id}
+                      id={`preview-block-${idx}`}
+                      className="text-xs italic text-center text-slate-600 mb-5"
+                    >
+                      {cleanText(block.text)}
+                    </div>
+                  );
+
+                case 'part':
+                  return (
+                    <div
+                      key={block.id}
+                      id={`preview-block-${idx}`}
+                      className="preview-part-header"
+                    >
+                      {cleanText(block.text)}
+                    </div>
+                  );
+
+                case 'chapter':
+                  return (
+                    <div
+                      key={block.id}
+                      id={`preview-block-${idx}`}
+                      className={`preview-chapter ${isTargeted ? 'bg-purple-100/60 ring-2 ring-purple-400 rounded' : ''}`}
+                    >
+                      {cleanText(block.text)}
+                    </div>
+                  );
+
+                case 'section':
+                  return (
+                    <div
+                      key={block.id}
+                      id={`preview-block-${idx}`}
+                      className="preview-section"
+                    >
+                      {cleanText(block.text)}
+                    </div>
+                  );
+
+                case 'subsection':
+                  return (
+                    <div
+                      key={block.id}
+                      id={`preview-block-${idx}`}
+                      className="preview-subsection"
+                    >
+                      {cleanText(block.text)}
+                    </div>
+                  );
+
+                case 'exercise_header':
+                  return (
+                    <div key={block.id} id={`preview-block-${idx}`} className="preview-exercise">
+                      <div className="preview-exercise-header">{cleanText(block.text)}</div>
+                    </div>
+                  );
+
+                case 'exercise_body':
+                  return (
+                    <div key={block.id} id={`preview-block-${idx}`} className="preview-exercise-body">
+                      <p className="preview-paragraph">{renderFormattedText(block.text)}</p>
+                    </div>
+                  );
+
+                case 'scenario_header':
+                  return (
+                    <div key={block.id} id={`preview-block-${idx}`} className="preview-scenario">
+                      <div className="preview-scenario-header">{cleanText(block.text)}</div>
+                    </div>
+                  );
+
+                case 'scenario_body':
+                  return (
+                    <div key={block.id} id={`preview-block-${idx}`} className="p-2">
+                      <p className="preview-paragraph">{renderFormattedText(block.text)}</p>
+                    </div>
+                  );
+
+                case 'model_response':
+                  return (
+                    <div key={block.id} id={`preview-block-${idx}`} className="preview-model-response">
+                      <div className="font-bold uppercase text-[8px] text-slate-500 mb-0.5 tracking-wider">
+                        Model Response
+                      </div>
+                      <div>{renderFormattedText(cleanText(block.text).replace(/^MODEL RESPONSE[:—]?\s*/i, ''))}</div>
+                    </div>
+                  );
+
+                case 'debrief':
+                  return (
+                    <div key={block.id} id={`preview-block-${idx}`} className="preview-debrief">
+                      <div className="font-bold uppercase text-[8px] text-slate-600 mb-0.5 tracking-wider">
+                        Debrief
+                      </div>
+                      <div>{renderFormattedText(cleanText(block.text).replace(/^DEBRIEF[:—]?\s*/i, ''))}</div>
+                    </div>
+                  );
+
+                case 'reflection':
+                  return (
+                    <div key={block.id} id={`preview-block-${idx}`} className="preview-reflection">
+                      <div className="font-bold text-[9px] text-slate-800 mb-0.5">Reflection Prompt</div>
+                      <div>{renderFormattedText(block.text)}</div>
+                    </div>
+                  );
+
+                case 'action':
+                  return (
+                    <div key={block.id} id={`preview-block-${idx}`} className="font-bold text-[11px] text-slate-900 my-2">
+                      {cleanText(block.text)}
+                    </div>
+                  );
+
+                case 'lines':
+                  return (
+                    <div key={block.id} id={`preview-block-${idx}`} className="my-2">
+                      <div className="preview-writing-lines" />
+                      <div className="preview-writing-lines" />
+                      <div className="preview-writing-lines" />
+                    </div>
+                  );
+
+                case 'table':
+                  return <div key={block.id} id={`preview-block-${idx}`}>{renderTable(block)}</div>;
+
+                case 'divider':
+                  return <hr key={block.id} id={`preview-block-${idx}`} className="border-t border-slate-300 my-3" />;
+
+                case 'blank':
+                  return <div key={block.id} className="h-2" />;
+
+                case 'paragraph':
+                default:
+                  return (
+                    <p key={block.id} id={`preview-block-${idx}`} className="preview-paragraph">
+                      {renderFormattedText(block.text)}
+                    </p>
+                  );
+              }
+            })}
+
+            {/* Simulated Footer */}
+            <div className="text-[8px] font-mono text-slate-400 text-center border-t border-slate-200 pt-1.5 mt-6">
+              1
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Main Preview Canvas */}
-      <div className="flex-1 overflow-auto p-2 sm:p-6 flex items-center justify-center relative bg-slate-100/60">
-        <div
-          style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'center center' }}
-          className="flex items-center justify-center gap-4 sm:gap-6 transition-transform duration-150 py-2 max-w-full"
-        >
-          {/* Left Page (in spread mode, or single active page) */}
-          {renderSingleBookPage(activePage, false)}
+      {/* Embedded CSS for Exact KDP Preview Styling */}
+      <style>{`
+        .preview-page {
+          width: 350px;
+          background: white;
+          padding: 28px 24px;
+          font-family: Georgia, serif;
+          font-size: 11px;
+          line-height: 1.25;
+          color: #111;
+          margin: 0 auto;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+          border-radius: 4px;
+          min-height: 480px;
+        }
 
-          {/* Right Page (if in spread mode and available) */}
-          {secondPage && renderSingleBookPage(secondPage, true)}
-        </div>
-      </div>
+        .preview-part-header {
+          font-size: 14px;
+          font-weight: bold;
+          text-transform: uppercase;
+          text-align: center;
+          margin: 20px 0 8px;
+          letter-spacing: 0.1em;
+          color: #0f172a;
+        }
 
-      {/* Bottom Page Navigation Bar */}
-      <div className="h-12 bg-white border-t border-slate-200 px-3 sm:px-4 flex items-center justify-between shrink-0">
-        <button
-          type="button"
-          id="btn-preview-prev-page"
-          onClick={() => setCurrentPage((prev) => Math.max(1, viewMode === 'spread' ? prev - 2 : prev - 1))}
-          disabled={currentPage <= 1}
-          className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors shadow-2xs shrink-0"
-        >
-          <ChevronLeft className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Previous Page</span>
-          <span className="sm:hidden">Prev</span>
-        </button>
+        .preview-chapter {
+          font-size: 13px;
+          font-weight: bold;
+          margin: 18px 0 10px;
+          border-bottom: 1px solid #333;
+          padding-bottom: 4px;
+          color: #0f172a;
+        }
 
-        <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-mono text-center truncate mx-1">
-          <span className="font-bold text-slate-900">
-            Page {viewMode === 'spread' && secondPage ? `${activePage.pageNumber}–${secondPage.pageNumber}` : activePage.pageNumber}
-          </span>
-          <span className="text-slate-300">/</span>
-          <span className="text-slate-500">
-            {totalPreviewPages} pages <span className="hidden md:inline">({estimatedPages} estimated total)</span>
-          </span>
-        </div>
+        .preview-section {
+          font-size: 12px;
+          font-weight: bold;
+          margin: 12px 0 6px;
+          color: #1e293b;
+        }
 
-        <button
-          type="button"
-          id="btn-preview-next-page"
-          onClick={() =>
-            setCurrentPage((prev) =>
-              Math.min(totalPreviewPages, viewMode === 'spread' ? prev + 2 : prev + 1)
-            )
-          }
-          disabled={currentPage >= totalPreviewPages || (viewMode === 'spread' && !secondPage)}
-          className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors shadow-2xs shrink-0"
-        >
-          <span className="hidden sm:inline">Next Page</span>
-          <span className="sm:hidden">Next</span>
-          <ChevronRight className="w-3.5 h-3.5" />
-        </button>
-      </div>
+        .preview-subsection {
+          font-size: 11px;
+          font-weight: bold;
+          font-style: italic;
+          margin: 10px 0 4px;
+          color: #334155;
+        }
+
+        .preview-exercise {
+          border: 1px solid #000;
+          margin: 10px 0 4px;
+          border-radius: 2px;
+          overflow: hidden;
+        }
+
+        .preview-exercise-header {
+          background: #EEEEEE;
+          padding: 4px 8px;
+          font-weight: bold;
+          font-size: 9px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: #000;
+        }
+
+        .preview-exercise-body {
+          padding: 6px 8px;
+          background: #FAFAFA;
+          border-left: 1px solid #000;
+          border-right: 1px solid #000;
+          border-bottom: 1px solid #000;
+          margin-top: -4px;
+          margin-bottom: 10px;
+        }
+
+        .preview-scenario {
+          border: 1px solid #1A6B72;
+          margin: 10px 0 4px;
+          border-radius: 2px;
+          overflow: hidden;
+        }
+
+        .preview-scenario-header {
+          background: #1A6B72;
+          color: white;
+          padding: 4px 8px;
+          font-weight: bold;
+          font-size: 9px;
+          text-transform: uppercase;
+        }
+
+        .preview-model-response {
+          background: #F8F8F8;
+          padding: 6px 8px;
+          font-style: italic;
+          margin: 6px 0;
+          font-size: 10px;
+          border-left: 3px solid #AAAAAA;
+        }
+
+        .preview-debrief {
+          padding: 6px 8px;
+          margin: 6px 0;
+          border-left: 3px solid #888;
+          font-size: 10px;
+          background: #FDFDFD;
+        }
+
+        .preview-reflection {
+          background: #F5F5F5;
+          padding: 6px 8px;
+          font-style: italic;
+          margin: 6px 0;
+          font-size: 10px;
+          border-radius: 2px;
+        }
+
+        .preview-writing-lines {
+          border-bottom: 1px solid #333;
+          height: 18px;
+          margin: 4px 0;
+        }
+
+        .preview-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 9px;
+          margin: 8px 0;
+        }
+
+        .preview-table th {
+          background: #EEEEEE;
+          border: 0.5px solid #000;
+          padding: 3px 5px;
+          text-align: left;
+          font-weight: bold;
+        }
+
+        .preview-table td {
+          border: 0.5px solid #000;
+          padding: 3px 5px;
+        }
+
+        .preview-paragraph {
+          margin: 0 0 6px 0;
+          text-align: left;
+          line-height: 1.35;
+        }
+      `}</style>
     </div>
   );
 };

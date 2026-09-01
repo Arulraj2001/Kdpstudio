@@ -1,241 +1,191 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useBookStore } from '../../lib/store';
 import { FormatterSettingsPanel } from './FormatterSettingsPanel';
+import { FormatterInputPanel } from './FormatterInputPanel';
 import { FormatterLivePreview } from './FormatterLivePreview';
 import { FormatterExportBar } from './FormatterExportBar';
-import {
-  getMargins,
-  getSpineWidth,
-  getCoverDimensions,
-  getTrimDimensions,
-  estimatePageCount,
-} from '../../lib/kdp';
-import {
-  Book,
-  TrimSize,
-  PaperType,
-  FormatterSettings,
-  Margins,
-  TrimDimensions,
-} from '../../types/index';
-import { Sliders, Eye, FileSpreadsheet, Sparkles } from 'lucide-react';
+import { detectStructure, extractAutoMetadata } from '../../utils/parseManuscript';
+import { calculateStats, extractChapterNavigation } from '../../utils/calculateStats';
+import { KdpFormatSettings, ContentBlock } from '../../types/formatter';
+import { Sparkles, BookOpen, Layers } from 'lucide-react';
+
+const INITIAL_SAMPLE_MANUSCRIPT = `# THE ASSERTIVE NURSE
+## Practical Communication & De-escalation Workbook
+
+# PART ONE: THE FOUNDATION
+
+## CHAPTER 1: KNOW YOUR COMMUNICATION STYLE
+
+Clear communication in clinical settings saves lives. When nurses communicate with conviction, patient outcomes improve, medication errors decrease, and team cohesion strengthens.
+
+### The Assertive Spectrum
+Assertiveness is not aggressiveness. It is the direct, honest, and appropriate expression of your thoughts, feelings, and beliefs.
+
+#### Passive vs. Assertive Response
+
+| Communication Style | Tone | Non-Verbal Cues | Clinical Outcome |
+| Passive | Hesitant, apologetic | Downward gaze, soft voice | Unaddressed safety concerns |
+| Assertive | Clear, calm, direct | Eye contact, upright posture | Rapid resolution & safety |
+| Aggressive | Demanding, hostile | Raised voice, finger pointing | Escalated conflict & errors |
+
+EXERCISE 1.1: IDENTIFYING YOUR DEFAULT PATTERN
+Reflect on your last shift. Describe a clinical encounter where you hesitated to speak up to an attending physician or senior colleague:
+
+___
+___
+___
+
+SCENARIO A: THE MEDICATION DISCREPANCY
+A senior physician writes an order for a dosage that exceeds hospital guidelines for a renal patient. You must intervene before administration.
+
+MODEL RESPONSE:
+"Doctor Smith, I am reviewing Mrs. Gable's chart and noticed the potassium order is 40 mEq. Her latest creatinine is 2.4. Hospital protocol recommends holding potassium or reducing to 10 mEq. Could we adjust this order?"
+
+DEBRIEF:
+Notice how the statement uses objective data (Mrs. Gable's creatinine of 2.4) rather than personal opinion. This depersonalizes the correction and centers patient safety.
+
+REFLECTION PROMPT:
+What internal fears arise when challenging a senior provider's prescription? Write down two grounding phrases you can use before speaking:
+
+___
+___
+`;
 
 export const FormatterView: React.FC = () => {
-  const books = useBookStore((state) => state.books);
-  const currentBook = useBookStore((state) => state.currentBook);
-  const setCurrentBook = useBookStore((state) => state.setCurrentBook);
-
-  // Selected book state
-  const [selectedBookId, setSelectedBookId] = useState<string | null>(() => {
-    if (currentBook) return currentBook.id;
-    if (books.length > 0) return books[0].id;
-    return null;
-  });
-
-  const activeBook = books.find((b) => b.id === selectedBookId) || currentBook || books[0] || null;
-
-  // Custom text mode state
-  const [isCustomTextMode, setIsCustomTextMode] = useState(false);
-  const [customText, setCustomText] = useState(
-    `Chapter 1: The First Steps\n\nThe morning light broke across the distant valley, casting long golden silhouettes against the ancient stone walls. Every detail seemed sharper today, as if the entire world had been waiting for this exact moment.\n\nHe stepped forward, checking his notes one final time. There was no turning back now. The path ahead would test every assumption he had carried for the past decade.\n\nDeep within the archive, the faint scent of aged parchment lingered. It was a reminder of all the scholars who had stood in this exact chamber before him, searching for answers to the very same mystery.`
+  const [rawText, setRawText] = useState<string>(INITIAL_SAMPLE_MANUSCRIPT);
+  const [parsedBlocks, setParsedBlocks] = useState<ContentBlock[]>(() =>
+    detectStructure(INITIAL_SAMPLE_MANUSCRIPT)
   );
+  const [isParsing, setIsParsing] = useState<boolean>(false);
+  const [targetBlockIndex, setTargetBlockIndex] = useState<number | null>(null);
 
-  // Formatter Settings State
-  const [settings, setSettings] = useState<FormatterSettings>(() => ({
-    fontFamily: 'Garamond',
-    fontSize: '11pt',
-    lineSpacing: '1.5',
-    paragraphIndent: '0.25in',
-    dropCaps: true,
-    trimSize: activeBook?.trimSize || '6x9',
-    paperType: activeBook?.paperType || 'white',
-    pageNumberPosition: 'bottom-center',
-    chapterStart: 'always-new-page',
-    runningHeader: 'book-title',
-    includedSections: {
-      titlePage: activeBook?.frontMatter?.titlePage ?? true,
-      copyright: activeBook?.frontMatter?.copyrightPage ?? true,
-      dedication: !!activeBook?.frontMatter?.dedication,
-      toc: activeBook?.frontMatter?.tableOfContents ?? true,
-      preface: !!activeBook?.frontMatter?.preface,
-      chapters: true,
-      aboutAuthor: !!activeBook?.backMatter?.aboutAuthor,
-    },
+  // KDP Format Settings State
+  const [settings, setSettings] = useState<KdpFormatSettings>(() => ({
+    trimSize: '7x10',
+    trimWidth: 7,
+    trimHeight: 10,
+    font: 'Georgia',
+    fontSize: 22, // 11pt
+    fontSizeLabel: '11pt',
+    lineSpacing: '1.15',
+    lineSpacingValue: 276,
+    marginPreset: 'workbook',
+    margins: { inside: 0.75, outside: 0.625, top: 0.75, bottom: 0.75 },
+    paperColor: 'white',
+    interiorColor: 'bw',
+    formatExerciseBoxes: true,
+    formatScenarioBlocks: true,
+    formatModelResponses: true,
+    formatDebriefBlocks: true,
+    formatReflectionPrompts: true,
+    addWritingLines: true,
+    chapterPageBreaks: false,
+    generateTocPlaceholder: true,
+    title: 'The Assertive Nurse',
+    subtitle: 'Practical Communication & De-escalation Workbook',
+    author: '',
   }));
 
-  // Sync settings when active book changes
+  // Automatically parse and update metadata on initial load
   useEffect(() => {
-    if (activeBook) {
-      setSettings((prev) => ({
-        ...prev,
-        trimSize: activeBook.trimSize || prev.trimSize,
-        paperType: activeBook.paperType || prev.paperType,
-        includedSections: {
-          ...prev.includedSections,
-          titlePage: activeBook.frontMatter?.titlePage ?? true,
-          copyright: activeBook.frontMatter?.copyrightPage ?? true,
-          dedication: !!activeBook.frontMatter?.dedication,
-          toc: activeBook.frontMatter?.tableOfContents ?? true,
-          preface: !!activeBook.frontMatter?.preface,
-          aboutAuthor: !!activeBook.backMatter?.aboutAuthor,
-        },
-      }));
-    }
-  }, [activeBook?.id]);
+    const blocks = detectStructure(INITIAL_SAMPLE_MANUSCRIPT);
+    setParsedBlocks(blocks);
+    const { title, subtitle } = extractAutoMetadata(blocks);
+    if (title) setSettings((prev) => ({ ...prev, title: title || prev.title, subtitle: subtitle || prev.subtitle }));
+  }, []);
 
-  const handleSelectBook = (bookId: string) => {
-    setSelectedBookId(bookId);
-    setCurrentBook(bookId);
+  const handleParse = () => {
+    setIsParsing(true);
+    setTimeout(() => {
+      const blocks = detectStructure(rawText);
+      setParsedBlocks(blocks);
+      const { title, subtitle } = extractAutoMetadata(blocks);
+      if (title && !settings.title) {
+        setSettings((prev) => ({ ...prev, title, subtitle }));
+      }
+      setIsParsing(false);
+    }, 120);
   };
 
-  const handleUpdateSettings = (newPartial: Partial<FormatterSettings>) => {
+  const handleUpdateSettings = (newPartial: Partial<KdpFormatSettings>) => {
     setSettings((prev) => ({ ...prev, ...newPartial }));
   };
 
-  // Calculate total words in current book or custom text
-  const totalWordCount = useMemo(() => {
-    if (isCustomTextMode) {
-      return customText.split(/\s+/).filter(Boolean).length;
-    }
-    if (!activeBook) return 1000;
-    const chaptersWordCount = activeBook.chapters.reduce(
-      (sum, c) => sum + (c.wordCount || c.content.split(/\s+/).filter(Boolean).length),
-      0
-    );
-    const prefaceWords = activeBook.frontMatter?.preface
-      ? activeBook.frontMatter.preface.split(/\s+/).filter(Boolean).length
-      : 0;
-    const authorWords = activeBook.backMatter?.aboutAuthor
-      ? activeBook.backMatter.aboutAuthor.split(/\s+/).filter(Boolean).length
-      : 0;
-    return Math.max(500, chaptersWordCount + prefaceWords + authorWords);
-  }, [isCustomTextMode, customText, activeBook]);
+  const stats = useMemo(
+    () => calculateStats(parsedBlocks, rawText),
+    [parsedBlocks, rawText]
+  );
 
-  // Recalculate KDP specifications
-  const estimatedPages = useMemo(() => {
-    return estimatePageCount(totalWordCount, settings.trimSize, settings.fontSize);
-  }, [totalWordCount, settings.trimSize, settings.fontSize]);
+  const chapterNodes = useMemo(
+    () => extractChapterNavigation(parsedBlocks),
+    [parsedBlocks]
+  );
 
-  const calculatedMargins: Margins = useMemo(() => {
-    return getMargins(
-      settings.trimSize,
-      estimatedPages,
-      settings.pageNumberPosition !== 'none'
-    );
-  }, [settings.trimSize, estimatedPages, settings.pageNumberPosition]);
-
-  const calculatedSpine = useMemo(() => {
-    return getSpineWidth(estimatedPages, settings.paperType);
-  }, [estimatedPages, settings.paperType]);
-
-  const coverDimensions = useMemo(() => {
-    return getCoverDimensions(settings.trimSize, estimatedPages, settings.paperType);
-  }, [settings.trimSize, estimatedPages, settings.paperType]);
-
-  const trimDimensions: TrimDimensions = useMemo(() => {
-    return getTrimDimensions(settings.trimSize);
-  }, [settings.trimSize]);
-
-  // Combined Book representation with custom text if applicable
-  const previewBook: Book | null = useMemo(() => {
-    if (!activeBook) return null;
-    if (isCustomTextMode) {
-      return {
-        ...activeBook,
-        chapters: [
-          {
-            id: 'custom-preview',
-            title: activeBook.title || 'Manuscript',
-            content: customText,
-            order: 0,
-            wordCount: totalWordCount,
-          },
-        ],
-      };
-    }
-    return activeBook;
-  }, [activeBook, isCustomTextMode, customText, totalWordCount]);
+  const handleSelectChapter = (blockIndex: number) => {
+    setTargetBlockIndex(blockIndex);
+  };
 
   return (
-    <div id="interior-formatter-view" className="space-y-6">
-      {/* Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#1a1a2e] p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs">
+    <div className="space-y-4">
+      {/* 1. Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 text-xs font-bold uppercase tracking-wider">
-              Interior Formatter
-            </span>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-              KDP Print Layout & Typesetting
+            <Sparkles size={20} className="text-purple-600" />
+            <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+              KDP Formatter — Manuscript to KDP-Ready DOCX
             </h1>
           </div>
-          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Format your manuscript for Amazon KDP paperback distribution with exact spine, gutter margins, running headers, and drop caps.
+          <p className="text-xs text-slate-500 mt-1">
+            Parse your manuscript, preview print styling, and export 100% compliant KDP Word documents (.docx) with mirror margins and custom exercise boxes.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="text-right hidden md:block">
-            <div className="text-xs font-semibold text-gray-900 dark:text-white">
-              {activeBook?.title || 'Selected Project'}
-            </div>
-            <div className="text-[11px] text-gray-400 font-mono">
-              {settings.trimSize} • {settings.paperType.toUpperCase()} • ~{estimatedPages} pages
-            </div>
-          </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-[11px] font-bold text-purple-700 bg-purple-50 border border-purple-200 px-3 py-1 rounded-full">
+            Trim: {settings.trimSize} ({settings.trimWidth}" × {settings.trimHeight}")
+          </span>
+          <span className="text-[11px] font-bold text-slate-700 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full">
+            Font: {settings.font} {settings.fontSizeLabel}
+          </span>
         </div>
       </div>
 
-      {/* Top Export Bar & Quality Audit Card */}
-      <section className="pt-1">
-        <FormatterExportBar
-          book={previewBook}
-          settings={{
-            ...settings,
-            customText: isCustomTextMode ? customText : undefined,
-          }}
-          margins={calculatedMargins}
-          trimDimensions={trimDimensions}
-          estimatedPages={estimatedPages}
+      {/* 2. Three-Panel Layout (Left Settings, Center Input, Right Live Preview) */}
+      <div className="flex flex-col lg:flex-row gap-4 items-stretch">
+        {/* Left Panel: Format Settings (280px fixed on desktop) */}
+        <FormatterSettingsPanel
+          settings={settings}
+          onUpdateSettings={handleUpdateSettings}
+          stats={stats}
+          chapterNodes={chapterNodes}
+          onSelectChapter={handleSelectChapter}
         />
-      </section>
 
-      {/* Main Two-Panel Layout: Left 35% Settings | Right 65% Live Preview */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Settings Panel (35% -> lg:col-span-4 or 5) */}
-        <aside className="lg:col-span-5 xl:col-span-4">
-          <FormatterSettingsPanel
-            books={books}
-            selectedBookId={selectedBookId}
-            onSelectBook={handleSelectBook}
-            settings={settings}
-            onUpdateSettings={handleUpdateSettings}
-            isCustomTextMode={isCustomTextMode}
-            setIsCustomTextMode={setIsCustomTextMode}
-            customText={customText}
-            setCustomText={setCustomText}
-            calculatedMargins={calculatedMargins}
-            estimatedPages={estimatedPages}
-            calculatedSpine={calculatedSpine}
-            coverDimensions={coverDimensions}
-            onRecalculate={() => {}}
-          />
-        </aside>
+        {/* Center Panel: Input / Paste & Upload Tabs (flex-1) */}
+        <FormatterInputPanel
+          rawText={rawText}
+          onChangeText={setRawText}
+          onParse={handleParse}
+          isParsing={isParsing}
+          wordCount={stats.wordCount}
+        />
 
-        {/* Right Live Preview (65% -> lg:col-span-7 or 8) */}
-        <main className="lg:col-span-7 xl:col-span-8 flex flex-col">
-          <FormatterLivePreview
-            book={previewBook}
-            settings={{
-              ...settings,
-              customText: isCustomTextMode ? customText : undefined,
-            }}
-            margins={calculatedMargins}
-            trimDimensions={trimDimensions}
-            estimatedPages={estimatedPages}
-          />
-        </main>
+        {/* Right Panel: Live Preview (400px fixed on desktop) */}
+        <FormatterLivePreview
+          blocks={parsedBlocks}
+          settings={settings}
+          stats={stats}
+          targetBlockIndex={targetBlockIndex}
+        />
       </div>
+
+      {/* 3. Bottom Export Action Bar */}
+      <FormatterExportBar
+        blocks={parsedBlocks}
+        settings={settings}
+        stats={stats}
+        disabled={parsedBlocks.length === 0}
+      />
     </div>
   );
 };
