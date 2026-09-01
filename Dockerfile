@@ -16,6 +16,7 @@ RUN npm ci
 COPY server.ts ./
 COPY tsconfig*.json ./
 COPY src/ ./src/
+COPY public/ ./public/
 COPY scripts/ ./scripts/
 COPY .npmrc ./
 COPY vite.config.* ./
