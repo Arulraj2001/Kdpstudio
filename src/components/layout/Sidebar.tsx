@@ -224,17 +224,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
         id={`nav-item-${item.id}`}
         onClick={() => handleNavClick(item.id)}
         title={isCollapsed ? item.label : undefined}
-        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs sm:text-[13px] font-semibold transition-all duration-150 group relative cursor-pointer
+        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs sm:text-[13px] font-semibold transition-all duration-150 group relative cursor-pointer border
           ${isActive 
-            ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/25 font-bold' 
-            : 'text-slate-600 hover:text-slate-950 hover:bg-purple-50/70 hover:text-purple-950'
+            ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/25 border-purple-500 font-bold' 
+            : 'bg-white border-slate-200/90 text-slate-700 hover:text-purple-950 hover:bg-purple-50/70 hover:border-purple-300 shadow-2xs'
           }
-          ${isNested ? 'pl-6 text-[12px]' : ''}
+          ${isNested ? 'pl-3.5 text-[12px] bg-white/90 border-slate-200' : ''}
           ${isCollapsed && !isOpenMobile ? 'justify-center px-2' : ''}
         `}
       >
         <Icon 
-          size={isNested ? 16 : 18} 
+          size={isNested ? 15 : 17} 
           className={`shrink-0 transition-transform duration-200 group-hover:scale-105 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-purple-600'}`} 
         />
         
@@ -243,16 +243,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span className="truncate">{item.label}</span>
             {item.badge && (
               <span
-                className={`text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider shrink-0 ${
+                className={`text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider shrink-0 border ${
                   item.badge === 'Agency'
-                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                    ? 'bg-amber-50 text-amber-700 border-amber-200'
                     : item.badge === 'Pro' || item.badge === 'Claude AI'
-                    ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                    ? 'bg-purple-50 text-purple-700 border-purple-200'
                     : item.badge === 'Admin'
-                    ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                    ? 'bg-rose-50 text-rose-700 border-rose-200'
                     : item.badge === 'New' || item.badge === 'Compliant'
-                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                    : 'bg-slate-100 text-slate-600 border border-slate-200'
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : 'bg-slate-100 text-slate-600 border-slate-200'
                 }`}
               >
                 {item.badge}
@@ -283,18 +283,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
         />
       )}
 
-      {/* Sidebar Container */}
+      {/* Sidebar Container with prominent outline border */}
       <aside
         id="main-sidebar"
-        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-white text-slate-800 border-r border-slate-200/90 shadow-sm shadow-slate-100 transition-all duration-300 ease-in-out
+        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-white text-slate-800 border-r-2 border-slate-200 shadow-md shadow-slate-200/30 transition-all duration-300 ease-in-out
           ${isOpenMobile ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0'}
           ${isCollapsed ? 'md:w-20' : 'md:w-64'}
         `}
       >
-        {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-100 shrink-0 bg-white">
+        {/* Brand Header with outline border */}
+        <div className="h-16 flex items-center justify-between px-4 border-b-2 border-slate-200 shrink-0 bg-white">
           <div className="flex items-center gap-3 overflow-hidden cursor-pointer" onClick={() => handleNavClick('dashboard')}>
-            <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 p-0.5 flex items-center justify-center shadow-sm shadow-slate-200 shrink-0 overflow-hidden">
+            <div className="w-9 h-9 rounded-xl bg-white border border-slate-300 p-0.5 flex items-center justify-center shadow-xs shrink-0 overflow-hidden">
               <img
                 src="/brand-icon.png?v=20260831"
                 alt="KDP Studio"
@@ -317,24 +317,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             id="close-mobile-sidebar-btn"
             onClick={onCloseMobile}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 md:hidden transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 border border-slate-200 md:hidden transition-colors cursor-pointer"
             aria-label="Close navigation menu"
           >
             <X size={18} />
           </button>
         </div>
 
-        {/* Navigation Pipeline List */}
-        <div className="flex-1 py-3 px-3 overflow-y-auto space-y-3.5 scrollbar-thin scrollbar-thumb-slate-200">
+        {/* Navigation Pipeline List with Card Section Blocks */}
+        <div className="flex-1 py-3 px-3 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-slate-200">
           {NAV_SECTIONS.map((section) => (
-            <div key={section.id} className="space-y-1">
+            <div 
+              key={section.id} 
+              className={`space-y-1.5 ${
+                (!isCollapsed || isOpenMobile) 
+                  ? 'p-2 rounded-2xl bg-slate-50/60 border border-slate-200/90 shadow-2xs' 
+                  : 'space-y-1'
+              }`}
+            >
               {/* Section Header Divider */}
               {(!isCollapsed || isOpenMobile) ? (
-                <div className="px-3 pt-2 pb-1 text-[10px] font-black tracking-wider text-slate-400 uppercase flex items-center justify-between">
+                <div className="px-1.5 pt-0.5 pb-1 text-[10px] font-black tracking-wider text-slate-400 uppercase flex items-center justify-between">
                   <span>{section.title}</span>
                 </div>
               ) : (
-                <div className="my-2 border-t border-slate-100 mx-2" />
+                <div className="my-1.5 border-t-2 border-slate-200 mx-1" />
               )}
 
               {/* Main Section Items */}
@@ -357,25 +364,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                 return (
                   <div key={subGroup.id} className="pt-0.5">
-                    <button
-                      onClick={() => setOpen(!isOpen)}
-                      className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-bold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer rounded-lg hover:bg-slate-100/70"
-                    >
-                      <span className="flex items-center gap-1.5">
-                        <Layers size={13} className="text-purple-600" />
-                        <span>{subGroup.title}</span>
-                      </span>
-                      <ChevronDown
-                        size={13}
-                        className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-purple-600' : 'text-slate-400'}`}
-                      />
-                    </button>
+                    <div className="p-1 rounded-xl bg-white border border-slate-200/80 shadow-2xs space-y-1">
+                      <button
+                        onClick={() => setOpen(!isOpen)}
+                        className="w-full flex items-center justify-between px-2.5 py-1.5 text-[11px] font-bold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer rounded-lg hover:bg-purple-50/50"
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <Layers size={13} className="text-purple-600" />
+                          <span>{subGroup.title}</span>
+                        </span>
+                        <ChevronDown
+                          size={13}
+                          className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-purple-600' : 'text-slate-400'}`}
+                        />
+                      </button>
 
-                    {isOpen && (
-                      <div className="space-y-1 mt-1 pl-1 border-l-2 border-purple-200/80 ml-2.5">
-                        {subGroup.items.map((item) => renderNavItem(item, true))}
-                      </div>
-                    )}
+                      {isOpen && (
+                        <div className="space-y-1 pt-1 border-t border-slate-100">
+                          {subGroup.items.map((item) => renderNavItem(item, true))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -384,9 +393,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* Admin Console Entry if logged in as admin */}
           {isAdmin && (
-            <div className="space-y-1 pt-2 border-t border-slate-100">
+            <div className="p-2 rounded-2xl bg-rose-50/40 border border-rose-200/80 shadow-2xs space-y-1">
               {(!isCollapsed || isOpenMobile) && (
-                <div className="px-3 pb-1 text-[10px] font-black tracking-wider text-rose-500 uppercase">
+                <div className="px-1.5 pt-0.5 pb-1 text-[10px] font-black tracking-wider text-rose-600 uppercase">
                   Administration
                 </div>
               )}
@@ -400,15 +409,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
-        {/* Footer / System Status & Collapse Toggle */}
-        <div className="p-3 border-t border-slate-100 hidden md:flex flex-col gap-2 shrink-0 bg-slate-50/80">
+        {/* Footer with outline border */}
+        <div className="p-3 border-t-2 border-slate-200 hidden md:flex flex-col gap-2 shrink-0 bg-slate-50/90">
           {!isCollapsed && (
             <div className="flex items-center justify-between px-2 pt-0.5">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[11px] text-slate-500 font-medium">KDP Studio v1.2</span>
+                <span className="text-[11px] text-slate-600 font-medium">KDP Studio v1.2</span>
               </div>
-              <span className="text-[9px] text-purple-700 font-bold uppercase tracking-wider bg-purple-100/80 px-2 py-0.5 rounded-full border border-purple-200">
+              <span className="text-[9px] text-purple-700 font-bold uppercase tracking-wider bg-purple-100 px-2 py-0.5 rounded-full border border-purple-200">
                 Cloud Synced
               </span>
             </div>
@@ -416,7 +425,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             id="toggle-sidebar-collapse-btn"
             onClick={onToggleCollapse}
-            className={`p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer ${isCollapsed ? 'mx-auto' : 'self-end'}`}
+            className={`p-2 rounded-xl text-slate-500 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200/90 shadow-2xs transition-colors cursor-pointer ${isCollapsed ? 'mx-auto' : 'self-end'}`}
             title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >

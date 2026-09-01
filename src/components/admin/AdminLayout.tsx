@@ -249,16 +249,14 @@ export function AdminLayout({
           onClick={() => setIsMobileOpen(false)}
           aria-hidden="true"
         />
-      )}
-
-      {/* Admin Sidebar — Deep Slate Executive Anchor */}
+      )}      {/* Admin Sidebar — Deep Slate Executive Anchor with outline border */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-[#0f172a] border-r border-slate-800 flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-[#0f172a] border-r-2 border-slate-800 flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Branding & Header */}
-        <div className="h-16 px-5 border-b border-slate-800/90 flex items-center justify-between bg-gradient-to-r from-violet-950/40 via-transparent to-transparent">
+        <div className="h-16 px-5 border-b-2 border-slate-800/90 flex items-center justify-between bg-gradient-to-r from-violet-950/40 via-transparent to-transparent">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/80 p-0.5 flex items-center justify-center shadow-md shadow-violet-900/20 shrink-0 overflow-hidden">
               <img
@@ -279,21 +277,21 @@ export function AdminLayout({
 
           <button
             onClick={() => setIsMobileOpen(false)}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 md:hidden"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-700 md:hidden cursor-pointer"
             aria-label="Close sidebar"
           >
             <X size={18} />
           </button>
         </div>
 
-        {/* Navigation Sections */}
-        <div className="flex-1 py-4 px-3 overflow-y-auto space-y-5 scrollbar-thin scrollbar-thumb-slate-800">
+        {/* Navigation Sections with outline cards */}
+        <div className="flex-1 py-3 px-3 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-slate-800">
           {navSections.map((section) => (
-            <div key={section.title} className="space-y-1">
-              <div className="px-3 pb-1 text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+            <div key={section.title} className="p-2 rounded-2xl bg-slate-900/50 border border-slate-800/80 space-y-1.5 shadow-2xs">
+              <div className="px-2 pb-0.5 text-[10px] font-bold tracking-widest text-slate-400 uppercase">
                 {section.title}
               </div>
-              <div className="space-y-0.5">
+              <div className="space-y-1">
                 {section.items.map((item) => {
                   const Icon = item.icon;
                   const isActive = currentRoute === item.id;
@@ -302,14 +300,14 @@ export function AdminLayout({
                     <button
                       key={item.id}
                       onClick={(e) => handleNavClick(item, e)}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer text-left ${
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer text-left border ${
                         isActive
-                          ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-indigo-900/30'
-                          : 'text-slate-300 hover:text-white hover:bg-slate-800/70'
+                          ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-violet-500 shadow-md shadow-indigo-900/30 font-bold'
+                          : 'bg-slate-900/60 border-slate-800/90 text-slate-300 hover:text-white hover:border-slate-700 hover:bg-slate-800/70 shadow-2xs'
                       }`}
                     >
                       <Icon
-                        size={17}
+                        size={16}
                         className={`shrink-0 ${
                           isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'
                         }`}
@@ -318,7 +316,7 @@ export function AdminLayout({
                       {item.badge != null && item.badge > 0 && (
                         <span
                           className={`text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs ${
-                            item.badgeColor || 'bg-violet-600 text-white'
+                            item.badgeColor || 'bg-violet-500 text-white'
                           }`}
                         >
                           {item.badge}
