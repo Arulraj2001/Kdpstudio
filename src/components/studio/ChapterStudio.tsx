@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { DropCapMark, StyledParagraph } from '../../lib/tiptapExtensions';
 import {
@@ -71,8 +70,6 @@ export const ChapterStudio: React.FC<ChapterStudioProps> = ({
   const deleteChapter = useBookStore((state) => state.deleteChapter);
   const reorderChapters = useBookStore((state) => state.reorderChapters);
   const duplicateChapter = useBookStore((state) => state.duplicateChapter);
-  const updateFrontMatter = useBookStore((state) => state.updateFrontMatter);
-  const updateBackMatter = useBookStore((state) => state.updateBackMatter);
 
   // Selected chapter state
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(() => {
@@ -146,7 +143,6 @@ export const ChapterStudio: React.FC<ChapterStudioProps> = ({
           levels: [1, 2, 3],
         },
       }),
-      Underline,
       TextStyle,
       DropCapMark,
       StyledParagraph,
@@ -837,21 +833,27 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
             });
           });
 
+          const bookUpdates: Partial<Book> = {};
+
           if (frontMatter && (frontMatter.dedication || frontMatter.copyrightText || frontMatter.preface)) {
-            updateFrontMatter(currentBook.id, {
+            bookUpdates.frontMatter = {
               ...currentBook.frontMatter,
               ...(frontMatter.dedication ? { dedication: frontMatter.dedication } : {}),
               ...(frontMatter.copyrightText ? { copyrightText: frontMatter.copyrightText } : {}),
               ...(frontMatter.preface ? { preface: frontMatter.preface } : {}),
-            });
+            };
           }
 
           if (backMatter && (backMatter.aboutAuthor || backMatter.otherBooks)) {
-            updateBackMatter(currentBook.id, {
+            bookUpdates.backMatter = {
               ...currentBook.backMatter,
               ...(backMatter.aboutAuthor ? { aboutAuthor: backMatter.aboutAuthor } : {}),
               ...(backMatter.otherBooks ? { otherBooks: backMatter.otherBooks } : {}),
-            });
+            };
+          }
+
+          if (Object.keys(bookUpdates).length > 0) {
+            updateBook(currentBook.id, bookUpdates);
           }
 
           setIsImportOpen(false);
