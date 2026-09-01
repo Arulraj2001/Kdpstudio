@@ -28,6 +28,7 @@ import { getDynamicPlanFeatures, getGrowthPromo } from '../../lib/planLimits';
 import { SEOHead } from '../seo/SEOHead';
 import { JsonLd } from '../seo/JsonLd';
 import { SectionShadowTransition } from './SectionShadowTransition';
+import { AuthorIpShieldBanner } from '../ui/AuthorIpShieldBanner';
 
 interface PricingPageViewProps {
   onNavigate: (route: PageRoute) => void;
@@ -526,6 +527,11 @@ export const PricingPageView: React.FC<PricingPageViewProps> = ({ onNavigate }) 
           </div>
 
         </div>
+      </section>
+
+      {/* ── Author IP & Security Shield ── */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        <AuthorIpShieldBanner />
       </section>
 
       {/* ── Accepted Payment Methods Section ── */}

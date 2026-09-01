@@ -32,6 +32,7 @@ import { getLivePlanLimits, getLiveFeatureAccess } from '../../lib/planLimits';
 import { SEOHead } from '../seo/SEOHead';
 import { JsonLd } from '../seo/JsonLd';
 import { SectionShadowTransition } from './SectionShadowTransition';
+import { AuthorIpShieldBanner } from '../ui/AuthorIpShieldBanner';
 
 interface HomePageViewProps {
   onNavigate: (route: PageRoute) => void;
@@ -1091,6 +1092,11 @@ export const HomePageView: React.FC<HomePageViewProps> = ({ onNavigate }) => {
           </div>
 
         </div>
+      </section>
+
+      {/* Author Intellectual Property & Security Shield Guarantee */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <AuthorIpShieldBanner />
       </section>
 
       {/* ─────────────────────────────────────────────────────────────────────────────

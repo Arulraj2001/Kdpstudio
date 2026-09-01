@@ -31,6 +31,7 @@ import {
   importManuscriptString, 
   ParsedManuscript 
 } from '../../lib/manuscriptImport';
+import { AuthorIpShieldBanner } from '../ui/AuthorIpShieldBanner';
 
 interface ManuscriptImportModalProps {
   isOpen: boolean;
@@ -449,6 +450,9 @@ export const ManuscriptImportModal: React.FC<ManuscriptImportModalProps> = ({
                   </div>
                 </div>
               )}
+
+              {/* Author Security & IP Protection Guarantee */}
+              <AuthorIpShieldBanner compact className="w-full justify-center" />
 
               {/* Feature Highlights Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">

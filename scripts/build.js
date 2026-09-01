@@ -15,6 +15,14 @@ async function run() {
   console.log('Building Vite frontend...');
   await viteBuild();
 
+  console.log('Running static pre-rendering for public routes...');
+  try {
+    const { prerenderPublicRoutes } = await import('./prerender-routes.js');
+    await prerenderPublicRoutes();
+  } catch (e) {
+    console.warn('Pre-rendering warning:', e.message);
+  }
+
   console.log('Bundling Express server with esbuild...');
   await esbuild.build({
     entryPoints: ['server.ts'],
