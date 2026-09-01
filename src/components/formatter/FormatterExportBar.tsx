@@ -5,6 +5,7 @@ import {
   FormatterStats,
 } from '../../types/formatter';
 import { downloadDocxFile } from '../../utils/generateDocx';
+import { downloadPdfFile } from '../../utils/generatePdf';
 import { generateMetadataClipboardString } from '../../utils/calculateStats';
 import { useToastStore } from '../../lib/toastStore';
 import {
@@ -31,6 +32,7 @@ export const FormatterExportBar: React.FC<FormatterExportBarProps> = ({
   disabled,
 }) => {
   const [isExportingDocx, setIsExportingDocx] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const { addToast } = useToastStore();
 
@@ -57,13 +59,26 @@ export const FormatterExportBar: React.FC<FormatterExportBarProps> = ({
     }
   };
 
-  const handleDownloadPdf = () => {
-    addToast({
-      type: 'info',
-      title: 'PDF Export Notice',
-      message: 'PDF export coming soon — open your downloaded DOCX file in Microsoft Word and choose File → Export → Create PDF/XPS for flawless 300 DPI vectors.',
-      duration: 7000,
-    });
+  const handleDownloadPdf = async () => {
+    if (disabled || blocks.length === 0) return;
+    setIsExportingPdf(true);
+    try {
+      await downloadPdfFile(blocks, settings);
+      addToast({
+        type: 'success',
+        title: 'PDF Generated Successfully',
+        message: `Your KDP-ready PDF (${settings.trimSize}, Times-Roman) has been downloaded.`,
+      });
+    } catch (err: any) {
+      console.error('PDF Generation Error:', err);
+      addToast({
+        type: 'error',
+        title: 'PDF Export Failed',
+        message: err?.message || 'Failed to generate PDF document.',
+      });
+    } finally {
+      setIsExportingPdf(false);
+    }
   };
 
   const handleCopyMetadata = async () => {
@@ -110,15 +125,24 @@ export const FormatterExportBar: React.FC<FormatterExportBarProps> = ({
           <span>{isCopied ? 'Copied!' : 'Copy Metadata'}</span>
         </button>
 
-        {/* Download PDF (Beta) Button */}
+        {/* Download PDF Button */}
         <button
           type="button"
           onClick={handleDownloadPdf}
-          disabled={disabled}
+          disabled={disabled || isExportingPdf}
           className="px-4 py-2.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none flex items-center gap-1.5"
         >
-          <FileDown size={15} />
-          <span>Download PDF (Beta)</span>
+          {isExportingPdf ? (
+            <>
+              <Loader2 size={15} className="animate-spin" />
+              <span>Generating PDF...</span>
+            </>
+          ) : (
+            <>
+              <FileDown size={15} />
+              <span>Download PDF</span>
+            </>
+          )}
         </button>
 
         {/* Download DOCX Primary Button */}

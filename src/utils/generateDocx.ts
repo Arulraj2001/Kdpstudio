@@ -100,7 +100,7 @@ export async function generateDocx(
   const topMargin = convertInchesToTwip(settings.margins?.top ?? 0.75);
   const bottomMargin = convertInchesToTwip(settings.margins?.bottom ?? 0.75);
 
-  // Helper: standard body paragraph
+  // Helper: standard body paragraph (justified for KDP best practice)
   function bodyParagraph(text: string, options: Record<string, any> = {}): Paragraph {
     return new Paragraph({
       children: parseInlineFormatting(text, {
@@ -108,7 +108,7 @@ export async function generateDocx(
         size: fontSize,
       }),
       spacing: { after: 120, line: lineSpacing }, // 6pt after, 1.15 line spacing
-      alignment: AlignmentType.LEFT,
+      alignment: AlignmentType.JUSTIFIED,
       ...options,
     });
   }
@@ -348,13 +348,13 @@ export async function generateDocx(
     const block = blocks[i];
 
     // Check if buffer should flush
-    if (inExercise && !['exercise_body', 'paragraph', 'lines', 'blank'].includes(block.type)) {
+    if (inExercise && !['exercise_body', 'paragraph', 'lines', 'blank', 'list', 'debrief', 'reflection'].includes(block.type)) {
       flushBuffers();
     }
 
     if (
       inScenario &&
-      !['scenario_body', 'paragraph', 'lines', 'blank', 'model_response', 'debrief'].includes(block.type)
+      !['scenario_body', 'paragraph', 'lines', 'blank', 'list', 'model_response', 'debrief', 'reflection'].includes(block.type)
     ) {
       flushBuffers();
     }
@@ -365,9 +365,14 @@ export async function generateDocx(
     }
 
     // Emit TOC Placeholder before first chapter or part
+    // Suppressed if manuscript already has a TABLE OF CONTENTS front_matter block
+    const manuscriptHasToc = blocks.some(
+      (b) => b.type === 'front_matter' && /TABLE OF CONTENTS|CONTENTS/i.test(b.text)
+    );
     if (
       settings.generateTocPlaceholder &&
       !hasEmittedToc &&
+      !manuscriptHasToc &&
       (block.type === 'part' || block.type === 'chapter')
     ) {
       hasEmittedToc = true;
@@ -678,14 +683,37 @@ export async function generateDocx(
         );
         break;
 
-      case 'lines':
+      case 'lines': {
         if (settings.addWritingLines) {
-          const lines = [writingLine(), writingLine(), writingLine()];
-          if (inExercise) currentExerciseBuffer.push(...lines);
-          else if (inScenario) currentScenarioBuffer.push(...lines);
-          else docElements.push(...lines);
+          const lineCount = block.metadata?.lineCount ?? 1;
+          const writingLines = Array.from({ length: lineCount }, () => writingLine());
+          if (inExercise) currentExerciseBuffer.push(...writingLines);
+          else if (inScenario) currentScenarioBuffer.push(...writingLines);
+          else docElements.push(...writingLines);
         }
         break;
+      }
+
+      case 'list': {
+        // Render list items as indented paragraphs with bullet/number prefix
+        const listItems: string[] = block.metadata?.items ?? block.text.split('\n').filter(Boolean);
+        const isOrdered = block.metadata?.ordered ?? false;
+        const listParas = listItems.map((item, idx) =>
+          new Paragraph({
+            children: parseInlineFormatting((isOrdered ? `${idx + 1}. ` : '\u2022  ') + item, {
+              font: fontName,
+              size: fontSize,
+            }),
+            spacing: { after: 80, line: lineSpacing },
+            alignment: AlignmentType.LEFT,
+            indent: { left: convertInchesToTwip(0.25) },
+          })
+        );
+        if (inExercise) currentExerciseBuffer.push(...listParas);
+        else if (inScenario) currentScenarioBuffer.push(...listParas);
+        else docElements.push(...listParas);
+        break;
+      }
 
       case 'table':
         if (block.lines) {

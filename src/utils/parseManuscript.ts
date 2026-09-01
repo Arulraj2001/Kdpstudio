@@ -16,6 +16,7 @@ export const BLOCK_TYPES: Record<string, BlockType> = {
   DEBRIEF: 'debrief',
   REFLECTION: 'reflection',
   ACTION_PLAN: 'action',
+  LIST: 'list',
   TABLE: 'table',
   WRITING_LINES: 'lines',
   PARAGRAPH: 'paragraph',
@@ -31,7 +32,7 @@ const FRONT_MATTER_PATTERN =
  * Detects the block type of an individual line with high-precedence semantic matching.
  * Fixed order:
  *   H1 → Front Matter → Workbook Elements → Table → Divider (BEFORE writing-lines) →
- *   Writing Lines (underscore-only) → Blank → H2/H3/H4 → Fallbacks → Paragraph
+ *   Writing Lines (underscore-only) → List Items → Blank → H2/H3/H4 → Fallbacks → Paragraph
  */
 export function detectBlockType(line: string, _nextLine?: string): BlockType {
   const trimmed = line.trim();
@@ -105,20 +106,26 @@ export function detectBlockType(line: string, _nextLine?: string): BlockType {
   }
 
   // 6. Writing lines — underscore-only (dashes handled as dividers above)
+  //    Handles both plain underscores (___) and markdown-escaped (\_\_\_)
   if (
-    /^(\\_{1,}|_{1,}|\s){3,}$/.test(trimmed) ||
-    /^_{3,}$/.test(trimmed) ||
-    /^\\_{3,}/.test(trimmed)
+    /^(\\_+|\s){3,}$/.test(trimmed) ||   // escaped backslash-underscore sequences
+    /^_{3,}$/.test(trimmed) ||             // plain underscores ___
+    /^\\_+/.test(trimmed)                   // line starting with \_
   ) {
     return BLOCK_TYPES.WRITING_LINES;
   }
 
-  // 7. Empty line
+  // 7. List items — unordered (-, *, +) or ordered (1., 2., etc.)
+  if (/^[-*+]\s+\S/.test(trimmed) || /^\d+\.\s+\S/.test(trimmed)) {
+    return BLOCK_TYPES.LIST;
+  }
+
+  // 8. Empty line
   if (trimmed === '') {
     return BLOCK_TYPES.BLANK;
   }
 
-  // 8. Generic Markdown Headings (lower priority than workbook elements above)
+  // 9. Generic Markdown Headings (lower priority than workbook elements above)
   if (/^##\s+/.test(line)) {
     return BLOCK_TYPES.CHAPTER_HEADING;
   }
@@ -129,7 +136,7 @@ export function detectBlockType(line: string, _nextLine?: string): BlockType {
     return BLOCK_TYPES.SUBSECTION;
   }
 
-  // 9. Plain text fallback heuristics
+  // 10. Plain text fallback heuristics
   if (/^(CHAPTER\s+\d+|Chapter\s+\d+)[:\s—]/i.test(trimmed)) {
     return BLOCK_TYPES.CHAPTER_HEADING;
   }
@@ -137,7 +144,7 @@ export function detectBlockType(line: string, _nextLine?: string): BlockType {
     return BLOCK_TYPES.PART_HEADER;
   }
 
-  // 10. Default: paragraph
+  // 11. Default: paragraph
   return BLOCK_TYPES.PARAGRAPH;
 }
 
@@ -203,7 +210,44 @@ export function detectStructure(rawText: string): ContentBlock[] {
       continue;
     }
 
-    // 2. Exercise / Scenario Headers open a container context
+    // 2. Writing Lines Grouping: accumulate consecutive `___` lines into one block
+    if (type === 'lines') {
+      let lineCount = 1;
+      while (i + 1 < rawLines.length && detectBlockType(rawLines[i + 1]) === 'lines') {
+        i++;
+        lineCount++;
+      }
+      blocks.push({
+        id: `block-${++blockCounter}`,
+        type: 'lines',
+        text: line,
+        metadata: { lineCount },
+      });
+      i++;
+      continue;
+    }
+
+    // 3. List Item Grouping: accumulate consecutive list items into one block
+    if (type === 'list') {
+      const firstTrimmed = line.trim();
+      const isOrdered = /^\d+\.\s+/.test(firstTrimmed);
+      const items: string[] = [firstTrimmed.replace(/^[-*+]\s+|^\d+\.\s+/, '')];
+      while (i + 1 < rawLines.length && detectBlockType(rawLines[i + 1]) === 'list') {
+        i++;
+        items.push(rawLines[i].trim().replace(/^[-*+]\s+|^\d+\.\s+/, ''));
+      }
+      const listBlockType = inExercise ? 'exercise_body' : inScenario ? 'scenario_body' : 'list';
+      blocks.push({
+        id: `block-${++blockCounter}`,
+        type: listBlockType === 'list' ? 'list' : listBlockType,
+        text: items.join('\n'),
+        metadata: { isList: true, ordered: isOrdered, items },
+      });
+      i++;
+      continue;
+    }
+
+    // 4. Exercise / Scenario Headers open a container context
     if (type === 'exercise_header') {
       inExercise = true;
       inScenario = false;
@@ -234,7 +278,7 @@ export function detectStructure(rawText: string): ContentBlock[] {
       inScenario = false;
     }
 
-    // 3. Model response: emit header block + extract inline body text after the colon
+    // 5. Model response: emit header block + extract inline body text after the colon
     if (type === 'model_response') {
       blocks.push({
         id: `block-${++blockCounter}`,
@@ -258,18 +302,7 @@ export function detectStructure(rawText: string): ContentBlock[] {
       continue;
     }
 
-    // 4. Writing lines
-    if (type === 'lines') {
-      blocks.push({
-        id: `block-${++blockCounter}`,
-        type: 'lines',
-        text: line,
-      });
-      i++;
-      continue;
-    }
-
-    // 5. Paragraph Grouping — consecutive paragraph lines merge into one block
+    // 6. Paragraph Grouping — consecutive paragraph lines merge into one block
     if (type === 'paragraph') {
       const paraLines: string[] = [line.trim()];
       while (
@@ -306,7 +339,7 @@ export function detectStructure(rawText: string): ContentBlock[] {
       continue;
     }
 
-    // 6. All other block types emitted as-is
+    // 7. All other block types emitted as-is
     blocks.push({
       id: `block-${++blockCounter}`,
       type,

@@ -21,6 +21,7 @@ export type BlockType =
   | 'debrief'         // DEBRIEF: or **Debrief:**
   | 'reflection'      // REFLECTION PROMPT or Reflection prompt:
   | 'action'          // ACTION PLAN:
+  | 'list'            // - item / 1. item list block
   | 'table'           // markdown table | col | col |
   | 'lines'           // _____ writing lines
   | 'paragraph'       // regular body text

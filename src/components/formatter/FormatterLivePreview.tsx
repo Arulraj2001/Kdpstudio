@@ -132,29 +132,34 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
         Table of Contents
       </div>
       <div className="space-y-1.5">
-        {chapterList.map((ch, cIdx) => (
-          <div key={cIdx} className="flex items-center justify-between text-[10px] text-slate-700">
-            <span className={ch.type === 'part' ? 'font-bold text-slate-900' : 'font-medium truncate max-w-[200px]'}>
-              {cleanText(ch.text)}
-            </span>
-            <span className="text-slate-400 font-mono">. . . . . . . [ ... ]</span>
-          </div>
-        ))}
+        {chapterList.map((ch, cIdx) => {
+          const isPart = ch.type === 'part';
+          return (
+            <div key={cIdx} className={`flex items-baseline gap-1 ${isPart ? 'mt-2' : 'pl-3'}`}>
+              <span className={`flex-1 min-w-0 ${isPart ? 'font-bold text-slate-900 text-[10px]' : 'font-medium text-slate-700 text-[9.5px]'}`}>
+                {cleanText(ch.text)}
+              </span>
+              <span className="shrink-0 whitespace-nowrap text-slate-400 font-mono text-[9px]">· · · · ·  [ — ]</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 
   const renderBodyBlock = (block: ContentBlock, idx: number) => {
     switch (block.type) {
-      case 'lines':
+      case 'lines': {
         if (!settings.addWritingLines) return null;
+        const lineCount = block.metadata?.lineCount ?? 1;
         return (
           <div key={block.id || idx} id={`preview-block-${idx}`} className="my-2 space-y-1">
-            <div className="preview-writing-lines" />
-            <div className="preview-writing-lines" />
-            <div className="preview-writing-lines" />
+            {Array.from({ length: lineCount }).map((_, li) => (
+              <div key={li} className="preview-writing-lines" />
+            ))}
           </div>
         );
+      }
 
       case 'model_response':
         if (settings.formatModelResponses) {
@@ -192,6 +197,20 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
 
       case 'blank':
         return <div key={block.id || idx} className="h-1.5" />;
+
+      case 'list': {
+        // Render list block as <ul> or <ol>
+        const listItems: string[] = block.metadata?.items ?? block.text.split('\n').filter(Boolean);
+        const isOrdered = block.metadata?.ordered ?? false;
+        const Tag = isOrdered ? 'ol' : 'ul';
+        return (
+          <Tag key={block.id || idx} id={`preview-block-${idx}`} className="preview-list">
+            {listItems.map((item, li) => (
+              <li key={li}>{renderFormattedText(item)}</li>
+            ))}
+          </Tag>
+        );
+      }
 
       case 'exercise_body':
       case 'scenario_body':
@@ -231,15 +250,17 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
 
       case 'front_matter':
         return (
-          <div
-            key={block.id}
-            id={`preview-block-${idx}`}
-            className="my-5 text-center"
-          >
-            <div className="text-[11px] font-bold uppercase tracking-widest text-slate-700 pb-1 border-b border-slate-300 inline-block px-3">
-              {cleanText(block.text)}
+          <React.Fragment key={block.id}>
+            <div className="preview-page-break" />
+            <div
+              id={`preview-block-${idx}`}
+              className="my-5 text-center"
+            >
+              <div className="text-[11px] font-bold uppercase tracking-widest text-slate-700 pb-1 border-b border-slate-300 inline-block px-3">
+                {cleanText(block.text)}
+              </div>
             </div>
-          </div>
+          </React.Fragment>
         );
 
       case 'part':
@@ -342,15 +363,17 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
           </div>
         );
 
-      case 'lines':
+      case 'lines': {
         if (!settings.addWritingLines) return null;
+        const lineCount = block.metadata?.lineCount ?? 1;
         return (
           <div key={block.id} id={`preview-block-${idx}`} className="my-2 space-y-1">
-            <div className="preview-writing-lines" />
-            <div className="preview-writing-lines" />
-            <div className="preview-writing-lines" />
+            {Array.from({ length: lineCount }).map((_, li) => (
+              <div key={li} className="preview-writing-lines" />
+            ))}
           </div>
         );
+      }
 
       case 'table':
         return <div key={block.id} id={`preview-block-${idx}`}>{renderTable(block)}</div>;
@@ -360,6 +383,19 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
 
       case 'blank':
         return <div key={block.id} className="h-2" />;
+
+      case 'list': {
+        const listItemsSingle: string[] = block.metadata?.items ?? block.text.split('\n').filter(Boolean);
+        const isOrderedSingle = block.metadata?.ordered ?? false;
+        const ListTagSingle = isOrderedSingle ? 'ol' : 'ul';
+        return (
+          <ListTagSingle key={block.id} id={`preview-block-${idx}`} className="preview-list">
+            {listItemsSingle.map((item, li) => (
+              <li key={li}>{renderFormattedText(item)}</li>
+            ))}
+          </ListTagSingle>
+        );
+      }
 
       case 'paragraph':
       default:
@@ -441,7 +477,7 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
                 if (b.type === 'exercise_header') {
                   const bodyBlocks: { block: ContentBlock; idx: number }[] = [];
                   let bi = gi + 1;
-                  while (bi < blocks.length && ['exercise_body', 'lines', 'blank'].includes(blocks[bi].type)) {
+                  while (bi < blocks.length && ['exercise_body', 'lines', 'blank', 'list', 'debrief', 'reflection'].includes(blocks[bi].type)) {
                     bodyBlocks.push({ block: blocks[bi], idx: bi });
                     bi++;
                   }
@@ -450,7 +486,7 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
                 } else if (b.type === 'scenario_header') {
                   const bodyBlocks: { block: ContentBlock; idx: number }[] = [];
                   let bi = gi + 1;
-                  while (bi < blocks.length && ['scenario_body', 'lines', 'blank', 'model_response', 'debrief'].includes(blocks[bi].type)) {
+                  while (bi < blocks.length && ['scenario_body', 'lines', 'blank', 'list', 'model_response', 'debrief', 'reflection'].includes(blocks[bi].type)) {
                     bodyBlocks.push({ block: blocks[bi], idx: bi });
                     bi++;
                   }
@@ -466,11 +502,16 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
                 }
               }
 
-              // TOC only lists actual chapters and parts (excludes front matter)
+              // TOC only lists actual chapters and parts; suppressed if manuscript already contains one
+              const manuscriptHasToc = blocks.some(
+                (b) => b.type === 'front_matter' && /TABLE OF CONTENTS|CONTENTS/i.test(b.text)
+              );
               const firstChapterGroupIdx = grouped.findIndex(
                 (g) => g.kind === 'single' && (g.block.type === 'chapter' || g.block.type === 'part')
               );
-              const chapterList = blocks.filter((b) => b.type === 'chapter' || b.type === 'part');
+              const chapterList = (!manuscriptHasToc)
+                ? blocks.filter((b) => b.type === 'chapter' || b.type === 'part')
+                : [];
 
               return grouped.map((item, gIdx) => {
                 const shouldRenderTocBefore =
@@ -692,8 +733,40 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
 
         .preview-paragraph {
           margin: 0 0 6px 0;
-          text-align: left;
+          text-align: justify;
           line-height: 1.35;
+        }
+
+        .preview-list {
+          margin: 4px 0 8px 14px;
+          padding: 0;
+          font-size: 10px;
+          line-height: 1.4;
+        }
+
+        .preview-list li {
+          margin-bottom: 3px;
+        }
+
+        .preview-page-break {
+          border-top: 1px dashed #ccc;
+          margin: 16px 0 10px;
+          text-align: center;
+          position: relative;
+        }
+
+        .preview-page-break::after {
+          content: '— page break —';
+          position: absolute;
+          top: -7px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: inherit;
+          padding: 0 6px;
+          font-size: 7.5px;
+          color: #aaa;
+          letter-spacing: 0.05em;
+          white-space: nowrap;
         }
       `}</style>
     </div>
