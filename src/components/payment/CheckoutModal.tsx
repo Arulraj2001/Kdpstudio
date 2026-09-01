@@ -184,28 +184,43 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         className="relative w-full max-w-5xl bg-white rounded-3xl border border-slate-200 shadow-2xl shadow-purple-950/20 overflow-hidden my-auto flex flex-col max-h-[92vh]"
       >
         {/* Top Header Strip */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/80 gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center font-black shadow-xs">
+            <div className="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center font-black shadow-xs shrink-0">
               <Sparkles size={16} />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900 leading-tight">
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 leading-tight">
                 Upgrade to Kindle Creator Pro
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 hidden sm:block">
                 Unlock high-speed AI tools, unlimited exports, and bestseller publishing features
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between sm:justify-end gap-2.5">
+            {/* Blinking Callout Notice: "Before paying, choose your currency" */}
+            <div 
+              id="currency-selection-prompt"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-amber-400/20 to-orange-500/15 border border-amber-400/80 text-amber-950 shadow-xs animate-pulse"
+            >
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+              </span>
+              <span className="text-[11px] sm:text-xs font-black tracking-tight text-amber-950 whitespace-nowrap">
+                Before paying choose your currency 👉
+              </span>
+            </div>
+
             <CurrencySelector />
+
             <button
               id="checkout-close-btn"
               type="button"
               onClick={handleClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors"
+              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors shrink-0"
               aria-label="Close checkout"
             >
               <X size={18} />
