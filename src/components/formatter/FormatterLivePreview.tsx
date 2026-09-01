@@ -124,6 +124,9 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
         : settings.font === 'Palatino'
         ? 'Palatino, "Book Antiqua", Georgia, serif'
         : 'Georgia, serif',
+    fontSize: settings.fontSizeLabel === '10pt' ? '10px' : settings.fontSizeLabel === '12pt' ? '12px' : '11px',
+    lineHeight: settings.lineSpacing || '1.15',
+    padding: `${Math.round((settings.margins?.top ?? 0.75) * 36)}px ${Math.round((settings.margins?.outside ?? 0.625) * 36)}px ${Math.round((settings.margins?.bottom ?? 0.75) * 36)}px ${Math.round((settings.margins?.inside ?? 0.75) * 36)}px`,
   };
 
   const renderToc = (chapterList: ContentBlock[]) => (
@@ -198,6 +201,14 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
       case 'blank':
         return <div key={block.id || idx} className="h-1.5" />;
 
+      case 'action':
+        return (
+          <div key={block.id || idx} id={`preview-block-${idx}`} className="my-2 p-2 rounded bg-amber-50/80 border-l-2 border-amber-500 text-[10px]">
+            <div className="font-bold uppercase text-[8.5px] text-amber-900 mb-0.5 tracking-wider">Action Plan</div>
+            <div>{renderFormattedText(cleanText(block.text).replace(/^ACTION PLAN[:—]?\s*/i, ''))}</div>
+          </div>
+        );
+
       case 'list': {
         // Render list block as <ul> or <ol>
         const listItems: string[] = block.metadata?.items ?? block.text.split('\n').filter(Boolean);
@@ -242,7 +253,7 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
           <div
             key={block.id}
             id={`preview-block-${idx}`}
-            className="text-xs italic font-medium text-center text-slate-600 mb-5 max-w-[300px] mx-auto leading-relaxed"
+            className="text-xs italic font-medium text-center text-slate-600 mb-5 px-3 max-w-full mx-auto leading-relaxed"
           >
             {cleanText(block.text)}
           </div>
@@ -358,8 +369,9 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
 
       case 'action':
         return (
-          <div key={block.id} id={`preview-block-${idx}`} className="font-bold text-[11px] text-slate-900 my-2">
-            {cleanText(block.text)}
+          <div key={block.id} id={`preview-block-${idx}`} className="my-3 p-2.5 rounded-lg bg-amber-50/80 border-l-3 border-amber-500 text-[11px] text-slate-900">
+            <div className="font-bold uppercase text-[9px] text-amber-900 mb-0.5 tracking-wider">Action Plan</div>
+            <div>{renderFormattedText(cleanText(block.text).replace(/^ACTION PLAN[:—]?\s*/i, ''))}</div>
           </div>
         );
 
@@ -420,7 +432,7 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
         </div>
         <div className="flex items-center gap-1 text-[10px] text-purple-700 font-bold bg-purple-100/70 px-2 py-0.5 rounded-full border border-purple-200">
           <Eye size={11} />
-          <span>Live 7x10</span>
+          <span>Live {settings.trimSize}</span>
         </div>
       </div>
 
@@ -477,7 +489,7 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
                 if (b.type === 'exercise_header') {
                   const bodyBlocks: { block: ContentBlock; idx: number }[] = [];
                   let bi = gi + 1;
-                  while (bi < blocks.length && ['exercise_body', 'lines', 'blank', 'list', 'debrief', 'reflection'].includes(blocks[bi].type)) {
+                  while (bi < blocks.length && ['exercise_body', 'lines', 'blank', 'list', 'debrief', 'reflection', 'action'].includes(blocks[bi].type)) {
                     bodyBlocks.push({ block: blocks[bi], idx: bi });
                     bi++;
                   }
@@ -486,7 +498,7 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
                 } else if (b.type === 'scenario_header') {
                   const bodyBlocks: { block: ContentBlock; idx: number }[] = [];
                   let bi = gi + 1;
-                  while (bi < blocks.length && ['scenario_body', 'lines', 'blank', 'list', 'model_response', 'debrief', 'reflection'].includes(blocks[bi].type)) {
+                  while (bi < blocks.length && ['scenario_body', 'lines', 'blank', 'list', 'model_response', 'debrief', 'reflection', 'action'].includes(blocks[bi].type)) {
                     bodyBlocks.push({ block: blocks[bi], idx: bi });
                     bi++;
                   }
@@ -658,14 +670,14 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
         }
 
         .preview-scenario {
-          border: 1px solid #1A6B72;
+          border: 1px solid ${settings.interiorColor === 'bw' ? '#334155' : '#1A6B72'};
           margin: 12px 0;
           border-radius: 3px;
           overflow: hidden;
         }
 
         .preview-scenario-header {
-          background: #1A6B72;
+          background: ${settings.interiorColor === 'bw' ? '#334155' : '#1A6B72'};
           color: white;
           padding: 5px 8px;
           font-weight: bold;
@@ -676,7 +688,7 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
 
         .preview-scenario-body {
           padding: 8px 10px;
-          background: #F4F9F9;
+          background: ${settings.interiorColor === 'bw' ? '#F8FAFC' : '#F4F9F9'};
         }
 
         .preview-model-response {

@@ -331,39 +331,61 @@ export const FormatterSettingsPanel: React.FC<FormatterSettingsPanelProps> = ({
       </div>
 
       {/* 5. KDP Compliance Checklist */}
-      <div className="pt-3 border-t border-slate-100 space-y-2 p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 text-[11px]">
-        <h3 className="font-bold text-slate-900 flex items-center gap-1.5">
-          <CheckCircle2 size={14} className="text-emerald-600" />
-          <span>KDP Compliance Checklist</span>
-        </h3>
+      {(() => {
+        const requiredGutter =
+          stats.estimatedPages > 500
+            ? 0.875
+            : stats.estimatedPages > 300
+            ? 0.75
+            : stats.estimatedPages > 150
+            ? 0.625
+            : 0.5;
+        const isGutterValid = settings.margins.inside >= requiredGutter;
+        const spineMultiplier = settings.paperColor === 'cream' ? 0.0025 : 0.002252;
+        const spineWidth = stats.estimatedPages > 0 ? (stats.estimatedPages * spineMultiplier).toFixed(3) : '0.000';
 
-        <ul className="space-y-1 text-slate-600">
-          <li className="flex items-center gap-1.5">
-            <span className="text-emerald-600 font-bold">✓</span>
-            <span>Trim size: {settings.trimSize} ({settings.trimWidth}" × {settings.trimHeight}")</span>
-          </li>
-          <li className="flex items-center gap-1.5">
-            <span className="text-emerald-600 font-bold">✓</span>
-            <span>Inside gutter: {settings.margins.inside}" (≥ 0.625" required)</span>
-          </li>
-          <li className="flex items-center gap-1.5">
-            <span className="text-emerald-600 font-bold">✓</span>
-            <span>Font: {settings.font} (100% embeddable)</span>
-          </li>
-          <li className="flex items-center gap-1.5">
-            <span className="text-amber-600 font-bold">⚠</span>
-            <span>Pages: ~{stats.estimatedPages} (Verify spine width matches)</span>
-          </li>
-          <li className="flex items-center gap-1.5">
-            <span className="text-emerald-600 font-bold">✓</span>
-            <span>{settings.interiorColor === 'bw' ? 'B&W Interior' : 'Color Interior'} selected</span>
-          </li>
-          <li className="flex items-center gap-1.5">
-            <span className="text-emerald-600 font-bold">✓</span>
-            <span>File size within KDP 650MB limit</span>
-          </li>
-        </ul>
-      </div>
+        return (
+          <div className="pt-3 border-t border-slate-100 space-y-2 p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 text-[11px]">
+            <h3 className="font-bold text-slate-900 flex items-center gap-1.5">
+              <CheckCircle2 size={14} className="text-emerald-600" />
+              <span>KDP Compliance Checklist</span>
+            </h3>
+
+            <ul className="space-y-1 text-slate-600">
+              <li className="flex items-center gap-1.5">
+                <span className="text-emerald-600 font-bold">✓</span>
+                <span>Trim size: {settings.trimSize} ({settings.trimWidth}" × {settings.trimHeight}")</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <span className={isGutterValid ? 'text-emerald-600 font-bold' : 'text-amber-600 font-bold'}>
+                  {isGutterValid ? '✓' : '⚠'}
+                </span>
+                <span>
+                  Inside gutter: {settings.margins.inside}" (≥ {requiredGutter}" required)
+                </span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <span className="text-emerald-600 font-bold">✓</span>
+                <span>Font: {settings.font} (100% embeddable)</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <span className="text-amber-600 font-bold">⚠</span>
+                <span>
+                  Pages: ~{stats.estimatedPages} (Spine width: {spineWidth}" on {settings.paperColor})
+                </span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <span className="text-emerald-600 font-bold">✓</span>
+                <span>{settings.interiorColor === 'bw' ? 'B&W Interior' : 'Color Interior'} selected</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <span className="text-emerald-600 font-bold">✓</span>
+                <span>File size within KDP 650MB limit</span>
+              </li>
+            </ul>
+          </div>
+        );
+      })()}
 
       {/* 6. Chapter Quick Navigator */}
       {chapterNodes.length > 0 && (

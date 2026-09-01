@@ -352,7 +352,9 @@ export async function generatePdf(
         if (settings.formatScenarioBlocks) {
           exerciseX = marginInside;
           exerciseW = contentW;
-          drawBoxHeader(stripMd(block.text), exerciseX, exerciseW, 26, 107, 114, 255, 255, 255);
+          const isBw = settings.interiorColor === 'bw';
+          const [r, g, b] = isBw ? [51, 65, 85] : [26, 107, 114];
+          drawBoxHeader(stripMd(block.text), exerciseX, exerciseW, r, g, b, 255, 255, 255);
         } else {
           doc.setFont(headFont, 'bold');
           doc.setFontSize(bodyFontSizePt);
@@ -450,16 +452,17 @@ export async function generatePdf(
       }
 
       case 'action': {
-        ensureSpace(20);
+        ensureSpace(24);
         y += 6;
+        doc.setFillColor(254, 243, 199);
+        doc.rect(marginInside, y - 4, contentW, 18, 'F');
+        doc.setDrawColor(245, 158, 11);
+        doc.setLineWidth(2.5);
+        doc.line(marginInside, y - 4, marginInside, y + 14);
         doc.setFont(headFont, 'bold');
-        doc.setFontSize(bodyFontSizePt + 1);
-        const actLines = wrapText(doc, stripMd(block.text), contentW);
-        actLines.forEach((line) => {
-          doc.text(line, marginInside, y);
-          y += bodyLineH + 2;
-        });
-        y += 4;
+        doc.setFontSize(bodyFontSizePt);
+        doc.text(stripMd(block.text), marginInside + 8, y + 8);
+        y += 22;
         break;
       }
 
@@ -511,12 +514,21 @@ export async function generatePdf(
         if (rows.length > 0) {
           const colCount = rows[0].length;
           const colW = contentW / colCount;
-          ensureSpace(rows.length * 18 + 4);
+          const cellPad = 4;
+          const cellInnerW = colW - cellPad * 2;
 
           rows.forEach((row, rIdx) => {
-            const rowH = 16;
-            ensureSpace(rowH);
-            if (rIdx === 0) {
+            doc.setFont(bodyFont, rIdx === 0 ? 'bold' : 'normal');
+            doc.setFontSize(bodyFontSizePt - 1.5);
+            const isHeader = rIdx === 0;
+
+            const wrappedCells = row.map((cell) => wrapText(doc, cell, cellInnerW));
+            const maxLines = Math.max(1, ...wrappedCells.map((lines) => lines.length));
+            const rowH = Math.max(16, maxLines * (bodyFontSizePt * 0.95) + 6);
+
+            ensureSpace(rowH + 2);
+
+            if (isHeader) {
               doc.setFillColor(238, 238, 238);
               doc.rect(marginInside, y - 11, contentW, rowH, 'F');
             }
@@ -524,12 +536,14 @@ export async function generatePdf(
             doc.setLineWidth(0.3);
             doc.rect(marginInside, y - 11, contentW, rowH);
 
-            doc.setFont(bodyFont, rIdx === 0 ? 'bold' : 'normal');
-            doc.setFontSize(bodyFontSizePt - 1.5);
-            row.forEach((cell, cIdx) => {
-              doc.text(cell.slice(0, 30), marginInside + colW * cIdx + 3, y - 2);
+            wrappedCells.forEach((cellLines, cIdx) => {
+              let cellY = y - 11 + 9;
+              cellLines.forEach((cline: string) => {
+                doc.text(cline, marginInside + colW * cIdx + cellPad, cellY);
+                cellY += bodyFontSizePt * 0.95;
+              });
               if (cIdx > 0) {
-                doc.line(marginInside + colW * cIdx, y - 11, marginInside + colW * cIdx, y + 5);
+                doc.line(marginInside + colW * cIdx, y - 11, marginInside + colW * cIdx, y - 11 + rowH);
               }
             });
             y += rowH;

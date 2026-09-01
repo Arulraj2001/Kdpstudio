@@ -174,8 +174,10 @@ export async function generateDocx(
     });
   }
 
-  // Helper: scenario box with teal header (#1A6B72) and white text
+  // Helper: scenario box with teal header (#1A6B72 for color, #333333 for B&W) and white text
   function scenarioBox(headerText: string, bodyParagraphs: Paragraph[]): Table {
+    const isBw = settings.interiorColor === 'bw';
+    const headerFill = isBw ? '333333' : '1A6B72';
     return new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: [
@@ -197,7 +199,7 @@ export async function generateDocx(
                   spacing: { before: 80, after: 80 },
                 }),
               ],
-              shading: { type: ShadingType.CLEAR, fill: '1A6B72' },
+              shading: { type: ShadingType.CLEAR, fill: headerFill },
               margins: {
                 top: convertInchesToTwip(0.08),
                 bottom: convertInchesToTwip(0.08),
@@ -348,13 +350,13 @@ export async function generateDocx(
     const block = blocks[i];
 
     // Check if buffer should flush
-    if (inExercise && !['exercise_body', 'paragraph', 'lines', 'blank', 'list', 'debrief', 'reflection'].includes(block.type)) {
+    if (inExercise && !['exercise_body', 'paragraph', 'lines', 'blank', 'list', 'debrief', 'reflection', 'action'].includes(block.type)) {
       flushBuffers();
     }
 
     if (
       inScenario &&
-      !['scenario_body', 'paragraph', 'lines', 'blank', 'list', 'model_response', 'debrief', 'reflection'].includes(block.type)
+      !['scenario_body', 'paragraph', 'lines', 'blank', 'list', 'model_response', 'debrief', 'reflection', 'action'].includes(block.type)
     ) {
       flushBuffers();
     }
@@ -667,21 +669,23 @@ export async function generateDocx(
         }
         break;
 
-      case 'action':
-        docElements.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: cleanText(block.text),
-                bold: true,
-                font: fontName,
-                size: fontSize + 2,
-              }),
-            ],
-            spacing: { before: 280, after: 120 },
-          })
-        );
+      case 'action': {
+        const actionPara = new Paragraph({
+          children: [
+            new TextRun({
+              text: cleanText(block.text),
+              bold: true,
+              font: fontName,
+              size: fontSize + 2,
+            }),
+          ],
+          spacing: { before: 200, after: 100 },
+        });
+        if (inExercise) currentExerciseBuffer.push(actionPara);
+        else if (inScenario) currentScenarioBuffer.push(actionPara);
+        else docElements.push(actionPara);
         break;
+      }
 
       case 'lines': {
         if (settings.addWritingLines) {

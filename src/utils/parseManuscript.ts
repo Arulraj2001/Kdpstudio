@@ -302,16 +302,26 @@ export function detectStructure(rawText: string): ContentBlock[] {
       continue;
     }
 
-    // 6. Paragraph Grouping — consecutive paragraph lines merge into one block
+    // 6. Paragraph Grouping — consecutive narrative lines merge, but distinct metadata/italic lines stay separated
     if (type === 'paragraph') {
+      const isStandaloneMeta = (txt: string) =>
+        /^(\*.*?\*|\[.*?\]|ISBN:|First edition|Published in|Copyright ©|All rights reserved|For permissions)/i.test(txt.trim()) ||
+        txt.trim().length < 40 && /^(\*|_|—)/.test(txt.trim());
+
+      const isCurrentMeta = isStandaloneMeta(line);
       const paraLines: string[] = [line.trim()];
-      while (
-        i + 1 < rawLines.length &&
-        detectBlockType(rawLines[i + 1]) === 'paragraph' &&
-        rawLines[i + 1].trim() !== ''
-      ) {
-        i++;
-        paraLines.push(rawLines[i].trim());
+
+      // Only merge if not a standalone metadata line on title/copyright page
+      if (!isCurrentMeta) {
+        while (
+          i + 1 < rawLines.length &&
+          detectBlockType(rawLines[i + 1]) === 'paragraph' &&
+          rawLines[i + 1].trim() !== '' &&
+          !isStandaloneMeta(rawLines[i + 1])
+        ) {
+          i++;
+          paraLines.push(rawLines[i].trim());
+        }
       }
 
       const combinedText = paraLines.join(' ');
