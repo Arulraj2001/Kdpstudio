@@ -122,6 +122,9 @@ export interface BookStore {
   addChapter: (bookId: string, title?: string, content?: string) => Chapter;
   updateChapter: (bookId: string, chapterId: string, updates: Partial<Chapter>) => void;
   deleteChapter: (bookId: string, chapterId: string) => void;
+  deleteMultipleChapters: (bookId: string, chapterIds: string[]) => void;
+  replaceAllChapters: (bookId: string, chapters: Chapter[]) => void;
+  clearAllChapters: (bookId: string) => void;
   reorderChapters: (bookId: string, newChapters: Chapter[]) => void;
   duplicateChapter: (bookId: string, chapterId: string) => Chapter | null;
 }
@@ -352,6 +355,58 @@ export const useBookStore = create<BookStore>()(
           .map((chap, idx) => ({ ...chap, order: idx + 1 }));
 
         get().updateBook(bookId, { chapters: remainingChapters });
+      },
+
+      deleteMultipleChapters: (bookId, chapterIds) => {
+        const books = get().books;
+        const targetBook = books.find(b => b.id === bookId);
+        if (!targetBook) return;
+
+        const idSet = new Set(chapterIds);
+        let remainingChapters = targetBook.chapters
+          .filter(chap => !idSet.has(chap.id))
+          .map((chap, idx) => ({ ...chap, order: idx + 1 }));
+
+        // If all chapters were deleted, ensure at least 1 blank starter chapter
+        if (remainingChapters.length === 0) {
+          remainingChapters = [
+            {
+              id: `chap_${Date.now()}_1`,
+              title: 'Chapter 1: Untitled',
+              content: '<p></p>',
+              order: 1,
+              wordCount: 0,
+            },
+          ];
+        }
+
+        get().updateBook(bookId, { chapters: remainingChapters });
+      },
+
+      replaceAllChapters: (bookId, newChapters) => {
+        const books = get().books;
+        const targetBook = books.find(b => b.id === bookId);
+        if (!targetBook) return;
+
+        const safeChapters = newChapters.map((chap, idx) => ({
+          ...chap,
+          order: idx + 1,
+        }));
+
+        get().updateBook(bookId, { chapters: safeChapters });
+      },
+
+      clearAllChapters: (bookId) => {
+        const resetChapters: Chapter[] = [
+          {
+            id: `chap_${Date.now()}_1`,
+            title: 'Chapter 1: The Beginning',
+            content: '<p></p>',
+            order: 1,
+            wordCount: 0,
+          },
+        ];
+        get().updateBook(bookId, { chapters: resetChapters });
       },
 
       reorderChapters: (bookId, newChapters) => {

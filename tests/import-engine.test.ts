@@ -154,3 +154,156 @@ test('kdpCsvParser: parses Amazon KDP Excel (.xlsx) report', () => {
   assert.equal(report.totalUnits, 65);
   assert.equal(report.totalRevenue, 235);
 });
+
+// ─── 4. Workbook & Multi-Part Markdown Parsing ────────────────────────────
+
+test('markdownParser & structureEngine: parses full Assertive Nurse workbook with tables and exercises', async () => {
+  const { importManuscriptString } = await import('../src/lib/manuscriptImport/index');
+  
+  const sampleMd = `
+# THE ASSERTIVE NURSE
+## A Practical Workbook for Difficult Conversations with Patients, Families, and Your Team
+
+---
+
+*[Author Name]*
+
+---
+
+## COPYRIGHT PAGE
+
+Copyright © 2026 by Author Name. All rights reserved.
+
+---
+
+## DISCLAIMER
+
+This workbook is intended for educational purposes only.
+
+---
+
+## A NOTE TO THE READER
+
+There is a specific feeling that most nurses recognize.
+
+---
+
+## INTRODUCTION: WHAT NURSING SCHOOL DIDN'T TEACH YOU
+
+Communication gets a different treatment in nursing schools.
+
+---
+
+# PART ONE: THE FOUNDATION
+
+## CHAPTER 1: KNOW YOUR COMMUNICATION PATTERN
+
+Every nurse has a default response pattern.
+
+### The Three Default Patterns
+1. Over-Accommodator
+2. Avoider
+3. Over-Reactor
+
+### EXERCISE 1.1: THE PATTERN INVENTORY
+Describe your situation:
+\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_
+
+### EXERCISE 1.3: MY TRIGGER LIST
+
+| Situation Type | Difficulty (1–5) | My Typical First Response |
+|----------------|-----------------|--------------------------|
+| An angry patient | 4 | Pause and listen |
+| A dismissive physician | 5 | State the observation |
+
+---
+
+## CHAPTER 2: THE CLEAR METHOD — ONE FRAMEWORK FOR EVERY HARD CONVERSATION
+
+The CLEAR method has 5 steps: Compose, Listen, Empathise, Address, Resolve.
+
+| Step | Question | What You Do |
+|------|----------|-------------|
+| C - Compose | What is happening? | Orient yourself |
+| L - Listen | What are they saying? | Create space |
+
+---
+
+## CHAPTER 3: WHAT HAPPENS TO YOU UNDER PRESSURE — AND HOW TO STAY FUNCTIONAL
+
+Understanding neurological stress response.
+  `;
+
+  const parsed = await importManuscriptString(sampleMd, 'md');
+  assert.equal(parsed.title, 'THE ASSERTIVE NURSE');
+  assert.equal(parsed.subtitle, 'A Practical Workbook for Difficult Conversations with Patients, Families, and Your Team');
+  assert.equal(parsed.author, 'Author Name');
+  assert.ok(parsed.frontMatter.copyrightText?.includes('Copyright © 2026'));
+  
+  // Verify chapters
+  const titles = parsed.chapters.map(c => c.title);
+  assert.ok(titles.some(t => t.includes('COPYRIGHT') || t.includes('Copyright')));
+  assert.ok(titles.some(t => t.includes('DISCLAIMER') || t.includes('Disclaimer')));
+  assert.ok(titles.some(t => t.includes('INTRODUCTION')));
+  assert.ok(titles.some(t => t.includes('CHAPTER 1')));
+  assert.ok(titles.some(t => t.includes('CHAPTER 2')));
+  assert.ok(titles.some(t => t.includes('CHAPTER 3')));
+
+  // Check that Chapter 1 contains GFM table and fill-in line
+  const chap1 = parsed.chapters.find(c => c.title.includes('CHAPTER 1'));
+  assert.ok(chap1, 'Chapter 1 must exist');
+  assert.ok(chap1.content.includes('<table') || chap1.content.includes('Situation Type'), 'Chapter 1 must render tables');
+  assert.ok(chap1.content.includes('workbook-line'), 'Chapter 1 must convert fill-in blanks');
+  assert.ok(chap1.content.includes('The Three Default Patterns'), 'Chapter 1 must retain subheadings');
+});
+
+// ─── 5. Chapter Bulk Deletion, Clear All & Rollback ────────────────────────
+
+test('useBookStore: handles bulk chapter deletion, replacement, and rollback', async () => {
+  const { useBookStore } = await import('../src/lib/store');
+  const store = useBookStore.getState();
+
+  const testBook = store.addBook({
+    title: 'Rollback Test Book',
+    author: 'Test Author',
+    genre: 'Thriller',
+    trimSize: '6x9',
+    paperType: 'white',
+  });
+
+  // Add 4 chapters (in addition to initial Chapter 1: Untitled, making 5 total)
+  const c1 = store.addChapter(testBook.id, 'Chapter 2: Start', '<p>First</p>');
+  const c2 = store.addChapter(testBook.id, 'Chapter 3: Middle', '<p>Second</p>');
+  const c3 = store.addChapter(testBook.id, 'Chapter 4: Climax', '<p>Third</p>');
+  const c4 = store.addChapter(testBook.id, 'Chapter 5: Ending', '<p>Fourth</p>');
+
+  let current = useBookStore.getState().books.find(b => b.id === testBook.id);
+  assert.equal(current?.chapters.length, 5);
+
+  // 1. Test deleteMultipleChapters
+  useBookStore.getState().deleteMultipleChapters(testBook.id, [c2.id, c3.id]);
+  current = useBookStore.getState().books.find(b => b.id === testBook.id);
+  assert.equal(current?.chapters.length, 3);
+  assert.equal(current?.chapters[0].title, 'Chapter 1: The Beginning');
+  assert.equal(current?.chapters[1].title, 'Chapter 2: Start');
+  assert.equal(current?.chapters[2].title, 'Chapter 5: Ending');
+
+  // 2. Test replaceAllChapters
+  const importedNew = [
+    { id: 'imp_1', title: 'Imported Part 1', content: '<p>New 1</p>', wordCount: 100, order: 1 },
+    { id: 'imp_2', title: 'Imported Part 2', content: '<p>New 2</p>', wordCount: 200, order: 2 },
+  ];
+  useBookStore.getState().replaceAllChapters(testBook.id, importedNew);
+  current = useBookStore.getState().books.find(b => b.id === testBook.id);
+  assert.equal(current?.chapters.length, 2);
+  assert.equal(current?.chapters[0].title, 'Imported Part 1');
+
+  // 3. Test clearAllChapters (resets to 1 empty chapter)
+  useBookStore.getState().clearAllChapters(testBook.id);
+  current = useBookStore.getState().books.find(b => b.id === testBook.id);
+  assert.equal(current?.chapters.length, 1);
+  assert.equal(current?.chapters[0].title, 'Chapter 1: The Beginning');
+
+  // Cleanup test book
+  useBookStore.getState().deleteBook(testBook.id);
+});

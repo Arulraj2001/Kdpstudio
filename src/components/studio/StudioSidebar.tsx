@@ -32,6 +32,11 @@ import {
   Users,
   ChevronLeft,
   Clock,
+  CheckSquare,
+  Square,
+  AlertTriangle,
+  X,
+  ListChecks
 } from 'lucide-react';
 import { Book, Chapter } from '../../types';
 import { StudioAiCopilot } from './StudioAiCopilot';
@@ -48,6 +53,8 @@ interface StudioSidebarProps {
   onReorderChapters: (chapters: Chapter[]) => void;
   onRenameChapter: (id: string, newTitle: string) => void;
   onDeleteChapter: (id: string) => void;
+  onDeleteMultipleChapters?: (ids: string[]) => void;
+  onClearAllChapters?: () => void;
   onDuplicateChapter: (id: string) => void;
   onOpenFrontMatter: () => void;
   onOpenBackMatter: () => void;
@@ -60,6 +67,9 @@ interface StudioSidebarProps {
 interface SortableChapterRowProps {
   chapter: Chapter;
   isActive: boolean;
+  isBulkMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: () => void;
   onSelect: () => void;
   onRename: (newTitle: string) => void;
   onDelete: () => void;
@@ -70,6 +80,9 @@ interface SortableChapterRowProps {
 const SortableChapterRow: React.FC<SortableChapterRowProps> = ({
   chapter,
   isActive,
+  isBulkMode = false,
+  isSelected = false,
+  onToggleSelect,
   onSelect,
   onRename,
   onDelete,
@@ -83,7 +96,7 @@ const SortableChapterRow: React.FC<SortableChapterRowProps> = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: chapter.id });
+  } = useSortable({ id: chapter.id, disabled: isBulkMode });
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -122,31 +135,60 @@ const SortableChapterRow: React.FC<SortableChapterRowProps> = ({
       ref={setNodeRef}
       style={style}
       id={`chapter-row-${chapter.id}`}
-      className={`group relative flex items-center justify-between p-2.5 rounded-xl border transition-all ${
+      onClick={() => {
+        if (isBulkMode && onToggleSelect) {
+          onToggleSelect();
+        } else {
+          onSelect();
+        }
+      }}
+      className={`group relative flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer ${
         menuOpen ? 'z-30' : isActive ? 'z-10' : 'z-0'
       } ${
-        isActive
-          ? 'bg-purple-50/90 border-purple-400 shadow-xs ring-1 ring-purple-400/30'
-          : 'bg-white border-slate-200 hover:border-purple-300 hover:shadow-xs'
+        isSelected
+          ? 'bg-purple-50/90 border-purple-400 shadow-xs'
+          : isActive
+          ? 'bg-purple-50 border-purple-500/70 shadow-xs'
+          : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/60'
       }`}
     >
-      <div className="flex items-center gap-2 flex-1 min-w-0">
-        {/* Drag handle */}
-        <button
-          type="button"
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-600 p-0.5"
-          title="Drag to reorder chapter"
-        >
-          <GripVertical className="w-3.5 h-3.5" />
-        </button>
+      <div className="flex items-center gap-2 min-w-0 flex-1">
+        {/* Bulk Checkbox vs Drag Handle */}
+        {isBulkMode ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSelect?.();
+            }}
+            className="text-purple-600 focus:outline-none p-0.5"
+          >
+            {isSelected ? (
+              <CheckSquare className="w-4 h-4 text-purple-600 fill-purple-100" />
+            ) : (
+              <Square className="w-4 h-4 text-slate-400" />
+            )}
+          </button>
+        ) : (
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            className="opacity-40 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-slate-600 cursor-grab active:cursor-grabbing shrink-0"
+            title="Drag to reorder chapter"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GripVertical className="w-3.5 h-3.5" />
+          </button>
+        )}
 
-        {/* Chapter content click target */}
-        <div
-          onClick={onSelect}
-          className="flex-1 min-w-0 cursor-pointer text-left"
-        >
+        {/* Chapter Order Badge */}
+        <span className="w-5 text-[11px] font-mono font-bold text-slate-400 shrink-0">
+          #{chapter.order}
+        </span>
+
+        {/* Title / Renaming */}
+        <div className="flex-1 min-w-0">
           {isEditingTitle ? (
             <input
               type="text"
@@ -161,40 +203,35 @@ const SortableChapterRow: React.FC<SortableChapterRowProps> = ({
                 }
               }}
               autoFocus
-              className="w-full text-xs font-semibold px-1.5 py-0.5 bg-white border border-purple-500 rounded text-slate-900 focus:outline-none"
+              onClick={(e) => e.stopPropagation()}
+              className="w-full text-xs font-semibold px-1.5 py-0.5 rounded border border-purple-500 bg-white text-slate-900 focus:outline-none"
             />
           ) : (
             <>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded">
-                  Ch.{chapter.order}
-                </span>
-                <span
-                  className={`text-xs truncate ${
-                    isActive
-                      ? 'text-purple-950 font-bold'
-                      : 'text-slate-800 font-medium'
-                  }`}
-                >
-                  {chapter.title}
-                </span>
+              <div
+                className={`text-xs truncate font-medium ${
+                  isActive ? 'text-purple-950 font-bold' : 'text-slate-800'
+                }`}
+                title={chapter.title}
+              >
+                {chapter.title}
               </div>
 
-              {/* Word Count & Status Indicator */}
-              <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-1 pl-0.5">
-                <span className="font-mono">{words.toLocaleString()} w</span>
-                <span>·</span>
+              {/* Word count & Reading time */}
+              <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-400">
+                <span>{words.toLocaleString()} words</span>
+                <span>•</span>
                 <span className="flex items-center gap-0.5">
-                  <Clock className="w-2.5 h-2.5" />
-                  <span>{readingTimeMins}m read</span>
+                  <Clock className="w-2.5 h-2.5 inline" />
+                  {readingTimeMins}m
                 </span>
-                <span>·</span>
-                {/* Clickable Status Badge */}
+                <span>•</span>
+                {/* Clickable Status Tag */}
                 <button
                   type="button"
                   onClick={cycleStatus}
-                  title="Click to cycle status: Draft -> Review -> Final"
-                  className={`inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-semibold uppercase tracking-wider transition-colors ${
+                  title="Click to cycle status (Draft -> Review -> Final)"
+                  className={`px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider flex items-center gap-1 transition-colors ${
                     status === 'final'
                       ? 'bg-emerald-100 text-emerald-700'
                       : status === 'review'
@@ -214,69 +251,74 @@ const SortableChapterRow: React.FC<SortableChapterRowProps> = ({
       </div>
 
       {/* Chapter Actions Menu */}
-      <div className="relative ml-1">
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setMenuOpen(!menuOpen);
-          }}
-          className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
-        >
-          <MoreVertical className="w-3.5 h-3.5" />
-        </button>
+      {!isBulkMode && (
+        <div className="relative ml-1">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setMenuOpen(!menuOpen);
+            }}
+            className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+          >
+            <MoreVertical className="w-3.5 h-3.5" />
+          </button>
 
-        {menuOpen && (
-          <>
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setMenuOpen(false)}
-            />
-            <div className="absolute right-0 top-full mt-1 w-36 bg-white border border-slate-200 rounded-lg shadow-xl py-1 z-50 text-xs">
-              <button
-                type="button"
+          {menuOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
                 onClick={(e) => {
                   e.stopPropagation();
                   setMenuOpen(false);
-                  setIsEditingTitle(true);
                 }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors"
-              >
-                <Edit2 className="w-3.5 h-3.5" />
-                <span>Rename</span>
-              </button>
+              />
+              <div className="absolute right-0 top-full mt-1 w-36 bg-white border border-slate-200 rounded-lg shadow-xl py-1 z-50 text-xs">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpen(false);
+                    setIsEditingTitle(true);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                  <span>Rename</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setMenuOpen(false);
-                  onDuplicate();
-                }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors"
-              >
-                <Copy className="w-3.5 h-3.5" />
-                <span>Duplicate</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpen(false);
+                    onDuplicate();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Duplicate</span>
+                </button>
 
-              <div className="my-1 border-t border-slate-100" />
+                <div className="my-1 border-t border-slate-100" />
 
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setMenuOpen(false);
-                  onDelete();
-                }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-red-600 hover:bg-red-50 transition-colors"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Delete</span>
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpen(false);
+                    onDelete();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete</span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -290,6 +332,8 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
   onReorderChapters,
   onRenameChapter,
   onDeleteChapter,
+  onDeleteMultipleChapters,
+  onClearAllChapters,
   onDuplicateChapter,
   onOpenFrontMatter,
   onOpenBackMatter,
@@ -300,6 +344,11 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<StudioSidebarTab>('outline');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isBulkMode, setIsBulkMode] = useState(false);
+  const [selectedChapterIds, setSelectedChapterIds] = useState<string[]>([]);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showDeleteSelectedConfirm, setShowDeleteSelectedConfirm] = useState(false);
+
   const [characterNotes, setCharacterNotes] = useState<Array<{ id: string; name: string; role: string; notes: string }>>([
     { id: '1', name: 'Protagonist', role: 'Main Character', notes: 'Determined, seeking truth behind the family secret.' },
     { id: '2', name: 'Antagonist', role: 'Opposing Force', notes: 'Calculating, controls resources and alliances.' },
@@ -335,10 +384,41 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
     [book.chapters]
   );
 
-  const activeChapter = useMemo(
-    () => book.chapters.find((c) => c.id === currentChapterId) || book.chapters[0] || null,
-    [book.chapters, currentChapterId]
-  );
+  const isAllSelected = filteredChapters.length > 0 && selectedChapterIds.length === filteredChapters.length;
+
+  const handleToggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedChapterIds([]);
+    } else {
+      setSelectedChapterIds(filteredChapters.map((c) => c.id));
+    }
+  };
+
+  const handleToggleSingleSelect = (id: string) => {
+    setSelectedChapterIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleExecuteDeleteSelected = () => {
+    if (onDeleteMultipleChapters && selectedChapterIds.length > 0) {
+      onDeleteMultipleChapters(selectedChapterIds);
+      setSelectedChapterIds([]);
+      setShowDeleteSelectedConfirm(false);
+      setIsBulkMode(false);
+    }
+  };
+
+  const handleExecuteClearAll = () => {
+    if (onClearAllChapters) {
+      onClearAllChapters();
+    } else if (onDeleteMultipleChapters) {
+      onDeleteMultipleChapters(book.chapters.map((c) => c.id));
+    }
+    setSelectedChapterIds([]);
+    setShowClearConfirm(false);
+    setIsBulkMode(false);
+  };
 
   return (
     <div className="flex flex-col h-full bg-slate-50/80 border-r border-slate-200 select-none">
@@ -355,7 +435,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
             <button
               type="button"
               onClick={onToggleCollapse}
-              className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+              className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
               title="Collapse sidebar (Focus Mode)"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -368,7 +448,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('outline')}
-            className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg text-[11px] font-semibold transition-all ${
+            className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
               activeTab === 'outline'
                 ? 'bg-purple-100 text-purple-700 shadow-2xs font-bold'
                 : 'text-slate-500 hover:bg-slate-100'
@@ -382,7 +462,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('copilot')}
-            className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg text-[11px] font-semibold transition-all ${
+            className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
               activeTab === 'copilot'
                 ? 'bg-purple-100 text-purple-700 shadow-2xs font-bold'
                 : 'text-slate-500 hover:bg-slate-100'
@@ -396,7 +476,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('bible')}
-            className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg text-[11px] font-semibold transition-all ${
+            className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
               activeTab === 'bible'
                 ? 'bg-purple-100 text-purple-700 shadow-2xs font-bold'
                 : 'text-slate-500 hover:bg-slate-100'
@@ -410,7 +490,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('goals')}
-            className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg text-[11px] font-semibold transition-all ${
+            className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
               activeTab === 'goals'
                 ? 'bg-purple-100 text-purple-700 shadow-2xs font-bold'
                 : 'text-slate-500 hover:bg-slate-100'
@@ -428,18 +508,80 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
         {/* TAB 1: OUTLINE & MANUSCRIPT TREE */}
         {activeTab === 'outline' && (
           <div className="flex-1 overflow-hidden flex flex-col">
-            {/* Search Filter */}
-            <div className="p-2.5 border-b border-slate-200 bg-white">
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search chapters..."
-                  className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                />
+            {/* Search & Bulk Mode Header Bar */}
+            <div className="p-2.5 border-b border-slate-200 bg-white space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search chapters..."
+                    className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  />
+                </div>
+
+                {/* Bulk Select Toggle Button */}
+                <button
+                  type="button"
+                  id="btn-toggle-bulk-chapter-manage"
+                  onClick={() => {
+                    setIsBulkMode(!isBulkMode);
+                    setSelectedChapterIds([]);
+                  }}
+                  className={`p-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                    isBulkMode
+                      ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-purple-600'
+                  }`}
+                  title={isBulkMode ? 'Exit Bulk Selection' : 'Select All / Bulk Delete Chapters'}
+                >
+                  <ListChecks className="w-3.5 h-3.5" />
+                </button>
               </div>
+
+              {/* Bulk Mode Action Bar */}
+              {isBulkMode && (
+                <div className="p-2 bg-purple-50/80 border border-purple-200 rounded-xl space-y-2 animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between text-xs">
+                    <button
+                      type="button"
+                      onClick={handleToggleSelectAll}
+                      className="font-bold text-purple-700 hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      {isAllSelected ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
+                      <span>{isAllSelected ? 'Deselect All' : 'Select All'} ({filteredChapters.length})</span>
+                    </button>
+
+                    <span className="font-semibold text-slate-600 text-[11px]">
+                      {selectedChapterIds.length} selected
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-1.5 pt-1 border-t border-purple-100">
+                    <button
+                      type="button"
+                      id="btn-bulk-delete-selected-chapters"
+                      disabled={selectedChapterIds.length === 0}
+                      onClick={() => setShowDeleteSelectedConfirm(true)}
+                      className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 disabled:opacity-40 text-white text-[11px] font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      <span>Delete Selected ({selectedChapterIds.length})</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      id="btn-bulk-delete-all-chapters"
+                      onClick={() => setShowClearConfirm(true)}
+                      className="px-2 py-1 bg-white hover:bg-rose-50 text-rose-700 border border-rose-200 text-[11px] font-bold rounded-lg transition-all cursor-pointer"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Tree Items Container */}
@@ -448,7 +590,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
               <button
                 type="button"
                 onClick={onOpenFrontMatter}
-                className="w-full flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-white hover:border-purple-300 hover:bg-purple-50/40 transition-all text-left text-xs shadow-2xs"
+                className="w-full flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-white hover:border-purple-300 hover:bg-purple-50/40 transition-all text-left text-xs shadow-2xs cursor-pointer"
               >
                 <div className="flex items-center gap-2">
                   <div className="p-1 rounded-md bg-purple-100 text-purple-700">
@@ -478,6 +620,9 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                         key={chapter.id}
                         chapter={chapter}
                         isActive={chapter.id === currentChapterId}
+                        isBulkMode={isBulkMode}
+                        isSelected={selectedChapterIds.includes(chapter.id)}
+                        onToggleSelect={() => handleToggleSingleSelect(chapter.id)}
                         onSelect={() => onSelectChapter(chapter.id)}
                         onRename={(newTitle) => onRenameChapter(chapter.id, newTitle)}
                         onDelete={() => onDeleteChapter(chapter.id)}
@@ -495,7 +640,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
               <button
                 type="button"
                 onClick={onOpenBackMatter}
-                className="w-full flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-white hover:border-purple-300 hover:bg-purple-50/40 transition-all text-left text-xs shadow-2xs"
+                className="w-full flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-white hover:border-purple-300 hover:bg-purple-50/40 transition-all text-left text-xs shadow-2xs cursor-pointer"
               >
                 <div className="flex items-center gap-2">
                   <div className="p-1 rounded-md bg-purple-100 text-purple-700">
@@ -516,18 +661,15 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                 type="button"
                 id="btn-sidebar-add-chapter"
                 onClick={onAddChapter}
-                className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
+                className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Add Chapter</span>
+                <span>Add New Chapter</span>
               </button>
 
-              <div className="flex items-center justify-between text-[11px] text-slate-500 px-1 font-mono">
-                <span>{book.chapters.length} chapters</span>
-                <span>·</span>
-                <span className="font-semibold text-slate-800">{totalWords.toLocaleString()} words</span>
-                <span>·</span>
-                <span>~{Math.max(1, Math.ceil(totalWords / 250))} p</span>
+              <div className="flex items-center justify-between text-[11px] text-slate-500 px-1 pt-1">
+                <span>{book.chapters.length} Chapters</span>
+                <span className="font-semibold text-slate-700">{totalWords.toLocaleString()} Total Words</span>
               </div>
             </div>
           </div>
@@ -537,84 +679,152 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
         {activeTab === 'copilot' && (
           <StudioAiCopilot
             book={book}
-            activeChapter={activeChapter}
+            currentChapterId={currentChapterId}
             selectedText={selectedText}
             onInsertContent={onInsertContent}
             onReplaceSelection={onReplaceSelection}
           />
         )}
 
-        {/* TAB 3: CHARACTER & WORLD BIBLE */}
+        {/* TAB 3: STORY BIBLE (Characters & Notes) */}
         {activeTab === 'bible' && (
-          <div className="flex-1 overflow-y-auto p-3 space-y-3 text-xs bg-white">
+          <div className="flex-1 overflow-y-auto p-3 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-slate-800 flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5 text-purple-600" />
-                <span>Story Characters & Lore</span>
-              </span>
+              <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Cast & Lore</span>
               <button
                 type="button"
                 onClick={() => setIsAddingChar(!isAddingChar)}
-                className="text-[11px] text-purple-600 hover:underline font-semibold"
+                className="text-xs text-purple-600 hover:text-purple-700 font-semibold flex items-center gap-1"
               >
-                + Add Note
+                <Plus className="w-3.5 h-3.5" />
+                <span>New</span>
               </button>
             </div>
 
             {isAddingChar && (
-              <div className="p-2.5 bg-purple-50/60 rounded-xl border border-purple-200 space-y-2">
+              <div className="p-2.5 rounded-xl border border-purple-200 bg-purple-50/50 space-y-2">
                 <input
                   type="text"
-                  placeholder="Character or Location Name..."
+                  placeholder="Character name..."
                   value={newCharName}
                   onChange={(e) => setNewCharName(e.target.value)}
-                  className="w-full px-2 py-1 bg-white border border-purple-300 rounded text-xs focus:outline-none"
+                  className="w-full p-1.5 text-xs bg-white border border-purple-200 rounded-lg focus:outline-none"
                 />
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (newCharName.trim()) {
-                      setCharacterNotes((prev) => [
-                        ...prev,
-                        { id: String(Date.now()), name: newCharName.trim(), role: 'Character', notes: 'Notes on character arc...' },
-                      ]);
-                      setNewCharName('');
-                      setIsAddingChar(false);
-                    }
-                  }}
-                  className="w-full py-1 bg-purple-600 text-white rounded text-[11px] font-semibold"
-                >
-                  Save Character Card
-                </button>
+                <div className="flex justify-end gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingChar(false)}
+                    className="px-2 py-1 text-[11px] text-slate-500 hover:text-slate-700"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (newCharName.trim()) {
+                        setCharacterNotes([
+                          ...characterNotes,
+                          { id: Date.now().toString(), name: newCharName.trim(), role: 'Character', notes: '' },
+                        ]);
+                        setNewCharName('');
+                        setIsAddingChar(false);
+                      }
+                    }}
+                    className="px-2.5 py-1 text-[11px] bg-purple-600 text-white rounded-lg font-semibold"
+                  >
+                    Save
+                  </button>
+                </div>
               </div>
             )}
 
             <div className="space-y-2">
-              {characterNotes.map((c) => (
-                <div
-                  key={c.id}
-                  className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1"
-                >
+              {characterNotes.map((char) => (
+                <div key={char.id} className="p-2.5 rounded-xl border border-slate-200 bg-white space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900">{c.name}</span>
-                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-purple-100 text-purple-700 font-medium">
-                      {c.role}
-                    </span>
+                    <span className="text-xs font-bold text-slate-900">{char.name}</span>
+                    <span className="text-[10px] text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded font-medium">{char.role}</span>
                   </div>
-                  <p className="text-[11px] text-slate-600 leading-relaxed">
-                    {c.notes}
-                  </p>
+                  <p className="text-[11px] text-slate-500">{char.notes || 'No description yet.'}</p>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* TAB 4: KDP GOALS & PRINT SPECS */}
+        {/* TAB 4: KDP SPECS & ESTIMATOR */}
         {activeTab === 'goals' && (
-          <StudioKdpEstimator book={book} totalWords={totalWords} />
+          <StudioKdpEstimator book={book} />
         )}
       </div>
+
+      {/* Confirmation Modal: Delete Selected Chapters */}
+      {showDeleteSelectedConfirm && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-sm p-5 space-y-4">
+            <div className="flex items-center gap-3 text-rose-600">
+              <div className="p-2 rounded-xl bg-rose-100">
+                <AlertTriangle size={20} />
+              </div>
+              <h3 className="text-sm font-bold text-slate-900">Delete {selectedChapterIds.length} Chapters?</h3>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Are you sure you want to permanently delete these <strong>{selectedChapterIds.length} selected chapters</strong>?
+            </p>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowDeleteSelectedConfirm(false)}
+                className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                id="btn-confirm-delete-selected"
+                onClick={handleExecuteDeleteSelected}
+                className="px-4 py-1.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-xs"
+              >
+                Delete Selected
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal: Clear All Chapters */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-sm p-5 space-y-4">
+            <div className="flex items-center gap-3 text-rose-600">
+              <div className="p-2 rounded-xl bg-rose-100">
+                <AlertTriangle size={20} />
+              </div>
+              <h3 className="text-sm font-bold text-slate-900">Clear All Chapters?</h3>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              This will remove all chapters and reset the book manuscript to a clean starting Chapter 1.
+            </p>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowClearConfirm(false)}
+                className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                id="btn-confirm-clear-all"
+                onClick={handleExecuteClearAll}
+                className="px-4 py-1.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-xs"
+              >
+                Clear All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

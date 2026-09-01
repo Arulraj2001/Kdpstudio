@@ -53,6 +53,7 @@
     "react-dom": "^19.0.1",
     "recharts": "^3.10.1",
     "remark": "^15.0.1",
+    "remark-gfm": "^4.0.1",
     "remark-html": "^16.0.1",
     "resend": "^6.24.0",
     "stripe": "^22.6.0",

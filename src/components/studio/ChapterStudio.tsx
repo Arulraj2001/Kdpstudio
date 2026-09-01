@@ -29,6 +29,8 @@ import {
   BarChart2,
   MoreHorizontal,
   ChevronDown,
+  RotateCcw,
+  X,
 } from 'lucide-react';
 import { Book, Chapter, FrontMatter, BackMatter } from '../../types/index';
 import { ContentAuditReport } from '../../types/audit';
@@ -68,8 +70,20 @@ export const ChapterStudio: React.FC<ChapterStudioProps> = ({
   const addChapter = useBookStore((state) => state.addChapter);
   const updateChapter = useBookStore((state) => state.updateChapter);
   const deleteChapter = useBookStore((state) => state.deleteChapter);
+  const deleteMultipleChapters = useBookStore((state) => state.deleteMultipleChapters);
+  const replaceAllChapters = useBookStore((state) => state.replaceAllChapters);
+  const clearAllChapters = useBookStore((state) => state.clearAllChapters);
   const reorderChapters = useBookStore((state) => state.reorderChapters);
   const duplicateChapter = useBookStore((state) => state.duplicateChapter);
+
+  // Rollback / Undo Import state
+  const [lastImportSnapshot, setLastImportSnapshot] = useState<{
+    chapters: Chapter[];
+    frontMatter: any;
+    backMatter: any;
+    importedCount: number;
+  } | null>(null);
+  const [showRollbackBanner, setShowRollbackBanner] = useState(false);
 
   // Selected chapter state
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(() => {
@@ -259,6 +273,34 @@ export const ChapterStudio: React.FC<ChapterStudioProps> = ({
     if (remaining.length > 0) {
       setSelectedChapterId(remaining[0].id);
     }
+  };
+
+  const handleDeleteMultipleChapters = (ids: string[]) => {
+    if (!currentBook || ids.length === 0) return;
+    deleteMultipleChapters(currentBook.id, ids);
+    const remaining = currentBook.chapters.filter((c) => !ids.includes(c.id));
+    if (remaining.length > 0) {
+      setSelectedChapterId(remaining[0].id);
+    }
+  };
+
+  const handleClearAllChapters = () => {
+    if (!currentBook) return;
+    clearAllChapters(currentBook.id);
+  };
+
+  const handleRollbackImport = () => {
+    if (!currentBook || !lastImportSnapshot) return;
+    replaceAllChapters(currentBook.id, lastImportSnapshot.chapters);
+    updateBook(currentBook.id, {
+      frontMatter: lastImportSnapshot.frontMatter,
+      backMatter: lastImportSnapshot.backMatter,
+    });
+    if (lastImportSnapshot.chapters[0]) {
+      setSelectedChapterId(lastImportSnapshot.chapters[0].id);
+    }
+    setShowRollbackBanner(false);
+    setLastImportSnapshot(null);
   };
 
   const handleDuplicateChapter = (id: string) => {
@@ -570,6 +612,37 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
         </div>
       </div>
 
+      {/* Top Rollback / Undo Import Banner */}
+      {showRollbackBanner && lastImportSnapshot && (
+        <div className="bg-purple-900 text-white px-4 py-2.5 flex items-center justify-between text-xs z-20 shadow-md animate-in slide-in-from-top duration-200">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-purple-300 shrink-0" />
+            <span>
+              Successfully imported <strong>{lastImportSnapshot.importedCount} chapters</strong>.
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              id="btn-rollback-imported-manuscript"
+              onClick={handleRollbackImport}
+              className="px-3 py-1 bg-white text-purple-900 hover:bg-purple-50 font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-xs"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Rollback / Undo Import</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowRollbackBanner(false)}
+              className="text-purple-300 hover:text-white p-1 cursor-pointer"
+              title="Dismiss"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Main Studio Body: Left Panel (Collapsible) + Right Panel (Editor Surface) */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Panel - Studio Suite Sidebar */}
@@ -584,6 +657,8 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
               onReorderChapters={handleReorderChapters}
               onRenameChapter={handleRenameChapter}
               onDeleteChapter={handleDeleteChapter}
+              onDeleteMultipleChapters={handleDeleteMultipleChapters}
+              onClearAllChapters={handleClearAllChapters}
               onDuplicateChapter={handleDuplicateChapter}
               onOpenFrontMatter={() => setIsFrontMatterOpen(true)}
               onOpenBackMatter={() => setIsBackMatterOpen(true)}
@@ -823,15 +898,39 @@ Output ONLY the continuation formatted in valid HTML paragraphs (<p>...</p>) wit
         isOpen={isImportOpen}
         onClose={() => setIsImportOpen(false)}
         bookTitle={currentBook.title}
-        onImportChapters={(chapters, frontMatter, backMatter) => {
+        onImportChapters={(importedChapters, frontMatter, backMatter, strategy = 'replace') => {
           if (!currentBook) return;
-          chapters.forEach((ch) => {
-            const newChap = addChapter(currentBook.id, ch.title);
-            updateChapter(currentBook.id, newChap.id, {
+
+          // Snapshot current book state for 1-click rollback / undo
+          setLastImportSnapshot({
+            chapters: JSON.parse(JSON.stringify(currentBook.chapters)),
+            frontMatter: JSON.parse(JSON.stringify(currentBook.frontMatter || {})),
+            backMatter: JSON.parse(JSON.stringify(currentBook.backMatter || {})),
+            importedCount: importedChapters.length,
+          });
+          setShowRollbackBanner(true);
+
+          if (strategy === 'replace') {
+            const newChaps: Chapter[] = importedChapters.map((ch, idx) => ({
+              id: `chap_${Date.now()}_${idx + 1}_${Math.random().toString(36).substring(2, 6)}`,
+              title: ch.title,
               content: ch.content,
               wordCount: ch.wordCount,
+              order: idx + 1,
+            }));
+            replaceAllChapters(currentBook.id, newChaps);
+            if (newChaps[0]) {
+              setSelectedChapterId(newChaps[0].id);
+            }
+          } else {
+            importedChapters.forEach((ch) => {
+              const newChap = addChapter(currentBook.id, ch.title);
+              updateChapter(currentBook.id, newChap.id, {
+                content: ch.content,
+                wordCount: ch.wordCount,
+              });
             });
-          });
+          }
 
           const bookUpdates: Partial<Book> = {};
 

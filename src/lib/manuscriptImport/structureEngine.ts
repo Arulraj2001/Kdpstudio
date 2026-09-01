@@ -8,7 +8,7 @@ import { sanitizeManuscriptHtml } from './sanitizer';
 export interface ParsedSection {
   id: string;
   type: 'front-matter' | 'chapter' | 'back-matter';
-  subtype?: string; // 'dedication' | 'copyright' | 'preface' | 'about-author' | 'acknowledgments'
+  subtype?: string; // 'dedication' | 'copyright' | 'preface' | 'disclaimer' | 'toc' | 'about-author' | 'acknowledgments' | 'appendix'
   title: string;
   content: string; // HTML string
   wordCount: number;
@@ -16,6 +16,7 @@ export interface ParsedSection {
 
 export interface ParsedManuscript {
   title?: string;
+  subtitle?: string;
   author?: string;
   sections: ParsedSection[];
   chapters: { id: string; title: string; content: string; wordCount: number; order: number }[];
@@ -23,10 +24,12 @@ export interface ParsedManuscript {
     dedication?: string;
     copyrightText?: string;
     preface?: string;
+    disclaimer?: string;
   };
   backMatter: {
     aboutAuthor?: string;
     otherBooks?: string;
+    appendix?: string;
   };
   totalWordCount: number;
   totalChapters: number;
@@ -52,6 +55,13 @@ const CHAPTER_PATTERNS = [
   /^acknowledg(?:e)?ments$/i,
   /^about the author$/i,
   /^copyright(?:\s+page)?$/i,
+  /^disclaimer$/i,
+  /^contents$/i,
+  /^table of contents$/i,
+  /^a note to the reader$/i,
+  /^how to use this (?:work)?book$/i,
+  /^appendix\s+[a-z0-9](?:[:.-]\s*.*)?$/i,
+  /^appendices$/i,
   new RegExp(`^(?:${ROMAN_NUMERALS})\\.\\s+[A-Z]`, 'i'), // e.g. "IV. The Awakening"
   /^\d+\.\s+[A-Za-z]/, // e.g. "1. The Awakening"
   /^\d+\s*[-—]\s*[A-Za-z]/, // e.g. "1 - The Awakening"
@@ -67,10 +77,15 @@ function classifySectionType(title: string): { type: 'front-matter' | 'chapter' 
   const clean = title.toLowerCase().trim();
   if (clean.includes('dedication')) return { type: 'front-matter', subtype: 'dedication' };
   if (clean.includes('copyright')) return { type: 'front-matter', subtype: 'copyright' };
-  if (clean.includes('preface') || clean.includes('foreword')) return { type: 'front-matter', subtype: 'preface' };
+  if (clean.includes('disclaimer')) return { type: 'front-matter', subtype: 'disclaimer' };
+  if (clean.includes('contents') || clean.includes('table of contents')) return { type: 'front-matter', subtype: 'toc' };
+  if (clean.includes('note to the reader') || clean.includes('preface') || clean.includes('foreword') || clean.includes('how to use this')) {
+    return { type: 'front-matter', subtype: 'preface' };
+  }
   if (clean.includes('about the author') || clean.includes('author bio')) return { type: 'back-matter', subtype: 'about-author' };
   if (clean.includes('acknowledg') || clean.includes('afterword')) return { type: 'back-matter', subtype: 'acknowledgments' };
-  if (clean.includes('other books') || clean.includes('also by')) return { type: 'back-matter', subtype: 'other-books' };
+  if (clean.includes('appendix') || clean.includes('appendices')) return { type: 'back-matter', subtype: 'appendix' };
+  if (clean.includes('other books') || clean.includes('also by') || clean.includes('resources')) return { type: 'back-matter', subtype: 'other-books' };
   return { type: 'chapter' };
 }
 
@@ -94,7 +109,7 @@ function plainTextToParagraphsHtml(text: string): string {
 }
 
 /**
- * Parses HTML document (from DOCX, EPUB, or Markdown) into structured chapters & sections
+ * Parses HTML or text into structured chapters & sections
  */
 export function analyzeManuscriptStructure(htmlOrText: string, fallbackTitle: string = 'My Book'): ParsedManuscript {
   let isHtml = /<[a-z][\s\S]*>/i.test(htmlOrText);
@@ -103,13 +118,15 @@ export function analyzeManuscriptStructure(htmlOrText: string, fallbackTitle: st
   const sections: ParsedSection[] = [];
   const frontMatter: ParsedManuscript['frontMatter'] = {};
   const backMatter: ParsedManuscript['backMatter'] = {};
+  let detectedTitle = fallbackTitle;
+  let detectedSubtitle: string | undefined;
 
   if (isHtml) {
-    // Split HTML by H1 / H2 tags or chapter patterns
+    // Split HTML by H1 / H2 tags only (H3 subheadings remain inside the chapter!)
     const splitRegex = /(<h[1-2][^>]*>[\s\S]*?<\/h[1-2]>)/gi;
     const parts = rawContent.split(splitRegex);
 
-    let currentTitle = 'Chapter 1';
+    let currentTitle = '';
     let currentHtmlBuffer: string[] = [];
 
     for (let i = 0; i < parts.length; i++) {
@@ -117,9 +134,23 @@ export function analyzeManuscriptStructure(htmlOrText: string, fallbackTitle: st
       const headingMatch = part.match(/<h[1-2][^>]*>([\s\S]*?)<\/h[1-2]>/i);
 
       if (headingMatch) {
-        // We encountered a heading! Save previous section if buffer has content
+        const cleanHeading = headingMatch[1].replace(/<[^>]+>/g, '').trim();
+
+        // Check if this heading is the top-level Book Title (first H1)
+        if (!currentTitle && sections.length === 0 && cleanHeading) {
+          // If first heading looks like a title rather than a chapter/front-matter
+          const isStandardSection = CHAPTER_PATTERNS.some((p) => p.test(cleanHeading));
+          if (!isStandardSection) {
+            detectedTitle = cleanHeading;
+            // Check if next part is subtitle
+            currentTitle = cleanHeading;
+            continue;
+          }
+        }
+
+        // Save previous section if buffer has meaningful content
         const bufferHtml = currentHtmlBuffer.join('').trim();
-        if (bufferHtml.length > 20 || countWords(bufferHtml) > 5) {
+        if (currentTitle && (bufferHtml.length > 20 || countWords(bufferHtml) > 3)) {
           const { type, subtype } = classifySectionType(currentTitle);
           sections.push({
             id: `sec_${Date.now()}_${sections.length + 1}`,
@@ -131,7 +162,6 @@ export function analyzeManuscriptStructure(htmlOrText: string, fallbackTitle: st
           });
         }
 
-        const cleanHeading = headingMatch[1].replace(/<[^>]+>/g, '').trim();
         currentTitle = cleanHeading || `Chapter ${sections.length + 1}`;
         currentHtmlBuffer = [];
       } else {
@@ -141,7 +171,7 @@ export function analyzeManuscriptStructure(htmlOrText: string, fallbackTitle: st
 
     // Push the final buffer
     const lastHtml = currentHtmlBuffer.join('').trim();
-    if (lastHtml.length > 20 || countWords(lastHtml) > 5) {
+    if (currentTitle && (lastHtml.length > 20 || countWords(lastHtml) > 3)) {
       const { type, subtype } = classifySectionType(currentTitle);
       sections.push({
         id: `sec_${Date.now()}_${sections.length + 1}`,
@@ -162,7 +192,6 @@ export function analyzeManuscriptStructure(htmlOrText: string, fallbackTitle: st
 
     let currentTitle = 'Chapter 1';
     let currentLines: string[] = [];
-    let foundHeadings = 0;
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
@@ -170,7 +199,7 @@ export function analyzeManuscriptStructure(htmlOrText: string, fallbackTitle: st
       if (isHeadingLine(line)) {
         if (currentLines.length > 0) {
           const contentText = currentLines.join('\n').trim();
-          if (contentText.length > 30) {
+          if (contentText.length > 20) {
             const { type, subtype } = classifySectionType(currentTitle);
             const contentHtml = plainTextToParagraphsHtml(contentText);
             sections.push({
@@ -185,7 +214,6 @@ export function analyzeManuscriptStructure(htmlOrText: string, fallbackTitle: st
         }
         currentTitle = line;
         currentLines = [];
-        foundHeadings++;
       } else {
         currentLines.push(lines[i]);
       }
@@ -223,15 +251,16 @@ export function analyzeManuscriptStructure(htmlOrText: string, fallbackTitle: st
   const chapters: ParsedManuscript['chapters'] = [];
 
   sections.forEach((sec) => {
+    const plain = sec.content.replace(/<[^>]+>/g, ' ').trim();
     if (sec.type === 'front-matter') {
-      const plain = sec.content.replace(/<[^>]+>/g, ' ').trim();
       if (sec.subtype === 'dedication') frontMatter.dedication = plain;
       if (sec.subtype === 'copyright') frontMatter.copyrightText = plain;
-      if (sec.subtype === 'preface') frontMatter.preface = plain;
+      if (sec.subtype === 'preface') frontMatter.preface = (frontMatter.preface ? frontMatter.preface + '\n\n' : '') + plain;
+      if (sec.subtype === 'disclaimer') frontMatter.disclaimer = plain;
     } else if (sec.type === 'back-matter') {
-      const plain = sec.content.replace(/<[^>]+>/g, ' ').trim();
       if (sec.subtype === 'about-author') backMatter.aboutAuthor = plain;
       if (sec.subtype === 'other-books') backMatter.otherBooks = plain;
+      if (sec.subtype === 'appendix') backMatter.appendix = plain;
     }
 
     // Always include as a selectable chapter in the manuscript
@@ -247,7 +276,8 @@ export function analyzeManuscriptStructure(htmlOrText: string, fallbackTitle: st
   const totalWordCount = chapters.reduce((acc, c) => acc + c.wordCount, 0);
 
   return {
-    title: fallbackTitle,
+    title: detectedTitle,
+    subtitle: detectedSubtitle,
     sections,
     chapters,
     frontMatter,
