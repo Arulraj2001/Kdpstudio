@@ -780,9 +780,8 @@ export async function generateDocx(
             margin: {
               top: topMargin,
               bottom: bottomMargin,
-              left: insideMargin, // inside (gutter)
+              left: insideMargin,   // inside (gutter)
               right: outsideMargin, // outside
-              mirror: true, // Mirror Margins ON for KDP Print
             },
           },
         },
