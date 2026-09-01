@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Home, 
   Pencil, 
@@ -11,6 +11,7 @@ import {
   BookMarked,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   ShieldCheck,
   CreditCard,
   Puzzle,
@@ -26,7 +27,9 @@ import {
   Calendar,
   Briefcase,
   FileText,
-  Users
+  Users,
+  Sparkles,
+  Layers
 } from 'lucide-react';
 import { PageRoute } from '../../types';
 import { useAuthStore } from '../../lib/authStore';
@@ -43,11 +46,23 @@ interface SidebarProps {
 interface NavItem {
   id: PageRoute;
   label: string;
-  icon: React.ComponentType<{ className?: string; size?: number }>;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
   badge?: string;
+  description?: string;
 }
 
-const SearchChartIcon: React.FC<{ className?: string; size?: number }> = ({ className, size = 18 }) => (
+interface NavSection {
+  id: string;
+  title: string;
+  items: NavItem[];
+  subGroups?: {
+    id: string;
+    title: string;
+    items: NavItem[];
+  }[];
+}
+
+const SearchChartIcon = ({ size = 18, className = '' }: { size?: number; className?: string }) => (
   <svg 
     width={size} 
     height={size} 
@@ -61,11 +76,11 @@ const SearchChartIcon: React.FC<{ className?: string; size?: number }> = ({ clas
   >
     <circle cx="11" cy="11" r="8" />
     <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    <polyline points="8 12 10 10 12 12 14 8" />
+    <path d="M11 8v6M8 12h6" />
   </svg>
 );
 
-const BatchLayersIcon: React.FC<{ className?: string; size?: number }> = ({ className, size = 18 }) => (
+const BatchLayersIcon = ({ size = 18, className = '' }: { size?: number; className?: string }) => (
   <svg 
     width={size} 
     height={size} 
@@ -83,34 +98,87 @@ const BatchLayersIcon: React.FC<{ className?: string; size?: number }> = ({ clas
   </svg>
 );
 
-const NAV_ITEMS: NavItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: Home },
-  { id: 'studio', label: 'Book Studio', icon: Pencil },
-  { id: 'formatter', label: 'Interior Formatter', icon: Layout },
-  { id: 'cover', label: 'Cover Builder', icon: ImageIcon },
-  { id: 'kdp', label: 'KDP Assistant', icon: Tag },
-  { id: 'research', label: 'Niche Research', icon: SearchChartIcon, badge: 'Pro' },
-  { id: 'asin-spy', label: 'Reverse ASIN Spy', icon: Compass, badge: 'Pro' },
-  { id: 'review-miner', label: 'Review Miner', icon: AlertOctagon, badge: 'Pro' },
-  { id: 'royalty-calculator', label: 'Royalty Calculator', icon: Calculator, badge: 'Tool' },
-  { id: 'lead-magnet', label: 'Lead Magnet & QR', icon: QrCode, badge: 'New' },
-  { id: 'childrens-book-studio', label: 'Children\'s Books', icon: Baby, badge: 'Studio' },
-  { id: 'cookbook-studio', label: 'Cookbook Studio', icon: UtensilsCrossed, badge: 'Studio' },
-  { id: 'planner-studio', label: 'Planner Studio', icon: Calendar, badge: 'Studio' },
-  { id: 'nonfiction-studio', label: 'Non-Fiction Studio', icon: Briefcase, badge: 'Studio' },
-  { id: 'fiction-studio', label: 'Fiction Studio', icon: BookOpen, badge: 'Studio' },
-  { id: 'workbook-studio', label: 'Workbook Studio', icon: FileText, badge: 'Studio' },
-  { id: 'books', label: 'My Books', icon: BookOpen },
-  { id: 'analytics', label: 'Analytics', icon: BarChart3, badge: 'Pro' },
-  { id: 'series', label: 'Series', icon: BookMarked },
-  { id: 'puzzles', label: 'Puzzles Suite', icon: Puzzle, badge: 'Updated' },
-  { id: 'bulk', label: 'Bulk Generator', icon: BatchLayersIcon, badge: 'Agency' },
-  { id: 'publish', label: 'Publish Checklist', icon: ShieldCheck },
-  { id: 'arc-manager', label: 'ARC Campaigns', icon: BookOpen, badge: 'New' },
-  { id: 'newsletter-swaps', label: 'Cross-Promos', icon: Users, badge: 'New' },
-  { id: 'brand-kit', label: 'Brand Kit', icon: Palette },
-  { id: 'billing', label: 'Billing & Plan', icon: CreditCard },
-  { id: 'settings', label: 'Settings', icon: Settings },
+// ── Chronological 5-Stage Publishing Pipeline Architecture ──
+const NAV_SECTIONS: NavSection[] = [
+  {
+    id: 'workspace',
+    title: 'Workspace',
+    items: [
+      { id: 'dashboard', label: 'Dashboard', icon: Home },
+      { id: 'books', label: 'My Books', icon: BookOpen },
+      { id: 'series', label: 'Series Manager', icon: BookMarked },
+      { id: 'analytics', label: 'Analytics & Royalties', icon: BarChart3, badge: 'Pro' },
+    ],
+  },
+  {
+    id: 'draft',
+    title: '1. Draft & Write',
+    items: [
+      { id: 'studio', label: 'Book Studio', icon: Pencil, badge: 'Claude AI' },
+      { id: 'brand-kit', label: 'Brand Kit & Pen Names', icon: Palette },
+    ],
+    subGroups: [
+      {
+        id: 'specialized-studios',
+        title: 'Specialized Studios',
+        items: [
+          { id: 'fiction-studio', label: 'Fiction Studio', icon: BookOpen, badge: 'Genre' },
+          { id: 'nonfiction-studio', label: 'Non-Fiction Studio', icon: Briefcase, badge: 'Guide' },
+          { id: 'workbook-studio', label: 'Workbook Studio', icon: FileText, badge: 'Framework' },
+          { id: 'childrens-book-studio', label: 'Children\'s Books', icon: Baby, badge: 'Illustrated' },
+          { id: 'cookbook-studio', label: 'Cookbook Studio', icon: UtensilsCrossed, badge: 'Recipes' },
+          { id: 'planner-studio', label: 'Planner Studio', icon: Calendar, badge: 'Journal' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'format',
+    title: '2. Format & Design',
+    items: [
+      { id: 'formatter', label: 'Interior Formatter', icon: Layout, badge: '300 DPI' },
+      { id: 'cover', label: 'Wrap Cover Builder', icon: ImageIcon, badge: 'Spine Math' },
+      { id: 'puzzles', label: 'Puzzle & Activity Suite', icon: Puzzle, badge: 'Updated' },
+      { id: 'bulk', label: 'Bulk Series Generator', icon: BatchLayersIcon, badge: 'Agency' },
+    ],
+  },
+  {
+    id: 'publish',
+    title: '3. Validate & Publish',
+    items: [
+      { id: 'kdp', label: 'KDP Assistant & Keywords', icon: Tag },
+      { id: 'publish', label: 'Publishing Checklist', icon: ShieldCheck, badge: 'Pre-Flight' },
+    ],
+  },
+  {
+    id: 'promote',
+    title: '4. Promote & Scale',
+    items: [
+      { id: 'arc-manager', label: 'ARC Campaigns', icon: Users, badge: 'Compliant' },
+      { id: 'newsletter-swaps', label: 'Newsletter Cross-Promos', icon: Sparkles, badge: 'New' },
+      { id: 'lead-magnet', label: 'Lead Magnet & Reader QR', icon: QrCode },
+    ],
+    subGroups: [
+      {
+        id: 'market-intel',
+        title: 'Market Intelligence',
+        items: [
+          { id: 'research', label: 'Niche Research', icon: SearchChartIcon, badge: 'Pro' },
+          { id: 'asin-spy', label: 'Reverse ASIN Spy', icon: Compass, badge: 'Pro' },
+          { id: 'review-miner', label: 'Review Miner', icon: AlertOctagon, badge: 'Pro' },
+          { id: 'royalty-calculator', label: 'Royalty Calculator', icon: Calculator, badge: 'Free' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'account',
+    title: 'Account',
+    items: [
+      { id: 'billing', label: 'Billing & Plan', icon: CreditCard },
+      { id: 'settings', label: 'Settings', icon: Settings },
+    ],
+  },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -125,14 +193,82 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const adminEmail = (import.meta as any).env?.VITE_ADMIN_EMAIL || 'arulraj8637@gmail.com';
   const isAdmin = user?.email?.toLowerCase() === adminEmail.toLowerCase();
 
-  const navList: NavItem[] = [...NAV_ITEMS];
-  if (isAdmin) {
-    navList.push({ id: 'admin', label: 'Admin Console', icon: ShieldAlert, badge: 'Admin' });
-  }
+  // Collapsible sub-sections state
+  const isRouteInSpecialized = ['fiction-studio', 'nonfiction-studio', 'workbook-studio', 'childrens-book-studio', 'cookbook-studio', 'planner-studio'].includes(currentRoute);
+  const isRouteInMarketIntel = ['research', 'asin-spy', 'review-miner', 'royalty-calculator'].includes(currentRoute);
+
+  const [openSpecialized, setOpenSpecialized] = useState(isRouteInSpecialized);
+  const [openMarketIntel, setOpenMarketIntel] = useState(isRouteInMarketIntel);
+
+  // Auto-expand section when user navigates into it
+  useEffect(() => {
+    if (isRouteInSpecialized) setOpenSpecialized(true);
+  }, [isRouteInSpecialized]);
+
+  useEffect(() => {
+    if (isRouteInMarketIntel) setOpenMarketIntel(true);
+  }, [isRouteInMarketIntel]);
 
   const handleNavClick = (route: PageRoute) => {
     onRouteChange(route);
     onCloseMobile();
+  };
+
+  const renderNavItem = (item: NavItem, isNested = false) => {
+    const Icon = item.icon;
+    const isActive = currentRoute === item.id;
+
+    return (
+      <button
+        key={item.id}
+        id={`nav-item-${item.id}`}
+        onClick={() => handleNavClick(item.id)}
+        title={isCollapsed ? item.label : undefined}
+        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs sm:text-[13px] font-semibold transition-all duration-150 group relative cursor-pointer
+          ${isActive 
+            ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-950/50' 
+            : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+          }
+          ${isNested ? 'pl-7 text-[12px]' : ''}
+          ${isCollapsed && !isOpenMobile ? 'justify-center px-2' : ''}
+        `}
+      >
+        <Icon 
+          size={isNested ? 16 : 18} 
+          className={`shrink-0 transition-transform duration-200 group-hover:scale-105 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-purple-400'}`} 
+        />
+        
+        {(!isCollapsed || isOpenMobile) && (
+          <span className="truncate flex-1 text-left flex items-center justify-between">
+            <span className="truncate">{item.label}</span>
+            {item.badge && (
+              <span
+                className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full uppercase tracking-wider shrink-0 ${
+                  item.badge === 'Agency'
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                    : item.badge === 'Pro' || item.badge === 'Claude AI'
+                    ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+                    : item.badge === 'Admin'
+                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                    : item.badge === 'New' || item.badge === 'Compliant'
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                    : 'bg-slate-700/60 text-slate-300 border border-slate-600/40'
+                }`}
+              >
+                {item.badge}
+              </span>
+            )}
+          </span>
+        )}
+
+        {/* Floating tooltip for collapsed desktop mode */}
+        {isCollapsed && !isOpenMobile && (
+          <div className="hidden group-hover:block absolute left-full ml-3 px-2.5 py-1 bg-slate-900 text-white text-xs font-medium rounded-md shadow-lg border border-slate-700 whitespace-nowrap z-50 pointer-events-none">
+            {item.label} {item.badge ? `(${item.badge})` : ''}
+          </div>
+        )}
+      </button>
+    );
   };
 
   return (
@@ -156,9 +292,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         `}
       >
         {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800/80">
+        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800/80 shrink-0">
           <div className="flex items-center gap-3 overflow-hidden cursor-pointer" onClick={() => handleNavClick('dashboard')}>
-            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200/80 p-0.5 flex items-center justify-center shadow-md shadow-indigo-950/40 shrink-0 overflow-hidden">
+            <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/80 p-0.5 flex items-center justify-center shadow-md shadow-purple-950/40 shrink-0 overflow-hidden">
               <img
                 src="/brand-icon.png?v=20260831"
                 alt="KDP Studio"
@@ -167,11 +303,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             {(!isCollapsed || isOpenMobile) && (
               <div className="flex flex-col min-w-0">
-                <span className="font-bold text-lg text-white tracking-tight leading-tight truncate">
+                <span className="font-bold text-base text-white tracking-tight leading-tight truncate">
                   KDP Studio
                 </span>
-                <span className="text-[10px] text-indigo-400 font-bold tracking-widest uppercase">
-                  Creator Suite
+                <span className="text-[9px] text-purple-400 font-bold tracking-widest uppercase">
+                  Publishing Suite
                 </span>
               </div>
             )}
@@ -181,84 +317,99 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             id="close-mobile-sidebar-btn"
             onClick={onCloseMobile}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 md:hidden transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 md:hidden transition-colors cursor-pointer"
             aria-label="Close navigation menu"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
-        {/* Navigation List */}
-        <div className="flex-1 py-4 px-3 overflow-y-auto space-y-1 scrollbar-thin scrollbar-thumb-slate-800">
-          <div className={`px-3 pb-2 text-[10px] font-bold tracking-wider text-slate-500 uppercase ${isCollapsed && !isOpenMobile ? 'text-center' : ''}`}>
-            {isCollapsed && !isOpenMobile ? '•' : 'Main Menu'}
-          </div>
+        {/* Navigation Pipeline List */}
+        <div className="flex-1 py-3 px-3 overflow-y-auto space-y-4 scrollbar-thin scrollbar-thumb-slate-800">
+          {NAV_SECTIONS.map((section) => (
+            <div key={section.id} className="space-y-1">
+              {/* Section Header Divider */}
+              {(!isCollapsed || isOpenMobile) ? (
+                <div className="px-3 pt-2 pb-1 text-[10px] font-black tracking-wider text-slate-500 uppercase flex items-center justify-between">
+                  <span>{section.title}</span>
+                </div>
+              ) : (
+                <div className="my-2 border-t border-slate-800/80 mx-2" />
+              )}
 
-          {navList.map((item) => {
-            const Icon = item.icon;
-            const isActive = currentRoute === item.id;
+              {/* Main Section Items */}
+              {section.items.map((item) => renderNavItem(item))}
 
-            return (
-              <button
-                key={item.id}
-                id={`nav-item-${item.id}`}
-                onClick={() => handleNavClick(item.id)}
-                title={isCollapsed ? item.label : undefined}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-150 group relative cursor-pointer
-                  ${isActive 
-                    ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-indigo-950/40' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                  }
-                  ${isCollapsed && !isOpenMobile ? 'justify-center px-2' : ''}
-                `}
-              >
-                <Icon 
-                  size={19} 
-                  className={`shrink-0 transition-transform duration-200 group-hover:scale-105 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-indigo-400'}`} 
-                />
-                
-                {(!isCollapsed || isOpenMobile) && (
-                  <span className="truncate flex-1 text-left flex items-center justify-between">
-                    <span>{item.label}</span>
-                    {item.badge && (
-                      <span
-                        className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full uppercase tracking-wider ${
-                          item.badge === 'Agency'
-                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                            : item.badge === 'Pro'
-                            ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40'
-                            : item.badge === 'Admin'
-                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                        }`}
-                      >
-                        {item.badge}
+              {/* Sub-Groups (Collapsible Studios & Intelligence) */}
+              {section.subGroups?.map((subGroup) => {
+                const isSpecialized = subGroup.id === 'specialized-studios';
+                const isOpen = isSpecialized ? openSpecialized : openMarketIntel;
+                const setOpen = isSpecialized ? setOpenSpecialized : setOpenMarketIntel;
+
+                if (isCollapsed && !isOpenMobile) {
+                  // In collapsed mode, render icons directly with tooltips
+                  return (
+                    <div key={subGroup.id} className="space-y-1">
+                      {subGroup.items.map((item) => renderNavItem(item))}
+                    </div>
+                  );
+                }
+
+                return (
+                  <div key={subGroup.id} className="pt-1">
+                    <button
+                      onClick={() => setOpen(!isOpen)}
+                      className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-bold text-slate-400 hover:text-slate-200 transition-colors cursor-pointer rounded-lg hover:bg-slate-800/40"
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <Layers size={13} className="text-purple-400" />
+                        <span>{subGroup.title}</span>
                       </span>
-                    )}
-                  </span>
-                )}
+                      <ChevronDown
+                        size={13}
+                        className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-purple-400' : 'text-slate-500'}`}
+                      />
+                    </button>
 
-                {/* Floating tooltip for collapsed desktop mode */}
-                {isCollapsed && !isOpenMobile && (
-                  <div className="hidden group-hover:block absolute left-full ml-3 px-2.5 py-1 bg-slate-900 text-white text-xs font-medium rounded-md shadow-lg border border-slate-700 whitespace-nowrap z-50 pointer-events-none">
-                    {item.label} {item.badge ? `(${item.badge})` : ''}
+                    {isOpen && (
+                      <div className="space-y-1 mt-1 pl-1 border-l border-slate-800/80 ml-2.5">
+                        {subGroup.items.map((item) => renderNavItem(item, true))}
+                      </div>
+                    )}
                   </div>
-                )}
-              </button>
-            );
-          })}
+                );
+              })}
+            </div>
+          ))}
+
+          {/* Admin Console Entry if logged in as admin */}
+          {isAdmin && (
+            <div className="space-y-1 pt-2 border-t border-slate-800/80">
+              {(!isCollapsed || isOpenMobile) && (
+                <div className="px-3 pb-1 text-[10px] font-black tracking-wider text-rose-400 uppercase">
+                  Administration
+                </div>
+              )}
+              {renderNavItem({
+                id: 'admin',
+                label: 'Admin Console',
+                icon: ShieldAlert,
+                badge: 'Admin',
+              })}
+            </div>
+          )}
         </div>
 
-        {/* Footer / User Profile & Collapse Toggle */}
-        <div className="p-3 border-t border-slate-800/80 hidden md:flex flex-col gap-2">
+        {/* Footer / System Status & Collapse Toggle */}
+        <div className="p-3 border-t border-slate-800/80 hidden md:flex flex-col gap-2 shrink-0 bg-[#0c1322]">
           {!isCollapsed && (
-            <div className="flex items-center justify-between px-2 pt-1">
+            <div className="flex items-center justify-between px-2 pt-0.5">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="text-[11px] text-slate-400 font-medium">KDP Studio v1.2</span>
               </div>
-              <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider bg-indigo-950/60 px-2 py-0.5 rounded-full border border-indigo-800/50">
-                Cloud Active
+              <span className="text-[9px] text-purple-300 font-bold uppercase tracking-wider bg-purple-950/80 px-2 py-0.5 rounded-full border border-purple-800/50">
+                Cloud Synced
               </span>
             </div>
           )}
@@ -269,7 +420,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
-            {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+            {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
           </button>
         </div>
 

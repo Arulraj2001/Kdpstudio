@@ -132,27 +132,27 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
           {/* Desktop Nav Links */}
           <div className="hidden md:flex items-center gap-7 text-sm font-semibold text-slate-600">
             
-            {/* Tools Mega-Dropdown */}
+            {/* Free Tools Mega-Dropdown */}
             <div className="relative group">
               <button
                 onClick={() => handleNav('tools')}
-                className={`hover:text-purple-600 transition-colors cursor-pointer inline-flex items-center gap-1 py-2 ${
+                className={`hover:text-purple-600 transition-colors cursor-pointer inline-flex items-center gap-1.5 py-2 ${
                   ['tools', 'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator', 'sudoku-generator', 'crossword-generator', 'childrens-book-studio', 'cookbook-studio', 'planner-studio', 'nonfiction-studio', 'fiction-studio', 'workbook-studio'].includes(currentRoute)
                     ? 'text-purple-600 font-bold'
                     : ''
                 }`}
               >
-                <span>Tools</span>
+                <span>Free Tools</span>
                 <ChevronDown size={14} className="group-hover:rotate-180 transition-transform text-slate-400 group-hover:text-purple-600" />
               </button>
 
-              {/* Dropdown Menu (Hover Flyout) */}
-              <div className="absolute top-full left-0 w-[540px] -ml-20 pt-2 opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 z-50">
-                <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xl space-y-3.5">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              {/* Dropdown Menu (3-Column Architecture) */}
+              <div className="absolute top-full left-0 w-[720px] -ml-28 pt-2 opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 z-50">
+                <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xl space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                     <span className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
                       <Sparkles size={14} className="text-purple-600" />
-                      <span>KDP Creator Power Tools</span>
+                      <span>Free Amazon KDP Creator Tools</span>
                     </span>
                     <button
                       onClick={() => handleNav('tools')}
@@ -162,203 +162,184 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
                     </button>
                   </div>
 
-                  {/* 2-Column Tool Grid inside Dropdown */}
-                  <div className="grid grid-cols-2 gap-3">
+                  {/* 3-Column Tool Grid inside Dropdown */}
+                  <div className="grid grid-cols-3 gap-3">
                     
-                    {/* Tool 1 */}
-                    <div 
-                      onClick={() => handleNav('royalty-calculator')}
-                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
-                    >
-                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
-                        <Calculator size={16} className="text-emerald-600 shrink-0" />
-                        <span>Royalty &amp; Print Calculator</span>
+                    {/* Column 1: SEO & Revenue Calculators */}
+                    <div className="space-y-1.5">
+                      <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-1">
+                        Calculators &amp; SEO
                       </div>
-                      <p className="text-[11px] text-slate-500 line-clamp-2">
-                        Exact KDP printing costs and royalties across 13 global Amazon marketplaces.
-                      </p>
+
+                      <div 
+                        onClick={() => handleNav('royalty-calculator')}
+                        className="p-2.5 rounded-xl hover:bg-purple-50/70 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-0.5"
+                      >
+                        <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
+                          <Calculator size={14} className="text-emerald-600 shrink-0" />
+                          <span>Royalty Calculator</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 line-clamp-2">
+                          Exact printing costs and royalties across 13 global Amazon stores.
+                        </p>
+                      </div>
+
+                      <div 
+                        onClick={() => handleNav('asin-spy')}
+                        className="p-2.5 rounded-xl hover:bg-purple-50/70 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-0.5"
+                      >
+                        <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
+                          <Compass size={14} className="text-purple-600 shrink-0" />
+                          <span>Reverse ASIN Spy</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 line-clamp-2">
+                          Competitor BSR sales velocity and daily orders for #1 rank.
+                        </p>
+                      </div>
+
+                      <div 
+                        onClick={() => handleNav('review-miner')}
+                        className="p-2.5 rounded-xl hover:bg-purple-50/70 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-0.5"
+                      >
+                        <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
+                          <AlertOctagon size={14} className="text-rose-600 shrink-0" />
+                          <span>Review Miner</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 line-clamp-2">
+                          Extract 1–3 star customer complaints to spot market gaps.
+                        </p>
+                      </div>
+
+                      <div 
+                        onClick={() => handleNav('lead-magnet')}
+                        className="p-2.5 rounded-xl hover:bg-purple-50/70 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-0.5"
+                      >
+                        <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
+                          <QrCode size={14} className="text-indigo-600 shrink-0" />
+                          <span>Lead Magnet &amp; QR</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 line-clamp-2">
+                          Generate 300 DPI vector QR reader bonus pages.
+                        </p>
+                      </div>
                     </div>
 
-                    {/* Tool 2 */}
-                    <div 
-                      onClick={() => handleNav('asin-spy')}
-                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
-                    >
-                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
-                        <Compass size={16} className="text-purple-600 shrink-0" />
-                        <span>Reverse ASIN &amp; BSR Spy</span>
+                    {/* Column 2: Low-Content & Puzzle Studios */}
+                    <div className="space-y-1.5">
+                      <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-1">
+                        Puzzles &amp; Activities
                       </div>
-                      <p className="text-[11px] text-slate-500 line-clamp-2">
-                        Competitor sales velocity, monthly revenue, and daily sales needed for #1 rank.
-                      </p>
+
+                      <div 
+                        onClick={() => handleNav('sudoku-generator')}
+                        className="p-2.5 rounded-xl hover:bg-purple-50/70 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-0.5"
+                      >
+                        <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
+                          <Grid3X3 size={14} className="text-blue-600 shrink-0" />
+                          <span>Classic Sudoku</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 line-clamp-2">
+                          9×9 Sudoku books with automated solution key pages.
+                        </p>
+                      </div>
+
+                      <div 
+                        onClick={() => handleNav('maze-generator')}
+                        className="p-2.5 rounded-xl hover:bg-purple-50/70 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-0.5"
+                      >
+                        <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
+                          <Compass size={14} className="text-emerald-600 shrink-0" />
+                          <span>Algorithmic Mazes</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 line-clamp-2">
+                          100% solvable circular, diamond, and grid mazes.
+                        </p>
+                      </div>
+
+                      <div 
+                        onClick={() => handleNav('cryptogram-generator')}
+                        className="p-2.5 rounded-xl hover:bg-purple-50/70 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-0.5"
+                      >
+                        <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
+                          <KeyRound size={14} className="text-purple-600 shrink-0" />
+                          <span>Cryptograms</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 line-clamp-2">
+                          Letter substitution cipher puzzle books with hints.
+                        </p>
+                      </div>
+
+                      <div 
+                        onClick={() => handleNav('crossword-generator')}
+                        className="p-2.5 rounded-xl hover:bg-purple-50/70 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-0.5"
+                      >
+                        <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
+                          <Grid size={14} className="text-indigo-600 shrink-0" />
+                          <span>Clued Crosswords</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 line-clamp-2">
+                          Intersecting Across &amp; Down word puzzle books.
+                        </p>
+                      </div>
                     </div>
 
-                    {/* Tool 3 */}
-                    <div 
-                      onClick={() => handleNav('review-miner')}
-                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
-                    >
-                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
-                        <AlertOctagon size={16} className="text-rose-600 shrink-0" />
-                        <span>Review Pain-Point Miner</span>
+                    {/* Column 3: Category Storyboard Studios */}
+                    <div className="space-y-1.5">
+                      <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-1">
+                        Book Studios
                       </div>
-                      <p className="text-[11px] text-slate-500 line-clamp-2">
-                        Extract 1–3 star customer complaints to build superior bestseller blueprints.
-                      </p>
-                    </div>
 
-                    {/* Tool 4 */}
-                    <div 
-                      onClick={() => handleNav('lead-magnet')}
-                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
-                    >
-                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
-                        <QrCode size={16} className="text-purple-600 shrink-0" />
-                        <span>Lead Magnet &amp; QR Studio</span>
+                      <div 
+                        onClick={() => handleNav('fiction-studio')}
+                        className="p-2.5 rounded-xl hover:bg-purple-50/70 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-0.5"
+                      >
+                        <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
+                          <BookOpen size={14} className="text-rose-600 shrink-0" />
+                          <span>Fiction Storyboard</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 line-clamp-2">
+                          15-Beat Save the Cat novel structure and arcs.
+                        </p>
                       </div>
-                      <p className="text-[11px] text-slate-500 line-clamp-2">
-                        Generate 300 DPI vector QR bonus pages to turn readers into email subscribers.
-                      </p>
-                    </div>
 
-                    {/* Tool 5 */}
-                    <div 
-                      onClick={() => handleNav('maze-generator')}
-                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
-                    >
-                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
-                        <Compass size={16} className="text-indigo-600 shrink-0" />
-                        <span>Algorithmic Mazes Studio</span>
+                      <div 
+                        onClick={() => handleNav('nonfiction-studio')}
+                        className="p-2.5 rounded-xl hover:bg-purple-50/70 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-0.5"
+                      >
+                        <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
+                          <Briefcase size={14} className="text-indigo-600 shrink-0" />
+                          <span>Non-Fiction Blueprint</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 line-clamp-2">
+                          Frameworks, step-by-step guides, and case studies.
+                        </p>
                       </div>
-                      <p className="text-[11px] text-slate-500 line-clamp-2">
-                        100% solvable rectangular, circular, and diamond mazes with answer keys.
-                      </p>
-                    </div>
 
-                    {/* Tool 6 */}
-                    <div 
-                      onClick={() => handleNav('cryptogram-generator')}
-                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
-                    >
-                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
-                        <KeyRound size={16} className="text-purple-600 shrink-0" />
-                        <span>Cryptogram &amp; Cipher Studio</span>
+                      <div 
+                        onClick={() => handleNav('childrens-book-studio')}
+                        className="p-2.5 rounded-xl hover:bg-purple-50/70 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-0.5"
+                      >
+                        <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
+                          <Baby size={14} className="text-pink-600 shrink-0" />
+                          <span>Children's Books</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 line-clamp-2">
+                          Picture books with character consistency lock.
+                        </p>
                       </div>
-                      <p className="text-[11px] text-slate-500 line-clamp-2">
-                        Substitution cipher puzzles with quotes and solution keys.
-                      </p>
-                    </div>
 
-                    {/* Tool 7: Sudoku */}
-                    <div 
-                      onClick={() => handleNav('sudoku-generator')}
-                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
-                    >
-                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
-                        <Grid3X3 size={16} className="text-blue-600 shrink-0" />
-                        <span>Classic 9×9 Sudoku Studio</span>
+                      <div 
+                        onClick={() => handleNav('workbook-studio')}
+                        className="p-2.5 rounded-xl hover:bg-purple-50/70 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-0.5"
+                      >
+                        <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
+                          <FileText size={14} className="text-sky-600 shrink-0" />
+                          <span>Interactive Workbooks</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 line-clamp-2">
+                          Fill-in exercises, tables, and reflection prompts.
+                        </p>
                       </div>
-                      <p className="text-[11px] text-slate-500 line-clamp-2">
-                        100% unique commercial Sudoku books with 4-per-page answer keys.
-                      </p>
-                    </div>
-
-                    {/* Tool 8: Crosswords */}
-                    <div 
-                      onClick={() => handleNav('crossword-generator')}
-                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
-                    >
-                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
-                        <Grid size={16} className="text-indigo-600 shrink-0" />
-                        <span>Clued Crossword Studio</span>
-                      </div>
-                      <p className="text-[11px] text-slate-500 line-clamp-2">
-                        Themed Across &amp; Down intersecting word puzzles with solutions.
-                      </p>
-                    </div>
-
-                    {/* Tool 9: Children's Books */}
-                    <div 
-                      onClick={() => handleNav('childrens-book-studio')}
-                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
-                    >
-                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
-                        <Baby size={16} className="text-pink-600 shrink-0" />
-                        <span>Children's Storyboard Studio</span>
-                      </div>
-                      <p className="text-[11px] text-slate-500 line-clamp-2">
-                        24–32 page picture books with character consistency lock.
-                      </p>
-                    </div>
-
-                    {/* Tool 10: Cookbook Studio */}
-                    <div 
-                      onClick={() => handleNav('cookbook-studio')}
-                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
-                    >
-                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
-                        <UtensilsCrossed size={16} className="text-amber-600 shrink-0" />
-                        <span>Cookbook &amp; Recipe Studio</span>
-                      </div>
-                      <p className="text-[11px] text-slate-500 line-clamp-2">
-                        Gourmet recipes with nutrition, ingredients, and 2-col PDF.
-                      </p>
-                    </div>
-
-                    {/* Tool 11: Planner Studio */}
-                    <div 
-                      onClick={() => handleNav('planner-studio')}
-                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
-                    >
-                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
-                        <Calendar size={16} className="text-cyan-600 shrink-0" />
-                        <span>Planners &amp; Habit Journals</span>
-                      </div>
-                      <p className="text-[11px] text-slate-500 line-clamp-2">
-                        Parametric 120-page daily planners, habit trackers, and dot grids.
-                      </p>
-                    </div>
-
-                    {/* Tool 12: Non-Fiction */}
-                    <div 
-                      onClick={() => handleNav('nonfiction-studio')}
-                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
-                    >
-                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
-                        <Briefcase size={16} className="text-indigo-600 shrink-0" />
-                        <span>Non-Fiction Blueprint Studio</span>
-                      </div>
-                      <p className="text-[11px] text-slate-500 line-clamp-2">
-                        Authority book blueprints with frameworks and case studies.
-                      </p>
-                    </div>
-
-                    {/* Tool 13: Fiction */}
-                    <div 
-                      onClick={() => handleNav('fiction-studio')}
-                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
-                    >
-                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
-                        <BookOpen size={16} className="text-rose-600 shrink-0" />
-                        <span>Fiction Storyboard Studio</span>
-                      </div>
-                      <p className="text-[11px] text-slate-500 line-clamp-2">
-                        15-Beat Save the Cat novel beats and character conflict arcs.
-                      </p>
-                    </div>
-
-                    {/* Tool 14: Workbook */}
-                    <div 
-                      onClick={() => handleNav('workbook-studio')}
-                      className="p-3 rounded-2xl hover:bg-purple-50/60 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-1"
-                    >
-                      <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
-                        <FileText size={16} className="text-sky-600 shrink-0" />
-                        <span>Interactive Workbook Studio</span>
-                      </div>
-                      <p className="text-[11px] text-slate-500 line-clamp-2">
-                        Companion workbooks with 1–5 assessments and reflection prompts.
-                      </p>
                     </div>
 
                   </div>
@@ -374,14 +355,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
             >
               Features
             </button>
-            <button
-              onClick={() => handleNav('pricing')}
-              className={`hover:text-purple-600 transition-colors cursor-pointer ${
-                currentRoute === 'pricing' ? 'text-purple-600 font-bold' : ''
-              }`}
-            >
-              Pricing
-            </button>
+
             <button
               onClick={() => handleNav('arc-lounge')}
               className={`hover:text-purple-600 transition-colors cursor-pointer flex items-center gap-1.5 ${
@@ -393,6 +367,16 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
                 New
               </span>
             </button>
+
+            <button
+              onClick={() => handleNav('pricing')}
+              className={`hover:text-purple-600 transition-colors cursor-pointer ${
+                currentRoute === 'pricing' ? 'text-purple-600 font-bold' : ''
+              }`}
+            >
+              Pricing
+            </button>
+
             <button
               onClick={() => handleNav('blog')}
               className={`hover:text-purple-600 transition-colors cursor-pointer ${
@@ -400,22 +384,6 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
               }`}
             >
               Blog
-            </button>
-            <button
-              onClick={() => handleNav('about')}
-              className={`hover:text-purple-600 transition-colors cursor-pointer ${
-                currentRoute === 'about' ? 'text-purple-600 font-bold' : ''
-              }`}
-            >
-              About
-            </button>
-            <button
-              onClick={() => handleNav('contact')}
-              className={`hover:text-purple-600 transition-colors cursor-pointer ${
-                currentRoute === 'contact' ? 'text-purple-600 font-bold' : ''
-              }`}
-            >
-              Contact
             </button>
           </div>
 

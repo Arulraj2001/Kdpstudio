@@ -264,7 +264,79 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, onNewB
         </div>
       </section>
 
-      {/* 3. Quick Action Buttons */}
+      {/* 3. The 4-Stage Publishing Lifecycle GPS */}
+      <section id="publishing-gps-section" className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <Sparkles size={16} className="text-purple-600" />
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                Publishing Lifecycle GPS
+              </h2>
+            </div>
+            <p className="text-xs text-slate-500">Your step-by-step pipeline from blank outline to Amazon bestseller</p>
+          </div>
+          <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-200 self-start sm:self-auto">
+            Stage-by-Stage Guide
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          {/* Stage 1 */}
+          <div 
+            onClick={() => onNavigate(user ? 'studio' : 'signup')}
+            className="p-4 rounded-xl bg-purple-50/40 border border-purple-200/80 hover:border-purple-400 hover:shadow-md transition-all cursor-pointer space-y-1.5 group"
+          >
+            <div className="flex items-center justify-between text-xs font-black">
+              <span className="text-purple-700 font-mono">STAGE 01</span>
+              <span className="text-[10px] bg-purple-200/60 text-purple-900 px-1.5 py-0.2 rounded font-bold">Write</span>
+            </div>
+            <h3 className="text-sm font-bold text-slate-900 group-hover:text-purple-600 transition-colors">Manuscript Draft</h3>
+            <p className="text-[11px] text-slate-500 leading-snug">Claude AI outline, chapter drafting, or 1-click Word (.docx) &amp; EPUB import.</p>
+          </div>
+
+          {/* Stage 2 */}
+          <div 
+            onClick={() => onNavigate(user ? 'formatter' : 'signup')}
+            className="p-4 rounded-xl bg-indigo-50/40 border border-indigo-200/80 hover:border-indigo-400 hover:shadow-md transition-all cursor-pointer space-y-1.5 group"
+          >
+            <div className="flex items-center justify-between text-xs font-black">
+              <span className="text-indigo-700 font-mono">STAGE 02</span>
+              <span className="text-[10px] bg-indigo-200/60 text-indigo-900 px-1.5 py-0.2 rounded font-bold">Format</span>
+            </div>
+            <h3 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">Interior &amp; Wrap Cover</h3>
+            <p className="text-[11px] text-slate-500 leading-snug">Auto-calculated 0.750″ binding gutters, drop-caps &amp; 300 DPI spine wraps.</p>
+          </div>
+
+          {/* Stage 3 */}
+          <div 
+            onClick={() => onNavigate(user ? 'publish' : 'signup')}
+            className="p-4 rounded-xl bg-amber-50/40 border border-amber-200/80 hover:border-amber-400 hover:shadow-md transition-all cursor-pointer space-y-1.5 group"
+          >
+            <div className="flex items-center justify-between text-xs font-black">
+              <span className="text-amber-700 font-mono">STAGE 03</span>
+              <span className="text-[10px] bg-amber-200/60 text-amber-900 px-1.5 py-0.2 rounded font-bold">Validate</span>
+            </div>
+            <h3 className="text-sm font-bold text-slate-900 group-hover:text-amber-700 transition-colors">Pre-Flight Quality Audit</h3>
+            <p className="text-[11px] text-slate-500 leading-snug">Amazon 7-keywords, BISAC categories, and 100-point KDP print audit.</p>
+          </div>
+
+          {/* Stage 4 */}
+          <div 
+            onClick={() => onNavigate(user ? 'arc-manager' : 'signup')}
+            className="p-4 rounded-xl bg-emerald-50/40 border border-emerald-200/80 hover:border-emerald-400 hover:shadow-md transition-all cursor-pointer space-y-1.5 group"
+          >
+            <div className="flex items-center justify-between text-xs font-black">
+              <span className="text-emerald-700 font-mono">STAGE 04</span>
+              <span className="text-[10px] bg-emerald-200/60 text-emerald-900 px-1.5 py-0.2 rounded font-bold">Promote</span>
+            </div>
+            <h3 className="text-sm font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">ARC Lounge &amp; Swaps</h3>
+            <p className="text-[11px] text-slate-500 leading-snug">FTC-compliant advance reader copies, newsletter swaps &amp; BSR sales spikes.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Quick Action Buttons */}
       <section id="quick-actions-section">
         <div className="flex items-center justify-between mb-4">
           <div>
