@@ -333,6 +333,8 @@ export async function generateDocx(
     }
   };
 
+  let hasEmittedToc = false;
+
   while (i < blocks.length) {
     const block = blocks[i];
 
@@ -351,6 +353,60 @@ export async function generateDocx(
     if (tableBuffer.length > 0 && block.type !== 'table') {
       docElements.push(markdownTableToDocx(tableBuffer));
       tableBuffer = [];
+    }
+
+    // Emit TOC Placeholder before first chapter or part
+    if (
+      settings.generateTocPlaceholder &&
+      !hasEmittedToc &&
+      (block.type === 'part' || block.type === 'chapter')
+    ) {
+      hasEmittedToc = true;
+      const chapterList = blocks.filter((b) => b.type === 'chapter' || b.type === 'part');
+      if (chapterList.length > 0) {
+        docElements.push(new Paragraph({ children: [new PageBreak()] }));
+        docElements.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: 'TABLE OF CONTENTS',
+                bold: true,
+                font: fontName,
+                size: 32, // 16pt
+              }),
+            ],
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 480, after: 240 },
+          })
+        );
+        chapterList.forEach((ch) => {
+          const title = cleanText(ch.text);
+          docElements.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: title,
+                  bold: ch.type === 'part',
+                  font: fontName,
+                  size: Math.max(16, fontSize - 2),
+                }),
+                new TextRun({
+                  text: ' ................................................................ ',
+                  color: 'AAAAAA',
+                  font: fontName,
+                  size: Math.max(14, fontSize - 4),
+                }),
+                new TextRun({
+                  text: '[ ... ]',
+                  font: fontName,
+                  size: Math.max(16, fontSize - 2),
+                }),
+              ],
+              spacing: { after: 100 },
+            })
+          );
+        });
+      }
     }
 
     switch (block.type) {

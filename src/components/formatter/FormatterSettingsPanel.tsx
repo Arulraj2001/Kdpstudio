@@ -277,6 +277,16 @@ export const FormatterSettingsPanel: React.FC<FormatterSettingsPanelProps> = ({
             />
             <span className="text-slate-700 font-medium">New page for each chapter (H2)</span>
           </label>
+
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={settings.generateTocPlaceholder}
+              onChange={(e) => onUpdateSettings({ generateTocPlaceholder: e.target.checked })}
+              className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+            />
+            <span className="text-slate-700 font-medium">Generate table of contents placeholder</span>
+          </label>
         </div>
       </div>
 

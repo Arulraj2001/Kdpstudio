@@ -152,31 +152,37 @@ export const FormatterView: React.FC = () => {
 
       {/* 2. Three-Panel Layout (Left Settings, Center Input, Right Live Preview) */}
       <div className="flex flex-col lg:flex-row gap-4 items-stretch">
-        {/* Left Panel: Format Settings (280px fixed on desktop) */}
-        <FormatterSettingsPanel
-          settings={settings}
-          onUpdateSettings={handleUpdateSettings}
-          stats={stats}
-          chapterNodes={chapterNodes}
-          onSelectChapter={handleSelectChapter}
-        />
+        {/* Center Panel on Desktop (flex-1) / 1st on Mobile: Input / Paste & Upload Tabs */}
+        <div className="order-1 lg:order-2 flex-1 flex flex-col min-w-0">
+          <FormatterInputPanel
+            rawText={rawText}
+            onChangeText={setRawText}
+            onParse={handleParse}
+            isParsing={isParsing}
+            wordCount={stats.wordCount}
+          />
+        </div>
 
-        {/* Center Panel: Input / Paste & Upload Tabs (flex-1) */}
-        <FormatterInputPanel
-          rawText={rawText}
-          onChangeText={setRawText}
-          onParse={handleParse}
-          isParsing={isParsing}
-          wordCount={stats.wordCount}
-        />
+        {/* Left Panel on Desktop (280px) / 2nd on Mobile: Format Settings */}
+        <div className="order-2 lg:order-1 w-full lg:w-[280px] shrink-0">
+          <FormatterSettingsPanel
+            settings={settings}
+            onUpdateSettings={handleUpdateSettings}
+            stats={stats}
+            chapterNodes={chapterNodes}
+            onSelectChapter={handleSelectChapter}
+          />
+        </div>
 
-        {/* Right Panel: Live Preview (400px fixed on desktop) */}
-        <FormatterLivePreview
-          blocks={parsedBlocks}
-          settings={settings}
-          stats={stats}
-          targetBlockIndex={targetBlockIndex}
-        />
+        {/* Right Panel on Desktop (400px) / 3rd on Mobile: Live Preview */}
+        <div className="order-3 lg:order-3 w-full lg:w-[400px] shrink-0">
+          <FormatterLivePreview
+            blocks={parsedBlocks}
+            settings={settings}
+            stats={stats}
+            targetBlockIndex={targetBlockIndex}
+          />
+        </div>
       </div>
 
       {/* 3. Bottom Export Action Bar */}

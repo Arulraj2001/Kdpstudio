@@ -136,10 +136,16 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
             </div>
 
             {/* Block Loop */}
-            {blocks.map((block, idx) => {
-              const isTargeted = targetBlockIndex === idx;
+            {(() => {
+              const firstChapterIdx = blocks.findIndex((b) => b.type === 'chapter' || b.type === 'part');
+              const chapterList = blocks.filter((b) => b.type === 'chapter' || b.type === 'part');
 
-              switch (block.type) {
+              return blocks.map((block, idx) => {
+                const isTargeted = targetBlockIndex === idx;
+                const shouldRenderTocBefore = settings.generateTocPlaceholder && idx === firstChapterIdx && chapterList.length > 0;
+
+                const blockContent = (() => {
+                  switch (block.type) {
                 case 'title':
                   return (
                     <div
@@ -295,7 +301,32 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
                     </p>
                   );
               }
-            })}
+            })();
+
+            return (
+              <React.Fragment key={block.id || idx}>
+                {shouldRenderTocBefore && (
+                  <div className="my-6 p-4 rounded bg-slate-50 border border-slate-200/90 text-xs">
+                    <div className="text-center font-bold text-xs uppercase tracking-widest text-slate-800 mb-3 border-b border-slate-200 pb-1.5">
+                      Table of Contents
+                    </div>
+                    <div className="space-y-1.5">
+                      {chapterList.map((ch, cIdx) => (
+                        <div key={cIdx} className="flex items-center justify-between text-[10px] text-slate-700">
+                          <span className={ch.type === 'part' ? 'font-bold text-slate-900' : 'font-medium truncate max-w-[200px]'}>
+                            {cleanText(ch.text)}
+                          </span>
+                          <span className="text-slate-400 font-mono">. . . . . . . [ ... ]</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {blockContent}
+              </React.Fragment>
+            );
+          });
+        })()}
 
             {/* Simulated Footer */}
             <div className="text-[8px] font-mono text-slate-400 text-center border-t border-slate-200 pt-1.5 mt-6">
