@@ -67,7 +67,7 @@ export const FormatterExportBar: React.FC<FormatterExportBarProps> = ({
       addToast({
         type: 'success',
         title: 'PDF Generated Successfully',
-        message: `Your KDP-ready PDF (${settings.trimSize}, Times-Roman) has been downloaded.`,
+        message: `Your KDP-ready PDF (${settings.trimSize}, ${settings.font}) has been downloaded.`,
       });
     } catch (err: any) {
       console.error('PDF Generation Error:', err);

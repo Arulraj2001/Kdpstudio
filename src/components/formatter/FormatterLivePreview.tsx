@@ -77,11 +77,24 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
     });
   };
 
-  // Render markdown table
+  // Render markdown table with column alignments and modern editorial styling
   const renderTable = (block: ContentBlock) => {
     const rawLines = block.lines || block.text.split('\n');
+    const separatorLine = rawLines.find((line) => line.match(/^\|[\s\-:]+\|/));
+    const alignments: ('left' | 'center' | 'right')[] = [];
+
+    if (separatorLine) {
+      const segs = separatorLine.split('|').filter((_, i, arr) => i > 0 && i < arr.length - 1);
+      segs.forEach((seg) => {
+        const trimmed = seg.trim();
+        if (trimmed.startsWith(':') && trimmed.endsWith(':')) alignments.push('center');
+        else if (trimmed.endsWith(':')) alignments.push('right');
+        else alignments.push('left');
+      });
+    }
+
     const tableRows = rawLines
-      .filter((line) => !line.match(/^\|[\s\-:]+\|/)) // remove separator row
+      .filter((line) => !line.match(/^\|[\s\-:]+\|/))
       .map((line) =>
         line
           .split('|')
@@ -90,28 +103,33 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
       );
 
     if (tableRows.length === 0) return null;
-
     const [headerRow, ...bodyRows] = tableRows;
 
     return (
-      <table className="preview-table">
-        <thead>
-          <tr>
-            {headerRow.map((col, idx) => (
-              <th key={idx}>{col}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {bodyRows.map((row, rIdx) => (
-            <tr key={rIdx}>
-              {row.map((cell, cIdx) => (
-                <td key={cIdx}>{cell}</td>
+      <div className="preview-table-container my-3.5 overflow-hidden rounded-lg border border-slate-200 shadow-2xs">
+        <table className="preview-table">
+          <thead>
+            <tr>
+              {headerRow.map((col, idx) => (
+                <th key={idx} style={{ textAlign: alignments[idx] || 'left' }}>
+                  {renderFormattedText(col)}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {bodyRows.map((row, rIdx) => (
+              <tr key={rIdx} className={rIdx % 2 === 1 ? 'preview-table-alt' : ''}>
+                {row.map((cell, cIdx) => (
+                  <td key={cIdx} style={{ textAlign: alignments[cIdx] || 'left' }}>
+                    {renderFormattedText(cell)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     );
   };
 
@@ -259,20 +277,23 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
           </div>
         );
 
-      case 'front_matter':
+      case 'front_matter': {
+        const fmText = cleanText(block.text);
+        const isDedication = /DEDICATION/i.test(fmText);
         return (
           <React.Fragment key={block.id}>
             <div className="preview-page-break" />
             <div
               id={`preview-block-${idx}`}
-              className="my-5 text-center"
+              className={`my-6 text-center ${isDedication ? 'pt-8 pb-4' : ''}`}
             >
-              <div className="text-[11px] font-bold uppercase tracking-widest text-slate-700 pb-1 border-b border-slate-300 inline-block px-3">
-                {cleanText(block.text)}
+              <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-700 pb-1 border-b border-slate-300 inline-block px-4">
+                {fmText}
               </div>
             </div>
           </React.Fragment>
         );
+      }
 
       case 'part':
         return (
@@ -285,16 +306,33 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
           </div>
         );
 
-      case 'chapter':
+      case 'chapter': {
+        const fullTitle = cleanText(block.text);
+        const match = fullTitle.match(/^(CHAPTER\s+\d+|Chapter\s+\d+|PROLOGUE|EPILOGUE|CONCLUSION|INTRODUCTION)[:—\-]\s*(.*)$/i);
         return (
           <div
             key={block.id}
             id={`preview-block-${idx}`}
-            className={`preview-chapter ${isTargeted ? 'bg-purple-100/60 ring-2 ring-purple-400 rounded' : ''}`}
+            className={`my-6 ${isTargeted ? 'bg-purple-100/60 ring-2 ring-purple-400 rounded-lg p-2' : ''}`}
           >
-            {cleanText(block.text)}
+            {match ? (
+              <div className="text-center space-y-1">
+                <div className="text-[9.5px] font-black uppercase tracking-[0.2em] text-purple-700 font-sans">
+                  {match[1]}
+                </div>
+                <div className="text-sm sm:text-[15px] font-bold text-slate-900 leading-tight">
+                  {match[2] || match[1]}
+                </div>
+                <div className="w-8 h-0.5 bg-slate-300 mx-auto mt-2" />
+              </div>
+            ) : (
+              <div className="preview-chapter">
+                {fullTitle}
+              </div>
+            )}
           </div>
         );
+      }
 
       case 'section':
         return (
@@ -647,100 +685,114 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
         }
 
         .preview-exercise {
-          border: 1px solid #000;
-          margin: 12px 0;
-          border-radius: 3px;
+          border: 1px solid #E2E8F0;
+          margin: 14px 0;
+          border-radius: 8px;
           overflow: hidden;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
 
         .preview-exercise-header {
-          background: #EEEEEE;
-          padding: 5px 8px;
-          font-weight: bold;
-          font-size: 9.5px;
+          background: #F1F5F9;
+          padding: 6px 10px;
+          font-weight: 700;
+          font-size: 9px;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
-          color: #000;
-          border-bottom: 1px solid #000;
+          letter-spacing: 0.06em;
+          color: #0F172A;
+          border-bottom: 1px solid #E2E8F0;
+          border-left: 3px solid #64748B;
         }
 
         .preview-exercise-body {
-          padding: 8px 10px;
-          background: #FAFAFA;
+          padding: 10px 12px;
+          background: #FFFFFF;
         }
 
         .preview-scenario {
-          border: 1px solid ${settings.interiorColor === 'bw' ? '#334155' : '#1A6B72'};
-          margin: 12px 0;
-          border-radius: 3px;
+          border: 1px solid ${settings.interiorColor === 'bw' ? '#E2E8F0' : '#CCFBF1'};
+          margin: 14px 0;
+          border-radius: 8px;
           overflow: hidden;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
 
         .preview-scenario-header {
-          background: ${settings.interiorColor === 'bw' ? '#334155' : '#1A6B72'};
-          color: white;
-          padding: 5px 8px;
-          font-weight: bold;
-          font-size: 9.5px;
+          background: ${settings.interiorColor === 'bw' ? '#334155' : '#0F766E'};
+          color: #FFFFFF;
+          padding: 6px 10px;
+          font-weight: 700;
+          font-size: 9px;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
+          letter-spacing: 0.06em;
         }
 
         .preview-scenario-body {
-          padding: 8px 10px;
-          background: ${settings.interiorColor === 'bw' ? '#F8FAFC' : '#F4F9F9'};
+          padding: 10px 12px;
+          background: ${settings.interiorColor === 'bw' ? '#FFFFFF' : '#F0FDFA'};
         }
 
         .preview-model-response {
-          background: #F8F8F8;
-          padding: 6px 8px;
+          background: #F8FAFC;
+          padding: 7px 10px;
           font-style: italic;
-          margin: 6px 0;
+          margin: 8px 0;
           font-size: 10px;
-          border-left: 3px solid #AAAAAA;
+          border-left: 3px solid #38BDF8;
+          border-radius: 0 4px 4px 0;
         }
 
         .preview-debrief {
-          padding: 6px 8px;
-          margin: 6px 0;
-          border-left: 3px solid #888;
+          padding: 7px 10px;
+          margin: 8px 0;
+          border-left: 3px solid #A855F7;
           font-size: 10px;
-          background: #FDFDFD;
+          background: #FAF5FF;
+          border-radius: 0 4px 4px 0;
         }
 
         .preview-reflection {
-          background: #F5F5F5;
-          padding: 6px 8px;
+          background: #FFFBEB;
+          border-left: 3px solid #F59E0B;
+          padding: 8px 10px;
           font-style: italic;
-          margin: 6px 0;
+          margin: 8px 0;
           font-size: 10px;
-          border-radius: 2px;
+          border-radius: 0 4px 4px 0;
         }
 
         .preview-writing-lines {
-          border-bottom: 1px solid #333;
-          height: 18px;
-          margin: 4px 0;
+          border-bottom: 1px solid #CBD5E1;
+          height: 22px;
+          margin: 3px 0;
         }
 
         .preview-table {
           width: 100%;
           border-collapse: collapse;
-          font-size: 9px;
-          margin: 8px 0;
+          font-size: 9.5px;
+          line-height: 1.35;
         }
 
         .preview-table th {
-          background: #EEEEEE;
-          border: 0.5px solid #000;
-          padding: 3px 5px;
-          text-align: left;
-          font-weight: bold;
+          background: ${settings.interiorColor === 'bw' ? '#F4F4F5' : '#1E293B'};
+          color: ${settings.interiorColor === 'bw' ? '#18181B' : '#FFFFFF'};
+          padding: 6px 10px;
+          font-weight: 700;
+          text-transform: uppercase;
+          font-size: 8.5px;
+          letter-spacing: 0.04em;
+          border-bottom: 1px solid #CBD5E1;
         }
 
         .preview-table td {
-          border: 0.5px solid #000;
-          padding: 3px 5px;
+          padding: 6px 10px;
+          color: #334155;
+          border-bottom: 1px solid #E2E8F0;
+        }
+
+        .preview-table-alt td {
+          background: ${settings.interiorColor === 'bw' ? '#FAFAFA' : '#F8FAFC'};
         }
 
         .preview-paragraph {

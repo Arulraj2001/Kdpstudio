@@ -501,6 +501,19 @@ export async function generatePdf(
 
       case 'table': {
         const tableLines = block.lines ?? block.text.split('\n');
+        const separatorLine = tableLines.find((line) => line.match(/^\|[\s\-:]+\|/));
+        const alignments: ('left' | 'center' | 'right')[] = [];
+
+        if (separatorLine) {
+          const segs = separatorLine.split('|').filter((_, i, arr) => i > 0 && i < arr.length - 1);
+          segs.forEach((seg) => {
+            const trimmed = seg.trim();
+            if (trimmed.startsWith(':') && trimmed.endsWith(':')) alignments.push('center');
+            else if (trimmed.endsWith(':')) alignments.push('right');
+            else alignments.push('left');
+          });
+        }
+
         const rows = tableLines
           .filter((line) => !line.match(/^\|[\s\-:]+\|/))
           .map((line) =>
@@ -514,8 +527,9 @@ export async function generatePdf(
         if (rows.length > 0) {
           const colCount = rows[0].length;
           const colW = contentW / colCount;
-          const cellPad = 4;
+          const cellPad = 5;
           const cellInnerW = colW - cellPad * 2;
+          const isBw = settings.interiorColor === 'bw';
 
           rows.forEach((row, rIdx) => {
             doc.setFont(bodyFont, rIdx === 0 ? 'bold' : 'normal');
@@ -529,23 +543,40 @@ export async function generatePdf(
             ensureSpace(rowH + 2);
 
             if (isHeader) {
-              doc.setFillColor(238, 238, 238);
+              if (isBw) doc.setFillColor(244, 244, 245);
+              else doc.setFillColor(30, 41, 59);
               doc.rect(marginInside, y - 11, contentW, rowH, 'F');
+              if (isBw) doc.setTextColor(24, 24, 27);
+              else doc.setTextColor(255, 255, 255);
+            } else if (rIdx % 2 === 1) {
+              doc.setFillColor(248, 250, 252);
+              doc.rect(marginInside, y - 11, contentW, rowH, 'F');
+              doc.setTextColor(51, 65, 85);
+            } else {
+              doc.setTextColor(51, 65, 85);
             }
-            doc.setDrawColor(0, 0, 0);
-            doc.setLineWidth(0.3);
-            doc.rect(marginInside, y - 11, contentW, rowH);
+
+            // Subtle bottom row divider
+            doc.setDrawColor(226, 232, 240);
+            doc.setLineWidth(0.5);
+            doc.line(marginInside, y - 11 + rowH, marginInside + contentW, y - 11 + rowH);
 
             wrappedCells.forEach((cellLines, cIdx) => {
-              let cellY = y - 11 + 9;
+              let cellY = y - 11 + 10;
+              const align = alignments[cIdx] || 'left';
               cellLines.forEach((cline: string) => {
-                doc.text(cline, marginInside + colW * cIdx + cellPad, cellY);
+                if (align === 'center') {
+                  doc.text(cline, marginInside + colW * cIdx + colW / 2, cellY, { align: 'center' });
+                } else if (align === 'right') {
+                  doc.text(cline, marginInside + colW * (cIdx + 1) - cellPad, cellY, { align: 'right' });
+                } else {
+                  doc.text(cline, marginInside + colW * cIdx + cellPad, cellY);
+                }
                 cellY += bodyFontSizePt * 0.95;
               });
-              if (cIdx > 0) {
-                doc.line(marginInside + colW * cIdx, y - 11, marginInside + colW * cIdx, y - 11 + rowH);
-              }
             });
+
+            doc.setTextColor(0, 0, 0);
             y += rowH;
           });
           y += 6;

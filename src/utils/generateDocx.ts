@@ -124,7 +124,7 @@ export async function generateDocx(
     });
   }
 
-  // Helper: exercise box with grey header (#EEEEEE)
+  // Helper: exercise box with clean header and border
   function exerciseBox(headerText: string, bodyParagraphs: Paragraph[]): Table {
     return new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
@@ -141,18 +141,18 @@ export async function generateDocx(
                       font: fontName,
                       size: Math.max(16, fontSize - 4),
                       allCaps: true,
-                      color: '111111',
+                      color: '0F172A',
                     }),
                   ],
-                  spacing: { before: 80, after: 80 },
+                  spacing: { before: 100, after: 100 },
                 }),
               ],
-              shading: { type: ShadingType.CLEAR, fill: 'EEEEEE' },
+              shading: { type: ShadingType.CLEAR, fill: 'F1F5F9' },
               margins: {
-                top: convertInchesToTwip(0.08),
-                bottom: convertInchesToTwip(0.08),
-                left: convertInchesToTwip(0.12),
-                right: convertInchesToTwip(0.12),
+                top: convertInchesToTwip(0.09),
+                bottom: convertInchesToTwip(0.09),
+                left: convertInchesToTwip(0.14),
+                right: convertInchesToTwip(0.14),
               },
             }),
           ],
@@ -226,10 +226,28 @@ export async function generateDocx(
     });
   }
 
-  // Helper: converts markdown table rows to native DOCX Table
+  // Helper: converts markdown table rows to native DOCX Table with modern editorial styling
   function markdownTableToDocx(tableLines: string[]): Table {
+    const isBw = settings.interiorColor === 'bw';
+    const headerBg = isBw ? 'F4F4F5' : '1E293B';
+    const headerTextColor = isBw ? '18181B' : 'FFFFFF';
+    const altRowBg = isBw ? 'FAFAFA' : 'F8FAFC';
+
+    const separatorLine = tableLines.find((line) => line.match(/^\|[\s\-:]+\|/));
+    const alignments: AlignmentType[] = [];
+
+    if (separatorLine) {
+      const segs = separatorLine.split('|').filter((_, i, arr) => i > 0 && i < arr.length - 1);
+      segs.forEach((seg) => {
+        const trimmed = seg.trim();
+        if (trimmed.startsWith(':') && trimmed.endsWith(':')) alignments.push(AlignmentType.CENTER);
+        else if (trimmed.endsWith(':')) alignments.push(AlignmentType.RIGHT);
+        else alignments.push(AlignmentType.LEFT);
+      });
+    }
+
     const rows = tableLines
-      .filter((line) => !line.match(/^\|[\s\-:]+\|/)) // Remove separator row
+      .filter((line) => !line.match(/^\|[\s\-:]+\|/))
       .map((line) =>
         line
           .split('|')
@@ -242,7 +260,7 @@ export async function generateDocx(
       rows: rows.map((cells, rowIndex) =>
         new TableRow({
           children: cells.map(
-            (cell) =>
+            (cell, colIndex) =>
               new TableCell({
                 children: [
                   new Paragraph({
@@ -252,20 +270,27 @@ export async function generateDocx(
                         bold: rowIndex === 0,
                         font: fontName,
                         size: Math.max(16, fontSize - 4),
+                        color: rowIndex === 0 ? headerTextColor : '333333',
                       }),
                     ],
-                    spacing: { after: 40 },
+                    alignment: alignments[colIndex] || AlignmentType.LEFT,
+                    spacing: { after: 60, before: 60 },
                   }),
                 ],
-                shading:
-                  rowIndex === 0
-                    ? { type: ShadingType.CLEAR, fill: 'EEEEEE' }
-                    : { type: ShadingType.CLEAR, fill: 'FFFFFF' },
+                shading: {
+                  type: ShadingType.CLEAR,
+                  fill:
+                    rowIndex === 0
+                      ? headerBg
+                      : rowIndex % 2 === 1
+                      ? altRowBg
+                      : 'FFFFFF',
+                },
                 margins: {
-                  top: convertInchesToTwip(0.06),
-                  bottom: convertInchesToTwip(0.06),
-                  left: convertInchesToTwip(0.08),
-                  right: convertInchesToTwip(0.08),
+                  top: convertInchesToTwip(0.08),
+                  bottom: convertInchesToTwip(0.08),
+                  left: convertInchesToTwip(0.12),
+                  right: convertInchesToTwip(0.12),
                 },
               })
           ),
