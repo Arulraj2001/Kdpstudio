@@ -171,6 +171,21 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
                         Calculators &amp; SEO
                       </div>
 
+                      {/* Tool Item: Book Formatter */}
+                      <div 
+                        onClick={() => handleNav('formatter')}
+                        className="p-2.5 rounded-xl hover:bg-purple-50/70 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-0.5"
+                      >
+                        <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
+                          <FileText size={14} className="text-purple-600 shrink-0" />
+                          <span>KDP Interior Formatter</span>
+                          <span className="px-1 py-0.2 text-[8px] font-black uppercase rounded bg-emerald-100 text-emerald-800 ml-1">Free</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 line-clamp-2">
+                          Auto-format Markdown manuscripts to print-ready PDF &amp; DOCX.
+                        </p>
+                      </div>
+
                       <div 
                         onClick={() => handleNav('royalty-calculator')}
                         className="p-2.5 rounded-xl hover:bg-purple-50/70 border border-transparent hover:border-purple-200 transition-all cursor-pointer space-y-0.5"
@@ -348,6 +363,18 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
             </div>
 
             <button
+              onClick={() => handleNav('formatter')}
+              className={`hover:text-purple-600 transition-colors cursor-pointer flex items-center gap-1.5 ${
+                currentRoute === 'formatter' ? 'text-purple-600 font-bold' : ''
+              }`}
+            >
+              <span>Book Formatter</span>
+              <span className="px-1.5 py-0.2 rounded-full text-[9px] font-extrabold uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+                Free
+              </span>
+            </button>
+
+            <button
               onClick={() => handleNav('features')}
               className={`hover:text-purple-600 transition-colors cursor-pointer ${
                 currentRoute === 'features' ? 'text-purple-600 font-bold' : ''
@@ -464,6 +491,15 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ currentRoute = 'home
 
           {/* Centered Large Navigation Links */}
           <div className="flex flex-col items-center justify-center space-y-5 py-6">
+            <button
+              onClick={() => handleNav('formatter')}
+              className="text-xl sm:text-2xl font-bold text-slate-800 hover:text-purple-600 transition-colors cursor-pointer flex items-center gap-2"
+            >
+              <span>📑 Book Formatter</span>
+              <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-200 font-bold">
+                Free
+              </span>
+            </button>
             <button
               onClick={() => handleNav('features')}
               className="text-xl sm:text-2xl font-bold text-slate-800 hover:text-purple-600 transition-colors cursor-pointer"

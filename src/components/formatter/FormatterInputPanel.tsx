@@ -8,9 +8,15 @@ import {
   FileCheck2,
   Loader2,
   AlertCircle,
+  Copy,
+  Download,
+  BookOpen,
+  Check,
+  ChevronDown,
 } from 'lucide-react';
 import mammoth from 'mammoth';
 import { useToastStore } from '../../lib/toastStore';
+import { SAMPLE_MANUSCRIPT_MD, MASTER_AI_MANUSCRIPT_PROMPT } from '../../data/sampleManuscriptPrompt';
 
 interface FormatterInputPanelProps {
   rawText: string;
@@ -30,8 +36,56 @@ export const FormatterInputPanel: React.FC<FormatterInputPanelProps> = ({
   const [activeTab, setActiveTab] = useState<'paste' | 'upload'>('paste');
   const [isDragging, setIsDragging] = useState(false);
   const [isFileLoading, setIsFileLoading] = useState(false);
+  const [isPromptMenuOpen, setIsPromptMenuOpen] = useState(false);
+  const [hasCopiedPrompt, setHasCopiedPrompt] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { addToast } = useToastStore();
+
+  const handleLoadSample = () => {
+    onChangeText(SAMPLE_MANUSCRIPT_MD);
+    setActiveTab('paste');
+    addToast({
+      type: 'success',
+      title: 'Sample Template Loaded',
+      message: 'Loaded full publication-grade non-fiction manuscript template. Parsing structure...',
+    });
+    setTimeout(() => onParse(), 100);
+  };
+
+  const handleCopyPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(MASTER_AI_MANUSCRIPT_PROMPT);
+      setHasCopiedPrompt(true);
+      setTimeout(() => setHasCopiedPrompt(false), 3000);
+      addToast({
+        type: 'success',
+        title: 'Prompt Copied!',
+        message: 'Paste this master prompt into Claude, ChatGPT, or Gemini to generate any book niche formatted for KDP Studio.',
+      });
+      setIsPromptMenuOpen(false);
+    } catch (e) {
+      console.error('Copy failed:', e);
+    }
+  };
+
+  const handleDownloadPrompt = () => {
+    const blob = new Blob([MASTER_AI_MANUSCRIPT_PROMPT], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'kdp-studio-manuscript-ai-prompt.md';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    setIsPromptMenuOpen(false);
+
+    addToast({
+      type: 'info',
+      title: 'Prompt Downloaded',
+      message: 'Saved kdp-studio-manuscript-ai-prompt.md to your downloads.',
+    });
+  };
 
   const handleClear = () => {
     if (rawText.trim() && window.confirm('Are you sure you want to clear your manuscript text?')) {
@@ -124,8 +178,8 @@ The formatter will automatically detect:
 
   return (
     <div className="flex-1 flex flex-col bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden min-h-[550px] max-h-[calc(100vh-140px)]">
-      {/* 1. Top Tabs Bar */}
-      <div className="flex items-center justify-between px-4 pt-3 border-b border-slate-100 bg-slate-50/60 shrink-0">
+      {/* 1. Top Tabs & Template Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-3 pb-1 border-b border-slate-100 bg-slate-50/70 shrink-0">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -150,13 +204,86 @@ The formatter will automatically detect:
             }`}
           >
             <UploadCloud size={15} />
-            <span>Upload File (.md, .txt, .docx)</span>
+            <span>Upload File (.md, .docx)</span>
           </button>
         </div>
 
-        {/* Live Word Counter in Header */}
-        <div className="text-xs font-medium text-slate-500 pb-2">
-          Words: <span className="font-bold text-slate-800 font-mono">{wordCount.toLocaleString()}</span>
+        {/* Template & Prompt Fast Actions */}
+        <div className="flex items-center gap-2 pb-1.5">
+          <button
+            type="button"
+            onClick={handleLoadSample}
+            title="Load complete publication-grade non-fiction workbook markdown template"
+            className="px-3 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+          >
+            <BookOpen size={13} className="text-purple-600" />
+            <span>Load Sample MD</span>
+          </button>
+
+          {/* AI Prompt Dropdown */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsPromptMenuOpen(!isPromptMenuOpen)}
+              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+            >
+              <Sparkles size={13} />
+              <span>AI Prompt</span>
+              <ChevronDown size={12} className={`transition-transform ${isPromptMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isPromptMenuOpen && (
+              <div className="absolute right-0 top-full mt-1 w-64 bg-white rounded-xl shadow-xl border border-slate-200 p-2 z-50 space-y-1 animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                  AI Book Generation Prompt
+                </div>
+                
+                <button
+                  type="button"
+                  onClick={handleCopyPrompt}
+                  className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-purple-50 text-xs font-semibold text-slate-700 hover:text-purple-800 transition-colors flex items-center gap-2 cursor-pointer"
+                >
+                  {hasCopiedPrompt ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} className="text-purple-600" />}
+                  <div>
+                    <div className="font-bold">Copy AI Prompt</div>
+                    <div className="text-[10px] text-slate-500 font-normal">For Claude, ChatGPT &amp; Gemini</div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDownloadPrompt}
+                  className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-purple-50 text-xs font-semibold text-slate-700 hover:text-purple-800 transition-colors flex items-center gap-2 cursor-pointer"
+                >
+                  <Download size={14} className="text-indigo-600" />
+                  <div>
+                    <div className="font-bold">Download Prompt (.md)</div>
+                    <div className="text-[10px] text-slate-500 font-normal">Save prompt file locally</div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleLoadSample();
+                    setIsPromptMenuOpen(false);
+                  }}
+                  className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-purple-50 text-xs font-semibold text-slate-700 hover:text-purple-800 transition-colors flex items-center gap-2 cursor-pointer border-t border-slate-100 mt-1 pt-2"
+                >
+                  <BookOpen size={14} className="text-emerald-600" />
+                  <div>
+                    <div className="font-bold">Load Sample Template</div>
+                    <div className="text-[10px] text-slate-500 font-normal">Test formatter immediately</div>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Live Word Counter in Header */}
+          <div className="text-xs font-medium text-slate-500 pl-2 border-l border-slate-200">
+            Words: <span className="font-bold text-slate-800 font-mono">{wordCount.toLocaleString()}</span>
+          </div>
         </div>
       </div>
 
@@ -174,15 +301,28 @@ The formatter will automatically detect:
 
             {/* Bottom Actions Bar */}
             <div className="flex items-center justify-between pt-1 shrink-0">
-              <button
-                type="button"
-                onClick={handleClear}
-                disabled={!rawText.trim()}
-                className="px-3 py-2 text-xs font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer disabled:opacity-40 disabled:pointer-events-none flex items-center gap-1.5"
-              >
-                <Trash2 size={14} />
-                <span>Clear Text</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleClear}
+                  disabled={!rawText.trim()}
+                  className="px-3 py-2 text-xs font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer disabled:opacity-40 disabled:pointer-events-none flex items-center gap-1.5"
+                >
+                  <Trash2 size={14} />
+                  <span>Clear</span>
+                </button>
+
+                {!rawText.trim() && (
+                  <button
+                    type="button"
+                    onClick={handleLoadSample}
+                    className="px-3 py-2 text-xs font-bold text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Sparkles size={14} />
+                    <span>Try Sample Template</span>
+                  </button>
+                )}
+              </div>
 
               <button
                 type="button"

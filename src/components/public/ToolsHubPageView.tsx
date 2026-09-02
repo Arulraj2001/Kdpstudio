@@ -64,8 +64,39 @@ export const ToolsHubPageView: React.FC<ToolsHubPageViewProps> = ({ onNavigate }
       <SectionShadowTransition type="dark-to-white" />
 
       {/* ── 4 COLUMNAR TOOL CATEGORIES ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-12">
         
+        {/* FEATURED FLAGSHIP TOOL: KDP BOOK INTERIOR FORMATTER */}
+        <div 
+          onClick={() => onNavigate('formatter')}
+          className="relative overflow-hidden bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 rounded-3xl p-6 sm:p-8 text-white border border-purple-500/30 shadow-xl hover:shadow-2xl hover:border-purple-400 transition-all cursor-pointer group"
+        >
+          <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+            <div className="space-y-2.5 max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/30 border border-purple-400/40 text-purple-200 text-xs font-bold">
+                <Sparkles size={14} className="text-purple-300" />
+                <span>Featured Free Tool • Client-Side Formatting</span>
+              </div>
+              <h2 className="text-xl sm:text-3xl font-black tracking-tight text-white group-hover:text-purple-200 transition-colors">
+                Amazon KDP Interior Formatter &amp; PDF/DOCX Exporter
+              </h2>
+              <p className="text-xs sm:text-sm text-purple-200/90 leading-relaxed">
+                Transform raw Markdown manuscripts into publication-grade, 300 DPI print PDFs and fully editable Word DOCX files. Automatically generates Table of Contents with dynamic page numbers, mirror margins, exercise boxes, and fill-in writing lines.
+              </p>
+            </div>
+            <div className="shrink-0 flex items-center">
+              <button
+                type="button"
+                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white font-bold text-sm shadow-lg shadow-purple-950/50 flex items-center gap-2 group-hover:scale-105 transition-transform"
+              >
+                <span>Format Manuscript Now</span>
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* COLUMN GROUP 1: MARKET RESEARCH & FINANCIAL CALCULATORS (2 COLUMNS) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           

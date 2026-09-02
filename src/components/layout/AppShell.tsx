@@ -223,6 +223,8 @@ export const ROUTE_PATH_MAP: Record<PageRoute, string> = {
   'admin-blog-analytics': '/admin/blog/analytics',
   'admin-blog-seo': '/admin/blog/seo',
   'admin-blog-newsletter': '/admin/blog/newsletter',
+  'admin-limits': '/admin/limits',
+  'admin-seo': '/admin/seo',
   'geo-test': '/geo-test',
   'payment-success': '/payment-success',
 };
@@ -517,15 +519,11 @@ export const AppShell: React.FC = () => {
       return;
     }
     if (user?.isDemo) {
-      useToastStore.getState().addToast({
+      toastStore.addToast({
         type: 'warning',
         title: 'Demo Mode (View-Only)',
         message: 'You are exploring in Demo Mode. Create a free account or sign in to draft and save your own books.',
         duration: 6000,
-        action: {
-          label: 'Sign Up Free',
-          onClick: () => handleNavigate('signup'),
-        },
       });
       return;
     }
@@ -565,7 +563,8 @@ export const AppShell: React.FC = () => {
   const isPublicMarketingRoute = [
     'home', 'features', 'pricing', 'tools', 'about', 'terms', 'privacy', 'contact', 'changelog', 'blog', 'blog-detail', 'launch', 'payment-success',
     'royalty-calculator', 'asin-spy', 'review-miner', 'lead-magnet', 'maze-generator', 'cryptogram-generator', 'sudoku-generator', 'crossword-generator',
-    'childrens-book-studio', 'cookbook-studio', 'planner-studio', 'nonfiction-studio', 'fiction-studio', 'workbook-studio'
+    'childrens-book-studio', 'cookbook-studio', 'planner-studio', 'nonfiction-studio', 'fiction-studio', 'workbook-studio',
+    'formatter'
   ].includes(currentRoute);
 
   const isAuthRoute = ['login', 'signup', 'forgot-password', 'verify-email'].includes(currentRoute);
@@ -655,6 +654,27 @@ export const AppShell: React.FC = () => {
           {currentRoute === 'nonfiction-studio' && <NonFictionStudioView onNavigate={handleNavigate} />}
           {currentRoute === 'fiction-studio' && <FictionStudioView onNavigate={handleNavigate} />}
           {currentRoute === 'workbook-studio' && <WorkbookStudioView onNavigate={handleNavigate} />}
+          {currentRoute === 'formatter' && (
+            <div className="w-full bg-slate-50 min-h-screen pb-16">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5 mb-6">
+                  <div>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 border border-purple-200 text-purple-800 text-xs font-bold mb-2 shadow-2xs">
+                      <Sparkles size={13} />
+                      <span>Free Amazon KDP Interior Formatter</span>
+                    </div>
+                    <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                      Auto-Format Markdown to <span className="text-purple-600">300 DPI PDF &amp; Word DOCX</span>
+                    </h1>
+                    <p className="text-xs sm:text-sm text-slate-600 mt-1.5 max-w-3xl">
+                      Paste your book Markdown or load our structured non-fiction workbook template. Auto-generates exact table of contents with dynamic page numbers, mirror margins, and export-ready print files.
+                    </p>
+                  </div>
+                </div>
+                <FormatterView />
+              </div>
+            </div>
+          )}
         </PublicLayout>
       ) : isOnboardingRoute ? (
         /* ─────────────────────────────────────────
