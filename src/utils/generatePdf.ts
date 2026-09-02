@@ -42,12 +42,23 @@ export async function generatePdf(
   const contentBottom = pageH - marginBottom - 14; // room for footer
   const usableH = contentBottom - contentTop;
 
-  // Font mapping: jsPDF built-ins only (Times is closest to Georgia)
+  // Font mapping: jsPDF built-ins only (Times is closest to Georgia/Garamond/Palatino)
   const bodyFont = 'times';
   const headFont = 'times';
   const bodyFontSizePt = (settings.fontSize || 22) / 2; // half-points → pt
   const lineHeightFactor = parseFloat(settings.lineSpacing || '1.15');
   const bodyLineH = bodyFontSizePt * lineHeightFactor;
+
+  // M2/M3: Resolve accent color from settings.accentTheme (same map as DOCX)
+  const accentRgbMap: Record<string, [number, number, number]> = {
+    teal:     [15, 118, 110],
+    purple:   [124, 58, 237],
+    navy:     [30, 58, 138],
+    burgundy: [153, 27, 27],
+    charcoal: [51, 65, 85],
+    green:    [22, 101, 52],
+  };
+  const accentRgb = accentRgbMap[settings.accentTheme ?? 'teal'] ?? [15, 118, 110];
 
   const doc = new jsPDF({
     unit: 'pt',
@@ -59,7 +70,9 @@ export async function generatePdf(
   let y = contentTop;
 
   // ── Helper: draw header/footer on current page ──
+  // M5: Only draws when headerFooterFolios toggle is on
   const drawHeaderFooter = () => {
+    if (!(settings.headerFooterFolios ?? true)) return;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
@@ -239,8 +252,11 @@ export async function generatePdf(
   for (let i = 0; i < blocks.length; i++) {
     const block = blocks[i];
 
-    // Close exercise/scenario context on structural boundary
-    if (['title', 'part', 'chapter', 'section', 'front_matter'].includes(block.type)) {
+    // C6: Close exercise/scenario context on all structural boundaries
+    // Matches the expanded reset list in parseManuscript and generateDocx
+    if (['title', 'part', 'chapter', 'section', 'subsection', 'front_matter',
+         'divider', 'model_response', 'debrief', 'reflection',
+         'key_takeaways', 'action'].includes(block.type)) {
       inExercise = false;
       inScenario = false;
       exerciseX = marginInside;
@@ -365,14 +381,15 @@ export async function generatePdf(
           drawRule(pageW / 2 - 20, 40, [203, 213, 225]);
           y += 10;
         } else {
+          // M4: Center-align plain chapter titles to match preview + DOCX
           doc.setFont(headFont, 'bold');
           doc.setFontSize(16);
           const chapLines = wrapText(doc, fullTitle, contentW);
           chapLines.forEach((line) => {
-            doc.text(line, marginInside, y);
+            doc.text(line, pageW / 2, y, { align: 'center' });
             y += 22;
           });
-          drawRule(marginInside, contentW, [203, 213, 225]);
+          drawRule(pageW / 2 - contentW / 4, contentW / 2, [203, 213, 225]);
           y += 8;
         }
         break;
@@ -414,7 +431,11 @@ export async function generatePdf(
         if (settings.formatExerciseBoxes) {
           exerciseX = marginInside;
           exerciseW = contentW;
-          drawBoxHeader(stripMd(block.text), exerciseX, exerciseW, 241, 245, 249, 15, 23, 42);
+          // M3: Use accent color for exercise header (matches DOCX left-border accent)
+          const isBwEx = settings.interiorColor === 'bw';
+          const exFill = isBwEx ? [241, 245, 249] : [accentRgb[0], accentRgb[1], accentRgb[2]];
+          const exText = isBwEx ? [15, 23, 42] : [255, 255, 255];
+          drawBoxHeader(stripMd(block.text), exerciseX, exerciseW, exFill[0], exFill[1], exFill[2], exText[0], exText[1], exText[2]);
           doc.setDrawColor(226, 232, 240);
           doc.setLineWidth(0.5);
         } else {
@@ -434,13 +455,11 @@ export async function generatePdf(
         if (settings.formatScenarioBlocks) {
           scenarioX = marginInside;
           scenarioW = contentW;
-          const isBw = settings.interiorColor === 'bw';
-          if (isBw) {
-            drawBoxHeader(stripMd(block.text), scenarioX, scenarioW, 51, 65, 85, 255, 255, 255);
-          } else {
-            drawBoxHeader(stripMd(block.text), scenarioX, scenarioW, 15, 118, 110, 255, 255, 255);
-          }
-          doc.setDrawColor(isBw ? 226 : 204, isBw ? 232 : 251, isBw ? 240 : 241);
+          // M2: Use accent color from settings.accentTheme (matches DOCX accentColorMap)
+          const isBwSc = settings.interiorColor === 'bw';
+          const scFill = isBwSc ? [51, 65, 85] : [accentRgb[0], accentRgb[1], accentRgb[2]];
+          drawBoxHeader(stripMd(block.text), scenarioX, scenarioW, scFill[0], scFill[1], scFill[2], 255, 255, 255);
+          doc.setDrawColor(isBwSc ? 226 : 204, isBwSc ? 232 : 251, isBwSc ? 240 : 241);
           doc.setLineWidth(0.5);
         } else {
           doc.setFont(headFont, 'bold');
@@ -476,9 +495,9 @@ export async function generatePdf(
       }
 
       case 'model_response': {
+        const mrBodyText = stripMd(block.text).replace(/^MODEL RESPONSE[:—]?\s*/i, '');
         if (settings.formatModelResponses) {
-          const bodyText = stripMd(block.text).replace(/^MODEL RESPONSE[:—]?\s*/i, '');
-          const lines = wrapText(doc, bodyText, contentW - 16);
+          const lines = wrapText(doc, mrBodyText, contentW - 16);
           const boxH = lines.length * bodyLineH + 18;
           ensureSpace(boxH + 4);
           y += 4;
@@ -501,14 +520,18 @@ export async function generatePdf(
           });
           doc.setTextColor(0, 0, 0);
           y += 4;
+        } else {
+          // C3: Fallback — render as plain italic paragraph when toggle is off
+          doc.setFont(bodyFont, 'italic');
+          drawRichText(mrBodyText, marginInside, contentW);
         }
         break;
       }
 
       case 'debrief': {
+        const dbBodyText = stripMd(block.text).replace(/^DEBRIEF[:—]?\s*/i, '');
         if (settings.formatDebriefBlocks) {
-          const bodyText = stripMd(block.text).replace(/^DEBRIEF[:—]?\s*/i, '');
-          const lines = wrapText(doc, bodyText, contentW - 16);
+          const lines = wrapText(doc, dbBodyText, contentW - 16);
           const boxH = lines.length * bodyLineH + 18;
           ensureSpace(boxH + 4);
           y += 4;
@@ -531,14 +554,17 @@ export async function generatePdf(
           });
           doc.setTextColor(0, 0, 0);
           y += 4;
+        } else {
+          // C4: Fallback — render as plain paragraph when toggle is off
+          drawRichText(dbBodyText, marginInside, contentW);
         }
         break;
       }
 
       case 'reflection': {
+        const rfBodyText = stripMd(block.text);
         if (settings.formatReflectionPrompts) {
-          const bodyText = stripMd(block.text);
-          const lines = wrapText(doc, bodyText, contentW - 16);
+          const lines = wrapText(doc, rfBodyText, contentW - 16);
           const boxH = lines.length * bodyLineH + 18;
           ensureSpace(boxH + 4);
           y += 4;
@@ -561,64 +587,72 @@ export async function generatePdf(
           });
           doc.setTextColor(0, 0, 0);
           y += 4;
+        } else {
+          // C5: Fallback — render as plain italic paragraph when toggle is off
+          doc.setFont(bodyFont, 'italic');
+          drawRichText(rfBodyText, marginInside, contentW);
         }
         break;
       }
 
       case 'action': {
-        const bodyText = stripMd(block.text).replace(/^ACTION PLAN[:—]?\s*/i, '');
-        const lines = wrapText(doc, bodyText, contentW - 16);
-        const boxH = lines.length * bodyLineH + 18;
-        ensureSpace(boxH + 4);
-        y += 4;
-        doc.setFillColor(254, 243, 199);
-        doc.rect(marginInside, y - 4, contentW, boxH, 'F');
-        doc.setDrawColor(245, 158, 11);
-        doc.setLineWidth(2.5);
-        doc.line(marginInside, y - 4, marginInside, y - 4 + boxH);
-        doc.setFont(headFont, 'bold');
-        doc.setFontSize(8.5);
-        doc.setTextColor(180, 83, 9);
-        doc.text('📋 ACTION PLAN', marginInside + 8, y + 4);
-        y += 12;
-        doc.setFont(bodyFont, 'normal');
-        doc.setFontSize(bodyFontSizePt - 0.5);
-        doc.setTextColor(30, 41, 59);
-        lines.forEach((l) => {
-          doc.text(l, marginInside + 8, y);
-          y += bodyLineH;
-        });
-        doc.setTextColor(0, 0, 0);
-        y += 4;
-        break;
-      }
-
-      case 'key_takeaways': {
-        const ktBodyText = stripMd(block.text).replace(/^(KEY TAKEAWAYS|Key Takeaways|SUMMARY|Summary|IN SUMMARY)[:—]?\s*/i, '');
-        if (settings.formatKeyTakeaways ?? true) {
-          const ktLines = wrapText(doc, ktBodyText, contentW - 16);
-          const ktH = Math.max(26, ktLines.length * bodyLineH + 20);
-          ensureSpace(ktH + 6);
+        const acBodyText = stripMd(block.text).replace(/^ACTION PLAN[:—]?\s*/i, '');
+        if (settings.formatActionPlans ?? true) {
+          // C2: Respect formatActionPlans toggle
+          const lines = wrapText(doc, acBodyText, contentW - 16);
+          const boxH = lines.length * bodyLineH + 18;
+          ensureSpace(boxH + 4);
           y += 4;
-          doc.setFillColor(236, 253, 245);
-          doc.rect(marginInside, y - 4, contentW, ktH, 'F');
-          doc.setDrawColor(5, 150, 105);
-          doc.setLineWidth(3);
-          doc.line(marginInside, y - 4, marginInside, y - 4 + ktH);
+          doc.setFillColor(254, 243, 199);
+          doc.rect(marginInside, y - 4, contentW, boxH, 'F');
+          doc.setDrawColor(245, 158, 11);
+          doc.setLineWidth(2.5);
+          doc.line(marginInside, y - 4, marginInside, y - 4 + boxH);
           doc.setFont(headFont, 'bold');
           doc.setFontSize(8.5);
-          doc.setTextColor(6, 95, 70);
-          doc.text('✦ KEY TAKEAWAYS', marginInside + 8, y + 4);
+          doc.setTextColor(180, 83, 9);
+          doc.text('ACTION PLAN', marginInside + 8, y + 4);
           y += 12;
           doc.setFont(bodyFont, 'normal');
           doc.setFontSize(bodyFontSizePt - 0.5);
           doc.setTextColor(30, 41, 59);
-          ktLines.forEach((line) => {
-            doc.text(line, marginInside + 8, y);
+          lines.forEach((l) => {
+            doc.text(l, marginInside + 8, y);
             y += bodyLineH;
           });
           doc.setTextColor(0, 0, 0);
-          y += 6;
+          y += 4;
+        } else {
+          drawRichText(acBodyText, marginInside, contentW);
+        }
+        break;
+      }
+
+      case 'key_takeaways': {
+        const ktBodyText = block.text.replace(/^(KEY TAKEAWAYS|Key Takeaways|SUMMARY|Summary|IN SUMMARY)[:—]?\s*/i, '');
+        if (settings.formatKeyTakeaways ?? true) {
+          // Pre-calculate height using stripped text for layout, then drawRichText for actual render
+          const ktStripped = stripMd(ktBodyText);
+          const ktLines = wrapText(doc, ktStripped, contentW - 24);
+          const ktH = Math.max(32, ktLines.length * bodyLineH + 24);
+          ensureSpace(ktH + 6);
+          const ktStartY = y;
+          y += 4;
+          doc.setFillColor(236, 253, 245);
+          doc.rect(marginInside, ktStartY, contentW, ktH, 'F');
+          doc.setDrawColor(5, 150, 105);
+          doc.setLineWidth(3);
+          doc.line(marginInside, ktStartY, marginInside, ktStartY + ktH);
+          doc.setFont(headFont, 'bold');
+          doc.setFontSize(8.5);
+          doc.setTextColor(6, 95, 70);
+          doc.text('✦ KEY TAKEAWAYS', marginInside + 10, y + 4);
+          y += 14;
+          doc.setTextColor(30, 41, 59);
+          // M6: Use drawRichText to preserve bold/italic inside the box body
+          drawRichText(ktBodyText, marginInside + 10, contentW - 20, bodyFontSizePt - 0.5);
+          doc.setTextColor(0, 0, 0);
+          y = Math.max(y, ktStartY + ktH + 4); // ensure y doesn't go backwards
         } else {
           // Fallback: render as plain paragraph when toggle is off
           drawRichText(ktBodyText, marginInside, contentW);
@@ -627,9 +661,10 @@ export async function generatePdf(
       }
 
       case 'quote': {
+        const qBodyText = block.text.replace(/^>\s*/, '');
         if (settings.formatCalloutBoxes ?? true) {
-          const qText = stripMd(block.text).replace(/^>\s*/, '');
-          const qLines = wrapText(doc, qText, contentW - 16);
+          const qStripped = stripMd(qBodyText);
+          const qLines = wrapText(doc, qStripped, contentW - 16);
           const qH = qLines.length * bodyLineH + 10;
           ensureSpace(qH + 4);
           y += 3;
@@ -647,18 +682,30 @@ export async function generatePdf(
           });
           doc.setTextColor(0, 0, 0);
           y += 6;
+        } else {
+          // C1: Fallback — render as plain italic paragraph when toggle is off
+          doc.setFont(bodyFont, 'italic');
+          drawRichText(qBodyText, marginInside, contentW);
         }
         break;
       }
 
       case 'list': {
+        // T1: Detect [x]/[ ] checkbox prefixes and substitute Unicode symbols
         const listItems: string[] = block.metadata?.items ?? block.text.split('\n').filter(Boolean);
         const isOrdered = block.metadata?.ordered ?? false;
         const listX = inExercise || inScenario ? marginInside + 5 : marginInside;
         const listW = inExercise || inScenario ? contentW - 10 : contentW;
         listItems.forEach((item, idx) => {
-          const prefix = isOrdered ? `${idx + 1}. ` : '\u2022  ';
-          const itemLines = wrapText(doc, stripMd(prefix + item), listW - 12);
+          const isChecked   = /^\[[xX]\]\s*/.test(item);
+          const isUnchecked = /^\[\s*\]\s*/.test(item);
+          const cleanItem   = item.replace(/^\[[ xX]\]\s*/, '');
+          let prefix: string;
+          if (isChecked)        prefix = '\u2713  '; // ✓
+          else if (isUnchecked) prefix = '\u25A1  '; // □
+          else if (isOrdered)   prefix = `${idx + 1}. `;
+          else                  prefix = '\u2022  '; // •
+          const itemLines = wrapText(doc, stripMd(prefix + cleanItem), listW - 12);
           ensureSpace(itemLines.length * bodyLineH);
           doc.setFont(bodyFont, 'normal');
           doc.setFontSize(bodyFontSizePt);

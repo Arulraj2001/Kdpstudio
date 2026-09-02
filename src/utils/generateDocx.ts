@@ -837,8 +837,47 @@ export async function generateDocx(
       case 'quote': {
         const bodyText = cleanText(block.text).replace(/^>\s*/, '');
         if (settings.formatCalloutBoxes ?? true) {
-          const card = calloutCard('QUOTE', bodyText, 'F8FAFC', '7C3AED', '475569');
-          docElements.push(card);
+          // M1: No title label — just a left-bordered italic block, matching the preview
+          docElements.push(
+            new Table({
+              width: { size: 100, type: WidthType.PERCENTAGE },
+              borders: {
+                top: { style: BorderStyle.NONE },
+                bottom: { style: BorderStyle.NONE },
+                left: { style: BorderStyle.SINGLE, size: 20, color: '7C3AED' },
+                right: { style: BorderStyle.NONE },
+                insideHorizontal: { style: BorderStyle.NONE },
+                insideVertical: { style: BorderStyle.NONE },
+              },
+              rows: [
+                new TableRow({
+                  children: [
+                    new TableCell({
+                      children: [
+                        new Paragraph({
+                          children: parseInlineFormatting(bodyText, {
+                            font: fontName,
+                            size: fontSize,
+                            italics: true,
+                            color: '475569',
+                          }),
+                          spacing: { before: 60, after: 60, line: lineSpacing },
+                          alignment: AlignmentType.LEFT,
+                        }),
+                      ],
+                      shading: { type: ShadingType.CLEAR, fill: 'F8FAFC' },
+                      margins: {
+                        top: convertInchesToTwip(0.08),
+                        bottom: convertInchesToTwip(0.08),
+                        left: convertInchesToTwip(0.14),
+                        right: convertInchesToTwip(0.12),
+                      },
+                    }),
+                  ],
+                }),
+              ],
+            })
+          );
         } else {
           docElements.push(bodyParagraph(bodyText));
         }
@@ -858,19 +897,28 @@ export async function generateDocx(
 
       case 'list': {
         // Render list items as indented paragraphs with bullet/number prefix
+        // T1: Detect [x]/[ ] checkbox prefixes and substitute Unicode symbols
         const listItems: string[] = block.metadata?.items ?? block.text.split('\n').filter(Boolean);
         const isOrdered = block.metadata?.ordered ?? false;
-        const listParas = listItems.map((item, idx) =>
-          new Paragraph({
-            children: parseInlineFormatting((isOrdered ? `${idx + 1}. ` : '\u2022  ') + item, {
+        const listParas = listItems.map((item, idx) => {
+          const isChecked   = /^\[[xX]\]\s*/.test(item);
+          const isUnchecked = /^\[\s*\]\s*/.test(item);
+          const cleanItem   = item.replace(/^\[[ xX]\]\s*/, '');
+          let prefix: string;
+          if (isChecked)        prefix = '\u2713  '; // ✓
+          else if (isUnchecked) prefix = '\u25A1  '; // □
+          else if (isOrdered)   prefix = `${idx + 1}. `;
+          else                  prefix = '\u2022  '; // •
+          return new Paragraph({
+            children: parseInlineFormatting(prefix + cleanItem, {
               font: fontName,
               size: fontSize,
             }),
             spacing: { after: 80, line: lineSpacing },
             alignment: AlignmentType.LEFT,
             indent: { left: convertInchesToTwip(0.25) },
-          })
-        );
+          });
+        });
         if (inExercise) currentExerciseBuffer.push(...listParas);
         else if (inScenario) currentScenarioBuffer.push(...listParas);
         else docElements.push(...listParas);
