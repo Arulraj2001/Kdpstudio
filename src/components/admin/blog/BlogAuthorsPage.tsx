@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { BlogAuthor } from '../../../types/blog';
 import { PageRoute } from '../../../types';
+import { getAllAuthors, createAuthor, updateAuthor } from '../../../lib/blogService';
 
 interface BlogAuthorsPageProps {
   onNavigate: (route: PageRoute) => void;
@@ -47,10 +48,9 @@ export const BlogAuthorsPage: React.FC<BlogAuthorsPageProps> = ({ onNavigate }) 
   const fetchAuthors = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/blog/authors');
-      const data = await res.json();
-      if (Array.isArray(data?.authors)) {
-        setAuthors(data.authors);
+      const data = await getAllAuthors();
+      if (Array.isArray(data)) {
+        setAuthors(data);
       }
     } catch (err) {
       console.error('Failed to fetch authors:', err);
@@ -135,22 +135,12 @@ export const BlogAuthorsPage: React.FC<BlogAuthorsPageProps> = ({ onNavigate }) 
 
     try {
       if (editingAuthor) {
-        // Update
-        const res = await fetch(`/api/admin/blog/authors/${editingAuthor.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error('Update failed');
+        // Update via direct Firestore service
+        await updateAuthor(editingAuthor.id, payload as any);
         showToast('✅ Author profile updated');
       } else {
-        // Create
-        const res = await fetch('/api/admin/blog/authors', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error('Create failed');
+        // Create via direct Firestore service
+        await createAuthor(payload as any);
         showToast('🎉 Author created successfully');
       }
       setIsModalOpen(false);

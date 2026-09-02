@@ -22,6 +22,7 @@ import {
 import { PageRoute } from '../../../types';
 import { BlogAuthor, BlogStatus, BulkImportPost, BulkImportResult, BulkImportError } from '../../../types/blog';
 import { validateBulkImport } from '../../../lib/bulkImportValidator';
+import { getAllAuthors } from '../../../lib/blogService';
 
 interface BlogBulkImportPageProps {
   onNavigate: (route: PageRoute) => void;
@@ -76,12 +77,11 @@ export const BlogBulkImportPage: React.FC<BlogBulkImportPageProps> = ({ onNaviga
 
   // Fetch Authors List
   useEffect(() => {
-    fetch('/api/blog/authors')
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data?.authors) && data.authors.length > 0) {
-          setAuthors(data.authors);
-          setDefaultAuthorId(data.authors[0].id);
+    getAllAuthors()
+      .then((authorList) => {
+        if (Array.isArray(authorList) && authorList.length > 0) {
+          setAuthors(authorList);
+          setDefaultAuthorId(authorList[0].id);
         }
       })
       .catch(() => {});

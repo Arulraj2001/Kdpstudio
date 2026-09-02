@@ -36,7 +36,7 @@ import { generateSlug } from '../../../lib/blogUtils';
 import { AiDraftGenerator } from './AiDraftGenerator';
 import { executeAiEditorAction } from '../../../lib/aiBlogGenerator';
 import { InternalLinksPanel } from './InternalLinksPanel';
-import { getBlogPost, createBlogPost, updateBlogPost } from '../../../lib/blogService';
+import { getBlogPost, createBlogPost, updateBlogPost, getAllAuthors } from '../../../lib/blogService';
 
 interface BlogPostEditorProps {
   postId?: string; // If provided -> edit mode, if undefined -> create mode
@@ -132,16 +132,15 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
 
   // Fetch Authors List
   useEffect(() => {
-    fetch('/api/blog/authors')
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data?.authors) && data.authors.length > 0) {
-          setAuthors(data.authors);
+    getAllAuthors()
+      .then((authorList) => {
+        if (Array.isArray(authorList) && authorList.length > 0) {
+          setAuthors(authorList);
           if (!authorId && !postId) {
-            setAuthorId(data.authors[0].id);
-            setAuthorName(data.authors[0].name);
-            setAuthorCredentials(data.authors[0].credentials);
-            setAuthorPhotoUrl(data.authors[0].photoUrl);
+            setAuthorId(authorList[0].id);
+            setAuthorName(authorList[0].name);
+            setAuthorCredentials(authorList[0].credentials);
+            setAuthorPhotoUrl(authorList[0].photoUrl);
           }
         }
       })

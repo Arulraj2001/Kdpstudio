@@ -82,7 +82,7 @@ export async function getCloudBooks(uid: string): Promise<Book[]> {
   const db = await getDb(); if (!db) return [];
   try {
     const { collection, query, where, getDocs } = await getFs();
-    const q = query(collection(db,'books'), where('uid','==',uid), where('id','!=',''));
+    const q = query(collection(db, 'books'), where('uid', '==', uid));
     const snap = await getDocs(q);
     const out: Book[] = [];
     snap.docs.forEach((d: any) => {
