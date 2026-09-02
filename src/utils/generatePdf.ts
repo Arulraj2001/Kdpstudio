@@ -89,20 +89,79 @@ export async function generatePdf(
     }
   };
 
-  // ── Helper: render body text with inline bold/italic approximation ──
-  const drawBodyText = (text: string, x: number, maxW: number, fontSize: number = bodyFontSizePt) => {
-    doc.setFont(bodyFont, 'normal');
+  // ── Helper: render body text with inline bold/italic support ──
+  // Parses **bold** and *italic* markdown tokens and switches jsPDF font style per segment.
+  const drawRichText = (text: string, x: number, maxW: number, fontSize: number = bodyFontSizePt) => {
     doc.setFontSize(fontSize);
-    // Strip markdown formatting for PDF text (bold/italic via jsPDF is complex)
-    const plain = stripMd(text);
     const lineH = fontSize * lineHeightFactor;
-    const wrapped = wrapText(doc, plain, maxW);
-    wrapped.forEach((line) => {
-      ensureSpace(lineH);
-      doc.text(line, x, y);
-      y += lineH;
+
+    // Clean escape sequences first (same as parseInlineFormatting in DOCX)
+    const clean = text
+      .replace(/\\\[/g, '[')
+      .replace(/\\\]/g, ']')
+      .replace(/\\\*/g, '*')
+      .replace(/\\_/g, '_');
+
+    // Split on **bold** and *italic* tokens
+    const parts = clean.split(/(\*\*.*?\*\*|\*.*?\*)/g).filter(Boolean);
+
+    // Collect word-wrapped segments with their styles
+    type Segment = { word: string; bold: boolean; italic: boolean };
+    const segments: Segment[] = [];
+
+    parts.forEach((part) => {
+      if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+        const inner = part.slice(2, -2);
+        inner.split(/\s+/).forEach((w) => w && segments.push({ word: w, bold: true, italic: false }));
+      } else if (part.startsWith('*') && part.endsWith('*') && part.length >= 2) {
+        const inner = part.slice(1, -1);
+        inner.split(/\s+/).forEach((w) => w && segments.push({ word: w, bold: false, italic: true }));
+      } else {
+        part.split(/\s+/).forEach((w) => w && segments.push({ word: w, bold: false, italic: false }));
+      }
     });
+
+    if (segments.length === 0) {
+      y += lineH;
+      return;
+    }
+
+    // Word-wrap segments into lines, switching font style mid-line
+    let lineWords: Segment[] = [];
+    let lineWidth = 0;
+
+    const flushLine = () => {
+      if (lineWords.length === 0) return;
+      ensureSpace(lineH);
+      let cx = x;
+      lineWords.forEach((seg) => {
+        const style = seg.bold ? 'bold' : seg.italic ? 'italic' : 'normal';
+        doc.setFont(bodyFont, style);
+        doc.setFontSize(fontSize);
+        doc.text(seg.word, cx, y);
+        cx += doc.getTextWidth(seg.word + ' ');
+      });
+      y += lineH;
+      lineWords = [];
+      lineWidth = 0;
+    };
+
+    segments.forEach((seg) => {
+      const style = seg.bold ? 'bold' : seg.italic ? 'italic' : 'normal';
+      doc.setFont(bodyFont, style);
+      doc.setFontSize(fontSize);
+      const ww = doc.getTextWidth(seg.word + ' ');
+      if (lineWidth + ww > maxW && lineWords.length > 0) {
+        flushLine();
+      }
+      lineWords.push(seg);
+      lineWidth += ww;
+    });
+    flushLine();
+
     y += 2; // small gap after paragraph
+    // Reset to normal
+    doc.setFont(bodyFont, 'normal');
   };
 
   // ── Helper: draw a horizontal rule ──
@@ -411,16 +470,7 @@ export async function generatePdf(
           });
           y += 3;
         } else {
-          doc.setFont(bodyFont, 'normal');
-          doc.setFontSize(bodyFontSizePt);
-          const plain = stripMd(block.text);
-          const wrapped = wrapText(doc, plain, bodyW);
-          wrapped.forEach((line) => {
-            ensureSpace(bodyLineH);
-            doc.text(line, bodyX, y);
-            y += bodyLineH;
-          });
-          y += 3;
+          drawRichText(block.text, bodyX, bodyW);
         }
         break;
       }
@@ -544,9 +594,9 @@ export async function generatePdf(
       }
 
       case 'key_takeaways': {
+        const ktBodyText = stripMd(block.text).replace(/^(KEY TAKEAWAYS|Key Takeaways|SUMMARY|Summary|IN SUMMARY)[:—]?\s*/i, '');
         if (settings.formatKeyTakeaways ?? true) {
-          const ktText = stripMd(block.text).replace(/^(KEY TAKEAWAYS|Key Takeaways|SUMMARY|Summary|IN SUMMARY)[:—]?\s*/i, '');
-          const ktLines = wrapText(doc, ktText, contentW - 16);
+          const ktLines = wrapText(doc, ktBodyText, contentW - 16);
           const ktH = Math.max(26, ktLines.length * bodyLineH + 20);
           ensureSpace(ktH + 6);
           y += 4;
@@ -569,6 +619,9 @@ export async function generatePdf(
           });
           doc.setTextColor(0, 0, 0);
           y += 6;
+        } else {
+          // Fallback: render as plain paragraph when toggle is off
+          drawRichText(ktBodyText, marginInside, contentW);
         }
         break;
       }
@@ -670,19 +723,20 @@ export async function generatePdf(
 
             const wrappedCells = row.map((cell) => wrapText(doc, cell, cellInnerW));
             const maxLines = Math.max(1, ...wrappedCells.map((lines) => lines.length));
-            const rowH = Math.max(16, maxLines * (bodyFontSizePt * 0.95) + 6);
+            const rowH = Math.max(18, maxLines * (bodyFontSizePt * 0.95) + cellPad * 2 + 2);
 
             ensureSpace(rowH + 2);
+            const rowStartY = y;  // capture exact top of this row BEFORE drawing
 
             if (isHeader) {
               if (isBw) doc.setFillColor(244, 244, 245);
               else doc.setFillColor(30, 41, 59);
-              doc.rect(marginInside, y - 11, contentW, rowH, 'F');
+              doc.rect(marginInside, rowStartY, contentW, rowH, 'F');
               if (isBw) doc.setTextColor(24, 24, 27);
               else doc.setTextColor(255, 255, 255);
             } else if (rIdx % 2 === 1) {
               doc.setFillColor(248, 250, 252);
-              doc.rect(marginInside, y - 11, contentW, rowH, 'F');
+              doc.rect(marginInside, rowStartY, contentW, rowH, 'F');
               doc.setTextColor(51, 65, 85);
             } else {
               doc.setTextColor(51, 65, 85);
@@ -691,10 +745,10 @@ export async function generatePdf(
             // Subtle bottom row divider
             doc.setDrawColor(226, 232, 240);
             doc.setLineWidth(0.5);
-            doc.line(marginInside, y - 11 + rowH, marginInside + contentW, y - 11 + rowH);
+            doc.line(marginInside, rowStartY + rowH, marginInside + contentW, rowStartY + rowH);
 
             wrappedCells.forEach((cellLines, cIdx) => {
-              let cellY = y - 11 + 10;
+              let cellY = rowStartY + cellPad + bodyFontSizePt * 0.85; // consistent top-padding from row top
               const align = alignments[cIdx] || 'left';
               cellLines.forEach((cline: string) => {
                 if (align === 'center') {
@@ -709,7 +763,7 @@ export async function generatePdf(
             });
 
             doc.setTextColor(0, 0, 0);
-            y += rowH;
+            y = rowStartY + rowH; // advance y by exact row height
           });
           y += 6;
         }
@@ -745,7 +799,7 @@ export async function generatePdf(
         if (block.text?.trim()) {
           const pX = inExercise || inScenario ? marginInside + 5 : marginInside;
           const pW = inExercise || inScenario ? contentW - 10 : contentW;
-          drawBodyText(block.text, pX, pW);
+          drawRichText(block.text, pX, pW);
         }
         break;
       }

@@ -286,7 +286,10 @@ export function detectStructure(rawText: string): ContentBlock[] {
     }
 
     // Major structural boundary resets active container
-    if (['title', 'part', 'chapter', 'section', 'subsection', 'front_matter', 'divider'].includes(type)) {
+    // model_response / debrief / reflection are self-contained typed blocks and
+    // signal the natural end of a preceding exercise or scenario body.
+    if (['title', 'part', 'chapter', 'section', 'subsection', 'front_matter', 'divider',
+         'model_response', 'debrief', 'reflection', 'key_takeaways', 'action'].includes(type)) {
       inExercise = false;
       inScenario = false;
     }

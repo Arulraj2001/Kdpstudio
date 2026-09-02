@@ -133,6 +133,17 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
     );
   };
 
+  // The preview page is 350px wide, representing the trim width (default 7").
+  // Scale factor: pixels per inch in preview = 350 / trimW
+  // To convert pt → preview-px: ptVal × (previewPxPerInch / 72)
+  const trimW = settings.trimWidth || 7;
+  const previewPxPerInch = 350 / trimW;           // e.g. 50 px/inch for 7" trim
+  const previewPxPerPt   = previewPxPerInch / 72; // e.g. ≈0.694 px/pt for 7" trim
+
+  const ptMap: Record<string, number> = { '10pt': 10, '11pt': 11, '12pt': 12 };
+  const ptSize = ptMap[settings.fontSizeLabel] ?? 11;
+  const scaledFontSizePx = Math.round(ptSize * previewPxPerPt * 10) / 10; // e.g. ~7.6px for 11pt at 7"
+
   const fontStyle = {
     fontFamily:
       settings.font === 'Garamond'
@@ -142,9 +153,9 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
         : settings.font === 'Palatino'
         ? 'Palatino, "Book Antiqua", Georgia, serif'
         : 'Georgia, serif',
-    fontSize: settings.fontSizeLabel === '10pt' ? '10px' : settings.fontSizeLabel === '12pt' ? '12px' : '11px',
+    fontSize: `${scaledFontSizePx}px`,
     lineHeight: settings.lineSpacing || '1.15',
-    padding: `${Math.round((settings.margins?.top ?? 0.75) * 36)}px ${Math.round((settings.margins?.outside ?? 0.625) * 36)}px ${Math.round((settings.margins?.bottom ?? 0.75) * 36)}px ${Math.round((settings.margins?.inside ?? 0.75) * 36)}px`,
+    padding: `${Math.round((settings.margins?.top ?? 0.75) * previewPxPerInch)}px ${Math.round((settings.margins?.outside ?? 0.625) * previewPxPerInch)}px ${Math.round((settings.margins?.bottom ?? 0.75) * previewPxPerInch)}px ${Math.round((settings.margins?.inside ?? 0.75) * previewPxPerInch)}px`,
   };
 
   const renderToc = (chapterList: ContentBlock[]) => (
@@ -220,11 +231,18 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
         return <div key={block.id || idx} className="h-1.5" />;
 
       case 'action':
+        if (settings.formatActionPlans ?? true) {
+          return (
+            <div key={block.id || idx} id={`preview-block-${idx}`} className="my-2 p-2 rounded bg-amber-50/80 border-l-2 border-amber-500 text-[10px]">
+              <div className="font-bold uppercase text-[8.5px] text-amber-900 mb-0.5 tracking-wider">Action Plan</div>
+              <div>{renderFormattedText(cleanText(block.text).replace(/^ACTION PLAN[:—]?\s*/i, ''))}</div>
+            </div>
+          );
+        }
         return (
-          <div key={block.id || idx} id={`preview-block-${idx}`} className="my-2 p-2 rounded bg-amber-50/80 border-l-2 border-amber-500 text-[10px]">
-            <div className="font-bold uppercase text-[8.5px] text-amber-900 mb-0.5 tracking-wider">Action Plan</div>
-            <div>{renderFormattedText(cleanText(block.text).replace(/^ACTION PLAN[:—]?\s*/i, ''))}</div>
-          </div>
+          <p key={block.id || idx} id={`preview-block-${idx}`} className="preview-paragraph">
+            {renderFormattedText(cleanText(block.text).replace(/^ACTION PLAN[:—]?\s*/i, ''))}
+          </p>
         );
 
       case 'list': {
@@ -406,13 +424,20 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
         );
 
       case 'action':
-        return (
-          <div key={block.id} id={`preview-block-${idx}`} className="my-3.5 p-3 rounded-xl bg-amber-50/80 border border-amber-200 border-l-4 border-l-amber-500 text-[10.5px] text-slate-900 shadow-2xs">
-            <div className="font-bold uppercase text-[9px] text-amber-950 mb-1 tracking-wider flex items-center gap-1.5">
-              <span>📋 Action Plan</span>
+        if (settings.formatActionPlans ?? true) {
+          return (
+            <div key={block.id} id={`preview-block-${idx}`} className="my-3.5 p-3 rounded-xl bg-amber-50/80 border border-amber-200 border-l-4 border-l-amber-500 text-[10.5px] text-slate-900 shadow-2xs">
+              <div className="font-bold uppercase text-[9px] text-amber-950 mb-1 tracking-wider flex items-center gap-1.5">
+                <span>📋 Action Plan</span>
+              </div>
+              <div>{renderFormattedText(cleanText(block.text).replace(/^ACTION PLAN[:—]?\s*/i, ''))}</div>
             </div>
-            <div>{renderFormattedText(cleanText(block.text).replace(/^ACTION PLAN[:—]?\s*/i, ''))}</div>
-          </div>
+          );
+        }
+        return (
+          <p key={block.id} id={`preview-block-${idx}`} className="preview-paragraph">
+            {renderFormattedText(cleanText(block.text).replace(/^ACTION PLAN[:—]?\s*/i, ''))}
+          </p>
         );
 
       case 'key_takeaways':
@@ -559,10 +584,12 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
               background: settings.paperColor === 'cream' ? '#F5F0E8' : 'white',
             }}
           >
-            {/* Simulated Header */}
-            <div className="text-[8px] font-bold text-slate-400 uppercase tracking-widest text-center border-b border-slate-200 pb-1.5 mb-4">
-              {settings.title || 'KDP Studio Book'}
-            </div>
+            {/* Simulated Header — shown only when headerFooterFolios is on */}
+            {(settings.headerFooterFolios ?? true) && (
+              <div className="text-[8px] font-bold text-slate-400 uppercase tracking-widest text-center border-b border-slate-200 pb-1.5 mb-4">
+                {settings.title || 'KDP Studio Book'}
+              </div>
+            )}
 
             {/* Block Loop — pre-pass groups exercise+scenario headers with their body blocks */}
             {(() => {
@@ -679,10 +706,12 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
               });
             })()}
 
-            {/* Simulated Footer */}
-            <div className="text-[8px] font-mono text-slate-400 text-center border-t border-slate-200 pt-1.5 mt-6">
-              1
-            </div>
+            {/* Simulated Footer — shown only when headerFooterFolios is on */}
+            {(settings.headerFooterFolios ?? true) && (
+              <div className="text-[8px] font-mono text-slate-400 text-center border-t border-slate-200 pt-1.5 mt-6">
+                1
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -850,6 +879,7 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
           margin: 0 0 6px 0;
           text-align: justify;
           line-height: 1.35;
+          ${settings.paragraphIndent ? 'text-indent: 1.5em;' : ''}
         }
 
         .preview-list {

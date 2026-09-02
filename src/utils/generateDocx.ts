@@ -17,6 +17,7 @@ import {
   Footer,
   PageNumber,
 } from 'docx';
+import JSZip from 'jszip';
 import { ContentBlock, KdpFormatSettings } from '../types/formatter';
 
 /**
@@ -93,6 +94,16 @@ export async function generateDocx(
   const trimH = settings.trimHeight || 10;
   const fontSize = settings.fontSize || 22; // half-points (11pt = 22)
   const fontName = settings.font || 'Georgia';
+  // Heading font — maps UI label to the font name used in the DOCX TextRun.
+  // Custom fonts like Cinzel / Playfair require the font to be installed on the
+  // reader's machine (or embedded). We apply it to all structural headings.
+  const headingFontMap: Record<string, string> = {
+    'Cinzel': 'Cinzel',
+    'Playfair Display': 'Playfair Display',
+    'Montserrat': 'Montserrat',
+    'Georgia': 'Georgia',
+  };
+  const headingFontName = headingFontMap[settings.headingFont ?? ''] || fontName;
   const lineSpacing = settings.lineSpacingValue || 276; // 1.15 line spacing
 
   const insideMargin = convertInchesToTwip(settings.margins?.inside ?? 0.75);
@@ -109,6 +120,8 @@ export async function generateDocx(
       }),
       spacing: { after: 120, line: lineSpacing }, // 6pt after, 1.15 line spacing
       alignment: AlignmentType.JUSTIFIED,
+      // Apply first-line indent (0.25" = 360 twip) when the toggle is on
+      ...(settings.paragraphIndent ? { indent: { firstLine: convertInchesToTwip(0.25) } } : {}),
       ...options,
     });
   }
@@ -124,6 +137,17 @@ export async function generateDocx(
     });
   }
 
+  // Accent color map — resolved once; drives exerciseBox left-border and scenarioBox header
+  const accentColorMap: Record<string, string> = {
+    teal:      '0F766E',
+    purple:    '7C3AED',
+    navy:      '1E3A8A',
+    burgundy:  '991B1B',
+    charcoal:  '334155',
+    green:     '166534',
+  };
+  const accentHex = accentColorMap[settings.accentTheme ?? 'teal'] ?? '0F766E';
+
   // Helper: exercise box with clean header and border
   function exerciseBox(headerText: string, bodyParagraphs: Paragraph[]): Table {
     return new Table({
@@ -131,7 +155,7 @@ export async function generateDocx(
       borders: {
         top: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
         bottom: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
-        left: { style: BorderStyle.SINGLE, size: 18, color: '64748B' },
+        left: { style: BorderStyle.SINGLE, size: 18, color: accentHex },
         right: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
         insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: 'E2E8F0' },
         insideVertical: { style: BorderStyle.NONE },
@@ -182,11 +206,10 @@ export async function generateDocx(
     });
   }
 
-  // Helper: scenario box with teal header (#1A6B72 for color, #333333 for B&W) and white text
   function scenarioBox(headerText: string, bodyParagraphs: Paragraph[]): Table {
     const isBw = settings.interiorColor === 'bw';
-    const headerFill = isBw ? '333333' : '0F766E';
-    const borderColor = isBw ? '64748B' : '0F766E';
+    const headerFill = isBw ? '333333' : accentHex;
+    const borderColor = isBw ? '64748B' : accentHex;
     return new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       borders: {
@@ -540,7 +563,7 @@ export async function generateDocx(
               new TextRun({
                 text: cleanText(block.text),
                 bold: true,
-                font: fontName,
+                font: headingFontName,
                 size: 48, // 24pt
                 color: '0F172A',
               }),
@@ -558,7 +581,7 @@ export async function generateDocx(
               new TextRun({
                 text: cleanText(block.text),
                 italics: true,
-                font: fontName,
+                font: headingFontName,
                 size: fontSize + 2,
                 color: '475569',
               }),
@@ -600,7 +623,7 @@ export async function generateDocx(
               new TextRun({
                 text: cleanText(block.text),
                 bold: true,
-                font: fontName,
+                font: headingFontName,
                 size: 44, // 22pt
                 allCaps: true,
               }),
@@ -625,7 +648,7 @@ export async function generateDocx(
                 new TextRun({
                   text: match[1].toUpperCase(),
                   bold: true,
-                  font: fontName,
+                  font: headingFontName,
                   size: 20, // 10pt
                   allCaps: true,
                   color: '7C3AED',
@@ -643,7 +666,7 @@ export async function generateDocx(
                 new TextRun({
                   text: match[2] || match[1],
                   bold: true,
-                  font: fontName,
+                  font: headingFontName,
                   size: 36, // 18pt
                 }),
               ],
@@ -662,7 +685,7 @@ export async function generateDocx(
                 new TextRun({
                   text: fullTitle,
                   bold: true,
-                  font: fontName,
+                  font: headingFontName,
                   size: 36,
                 }),
               ],
@@ -684,7 +707,7 @@ export async function generateDocx(
               new TextRun({
                 text: cleanText(block.text),
                 bold: true,
-                font: fontName,
+                font: headingFontName,
                 size: 28, // 14pt
               }),
             ],
@@ -701,7 +724,7 @@ export async function generateDocx(
                 text: cleanText(block.text),
                 bold: true,
                 italics: true,
-                font: fontName,
+                font: headingFontName,
                 size: 24, // 12pt
               }),
             ],
@@ -802,15 +825,23 @@ export async function generateDocx(
 
       case 'key_takeaways': {
         const bodyText = cleanText(block.text).replace(/^(KEY TAKEAWAYS|Key Takeaways|SUMMARY|Summary|IN SUMMARY)[:—]?\s*/i, '');
-        const card = calloutCard('✦ KEY TAKEAWAYS', bodyText, 'ECFDF5', '059669', '065F46');
-        docElements.push(card);
+        if (settings.formatKeyTakeaways ?? true) {
+          const card = calloutCard('✦ KEY TAKEAWAYS', bodyText, 'ECFDF5', '059669', '065F46');
+          docElements.push(card);
+        } else {
+          docElements.push(bodyParagraph(bodyText));
+        }
         break;
       }
 
       case 'quote': {
         const bodyText = cleanText(block.text).replace(/^>\s*/, '');
-        const card = calloutCard('QUOTE', bodyText, 'F8FAFC', '7C3AED', '475569');
-        docElements.push(card);
+        if (settings.formatCalloutBoxes ?? true) {
+          const card = calloutCard('QUOTE', bodyText, 'F8FAFC', '7C3AED', '475569');
+          docElements.push(card);
+        } else {
+          docElements.push(bodyParagraph(bodyText));
+        }
         break;
       }
 
@@ -978,14 +1009,42 @@ export async function generateDocx(
 }
 
 /**
- * Triggers browser download of the generated DOCX file
+ * Injects <w:mirrorMargins/> into the settings.xml inside a DOCX blob.
+ * This enables proper alternating gutter margins required by KDP for print books.
+ * The `docx` v9 library does not expose this setting natively, so we patch the OOXML directly.
+ */
+async function injectMirrorMargins(blob: Blob): Promise<Blob> {
+  const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+  const settingsFile = zip.file('word/settings.xml');
+  if (!settingsFile) return blob;
+
+  let xml = await settingsFile.async('string');
+  // Inject <w:mirrorMargins/> just after the root <w:settings ...> opening tag
+  // Only if not already present
+  if (!xml.includes('<w:mirrorMargins/>') && !xml.includes('<w:mirrorMargins />')) {
+    xml = xml.replace(
+      /(<w:settings[^>]*>)/,
+      '$1<w:mirrorMargins/>'
+    );
+  }
+  zip.file('word/settings.xml', xml);
+  const patchedArrayBuffer = await zip.generateAsync({ type: 'arraybuffer' });
+  return new Blob([patchedArrayBuffer], {
+    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  });
+}
+
+/**
+ * Triggers browser download of the generated DOCX file.
+ * Applies mirror margins patch for KDP-compliant gutter placement.
  */
 export async function downloadDocxFile(
   blocks: ContentBlock[],
   settings: KdpFormatSettings
 ): Promise<void> {
   const doc = await generateDocx(blocks, settings);
-  const blob = await Packer.toBlob(doc);
+  const rawBlob = await Packer.toBlob(doc);
+  const blob = await injectMirrorMargins(rawBlob);
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
