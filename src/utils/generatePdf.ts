@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
-import { ContentBlock, KdpFormatSettings } from '../types/formatter';
+import { ContentBlock, KdpFormatSettings, TocItem } from '../types/formatter';
 import { cleanText } from './generateDocx';
+import { calculateBookPagination } from './parseManuscript';
 
 /**
  * Strips markdown heading markers from text
@@ -235,11 +236,90 @@ export async function generatePdf(
     y += 6;
   };
 
-  // ── Build TOC check ──
+  // ── Build TOC check & Pagination Map ──
   const manuscriptHasToc = blocks.some(
-    (b) => b.type === 'front_matter' && /TABLE OF CONTENTS|CONTENTS/i.test(b.text)
+    (b) => b.type === 'toc' || (b.type === 'front_matter' && /TABLE OF CONTENTS|CONTENTS/i.test(b.text))
   );
+  const paginationMap = calculateBookPagination(blocks);
   let tocEmitted = false;
+
+  const drawPdfToc = (items: (TocItem | ContentBlock)[]) => {
+    newPage();
+    doc.setFont(headFont, 'bold');
+    doc.setFontSize(14);
+    doc.text('TABLE OF CONTENTS', pageW / 2, y, { align: 'center' });
+    y += 20;
+    drawRule(marginInside, contentW);
+    y += 10;
+
+    let runningPage = 7;
+    items.forEach((item, idx) => {
+      const isBlock = 'type' in item;
+      const title = stripMd(isBlock ? (item as ContentBlock).text : (item as TocItem).title);
+      const isPart = isBlock
+        ? (item as ContentBlock).type === 'part'
+        : (item as TocItem).isPart || title.toUpperCase() === 'APPENDICES';
+
+      let pageNum = !isBlock ? (item as TocItem).pageNumber : undefined;
+      if (pageNum === undefined) {
+        const cleanKey = title.toLowerCase();
+        const directMatch = paginationMap.get(cleanKey);
+        const chapterMatch = title.match(/^(CHAPTER\s+\d+|Chapter\s+\d+)/i);
+        const numMatch = chapterMatch ? paginationMap.get(chapterMatch[1].toLowerCase()) : undefined;
+        if (directMatch !== undefined) {
+          pageNum = directMatch;
+          runningPage = directMatch + 2;
+        } else if (numMatch !== undefined) {
+          pageNum = numMatch;
+          runningPage = numMatch + 2;
+        } else {
+          pageNum = runningPage;
+          runningPage += isPart ? 2 : Math.max(3, Math.round(3 + (idx % 3)));
+        }
+      }
+
+      const pageStr = String(pageNum);
+      ensureSpace(bodyLineH + 4);
+
+      doc.setFont(headFont, isPart ? 'bold' : 'normal');
+      doc.setFontSize(isPart ? bodyFontSizePt : bodyFontSizePt - 0.5);
+      doc.setTextColor(isPart ? 15 : 51, isPart ? 23 : 65, isPart ? 42 : 85);
+
+      const indent = isPart ? marginInside : marginInside + 12;
+      const maxTitleW = contentW - 40;
+      const truncatedTitle = doc.getTextWidth(title) > maxTitleW ? title.slice(0, 45) + '…' : title;
+      doc.text(truncatedTitle, indent, y);
+
+      const titleW = doc.getTextWidth(truncatedTitle);
+      const pageNumW = doc.getTextWidth(pageStr);
+      const rightEdge = pageW - marginOutside;
+
+      // Draw page number right-aligned
+      doc.setFont(bodyFont, isPart ? 'bold' : 'normal');
+      doc.text(pageStr, rightEdge, y, { align: 'right' });
+
+      // Draw dot leaders in between title and page number
+      const leaderStartX = indent + titleW + 4;
+      const leaderEndX = rightEdge - pageNumW - 4;
+      if (leaderEndX > leaderStartX + 10) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(180, 180, 180);
+
+        const dotChar = '· ';
+        const dotW = doc.getTextWidth(dotChar);
+        const dotCount = Math.floor((leaderEndX - leaderStartX) / dotW);
+        if (dotCount > 0) {
+          const dots = dotChar.repeat(dotCount);
+          doc.text(dots, leaderStartX, y);
+        }
+      }
+
+      doc.setTextColor(0, 0, 0);
+      y += bodyLineH + (isPart ? 4 : 2);
+    });
+    y += 10;
+  };
 
   // ── Main rendering loop ──
   let inExercise = false;
@@ -254,7 +334,7 @@ export async function generatePdf(
 
     // C6: Close exercise/scenario context on all structural boundaries
     // Matches the expanded reset list in parseManuscript and generateDocx
-    if (['title', 'part', 'chapter', 'section', 'subsection', 'front_matter',
+    if (['title', 'part', 'chapter', 'section', 'subsection', 'front_matter', 'toc',
          'divider', 'model_response', 'debrief', 'reflection',
          'key_takeaways', 'action'].includes(block.type)) {
       inExercise = false;
@@ -273,35 +353,19 @@ export async function generatePdf(
       (block.type === 'part' || block.type === 'chapter')
     ) {
       tocEmitted = true;
-      newPage();
-      // TOC heading
-      doc.setFont(headFont, 'bold');
-      doc.setFontSize(14);
-      doc.text('TABLE OF CONTENTS', pageW / 2, y, { align: 'center' });
-      y += 24;
-      drawRule(marginInside, contentW);
-      y += 4;
-
       const chapterList = blocks.filter((b) => b.type === 'chapter' || b.type === 'part');
-      chapterList.forEach((ch) => {
-        const isPart = ch.type === 'part';
-        const title = stripMd(ch.text);
-        doc.setFont(headFont, isPart ? 'bold' : 'normal');
-        doc.setFontSize(isPart ? bodyFontSizePt : bodyFontSizePt - 0.5);
-        const indent = isPart ? marginInside : marginInside + 10;
-        doc.text(title, indent, y);
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(160, 160, 160);
-        doc.text('· · · · · [ — ]', pageW - marginOutside, y, { align: 'right' });
-        doc.setTextColor(0, 0, 0);
-        y += bodyLineH + 2;
-        ensureSpace(bodyLineH + 2);
-      });
-      y += 10;
+      if (chapterList.length > 0) {
+        drawPdfToc(chapterList);
+      }
     }
 
     switch (block.type) {
+      case 'toc': {
+        const items: TocItem[] = block.metadata?.items ?? [];
+        const tocList = items.length > 0 ? items : blocks.filter((b) => b.type === 'chapter' || b.type === 'part');
+        drawPdfToc(tocList);
+        break;
+      }
       case 'title': {
         // Title page — centered large text
         newPage();

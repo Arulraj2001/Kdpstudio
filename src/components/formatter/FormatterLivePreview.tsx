@@ -1,10 +1,13 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import {
   ContentBlock,
   KdpFormatSettings,
   FormatterStats,
+  TocItem,
 } from '../../types/formatter';
 import { cleanText } from '../../utils/generateDocx';
+import { calculateBookPagination } from '../../utils/parseManuscript';
+import { calculateStats } from '../../utils/calculateStats';
 import { BookOpen, Eye } from 'lucide-react';
 
 interface FormatterLivePreviewProps {
@@ -158,26 +161,64 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
     padding: `${Math.round((settings.margins?.top ?? 0.75) * previewPxPerInch)}px ${Math.round((settings.margins?.outside ?? 0.625) * previewPxPerInch)}px ${Math.round((settings.margins?.bottom ?? 0.75) * previewPxPerInch)}px ${Math.round((settings.margins?.inside ?? 0.75) * previewPxPerInch)}px`,
   };
 
-  const renderToc = (chapterList: ContentBlock[]) => (
-    <div className="my-6 p-4 rounded-lg bg-slate-50 border border-slate-200/90 text-xs">
-      <div className="text-center font-bold text-xs uppercase tracking-widest text-slate-800 mb-3 border-b border-slate-200 pb-1.5">
-        Table of Contents
+  const renderToc = (itemsOrBlocks: (ContentBlock | TocItem)[]) => {
+    const paginationMap = calculateBookPagination(blocks);
+    let runningPage = 7;
+
+    return (
+      <div className="my-6 p-4 rounded-xl bg-slate-50/90 border border-slate-200/90 text-xs shadow-2xs">
+        <div className="preview-page-break" />
+        <div className="text-center font-bold text-xs uppercase tracking-widest text-slate-800 mb-3.5 border-b border-slate-200 pb-2">
+          Table of Contents
+        </div>
+        <div className="space-y-1.5">
+          {itemsOrBlocks.map((item, cIdx) => {
+            const isBlock = 'type' in item;
+            const title = cleanText(isBlock ? (item as ContentBlock).text : (item as TocItem).title);
+            const isPart = isBlock
+              ? (item as ContentBlock).type === 'part'
+              : (item as TocItem).isPart || title.toUpperCase() === 'APPENDICES';
+
+            // Resolve page number
+            let pageNum = !isBlock ? (item as TocItem).pageNumber : undefined;
+            if (pageNum === undefined) {
+              const cleanKey = title.toLowerCase();
+              const directMatch = paginationMap.get(cleanKey);
+              const chapterMatch = title.match(/^(CHAPTER\s+\d+|Chapter\s+\d+)/i);
+              const numMatch = chapterMatch ? paginationMap.get(chapterMatch[1].toLowerCase()) : undefined;
+              if (directMatch !== undefined) {
+                pageNum = directMatch;
+                runningPage = directMatch + 2;
+              } else if (numMatch !== undefined) {
+                pageNum = numMatch;
+                runningPage = numMatch + 2;
+              } else {
+                pageNum = runningPage;
+                runningPage += isPart ? 2 : Math.max(3, Math.round(3 + (cIdx % 3)));
+              }
+            }
+
+            return (
+              <div
+                key={cIdx}
+                className={`flex items-baseline justify-between gap-1.5 ${
+                  isPart ? 'mt-3 pt-1 font-bold text-slate-900 text-[10px] uppercase tracking-wider' : 'pl-3 text-slate-700 text-[9.5px]'
+                }`}
+              >
+                <span className={`shrink-0 max-w-[70%] truncate ${isPart ? 'font-bold' : 'font-medium'}`}>
+                  {title}
+                </span>
+                <span className="flex-1 border-b border-dotted border-slate-300 mx-1 relative -top-0.5" />
+                <span className="shrink-0 font-mono text-[9px] text-slate-500 font-semibold">
+                  {pageNum}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
-      <div className="space-y-1.5">
-        {chapterList.map((ch, cIdx) => {
-          const isPart = ch.type === 'part';
-          return (
-            <div key={cIdx} className={`flex items-baseline gap-1 ${isPart ? 'mt-2' : 'pl-3'}`}>
-              <span className={`flex-1 min-w-0 ${isPart ? 'font-bold text-slate-900 text-[10px]' : 'font-medium text-slate-700 text-[9.5px]'}`}>
-                {cleanText(ch.text)}
-              </span>
-              <span className="shrink-0 whitespace-nowrap text-slate-400 font-mono text-[9px]">· · · · ·  [ — ]</span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+    );
+  };
 
   const renderBodyBlock = (block: ContentBlock, idx: number) => {
     switch (block.type) {
@@ -294,6 +335,17 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
             {cleanText(block.text)}
           </div>
         );
+
+      case 'toc': {
+        const items: TocItem[] = block.metadata?.items ?? [];
+        return (
+          <React.Fragment key={block.id || idx}>
+            <div id={`preview-block-${idx}`}>
+              {renderToc(items.length > 0 ? items : blocks.filter((b) => b.type === 'chapter' || b.type === 'part'))}
+            </div>
+          </React.Fragment>
+        );
+      }
 
       case 'front_matter': {
         const fmText = cleanText(block.text);
@@ -632,7 +684,7 @@ export const FormatterLivePreview: React.FC<FormatterLivePreviewProps> = ({
 
               // TOC only lists actual chapters and parts; suppressed if manuscript already contains one
               const manuscriptHasToc = blocks.some(
-                (b) => b.type === 'front_matter' && /TABLE OF CONTENTS|CONTENTS/i.test(b.text)
+                (b) => b.type === 'toc' || (b.type === 'front_matter' && /TABLE OF CONTENTS|CONTENTS/i.test(b.text))
               );
               const firstChapterGroupIdx = grouped.findIndex(
                 (g) => g.kind === 'single' && (g.block.type === 'chapter' || g.block.type === 'part')

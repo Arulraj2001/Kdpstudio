@@ -6,7 +6,8 @@
 export type BlockType =
   | 'title'           // # THE ASSERTIVE NURSE
   | 'subtitle'        // ## Subtitle line
-  | 'front_matter'    // ## COPYRIGHT PAGE, ## DISCLAIMER, ## CONTENTS
+  | 'front_matter'    // ## COPYRIGHT PAGE, ## DISCLAIMER
+  | 'toc'             // ## CONTENTS / TABLE OF CONTENTS with structured TocItem entries
   | 'part'            // # PART ONE: THE FOUNDATION
   | 'chapter'         // ## CHAPTER 1: KNOW YOUR...
   | 'section'         // ### Section title
@@ -29,6 +30,15 @@ export type BlockType =
   | 'paragraph'       // regular body text
   | 'divider'         // --- horizontal rule
   | 'blank';          // empty line
+
+export interface TocItem {
+  title: string;
+  isPart: boolean;
+  isAppendix: boolean;
+  isFrontMatter: boolean;
+  level: number;
+  pageNumber?: number;
+}
 
 export interface ContentBlock {
   id: string;

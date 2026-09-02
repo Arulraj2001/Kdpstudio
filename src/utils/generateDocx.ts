@@ -16,9 +16,11 @@ import {
   Header,
   Footer,
   PageNumber,
+  TabStopType,
 } from 'docx';
 import JSZip from 'jszip';
-import { ContentBlock, KdpFormatSettings } from '../types/formatter';
+import { ContentBlock, KdpFormatSettings, TocItem } from '../types/formatter';
+import { calculateBookPagination } from './parseManuscript';
 
 /**
  * Strips markdown marker symbols while preserving textual content
@@ -135,6 +137,89 @@ export async function generateDocx(
         bottom: { color: 'CBD5E1', space: 1, style: BorderStyle.SINGLE, size: 6 },
       },
     });
+  }
+
+  const usableWidthTwip = convertInchesToTwip(trimW) - insideMargin - outsideMargin;
+  const paginationMap = calculateBookPagination(blocks);
+
+  function renderDocxTocItems(items: (TocItem | ContentBlock)[]): Paragraph[] {
+    const elements: Paragraph[] = [];
+    elements.push(new Paragraph({ children: [new PageBreak()] }));
+    elements.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: 'TABLE OF CONTENTS',
+            bold: true,
+            font: headingFontName,
+            size: 32, // 16pt
+            color: '0F172A',
+          }),
+        ],
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 480, after: 240 },
+      })
+    );
+
+    let runningPage = 7;
+    items.forEach((item, idx) => {
+      const isBlock = 'type' in item;
+      const title = cleanText(isBlock ? (item as ContentBlock).text : (item as TocItem).title);
+      const isPart = isBlock
+        ? (item as ContentBlock).type === 'part'
+        : (item as TocItem).isPart || title.toUpperCase() === 'APPENDICES';
+
+      let pageNum = !isBlock ? (item as TocItem).pageNumber : undefined;
+      if (pageNum === undefined) {
+        const cleanKey = title.toLowerCase();
+        const directMatch = paginationMap.get(cleanKey);
+        const chapterMatch = title.match(/^(CHAPTER\s+\d+|Chapter\s+\d+)/i);
+        const numMatch = chapterMatch ? paginationMap.get(chapterMatch[1].toLowerCase()) : undefined;
+        if (directMatch !== undefined) {
+          pageNum = directMatch;
+          runningPage = directMatch + 2;
+        } else if (numMatch !== undefined) {
+          pageNum = numMatch;
+          runningPage = numMatch + 2;
+        } else {
+          pageNum = runningPage;
+          runningPage += isPart ? 2 : Math.max(3, Math.round(3 + (idx % 3)));
+        }
+      }
+
+      elements.push(
+        new Paragraph({
+          tabStops: [
+            {
+              type: TabStopType.RIGHT,
+              position: usableWidthTwip,
+              leader: 'dot' as any,
+            },
+          ],
+          children: [
+            new TextRun({
+              text: title,
+              bold: isPart,
+              font: isPart ? headingFontName : fontName,
+              size: isPart ? fontSize : Math.max(16, fontSize - 2),
+              color: isPart ? '0F172A' : '334155',
+            }),
+            new TextRun({ text: '\t' }),
+            new TextRun({
+              text: String(pageNum),
+              bold: isPart,
+              font: fontName,
+              size: isPart ? fontSize : Math.max(16, fontSize - 2),
+              color: isPart ? '0F172A' : '475569',
+            }),
+          ],
+          spacing: { before: isPart ? 160 : 40, after: 40 },
+          indent: isPart ? undefined : { left: convertInchesToTwip(0.2) },
+        })
+      );
+    });
+
+    return elements;
   }
 
   // Accent color map — resolved once; drives exerciseBox left-border and scenarioBox header
@@ -331,7 +416,7 @@ export async function generateDocx(
     const altRowBg = isBw ? 'FAFAFA' : 'F8FAFC';
 
     const separatorLine = tableLines.find((line) => line.match(/^\|[\s\-:]+\|/));
-    const alignments: AlignmentType[] = [];
+    const alignments: any[] = [];
 
     if (separatorLine) {
       const segs = separatorLine.split('|').filter((_, i, arr) => i > 0 && i < arr.length - 1);
@@ -497,9 +582,9 @@ export async function generateDocx(
     }
 
     // Emit TOC Placeholder before first chapter or part
-    // Suppressed if manuscript already has a TABLE OF CONTENTS front_matter block
+    // Suppressed if manuscript already has a TABLE OF CONTENTS front_matter or toc block
     const manuscriptHasToc = blocks.some(
-      (b) => b.type === 'front_matter' && /TABLE OF CONTENTS|CONTENTS/i.test(b.text)
+      (b) => b.type === 'toc' || (b.type === 'front_matter' && /TABLE OF CONTENTS|CONTENTS/i.test(b.text))
     );
     if (
       settings.generateTocPlaceholder &&
@@ -510,52 +595,18 @@ export async function generateDocx(
       hasEmittedToc = true;
       const chapterList = blocks.filter((b) => b.type === 'chapter' || b.type === 'part');
       if (chapterList.length > 0) {
-        docElements.push(new Paragraph({ children: [new PageBreak()] }));
-        docElements.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: 'TABLE OF CONTENTS',
-                bold: true,
-                font: fontName,
-                size: 32, // 16pt
-              }),
-            ],
-            alignment: AlignmentType.CENTER,
-            spacing: { before: 480, after: 240 },
-          })
-        );
-        chapterList.forEach((ch) => {
-          const title = cleanText(ch.text);
-          docElements.push(
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: title,
-                  bold: ch.type === 'part',
-                  font: fontName,
-                  size: Math.max(16, fontSize - 2),
-                }),
-                new TextRun({
-                  text: ' ................................................................ ',
-                  color: 'AAAAAA',
-                  font: fontName,
-                  size: Math.max(14, fontSize - 4),
-                }),
-                new TextRun({
-                  text: '[ ... ]',
-                  font: fontName,
-                  size: Math.max(16, fontSize - 2),
-                }),
-              ],
-              spacing: { after: 100 },
-            })
-          );
-        });
+        docElements.push(...renderDocxTocItems(chapterList));
       }
     }
 
     switch (block.type) {
+      case 'toc': {
+        const items: TocItem[] = block.metadata?.items ?? [];
+        const tocList = items.length > 0 ? items : blocks.filter((b) => b.type === 'chapter' || b.type === 'part');
+        docElements.push(...renderDocxTocItems(tocList));
+        break;
+      }
+
       case 'title':
         docElements.push(
           new Paragraph({
@@ -656,7 +707,7 @@ export async function generateDocx(
               ],
               alignment: AlignmentType.CENTER,
               spacing: { before: 720, after: 80 },
-              keepWithNext: true,
+              keepNext: true,
             })
           );
           // Tier 2: Chapter Title
@@ -675,7 +726,7 @@ export async function generateDocx(
               border: {
                 bottom: { color: 'CCCCCC', style: BorderStyle.SINGLE, size: 6, space: 8 },
               },
-              keepWithNext: true,
+              keepNext: true,
             })
           );
         } else {
@@ -693,7 +744,7 @@ export async function generateDocx(
               border: {
                 bottom: { color: '333333', style: BorderStyle.SINGLE, size: 6, space: 6 },
               },
-              keepWithNext: true,
+              keepNext: true,
             })
           );
         }

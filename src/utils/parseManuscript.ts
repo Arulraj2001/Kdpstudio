@@ -1,9 +1,27 @@
-import { BlockType, ContentBlock } from '../types/formatter';
+import { BlockType, ContentBlock, TocItem } from '../types/formatter';
+
+/**
+ * Strips markdown marker symbols while preserving textual content
+ */
+export function cleanText(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1')  // bold markers
+    .replace(/\*(.*?)\*/g, '$1')      // italic markers
+    .replace(/`(.*?)`/g, '$1')        // code markers
+    .replace(/^#+\s*/, '')            // heading markers
+    .replace(/\\\[/g, '[')
+    .replace(/\\\]/g, ']')
+    .replace(/\\\*/g, '*')
+    .replace(/\\_/g, '_')
+    .trim();
+}
 
 export const BLOCK_TYPES: Record<string, BlockType> = {
   TITLE: 'title',
   SUBTITLE: 'subtitle',
   FRONT_MATTER: 'front_matter',
+  TOC: 'toc',
   PART_HEADER: 'part',
   CHAPTER_HEADING: 'chapter',
   SECTION_HEADING: 'section',
@@ -24,9 +42,74 @@ export const BLOCK_TYPES: Record<string, BlockType> = {
   BLANK: 'blank',
 };
 
+// Table of contents keyword pattern
+const TOC_PATTERN =
+  /^##?\s*(CONTENTS|TABLE OF CONTENTS)\b/i;
+
 // Front matter keyword pattern — centralised so detectStructure can also reference it
 const FRONT_MATTER_PATTERN =
-  /^##?\s+(COPYRIGHT|DISCLAIMER|CONTENTS|TABLE OF CONTENTS|DEDICATION|TITLE PAGE|ABOUT THE AUTHOR|PRAISE FOR|ACKNOWLEDGEMENTS?|PREFACE|A NOTE TO THE READER|NOTE TO THE READER|HOW TO USE|INTRODUCTION[:—]?|PROLOGUE|EPILOGUE|AFTERWORD|APPENDICES|APPENDIX)\b/i;
+  /^##?\s+(COPYRIGHT|DISCLAIMER|DEDICATION|TITLE PAGE|ABOUT THE AUTHOR|PRAISE FOR|ACKNOWLEDGEMENTS?|PREFACE|A NOTE TO THE READER|NOTE TO THE READER|HOW TO USE|INTRODUCTION[:—]?|PROLOGUE|EPILOGUE|AFTERWORD|APPENDICES|APPENDIX)\b/i;
+
+/**
+ * Calculates realistic book page numbers for every chapter, part, front matter, and appendix.
+ */
+export function calculateBookPagination(blocks: ContentBlock[]): Map<string, number> {
+  const pageMap = new Map<string, number>();
+  let currentPage = 1;
+
+  // Title page occupies page 1
+  const hasTitle = blocks.some((b) => b.type === 'title');
+  if (hasTitle) {
+    currentPage = 2;
+  }
+
+  for (const block of blocks) {
+    if (block.type === 'toc') {
+      const itemCount = block.metadata?.items?.length ?? 12;
+      const tocPages = itemCount > 18 ? 2 : 1;
+      pageMap.set('toc', currentPage);
+      currentPage += tocPages;
+      if (currentPage % 2 === 0) {
+        currentPage += 1; // standard KDP odd-page start for main content
+      }
+    } else if (block.type === 'front_matter') {
+      const clean = cleanText(block.text);
+      pageMap.set(clean.toLowerCase(), currentPage);
+      pageMap.set(block.id, currentPage);
+      currentPage += 1;
+    } else if (block.type === 'part') {
+      const clean = cleanText(block.text);
+      if (currentPage % 2 === 0) currentPage += 1;
+      pageMap.set(clean.toLowerCase(), currentPage);
+      pageMap.set(block.id, currentPage);
+      currentPage += 1;
+    } else if (block.type === 'chapter') {
+      const clean = cleanText(block.text);
+      pageMap.set(clean.toLowerCase(), currentPage);
+      pageMap.set(block.id, currentPage);
+
+      const match = clean.match(/^(CHAPTER\s+\d+|Chapter\s+\d+)/i);
+      if (match) {
+        pageMap.set(match[1].toLowerCase(), currentPage);
+      }
+    }
+
+    // Advance estimated pages based on block density
+    const words = block.text ? block.text.split(/\s+/).filter(Boolean).length : 0;
+    if (block.type === 'table') {
+      currentPage += 0.5;
+    } else if (block.type === 'lines') {
+      const count = block.metadata?.lineCount ?? 1;
+      currentPage += count * 0.05;
+    } else if (block.type === 'exercise_header' || block.type === 'scenario_header') {
+      currentPage += 0.25;
+    } else if (words > 0) {
+      currentPage += words / 280; // ~280 words per page average
+    }
+  }
+
+  return pageMap;
+}
 
 /**
  * Detects the block type of an individual line with high-precedence semantic matching.
@@ -44,6 +127,11 @@ export function detectBlockType(line: string, _nextLine?: string): BlockType {
       return BLOCK_TYPES.PART_HEADER;
     }
     return BLOCK_TYPES.TITLE;
+  }
+
+  // 1.5 Table of Contents
+  if (TOC_PATTERN.test(trimmed)) {
+    return BLOCK_TYPES.TOC;
   }
 
   // 2. Front & Back Matter — checked BEFORE generic ## so "## INTRODUCTION:" stays front_matter
@@ -204,6 +292,64 @@ export function detectStructure(rawText: string): ContentBlock[] {
       hasTitle = true;
     } else if (type === 'chapter' || type === 'part' || type === 'front_matter') {
       hasSubtitle = true;
+    }
+
+    // 0. Table of Contents Grouping: accumulate all entries under ## CONTENTS
+    if (type === 'toc') {
+      const tocLines: string[] = [];
+      i++; // advance past ## CONTENTS line
+
+      while (i < rawLines.length) {
+        const curLine = rawLines[i];
+        const curTrimmed = curLine.trim();
+
+        // Break on explicit horizontal rule (--- or ***)
+        if (/^---+$/.test(curTrimmed) || /^\*\*\*+$/.test(curTrimmed)) {
+          i++; // consume divider
+          break;
+        }
+
+        // Break on major body header: # CHAPTER or ## CHAPTER or # PART ONE (if followed by body text)
+        if (/^#\s+(CHAPTER\s+\d+|Chapter\s+\d+)/i.test(curTrimmed) || /^##\s+(CHAPTER\s+\d+|Chapter\s+\d+)/i.test(curTrimmed)) {
+          break;
+        }
+
+        // Break on narrative paragraphs (long lines with multiple sentences)
+        if (curTrimmed.length > 120 && curTrimmed.includes('. ')) {
+          break;
+        }
+
+        if (curTrimmed !== '') {
+          tocLines.push(curTrimmed);
+        }
+        i++;
+      }
+
+      const items: TocItem[] = tocLines.map((tLine) => {
+        const clean = cleanText(tLine);
+        const isPart = /^(\*\*|__)?(PART\s+[A-Z0-9IVXLCDM]+|PART\s+[A-Za-z]+|Part\s+[A-Za-z0-9]+)[:\s—]/i.test(tLine) ||
+                       /^PART\s+[A-Z0-9IVXLCDM]+/i.test(clean);
+        const isAppendix = /^(APPENDICES|APPENDIX\s+[A-Z0-9]+|Appendix\s+[A-Z0-9]+)[:\s—]/i.test(clean) ||
+                           clean.toUpperCase() === 'APPENDICES';
+        const isFrontMatter = /^(A NOTE TO THE READER|NOTE TO THE READER|HOW TO USE|INTRODUCTION|PREFACE|DEDICATION|ABOUT THE AUTHOR|ACKNOWLEDGEMENTS?|FOREWORD|AFTERWORD)[:\s—]?/i.test(clean);
+
+        return {
+          title: clean,
+          isPart,
+          isAppendix,
+          isFrontMatter,
+          level: isPart || clean.toUpperCase() === 'APPENDICES' ? 1 : 2,
+          pageNumber: undefined,
+        };
+      });
+
+      blocks.push({
+        id: `block-${++blockCounter}`,
+        type: 'toc',
+        text: 'TABLE OF CONTENTS',
+        metadata: { items },
+      });
+      continue;
     }
 
     // 1. Table Grouping: accumulate consecutive table rows into one block
@@ -373,6 +519,32 @@ export function detectStructure(rawText: string): ContentBlock[] {
     });
 
     i++;
+  }
+
+  // Post-processing: Calculate realistic book pagination for TOC blocks
+  const paginationMap = calculateBookPagination(blocks);
+
+  for (const b of blocks) {
+    if (b.type === 'toc' && Array.isArray(b.metadata?.items)) {
+      let runningPage = 7;
+      b.metadata.items.forEach((item: TocItem, idx: number) => {
+        const cleanKey = item.title.toLowerCase();
+        const directMatch = paginationMap.get(cleanKey);
+        const chapterMatch = item.title.match(/^(CHAPTER\s+\d+|Chapter\s+\d+)/i);
+        const numMatch = chapterMatch ? paginationMap.get(chapterMatch[1].toLowerCase()) : undefined;
+
+        if (directMatch !== undefined) {
+          item.pageNumber = Math.max(1, Math.round(directMatch));
+          runningPage = item.pageNumber + 2;
+        } else if (numMatch !== undefined) {
+          item.pageNumber = Math.max(1, Math.round(numMatch));
+          runningPage = item.pageNumber + 2;
+        } else {
+          item.pageNumber = runningPage;
+          runningPage += item.isPart ? 2 : Math.max(3, Math.round(3 + (idx % 3)));
+        }
+      });
+    }
   }
 
   return blocks;
