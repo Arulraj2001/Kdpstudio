@@ -327,7 +327,7 @@ Return this exact JSON structure:
     slug: metadata.slug || generateSlug(keyword),
     excerpt: metadata.excerpt || '',
     content: cleanHtml,
-    outline: outline ? [] : await generateBlogOutline(keyword, postType, targetWordCount, audience),
+    outline: [],
     focusKeyword: keyword,
     secondaryKeywords,
     tags: Array.isArray(metadata.tags) ? metadata.tags : ['KDP Publishing', 'Book Strategy'],

@@ -448,6 +448,16 @@ ${posts.map((p) => {
   // ── Autopilot SEO & GEO Publishing Cron & API Routes ───────────────────────
   const handleAutoPublishCron = async (req: express.Request, res: express.Response) => {
     const startTime = Date.now();
+    const origin = req.headers.origin;
+    if (origin) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+    } else {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+    }
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-user-id');
+
     try {
       const authHeader = (req.headers.authorization as string) || '';
       const cronSecret = process.env.CRON_SECRET;
@@ -534,7 +544,7 @@ ${posts.map((p) => {
         {
           keyword: cluster.keyword,
           postType: cluster.suggestedType,
-          targetWordCount: 2200,
+          targetWordCount: 1750,
           tone: 'conversational',
           audience: cluster.targetAudience,
         },

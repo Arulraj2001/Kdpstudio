@@ -304,7 +304,7 @@ export function parsePathToRoute(pathname: string): PageRoute | null {
   if (clean === 'settings') return 'settings';
   if (clean === 'billing') return 'billing';
   if (clean === 'admin/blog/new') return 'admin-blog-new';
-  if (clean.startsWith('admin/blog/') && clean.endsWith('/edit')) return 'admin-blog-edit';
+  if (clean === 'admin/blog/edit' || clean === 'admin/blog/editor' || (clean.startsWith('admin/blog/') && clean.endsWith('/edit'))) return 'admin-blog-edit';
   if (clean === 'admin/blog/authors') return 'admin-blog-authors';
   if (clean === 'admin/blog/import') return 'admin-blog-import';
   if (clean === 'admin/blog/ads') return 'admin-blog-ads';
