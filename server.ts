@@ -26,6 +26,7 @@ import {
   incrementViewCount,
 } from './src/lib/blogService';
 import { validateBulkImport } from './src/lib/bulkImportValidator';
+import { generateImageWithFallback } from './src/lib/imageGeneration';
 
 dotenv.config();
 
@@ -543,6 +544,20 @@ ${posts.map((p) => {
       const postSlug = generationResult.slug;
       const now = new Date();
 
+      // 3b. Generate Bespoke 16:9 AI Cover Image (FLUX)
+      let coverImageUrl = 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80';
+      try {
+        console.log(`[AutoPublish] Generating bespoke 16:9 AI cover image for "${cluster.keyword}"...`);
+        const coverPrompt = `Modern 3D editorial illustration for an Amazon KDP self-publishing guide about ${cluster.keyword}, sleek book design, professional studio lighting, 16:9 widescreen, clean composition, photorealistic, 4k`;
+        const imgRes = await generateImageWithFallback(coverPrompt, '16:9');
+        if (imgRes && !imgRes.fallback && imgRes.imageUrl) {
+          coverImageUrl = imgRes.imageUrl;
+          console.log(`[AutoPublish] AI cover image created successfully via ${imgRes.source}!`);
+        }
+      } catch (imgErr: any) {
+        console.warn('[AutoPublish] Image generation fallback used:', imgErr?.message);
+      }
+
       // 4. Assemble Full Post Entity for Complete Validation & Firestore
       const newBlogPost: any = {
         id: postSlug,
@@ -568,7 +583,7 @@ ${posts.map((p) => {
         tags: generationResult.tags,
 
         featuredImage: {
-          url: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80',
+          url: coverImageUrl,
           alt: generationResult.title,
           caption: `Complete Amazon KDP Publishing Guide for ${cluster.keyword}`,
           width: 1200,

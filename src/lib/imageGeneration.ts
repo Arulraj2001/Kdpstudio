@@ -186,24 +186,28 @@ async function tryCloudflare(prompt: string, aspectRatio: string): Promise<strin
 // ── Public API ─────────────────────────────────────────────────────────────────
 export async function generateImageWithFallback(
   prompt: string,
-  aspectRatio: string = '2:3'
+  aspectRatio: string = '16:9'
 ): Promise<ImageGenerationResult> {
-  // 1. Imagen 3 — best quality (billing required)
-  const imagenUrl = await tryImagen(prompt, aspectRatio);
-  if (imagenUrl) {
-    return { imageUrl: imagenUrl, source: 'imagen', fallback: false };
-  }
-
-  // 2. Hugging Face FLUX.1-schnell — free
-  const hfUrl = await tryHuggingFace(prompt, aspectRatio);
-  if (hfUrl) {
-    return { imageUrl: hfUrl, source: 'huggingface', fallback: false };
-  }
-
-  // 3. Cloudflare Workers AI — free
+  // 1. Cloudflare Workers AI FLUX.1-schnell — fast (~8s), verified & 10k free daily neurons
   const cfUrl = await tryCloudflare(prompt, aspectRatio);
   if (cfUrl) {
     return { imageUrl: cfUrl, source: 'cloudflare', fallback: false };
+  }
+
+  // 2. Google Imagen 3 (with 12s safety timeout race to prevent SDK hanging on free keys)
+  try {
+    const imagenPromise = tryImagen(prompt, aspectRatio);
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 12000));
+    const imagenUrl = await Promise.race([imagenPromise, timeoutPromise]);
+    if (imagenUrl) {
+      return { imageUrl: imagenUrl, source: 'imagen', fallback: false };
+    }
+  } catch {}
+
+  // 3. Hugging Face fallback
+  const hfUrl = await tryHuggingFace(prompt, aspectRatio);
+  if (hfUrl) {
+    return { imageUrl: hfUrl, source: 'huggingface', fallback: false };
   }
 
   // 4. No provider succeeded — caller handles SVG fallback

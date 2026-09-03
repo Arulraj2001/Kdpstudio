@@ -84,6 +84,7 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
   const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false);
   const [isAiDraft, setIsAiDraft] = useState<boolean>(false);
   const [inlineAiLoading, setInlineAiLoading] = useState<boolean>(false);
+  const [generatingAiCover, setGeneratingAiCover] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'seo' | 'social' | 'schema' | 'eeat' | 'links' | 'settings'>('seo');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -578,6 +579,38 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
     }
   };
 
+  const handleGenerateAiCover = async () => {
+    setGeneratingAiCover(true);
+    showToast('🪄 Generating bespoke 16:9 cover image with AI (FLUX)...');
+    try {
+      const prompt = `Modern 3D editorial graphic for an Amazon KDP self-publishing guide: ${title || focusKeyword || 'Amazon KDP Book Publishing'}, sleek book cover design, studio lighting, 16:9 widescreen, clean minimalist aesthetic, photorealistic, 4k`;
+      const res = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          aspectRatio: '16:9',
+          style: 'Digital art',
+          mood: 'Modern & Inspiring',
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.imageUrl) {
+        setFeaturedImageUrl(data.imageUrl);
+        if (!featuredImageAlt) {
+          setFeaturedImageAlt(title || focusKeyword || 'Amazon KDP Guide Cover');
+        }
+        showToast('🎉 AI Cover Image generated successfully!');
+      } else {
+        showToast(`❌ Failed to generate image: ${data.error || 'Server error'}`);
+      }
+    } catch (err: any) {
+      showToast(`❌ Network error: ${err.message}`);
+    } finally {
+      setGeneratingAiCover(false);
+    }
+  };
+
   const handleApplyAiDraft = (result: BlogGenerationResult) => {
     setTitle(result.title);
     setSlug(result.slug);
@@ -1021,10 +1054,21 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
 
           {/* Featured Image Section */}
           <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3">
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-              <ImageIcon size={14} className="text-purple-600" />
-              <span>Featured Cover Image (1200×630px)</span>
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                <ImageIcon size={14} className="text-purple-600" />
+                <span>Featured Cover Image (1200×630px)</span>
+              </h3>
+              <button
+                type="button"
+                onClick={handleGenerateAiCover}
+                disabled={generatingAiCover}
+                className="px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 rounded-lg shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-all shrink-0"
+              >
+                <Sparkles size={12} className={generatingAiCover ? 'animate-spin' : ''} />
+                <span>{generatingAiCover ? 'Generating (~8s)...' : '🪄 Generate with AI (FLUX)'}</span>
+              </button>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
               {/* Preview Thumbnail */}
