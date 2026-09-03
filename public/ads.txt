@@ -1,0 +1,4 @@
+# Google AdSense Publisher Verification for KDP Studio
+# Format: google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+# Configure your Publisher ID in /admin/blog/ads to customize this automatically.
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0

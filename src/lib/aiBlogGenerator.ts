@@ -207,6 +207,7 @@ CONTENT STRUCTURE REQUIREMENTS:
 2. CONCRETE NUMBERS & FORMULAS: Include exact numbers (e.g. 0.375" margins, 0.002252" spine width multiplier, 300 DPI, $1.00 fixed printing fee, 60% royalty rates).
 3. DATA TABLE: Must include at least ONE detailed comparison table using <table>, <thead>, <tbody>, <tr>, <th>, and <td>.
 4. INTERNAL CONVERSION LINKS: Naturally recommend KDP Studio's tools (e.g., <a href='/studio'>KDP Studio Formatter</a>, <a href='/cover'>Cover Designer</a>, <a href='/puzzles'>Puzzle Generator</a>, or <a href='/pricing'>Pricing</a>).
+5. CONTEXT-AWARE INTERNAL BLOG LINKS: You MUST naturally embed 2-3 links to existing related articles on our site using <a href='/blog/[slug]'>Descriptive Anchor Text</a>.
 
 OUTPUT FORMAT RULES:
 - Return ONLY valid clean HTML tags: <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>, <blockquote>, <table>, <thead>, <tbody>, <tr>, <th>, <td>, <a href='...'>
@@ -214,7 +215,7 @@ OUTPUT FORMAT RULES:
 - Do NOT output markdown code fences. Pure HTML only.`;
 
   const existingPostsContext = existingPosts.length > 0
-    ? `Existing blog posts you can reference as internal links:\n${existingPosts.map((p) => `- "${p.title}": use link format <a href='INTERNAL:${p.slug}'>link text</a>`).join('\n')}`
+    ? `Existing published blog posts on our site (you MUST link to 2-3 of these in the article body using <a href='/blog/[slug]'>Anchor Text</a>):\n${existingPosts.slice(-15).map((p) => `- "${p.title}": /blog/${p.slug}`).join('\n')}`
     : '';
 
   const userPrompt = `Write a comprehensive ${postType} blog post targeting the focus keyword "${keyword}".
@@ -232,6 +233,11 @@ Write the full, deep HTML article now:`;
 
   const rawHtml = await callGemini(userPrompt, systemPrompt);
   let cleanHtml = rawHtml.replace(/```html/gi, '').replace(/```/g, '').trim();
+
+  // Normalize any INTERNAL: or relative blog links
+  cleanHtml = cleanHtml
+    .replace(/href=['"]INTERNAL:([^'"]+)['"]/g, "href='/blog/$1'")
+    .replace(/href=['"]\/blog\/INTERNAL:([^'"]+)['"]/g, "href='/blog/$1'");
 
   // Run the Humanizer auto-sanitizer to catch and clean any accidental slip-ups
   const humanized = humanizeContent(cleanHtml);

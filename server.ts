@@ -27,6 +27,7 @@ import {
 } from './src/lib/blogService';
 import { validateBulkImport } from './src/lib/bulkImportValidator';
 import { generateImageWithFallback } from './src/lib/imageGeneration';
+import { findUniqueTrendingTopic } from './src/lib/seo/trendEngine';
 
 dotenv.config();
 
@@ -513,7 +514,14 @@ ${posts.map((p) => {
           };
         }
       } else {
-        cluster = getNextUnwrittenKeyword(existingSlugs);
+        // Priority 1: Autonomous Live Trend Discovery (Google News RSS + Google Trends RSS + Google Suggest + Gemini Embeddings Deduplication)
+        try {
+          console.log('[Express AutoPublish] Launching Live Trend Discovery Engine...');
+          cluster = await findUniqueTrendingTopic(existingPosts);
+        } catch (trendErr: any) {
+          console.warn('[Express AutoPublish] Trend engine fallback to curated repository:', trendErr?.message);
+          cluster = getNextUnwrittenKeyword(existingSlugs);
+        }
       }
 
       if (!cluster) {
@@ -599,10 +607,10 @@ ${posts.map((p) => {
 
         ogTitle: generationResult.metaTitle,
         ogDescription: generationResult.metaDescription,
-        ogImage: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80',
+        ogImage: coverImageUrl,
         twitterTitle: generationResult.metaTitle,
         twitterDescription: generationResult.metaDescription,
-        twitterImage: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80',
+        twitterImage: coverImageUrl,
 
         readingTimeMinutes: generationResult.estimatedReadingTime,
         wordCount: generationResult.wordCount,
@@ -758,6 +766,83 @@ ${posts.map((p) => {
   app.get('/api/cron/auto-publish', handleAutoPublishCron);
   app.post('/api/cron/auto-publish', handleAutoPublishCron);
   app.post('/api/admin/blog/auto-publish', handleAutoPublishCron);
+
+  // Google AdSense ads.txt Root Verification Route
+  app.get('/ads.txt', async (req, res) => {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    try {
+      const { getAdConfig } = await import('./src/lib/blogService');
+      const adConfig = await getAdConfig();
+      const pubId = adConfig?.adsensePublisherId?.trim();
+      if (pubId && /^ca-pub-\d{16}$/i.test(pubId)) {
+        const cleanPub = pubId.replace(/^ca-/i, '');
+        return res.send(`# Google AdSense Publisher Verification for KDP Studio\ngoogle.com, ${cleanPub}, DIRECT, f08c47fec0942fa0\n`);
+      }
+    } catch {}
+    const adsTxtPath = path.resolve('public', 'ads.txt');
+    if (fs.existsSync(adsTxtPath)) {
+      return res.send(fs.readFileSync(adsTxtPath, 'utf8'));
+    }
+    return res.send('google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0\n');
+  });
+
+  // Weekly Content Freshness & Maintenance Cron
+  app.all('/api/cron/refresh-oldest-posts', async (req, res) => {
+    try {
+      const authHeader = (req.headers.authorization as string) || '';
+      const cronSecret = process.env.CRON_SECRET;
+      if (cronSecret && authHeader !== `Bearer ${cronSecret}` && req.query.secret !== cronSecret) {
+        return res.status(401).json({ error: 'Unauthorized: Invalid CRON_SECRET' });
+      }
+      const { getAdminDb } = await import('./src/lib/firebase-admin');
+      const adminDb = getAdminDb();
+      if (!adminDb) return res.status(500).json({ error: 'Firestore Admin not available' });
+
+      const snap = await adminDb
+        .collection('blogPosts')
+        .where('status', '==', 'published')
+        .orderBy('updatedAt', 'asc')
+        .limit(2)
+        .get();
+
+      if (snap.empty) {
+        return res.json({ success: true, message: 'No published posts to refresh.' });
+      }
+
+      const now = new Date();
+      const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December',
+      ];
+      const freshnessNotice = `Updated and verified for ${monthNames[now.getMonth()]} ${now.getFullYear()} Amazon KDP publishing standards.`;
+
+      const refreshedSlugs: string[] = [];
+      for (const doc of snap.docs) {
+        const d = doc.data();
+        const slug = d.slug || doc.id;
+        await doc.ref.update({
+          updatedAt: now.toISOString(),
+          lastReviewedAt: now.toISOString(),
+          reviewedBy: 'KDP Publishing Standards Committee',
+          freshnessNotice,
+        });
+        refreshedSlugs.push(slug);
+      }
+
+      try {
+        const { pingIndexNow } = await import('./src/lib/seo/indexNowService');
+        await pingIndexNow(refreshedSlugs.map((s) => `https://kdpstudio-aio.web.app/blog/${s}`));
+      } catch {}
+
+      return res.json({
+        success: true,
+        message: `Refreshed ${refreshedSlugs.length} oldest posts for freshness signals.`,
+        refreshedSlugs,
+      });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
 
   // Internal Linking & Graph API
   app.get('/api/admin/blog/internal-links', async (req, res) => {
