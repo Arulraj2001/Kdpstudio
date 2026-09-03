@@ -167,7 +167,7 @@ async function handleAutoPublish(req: NextRequest) {
       // Author E-E-A-T Attribution
       authorId: 'kdp-studio-editorial',
       authorName: 'Arulraj & KDP Studio Editorial Team',
-      authorPhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
+      authorPhotoUrl: 'https://tgzcfewrrnsrsopdgibw.supabase.co/storage/v1/object/public/portfolio-images/uploads/avtqb00_1786326030480.png',
       authorCredentials: 'Amazon KDP Publisher & Publishing Tech Specialist',
 
       // Timestamps

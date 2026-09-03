@@ -51,7 +51,7 @@ export const DEFAULT_BLOG_AUTHORS: BlogAuthor[] = [
     credentials: 'Amazon KDP Publisher & Publishing Tech Specialist',
     shortBio: 'Founder & Lead Publishing Strategist at KDP Studio.',
     bio: 'Publisher and tool creator with extensive experience in Amazon KDP interior formatting, keyword indexing, and margin guidelines.',
-    photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
+    photoUrl: 'https://tgzcfewrrnsrsopdgibw.supabase.co/storage/v1/object/public/portfolio-images/uploads/avtqb00_1786326030480.png',
     isVerifiedExpert: true,
   },
   {
@@ -116,7 +116,9 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
   const [authorId, setAuthorId] = useState<string>('');
   const [authorName, setAuthorName] = useState<string>('KDP Studio Team');
   const [authorCredentials, setAuthorCredentials] = useState<string>('KDP Publishing Specialist');
-  const [authorPhotoUrl, setAuthorPhotoUrl] = useState<string | null>(null);
+  const [authorPhotoUrl, setAuthorPhotoUrl] = useState<string | null>(
+    'https://tgzcfewrrnsrsopdgibw.supabase.co/storage/v1/object/public/portfolio-images/uploads/avtqb00_1786326030480.png'
+  );
   const [lastReviewedAt, setLastReviewedAt] = useState<string>(new Date().toISOString().slice(0, 10));
   const [reviewedBy, setReviewedBy] = useState<string>('');
   const [isExpertReviewed, setIsExpertReviewed] = useState<boolean>(false);

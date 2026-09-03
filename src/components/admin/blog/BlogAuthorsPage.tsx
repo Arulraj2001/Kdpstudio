@@ -74,7 +74,7 @@ export const BlogAuthorsPage: React.FC<BlogAuthorsPageProps> = ({ onNavigate }) 
     setCredentials('KDP Publisher, 5+ years');
     setShortBio('Author & Publishing Strategist specializing in high-royalty KDP books.');
     setBio('Publishing expert with extensive experience launching fiction, non-fiction, and activity books on Amazon.');
-    setPhotoUrl('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80');
+    setPhotoUrl('https://tgzcfewrrnsrsopdgibw.supabase.co/storage/v1/object/public/portfolio-images/uploads/avtqb00_1786326030480.png');
     setExpertise(['Amazon KDP', 'Self-Publishing', 'Book Formatting']);
     setLinkedinUrl('');
     setTwitterUrl('');
