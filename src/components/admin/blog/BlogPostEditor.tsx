@@ -43,10 +43,44 @@ interface BlogPostEditorProps {
   onNavigate: (route: PageRoute) => void;
 }
 
+export const DEFAULT_BLOG_AUTHORS: BlogAuthor[] = [
+  {
+    id: 'kdp-studio-editorial',
+    name: 'Arulraj & KDP Studio Editorial Team',
+    slug: 'arulraj-kdp-studio-editorial',
+    credentials: 'Amazon KDP Publisher & Publishing Tech Specialist',
+    shortBio: 'Founder & Lead Publishing Strategist at KDP Studio.',
+    bio: 'Publisher and tool creator with extensive experience in Amazon KDP interior formatting, keyword indexing, and margin guidelines.',
+    photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
+    isVerifiedExpert: true,
+  },
+  {
+    id: 'kdp-editorial-board',
+    name: 'KDP Studio Editorial Board',
+    slug: 'kdp-studio-editorial-board',
+    credentials: 'Senior KDP Publishing Strategists & Market Analysts',
+    shortBio: 'Dedicated book formatting, design, and Amazon search optimization team.',
+    bio: 'Our editorial board monitors Amazon KDP guidelines, print quality requirements, trim size changes, and algorithmic updates.',
+    photoUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=256&q=80',
+    isVerifiedExpert: true,
+  },
+  {
+    id: 'kdp-studio-team',
+    name: 'KDP Studio Team',
+    slug: 'kdp-studio-team',
+    credentials: 'KDP Publishing Specialists',
+    shortBio: 'Product team building automated tools for self-publishers.',
+    bio: 'Creating innovative solutions for low-content, activity book, and puzzle book publishers.',
+    photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80',
+    isVerifiedExpert: true,
+  },
+];
+
 export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNavigate }) => {
   const [loading, setLoading] = useState<boolean>(Boolean(postId));
   const [saving, setSaving] = useState<boolean>(false);
-  const [authors, setAuthors] = useState<BlogAuthor[]>([]);
+  const [authors, setAuthors] = useState<BlogAuthor[]>(DEFAULT_BLOG_AUTHORS);
+  const [isCustomAuthor, setIsCustomAuthor] = useState<boolean>(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false);
   const [isAiDraft, setIsAiDraft] = useState<boolean>(false);
   const [inlineAiLoading, setInlineAiLoading] = useState<boolean>(false);
@@ -135,21 +169,27 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
     getAllAuthors()
       .then((authorList) => {
         if (Array.isArray(authorList) && authorList.length > 0) {
-          setAuthors(authorList);
-          if (!authorId && !postId) {
-            setAuthorId(authorList[0].id);
-            setAuthorName(authorList[0].name);
-            setAuthorCredentials(authorList[0].credentials);
-            setAuthorPhotoUrl(authorList[0].photoUrl);
-          }
+          const existingIds = new Set(authorList.map((a) => a.id));
+          const merged = [...authorList, ...DEFAULT_BLOG_AUTHORS.filter((d) => !existingIds.has(d.id))];
+          setAuthors(merged);
+        } else {
+          setAuthors(DEFAULT_BLOG_AUTHORS);
         }
       })
-      .catch(() => {});
-  }, [authorId, postId]);
+      .catch(() => {
+        setAuthors(DEFAULT_BLOG_AUTHORS);
+      });
+  }, []);
 
   // Load existing post if editing
   useEffect(() => {
     if (!postId) {
+      // Default to first author for new posts
+      setAuthorId(DEFAULT_BLOG_AUTHORS[0].id);
+      setAuthorName(DEFAULT_BLOG_AUTHORS[0].name);
+      setAuthorCredentials(DEFAULT_BLOG_AUTHORS[0].credentials);
+      setAuthorPhotoUrl(DEFAULT_BLOG_AUTHORS[0].photoUrl);
+
       // Check local storage draft for new post
       const savedDraft = localStorage.getItem('kdp_blog_draft_new');
       if (savedDraft) {
@@ -174,10 +214,29 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
           setOriginalStatus(found.status || 'draft');
           setCategory(found.category || 'Publishing Strategy');
           setTags(found.tags || []);
-          setAuthorId(found.authorId || '');
-          setAuthorName(found.authorName || 'KDP Studio Team');
-          setAuthorCredentials(found.authorCredentials || '');
-          setAuthorPhotoUrl(found.authorPhotoUrl || null);
+          setAuthorId(found.authorId || 'kdp-studio-editorial');
+          setAuthorName(found.authorName || DEFAULT_BLOG_AUTHORS[0].name);
+          setAuthorCredentials(found.authorCredentials || DEFAULT_BLOG_AUTHORS[0].credentials);
+          setAuthorPhotoUrl(found.authorPhotoUrl || DEFAULT_BLOG_AUTHORS[0].photoUrl);
+
+          // Ensure post's author is in the selectable authors list
+          setAuthors((prev) => {
+            const match = prev.find((a) => a.id === found.authorId || a.name === found.authorName);
+            if (!match && found.authorName) {
+              return [
+                {
+                  id: found.authorId || 'custom-post-author',
+                  name: found.authorName,
+                  slug: found.authorName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+                  credentials: found.authorCredentials || 'KDP Publishing Specialist',
+                  photoUrl: found.authorPhotoUrl || null,
+                  isVerifiedExpert: true,
+                } as BlogAuthor,
+                ...prev,
+              ];
+            }
+            return prev;
+          });
           setLastReviewedAt(found.lastReviewedAt ? String(found.lastReviewedAt).slice(0, 10) : '');
           setReviewedBy(found.reviewedBy || '');
           setIsExpertReviewed(Boolean(found.isExpertReviewed));
@@ -344,12 +403,18 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
 
   // Author Change Handler
   const handleSelectAuthor = (id: string) => {
+    if (id === 'custom') {
+      setIsCustomAuthor(true);
+      setAuthorId('custom');
+      return;
+    }
+    setIsCustomAuthor(false);
     const selected = authors.find((a) => a.id === id);
     if (selected) {
       setAuthorId(selected.id);
       setAuthorName(selected.name);
-      setAuthorCredentials(selected.credentials);
-      setAuthorPhotoUrl(selected.photoUrl);
+      setAuthorCredentials(selected.credentials || '');
+      setAuthorPhotoUrl(selected.photoUrl || null);
     }
   };
 
@@ -1322,20 +1387,100 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
               {/* ── TAB 4: EEAT ── */}
               {activeTab === 'eeat' && (
                 <div className="space-y-4 animate-in fade-in duration-150">
-                  {/* Author Selector */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-800">Attributed Author</label>
-                    <select
-                      value={authorId}
-                      onChange={(e) => handleSelectAuthor(e.target.value)}
-                      className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 outline-none font-semibold text-slate-800"
-                    >
-                      {authors.map((auth) => (
-                        <option key={auth.id} value={auth.id}>
-                          {auth.name} ({auth.credentials || 'Author'})
-                        </option>
-                      ))}
-                    </select>
+                  {/* Author Selector & Profile Card */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-slate-800">Attributed Author</label>
+                      <button
+                        type="button"
+                        onClick={() => setIsCustomAuthor(!isCustomAuthor)}
+                        className="text-[11px] font-bold text-purple-600 hover:text-purple-800 cursor-pointer"
+                      >
+                        {isCustomAuthor ? 'Choose from Presets' : '+ Custom Author Details'}
+                      </button>
+                    </div>
+
+                    {!isCustomAuthor && (
+                      <select
+                        value={authorId}
+                        onChange={(e) => handleSelectAuthor(e.target.value)}
+                        className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 outline-none font-semibold text-slate-800 cursor-pointer focus:ring-2 focus:ring-purple-500/20"
+                      >
+                        {authors.map((auth) => (
+                          <option key={auth.id} value={auth.id}>
+                            {auth.name} — {auth.credentials || 'Author'}
+                          </option>
+                        ))}
+                        <option value="custom">✍️ Custom Author (Enter Name & Title)</option>
+                      </select>
+                    )}
+
+                    {/* Author Preview Card */}
+                    <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2.5">
+                      <div className="flex items-center gap-3">
+                        {authorPhotoUrl ? (
+                          <img
+                            src={authorPhotoUrl}
+                            alt={authorName}
+                            className="w-10 h-10 rounded-full object-cover border border-purple-200 shrink-0 shadow-xs"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-xs">
+                            {authorName ? authorName.charAt(0).toUpperCase() : 'A'}
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs font-bold text-slate-900 truncate flex items-center gap-1.5">
+                            <span>{authorName || 'Unnamed Author'}</span>
+                            <span className="px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[9px] font-semibold">
+                              Verified Author
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-slate-500 truncate">
+                            {authorCredentials || 'Amazon KDP Publishing Specialist'}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Editable Inputs for Custom Author */}
+                      {isCustomAuthor && (
+                        <div className="pt-2 border-t border-slate-200/60 space-y-2 animate-in fade-in duration-150">
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Author Full Name</label>
+                            <input
+                              type="text"
+                              value={authorName}
+                              onChange={(e) => setAuthorName(e.target.value)}
+                              placeholder="e.g. Arulraj & KDP Studio Editorial Team"
+                              className="w-full px-2.5 py-1.5 text-xs rounded-lg bg-white border border-slate-200 outline-none focus:border-purple-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Credentials / Title</label>
+                            <input
+                              type="text"
+                              value={authorCredentials}
+                              onChange={(e) => setAuthorCredentials(e.target.value)}
+                              placeholder="e.g. Amazon KDP Publisher & Publishing Tech Specialist"
+                              className="w-full px-2.5 py-1.5 text-xs rounded-lg bg-white border border-slate-200 outline-none focus:border-purple-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Avatar Photo URL (Optional)</label>
+                            <input
+                              type="text"
+                              value={authorPhotoUrl || ''}
+                              onChange={(e) => setAuthorPhotoUrl(e.target.value || null)}
+                              placeholder="https://..."
+                              className="w-full px-2.5 py-1.5 text-xs rounded-lg bg-white border border-slate-200 outline-none focus:border-purple-500 font-mono"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Expert Reviewed Toggle */}
