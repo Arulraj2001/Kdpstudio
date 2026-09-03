@@ -5,8 +5,58 @@
 
 import { apiPost, getAuthHeaders, getApiUrl } from './apiClient';
 
+async function callOpenRouter(prompt: string, systemPrompt?: string, model: string = 'deepseek/deepseek-chat'): Promise<string> {
+  const apiKey = process.env.OpenRouter_key || process.env.OPENROUTER_API_KEY;
+  if (!apiKey) throw new Error('No OpenRouter key configured');
+
+  const messages: any[] = [];
+  if (systemPrompt) {
+    messages.push({ role: 'system', content: systemPrompt });
+  }
+  messages.push({ role: 'user', content: prompt });
+
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://kdpstudio-aio.web.app',
+      'X-Title': 'KDP Studio Blog AI',
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      temperature: 0.7,
+    }),
+    signal: AbortSignal.timeout(90000),
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(`OpenRouter error ${res.status}: ${errData?.error?.message || res.statusText}`);
+  }
+
+  const data = await res.json();
+  const text = data.choices?.[0]?.message?.content || '';
+  if (!text) throw new Error('OpenRouter returned empty response');
+  return text;
+}
+
 export async function callGemini(prompt: string, systemPrompt?: string): Promise<string> {
   if (typeof window === 'undefined') {
+    // 1. Prioritize DeepSeek-V3 via OpenRouter (exceptional humanized quality, no 20/day Google quota)
+    const openRouterKey = process.env.OpenRouter_key || process.env.OPENROUTER_API_KEY;
+    if (openRouterKey && !openRouterKey.includes('REPLACE')) {
+      try {
+        console.log('[AI Engine] Generating with DeepSeek-V3 via OpenRouter...');
+        const text = await callOpenRouter(prompt, systemPrompt, 'deepseek/deepseek-chat');
+        if (text && text.trim()) return text;
+      } catch (orErr: any) {
+        console.warn('[AI Engine] OpenRouter DeepSeek-V3 failed, falling back to Google Gemini 3.5 Flash:', orErr?.message);
+      }
+    }
+
+    // 2. Google Gemini Fallback Pool
     let serverApiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
     if (!serverApiKey) {
       try {
@@ -20,39 +70,36 @@ export async function callGemini(prompt: string, systemPrompt?: string): Promise
       const { GoogleGenAI } = await import('@google/genai');
       const ai = new GoogleGenAI({ apiKey: serverApiKey });
 
+      const GEMINI_MODELS = ['gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.5-flash-lite'];
       let lastErr: any = null;
-      for (let attempt = 0; attempt < 4; attempt++) {
-        try {
-          const response = await ai.models.generateContent({
-            model: 'gemini-3.6-flash',
-            contents: prompt,
-            config: systemPrompt ? { systemInstruction: systemPrompt } : undefined,
-          });
-          return response.text || '';
-        } catch (err: any) {
-          lastErr = err;
-          const isRateLimit =
-            err?.message?.includes('429') ||
-            err?.message?.includes('quota') ||
-            err?.message?.includes('RESOURCE_EXHAUSTED');
 
-          const isRetryable =
-            isRateLimit ||
-            err?.message?.includes('503') ||
-            err?.message?.includes('high demand') ||
-            err?.message?.includes('UNAVAILABLE') ||
-            err?.status === 'UNAVAILABLE';
+      for (const model of GEMINI_MODELS) {
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try {
+            console.log(`[AI Engine] Trying Google Gemini model: ${model} (attempt ${attempt + 1})...`);
+            const response = await ai.models.generateContent({
+              model,
+              contents: prompt,
+              config: systemPrompt ? { systemInstruction: systemPrompt } : undefined,
+            });
+            if (response.text) return response.text;
+          } catch (err: any) {
+            lastErr = err;
+            const isRateLimit =
+              err?.message?.includes('429') ||
+              err?.message?.includes('quota') ||
+              err?.message?.includes('RESOURCE_EXHAUSTED');
 
-          if (isRetryable && attempt < 3) {
-            const delayMs = isRateLimit ? 10500 : (attempt + 1) * 3000;
-            console.warn(`[callGemini] Rate limit / high demand detected. Retrying attempt ${attempt + 2}/4 in ${delayMs}ms...`);
-            await new Promise((resolve) => setTimeout(resolve, delayMs));
-            continue;
+            if (isRateLimit && attempt === 0) {
+              console.warn(`[AI Engine] Rate limit on ${model}. Waiting 3s before retry...`);
+              await new Promise((resolve) => setTimeout(resolve, 3000));
+              continue;
+            }
+            break; // Try next model in pool
           }
-          throw err;
         }
       }
-      throw lastErr;
+      if (lastErr) throw lastErr;
     }
   }
 

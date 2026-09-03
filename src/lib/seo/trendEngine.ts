@@ -12,6 +12,7 @@
 
 import { GoogleGenAI } from '@google/genai';
 import { KdpKeywordCluster } from './kdpKeywordRepository';
+import { callGemini } from '../gemini';
 
 export interface TrendingCandidate {
   keyword: string;
@@ -208,14 +209,11 @@ Return ONLY a valid JSON array of 3 objects with this exact structure (no markdo
 
   let candidates: TrendingCandidate[] = [];
   try {
-    const res = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
-      contents: prompt,
-    });
-    const cleaned = (res.text || '').replace(/```json/gi, '').replace(/```/g, '').trim();
+    const rawText = await callGemini(prompt, 'You are an elite Amazon KDP SEO strategist. Return valid JSON only.');
+    const cleaned = (rawText || '').replace(/```json/gi, '').replace(/```/g, '').trim();
     candidates = JSON.parse(cleaned);
   } catch (err: any) {
-    console.warn('[TrendEngine] Gemini synthesis fallback:', err.message);
+    console.warn('[TrendEngine] AI synthesis fallback:', err.message);
   }
 
   // If candidate parsing failed, provide an intelligent dynamic fallback

@@ -3756,7 +3756,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
 
         try {
           const responseStream = await ai.models.generateContentStream({
-            model: 'gemini-3.6-flash',
+            model: 'gemini-3.5-flash',
             contents: prompt,
             config: systemInstruction ? { systemInstruction } : undefined,
           });
@@ -3785,7 +3785,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
           const response = await ai.models.generateContent({
-            model: 'gemini-3.6-flash',
+            model: 'gemini-3.5-flash',
             contents: prompt,
             config: systemInstruction ? { systemInstruction } : undefined,
           });
@@ -4831,7 +4831,7 @@ Return valid JSON with: readingLevel (grade, fleschScore, averageSentenceLength,
       let aiParsed: any = null;
       try {
         const response = await ai.models.generateContent({
-          model: 'gemini-3.6-flash',
+          model: 'gemini-3.5-flash',
           contents: prompt,
           config: { responseMimeType: 'application/json' },
         });
