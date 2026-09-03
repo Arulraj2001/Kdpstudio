@@ -1,0 +1,29 @@
+# KDP Studio
+> The complete AI-powered self-publishing suite for Amazon Kindle Direct Publishing (KDP).
+
+KDP Studio provides end-to-end software tools for independent authors, low-content creators, and self-publishers. It automates manuscript writing, 300 DPI print wrap cover design, interior PDF typesetting, puzzle creation, and Amazon KDP metadata optimization.
+
+## Core Capabilities & Tools
+- **Manuscript Studio**: AI-assisted chapter writing, outline generation, and editorial style enforcement.
+- **Interior Formatter**: Automated PDF typesetting supporting all standard KDP trim sizes (6x9", 8.5x11", 5x8", 5.5x8.5") with strict gutter margin safety rules, bleed handling, and PDF/X-1a compliance.
+- **Cover Designer**: Generates upload-ready 300 DPI wrap covers with precise spine width calculations based on page count and paper type (white, cream, standard color, premium color).
+- **Puzzle & Activity Engine**: Generates valid, single-solution Word Search, Sudoku, Cryptograms, and Mazes with automated answer keys.
+- **Royalty & Profit Calculator**: Accurately computes Amazon KDP printing costs, 60% paperback royalties, and 70%/35% ebook royalties.
+- **Metadata & Niche Research**: Analyzes Amazon A9 search volume, keyword competition, and BSR trends.
+
+## Amazon KDP Essential Publishing Rules & Reference Data
+- **Standard Spine Width Formulas**:
+  - White Paper: `Page Count × 0.002252 inches` (or `Page Count × 0.0572 mm`)
+  - Cream Paper: `Page Count × 0.0025 inches` (or `Page Count × 0.0635 mm`)
+  - Premium Color: `Page Count × 0.002347 inches`
+- **Bleed Rule**: Add `0.125 inches` (3.2 mm) to top, bottom, and outside edges. (Example: 6" x 9" with bleed becomes 6.125" x 9.250").
+- **Gutter Margins**:
+  - 24–150 pages: `0.375"` (9.6 mm)
+  - 151–300 pages: `0.500"` (12.7 mm)
+  - 301–500 pages: `0.625"` (15.9 mm)
+  - 501–700 pages: `0.750"` (19.1 mm)
+
+## Guides & Tutorials
+- [KDP Publishing Guides](https://kdpstudio-aio.web.app/blog)
+- [Pricing & Free Tier](https://kdpstudio-aio.web.app/pricing)
+- [Tools Overview](https://kdpstudio-aio.web.app/features)

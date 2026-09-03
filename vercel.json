@@ -1,6 +1,10 @@
 {
   "crons": [
     {
+      "path": "/api/cron/auto-publish",
+      "schedule": "0 4 * * *"
+    },
+    {
       "path": "/api/cron/check-expiring-plans",
       "schedule": "0 9 * * *"
     },

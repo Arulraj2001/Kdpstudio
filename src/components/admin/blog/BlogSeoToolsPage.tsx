@@ -17,6 +17,9 @@ import {
   ArrowRight,
   ShieldCheck,
   AlertCircle,
+  Sparkles,
+  Bot,
+  Zap,
 } from 'lucide-react';
 import { PageRoute } from '../../../types';
 
@@ -39,6 +42,10 @@ export const BlogSeoToolsPage: React.FC<BlogSeoToolsPageProps> = ({ onNavigate }
   // Link Graph & Orphan Post State
   const [linkGraph, setLinkGraph] = useState<any | null>(null);
   const [loadingGraph, setLoadingGraph] = useState<boolean>(false);
+
+  // Autopilot Engine State
+  const [runningAutopilot, setRunningAutopilot] = useState<boolean>(false);
+  const [autopilotResult, setAutopilotResult] = useState<any | null>(null);
 
   const baseUrl = typeof window !== 'undefined'
     ? window.location.origin
@@ -120,6 +127,32 @@ export const BlogSeoToolsPage: React.FC<BlogSeoToolsPageProps> = ({ onNavigate }
       showToast(`❌ Network error: ${err.message}`);
     } finally {
       setRevalidatingAll(false);
+    }
+  };
+
+  const handleTriggerAutopilot = async () => {
+    setRunningAutopilot(true);
+    showToast('🤖 Triggering Autopilot SEO & GEO Engine...');
+    try {
+      const res = await fetch('/api/cron/auto-publish', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setAutopilotResult(data);
+        if (data.published) {
+          showToast(`🎉 Published: "${data.keyword}" (${data.wordCount} words, Score: ${data.qualityScore}/100)`);
+          setPublishedCount((prev) => prev + 1);
+          setPostCount((prev) => prev + 1);
+        } else {
+          showToast(`⚠️ Saved as Draft (${data.gateFailures?.length || 0} gate issues)`);
+        }
+      } else {
+        showToast(`❌ Autopilot failed: ${data.error || 'Server error'}`);
+        setAutopilotResult(data);
+      }
+    } catch (err: any) {
+      showToast(`❌ Network error: ${err.message}`);
+    } finally {
+      setRunningAutopilot(false);
     }
   };
 
@@ -326,6 +359,148 @@ export const BlogSeoToolsPage: React.FC<BlogSeoToolsPageProps> = ({ onNavigate }
             </button>
           </div>
         </div>
+      </div>
+
+      {/* ── Section: 100% Autopilot SEO & GEO Engine ── */}
+      <div className="bg-gradient-to-br from-purple-900 via-indigo-950 to-slate-900 border border-purple-500/30 rounded-3xl p-6 sm:p-8 text-white shadow-xl space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-400/30">
+                <Bot size={16} />
+              </span>
+              <h2 className="text-sm font-black uppercase tracking-wider text-purple-200">
+                Autopilot SEO & GEO Traffic Engine
+              </h2>
+            </div>
+            <p className="text-xs text-slate-300">
+              Zero-touch background publishing rotating across 150+ high-intent Amazon KDP keyword clusters with strict anti-AI humanizer rules and instant IndexNow search engine notification.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-xs font-bold flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              Daily Cron Active (04:00 AM UTC)
+            </span>
+          </div>
+        </div>
+
+        {/* Feature Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+            <div className="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-1.5">
+              <Sparkles size={13} className="text-amber-300" />
+              <span>Humanizer Quality Gates</span>
+            </div>
+            <p className="text-[11px] text-slate-300 leading-relaxed">
+              0% tolerance on banned AI clichés (<code className="text-purple-300">delve</code>, <code className="text-purple-300">tapestry</code>, <code className="text-purple-300">crucial</code>), dynamic sentence burstiness, and authentic publisher voice.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+            <div className="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-1.5">
+              <Zap size={13} className="text-emerald-300" />
+              <span>Instant IndexNow</span>
+            </div>
+            <p className="text-[11px] text-slate-300 leading-relaxed">
+              New articles automatically ping Microsoft Bing, Yahoo, and Yandex via IndexNow protocol for crawler indexing in hours instead of months.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+            <div className="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-1.5">
+              <Globe size={13} className="text-sky-300" />
+              <span>GEO & AI Search Ready</span>
+            </div>
+            <p className="text-[11px] text-slate-300 leading-relaxed">
+              Structured JSON-LD schema (FAQPage, HowTo, Article) and standardized <a href="/llms.txt" target="_blank" className="text-purple-300 underline font-mono">/llms.txt</a> for Perplexity and ChatGPT search.
+            </p>
+          </div>
+        </div>
+
+        {/* Manual Trigger Bar */}
+        <div className="p-4 rounded-2xl bg-black/40 border border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+          <div className="text-xs text-slate-300 space-y-0.5">
+            <div className="font-bold text-white flex items-center gap-2">
+              <span>Test-Fire Background Generator</span>
+              <span className="text-[10px] bg-purple-500/30 text-purple-200 px-2 py-0.5 rounded-md border border-purple-400/20">
+                1 Click
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400">
+              Want to see it in action without waiting for the 4:00 AM timer? Trigger the engine right now.
+            </p>
+          </div>
+
+          <button
+            onClick={handleTriggerAutopilot}
+            disabled={runningAutopilot}
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white font-bold text-xs shadow-lg shadow-purple-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 shrink-0"
+          >
+            <Bot size={15} className={runningAutopilot ? 'animate-spin' : ''} />
+            <span>{runningAutopilot ? 'Generating Article (~40s)...' : 'Run Autopilot Generator Now'}</span>
+          </button>
+        </div>
+
+        {/* Real-time Output Inspector if triggered */}
+        {autopilotResult && (
+          <div className="p-4 rounded-2xl bg-black/60 border border-purple-500/40 space-y-3 animate-in fade-in duration-200 font-mono text-xs">
+            <div className="flex items-center justify-between text-purple-300 font-sans font-bold">
+              <span>Execution Result Audit</span>
+              <span className={autopilotResult.published ? 'text-emerald-400' : 'text-amber-400'}>
+                Status: {autopilotResult.status?.toUpperCase()}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+              <div className="p-2.5 rounded-xl bg-white/5">
+                <span className="text-slate-400 block">Word Count</span>
+                <span className="text-white font-bold">{autopilotResult.wordCount || 0} words</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-white/5">
+                <span className="text-slate-400 block">Quality Score</span>
+                <span className="text-emerald-400 font-bold">{autopilotResult.qualityScore || 0}/100</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-white/5">
+                <span className="text-slate-400 block">AI Clichés</span>
+                <span className="text-emerald-400 font-bold">{autopilotResult.clichesDetected || 0} found</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-white/5">
+                <span className="text-slate-400 block">IndexNow Ping</span>
+                <span className={autopilotResult.indexNowNotified ? 'text-emerald-400 font-bold' : 'text-slate-400'}>
+                  {autopilotResult.indexNowNotified ? 'Notified' : 'Skipped'}
+                </span>
+              </div>
+            </div>
+
+            {autopilotResult.url && (
+              <div className="pt-1 flex items-center justify-between gap-2 font-sans text-xs">
+                <span className="text-slate-400 truncate">Live URL: {autopilotResult.url}</span>
+                <a
+                  href={autopilotResult.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-purple-400 hover:text-purple-300 font-bold flex items-center gap-1 underline"
+                >
+                  <span>View Post</span>
+                  <ExternalLink size={12} />
+                </a>
+              </div>
+            )}
+
+            {Array.isArray(autopilotResult.gateFailures) && autopilotResult.gateFailures.length > 0 && (
+              <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-[11px] space-y-1">
+                <span className="font-bold">Quality Gate Notices:</span>
+                <ul className="list-disc list-inside space-y-0.5">
+                  {autopilotResult.gateFailures.map((f: string, i: number) => (
+                    <li key={i}>{f}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── Section 3: Internal Link Health & Orphan Post Detector ── */}
