@@ -445,38 +445,26 @@ ${posts.map((p) => {
     }
   });
 
-  // ── Autopilot SEO & GEO Publishing Cron & API Routes ───────────────────────
-  const handleAutoPublishCron = async (req: express.Request, res: express.Response) => {
-    const startTime = Date.now();
-    const origin = req.headers.origin;
-    if (origin) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-    } else {
-      res.setHeader('Access-Control-Allow-Origin', '*');
-    }
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-user-id');
+  // ── Autopilot SEO & GEO Publishing Cron & Background Worker ─────────────────
+  const activeAutopilotTask = {
+    running: false,
+    startTime: 0,
+    currentKeyword: '',
+    lastResult: null as any,
+    error: null as any,
+  };
+
+  const runAutoPublishTask = async (explicitKeyword?: string) => {
+    activeAutopilotTask.running = true;
+    activeAutopilotTask.startTime = Date.now();
+    activeAutopilotTask.error = null;
+    activeAutopilotTask.currentKeyword = explicitKeyword || 'auto-rotating';
 
     try {
-      const authHeader = (req.headers.authorization as string) || '';
-      const cronSecret = process.env.CRON_SECRET;
-      const querySecret = req.query.secret as string;
-
-      const isAuthorized =
-        !cronSecret ||
-        authHeader === `Bearer ${cronSecret}` ||
-        querySecret === cronSecret ||
-        Boolean(req.headers.authorization);
-
-      if (!isAuthorized) {
-        return res.status(401).json({ error: 'Unauthorized: Invalid CRON_SECRET' });
-      }
-
       const { getAdminDb } = await import('./src/lib/firebase-admin');
       const adminDb = getAdminDb();
       if (!adminDb) {
-        return res.status(503).json({ error: 'Firestore Admin DB is not initialized.' });
+        throw new Error('Firestore Admin DB is not initialized.');
       }
 
       const {
@@ -505,9 +493,7 @@ ${posts.map((p) => {
       });
 
       // 2. Select Next Unwritten Keyword Cluster
-      const explicitKeyword = (req.query.keyword as string) || (req.body && req.body.keyword);
       let cluster: any = null;
-
       if (explicitKeyword) {
         const found = KDP_KEYWORD_REPOSITORY.find(
           (k) => k.keyword.toLowerCase() === explicitKeyword.toLowerCase()
@@ -530,13 +516,16 @@ ${posts.map((p) => {
       }
 
       if (!cluster) {
-        return res.json({
+        const result = {
           success: true,
           message: 'All repository keyword clusters have already been published. Repository is complete.',
           existingSlugsCount: existingSlugs.length,
-        });
+        };
+        activeAutopilotTask.lastResult = result;
+        return result;
       }
 
+      activeAutopilotTask.currentKeyword = cluster.keyword;
       console.log(`[Express AutoPublish] Generating article for keyword: "${cluster.keyword}"...`);
 
       // 3. Generate Post Draft with Gemini
@@ -561,7 +550,7 @@ ${posts.map((p) => {
         slug: postSlug,
         content: generationResult.content,
         excerpt: generationResult.excerpt,
-        status: 'draft', // updated after quality gate
+        status: 'draft',
 
         authorId: 'kdp-studio-editorial',
         authorName: 'Arulraj & KDP Studio Editorial Team',
@@ -648,9 +637,9 @@ ${posts.map((p) => {
         }
       }
 
-      const durationSeconds = Number(((Date.now() - startTime) / 1000).toFixed(1));
+      const durationSeconds = Number(((Date.now() - activeAutopilotTask.startTime) / 1000).toFixed(1));
 
-      return res.json({
+      const finalResult = {
         success: true,
         published: isPassed,
         status: finalStatus,
@@ -665,6 +654,85 @@ ${posts.map((p) => {
         indexNowNotified: indexNowResult?.success || false,
         executionDurationSeconds: durationSeconds,
         timestamp: new Date().toISOString(),
+      };
+
+      activeAutopilotTask.lastResult = finalResult;
+      return finalResult;
+    } catch (err: any) {
+      activeAutopilotTask.error = err.message || 'Auto-publishing failed';
+      console.error('[server.ts AutoPublish Error]:', err);
+      throw err;
+    } finally {
+      activeAutopilotTask.running = false;
+    }
+  };
+
+  const handleAutoPublishCron = async (req: express.Request, res: express.Response) => {
+    const origin = req.headers.origin;
+    if (origin) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+    } else {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+    }
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-user-id');
+
+    // Polling status query
+    if (req.query.status === 'true') {
+      return res.json({
+        success: true,
+        running: activeAutopilotTask.running,
+        currentKeyword: activeAutopilotTask.currentKeyword,
+        elapsedSeconds: activeAutopilotTask.running ? Math.round((Date.now() - activeAutopilotTask.startTime) / 1000) : 0,
+        lastResult: activeAutopilotTask.lastResult,
+        error: activeAutopilotTask.error,
+      });
+    }
+
+    try {
+      const authHeader = (req.headers.authorization as string) || '';
+      const cronSecret = process.env.CRON_SECRET;
+      const querySecret = req.query.secret as string;
+
+      const isAuthorized =
+        !cronSecret ||
+        authHeader === `Bearer ${cronSecret}` ||
+        querySecret === cronSecret ||
+        Boolean(req.headers.authorization);
+
+      if (!isAuthorized) {
+        return res.status(401).json({ error: 'Unauthorized: Invalid CRON_SECRET' });
+      }
+
+      if (activeAutopilotTask.running) {
+        return res.json({
+          success: true,
+          running: true,
+          message: 'Autopilot generation is currently in progress.',
+          currentKeyword: activeAutopilotTask.currentKeyword,
+          elapsedSeconds: Math.round((Date.now() - activeAutopilotTask.startTime) / 1000),
+        });
+      }
+
+      const explicitKeyword = (req.query.keyword as string) || (req.body && req.body.keyword);
+
+      // If scheduled cron or ?sync=true, wait synchronously
+      if (req.query.sync === 'true') {
+        const result = await runAutoPublishTask(explicitKeyword);
+        return res.json(result);
+      }
+
+      // Default: trigger asynchronously and respond immediately (ZERO timeout risk for browser & Cloudflare)
+      runAutoPublishTask(explicitKeyword).catch((err) => {
+        console.error('[Async AutoPublish Background Execution Error]:', err);
+      });
+
+      return res.json({
+        success: true,
+        running: true,
+        message: 'Autopilot generation started in background.',
+        pollUrl: '/api/cron/auto-publish?status=true',
       });
     } catch (err: any) {
       console.error('[server.ts AutoPublish Error]:', err);

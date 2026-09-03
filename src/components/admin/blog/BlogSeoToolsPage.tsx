@@ -45,6 +45,7 @@ export const BlogSeoToolsPage: React.FC<BlogSeoToolsPageProps> = ({ onNavigate }
 
   // Autopilot Engine State
   const [runningAutopilot, setRunningAutopilot] = useState<boolean>(false);
+  const [autopilotElapsed, setAutopilotElapsed] = useState<number>(0);
   const [autopilotResult, setAutopilotResult] = useState<any | null>(null);
 
   const baseUrl = typeof window !== 'undefined'
@@ -132,11 +133,49 @@ export const BlogSeoToolsPage: React.FC<BlogSeoToolsPageProps> = ({ onNavigate }
 
   const handleTriggerAutopilot = async () => {
     setRunningAutopilot(true);
+    setAutopilotElapsed(0);
     showToast('🤖 Triggering Autopilot SEO & GEO Engine...');
     try {
       const res = await fetch('/api/cron/auto-publish', { method: 'POST' });
       const data = await res.json();
-      if (res.ok && data.success) {
+      if (!res.ok || !data.success) {
+        showToast(`❌ Autopilot failed: ${data.error || 'Server error'}`);
+        setRunningAutopilot(false);
+        return;
+      }
+
+      if (data.running) {
+        let seconds = 0;
+        const timer = setInterval(() => {
+          seconds += 1;
+          setAutopilotElapsed(seconds);
+        }, 1000);
+
+        const pollInterval = setInterval(async () => {
+          try {
+            const pollRes = await fetch('/api/cron/auto-publish?status=true');
+            const pollData = await pollRes.json();
+            if (!pollData.running && pollData.lastResult) {
+              clearInterval(pollInterval);
+              clearInterval(timer);
+              setRunningAutopilot(false);
+              setAutopilotResult(pollData.lastResult);
+              if (pollData.lastResult.published) {
+                showToast(`🎉 Published: "${pollData.lastResult.keyword}" (${pollData.lastResult.wordCount} words, Score: ${pollData.lastResult.qualityScore}/100)`);
+                setPublishedCount((prev) => prev + 1);
+                setPostCount((prev) => prev + 1);
+              } else {
+                showToast(`⚠️ Saved as Draft (${pollData.lastResult.gateFailures?.length || 0} gate issues)`);
+              }
+            } else if (!pollData.running && pollData.error) {
+              clearInterval(pollInterval);
+              clearInterval(timer);
+              setRunningAutopilot(false);
+              showToast(`❌ Autopilot error: ${pollData.error}`);
+            }
+          } catch {}
+        }, 3000);
+      } else {
         setAutopilotResult(data);
         if (data.published) {
           showToast(`🎉 Published: "${data.keyword}" (${data.wordCount} words, Score: ${data.qualityScore}/100)`);
@@ -145,13 +184,10 @@ export const BlogSeoToolsPage: React.FC<BlogSeoToolsPageProps> = ({ onNavigate }
         } else {
           showToast(`⚠️ Saved as Draft (${data.gateFailures?.length || 0} gate issues)`);
         }
-      } else {
-        showToast(`❌ Autopilot failed: ${data.error || 'Server error'}`);
-        setAutopilotResult(data);
+        setRunningAutopilot(false);
       }
     } catch (err: any) {
       showToast(`❌ Network error: ${err.message}`);
-    } finally {
       setRunningAutopilot(false);
     }
   };
@@ -439,7 +475,7 @@ export const BlogSeoToolsPage: React.FC<BlogSeoToolsPageProps> = ({ onNavigate }
             className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white font-bold text-xs shadow-lg shadow-purple-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 shrink-0"
           >
             <Bot size={15} className={runningAutopilot ? 'animate-spin' : ''} />
-            <span>{runningAutopilot ? 'Generating Article (~40s)...' : 'Run Autopilot Generator Now'}</span>
+            <span>{runningAutopilot ? `Generating Article (${autopilotElapsed}s)...` : 'Run Autopilot Generator Now'}</span>
           </button>
         </div>
 
