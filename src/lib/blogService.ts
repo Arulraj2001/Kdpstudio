@@ -208,15 +208,32 @@ export function generateExcerpt(html: string, maxChars: number = 155): string {
 // CRUD Operations
 // ─────────────────────────────────────────
 
+/**
+ * Recursively strips any keys whose value is undefined.
+ * Guarantees that neither Web SDK updateDoc() nor Node Admin setDoc()
+ * throw "Unsupported field value: undefined".
+ */
+export function cleanUndefined<T extends Record<string, any>>(obj: T): Partial<T> {
+  const clean: any = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value === undefined) continue;
+    if (value !== null && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
+      clean[key] = cleanUndefined(value);
+    } else {
+      clean[key] = value;
+    }
+  }
+  return clean;
+}
+
 export async function createBlogPost(
   data: Omit<
     BlogPost,
     | 'id'
     | 'createdAt'
     | 'updatedAt'
-    | 'readingTimeMinutes'
-    | 'wordCount'
-    | 'tableOfContents'
+    | 'publishedBy'
+    | 'lastEditedBy'
     | 'viewCount'
     | 'estimatedReadCount'
     | 'revisionCount'
@@ -270,13 +287,14 @@ export async function createBlogPost(
     internalNotes: data.internalNotes || '',
   };
 
+  const sanitizedPostPayload = cleanUndefined(postPayload);
   const admin = getAdminDb();
   let postId = '';
 
   if (admin) {
     const docRef = admin.collection('blogPosts').doc();
     postId = docRef.id;
-    await docRef.set({ id: postId, ...postPayload });
+    await docRef.set({ id: postId, ...sanitizedPostPayload });
 
     // Update author post count if authorId exists
     if (data.authorId) {
@@ -290,7 +308,7 @@ export async function createBlogPost(
     const colRef = collection(db, 'blogPosts');
     const newDoc = doc(colRef);
     postId = newDoc.id;
-    await setDoc(newDoc, { id: postId, ...postPayload });
+    await setDoc(newDoc, { id: postId, ...sanitizedPostPayload });
 
     if (data.authorId) {
       await updateDoc(doc(db, 'blogAuthors', data.authorId), {
@@ -336,12 +354,19 @@ export async function updateBlogPost(
     updateData.publishedAt = now;
   }
 
+  // Ensure canonicalUrl always has a valid fallback instead of undefined or empty string
+  if (!updateData.canonicalUrl && (data.slug || updateData.slug || id)) {
+    updateData.canonicalUrl = `https://kdpstudio-aio.web.app/blog/${data.slug || updateData.slug || id}`;
+  }
+
+  const sanitizedData = cleanUndefined(updateData);
+
   const admin = getAdminDb();
   if (admin) {
     const docRef = admin.collection('blogPosts').doc(id);
     await docRef.set(
       {
-        ...updateData,
+        ...sanitizedData,
         revisionCount: (admin as any).firestore.FieldValue.increment(1),
       },
       { merge: true }
@@ -349,7 +374,7 @@ export async function updateBlogPost(
   } else if (db) {
     const docRef = doc(db, 'blogPosts', id);
     await updateDoc(docRef, {
-      ...updateData,
+      ...sanitizedData,
       revisionCount: increment(1),
     });
   }

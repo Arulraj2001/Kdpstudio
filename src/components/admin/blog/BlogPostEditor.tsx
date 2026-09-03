@@ -36,7 +36,7 @@ import { generateSlug } from '../../../lib/blogUtils';
 import { AiDraftGenerator } from './AiDraftGenerator';
 import { executeAiEditorAction } from '../../../lib/aiBlogGenerator';
 import { InternalLinksPanel } from './InternalLinksPanel';
-import { getBlogPost, createBlogPost, updateBlogPost, getAllAuthors } from '../../../lib/blogService';
+import { getBlogPost, createBlogPost, updateBlogPost, getAllAuthors, cleanUndefined } from '../../../lib/blogService';
 
 interface BlogPostEditorProps {
   postId?: string; // If provided -> edit mode, if undefined -> create mode
@@ -499,9 +499,12 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
       enabled,
     }));
 
+    const finalSlug = slug || generateSlug(title);
+    const resolvedCanonical = canonicalUrl.trim() || `https://kdpstudio-aio.web.app/blog/${finalSlug}`;
+
     const payload: any = {
       title: title.trim(),
-      slug: slug || generateSlug(title),
+      slug: finalSlug,
       content,
       excerpt: excerpt.trim() || undefined,
       status: targetStatus,
@@ -529,7 +532,7 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
       secondaryKeywords,
       metaTitle: metaTitle.trim() || undefined,
       metaDescription: metaDescription.trim() || undefined,
-      canonicalUrl: canonicalUrl.trim() || undefined,
+      canonicalUrl: resolvedCanonical,
       noIndex,
       ogTitle: ogTitle.trim() || undefined,
       ogDescription: ogDescription.trim() || undefined,
@@ -550,16 +553,18 @@ export const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ postId, onNaviga
           : null,
     };
 
+    const sanitizedPayload = cleanUndefined(payload);
+
     try {
       if (postId) {
         // Update
-        await updateBlogPost(postId, payload, 'admin@kdpstudio.io');
+        await updateBlogPost(postId, sanitizedPayload, 'admin@kdpstudio.io');
         setStatus(targetStatus);
         setOriginalStatus(targetStatus);
         showToast(targetStatus === 'published' ? '🎉 Post published!' : '💾 Draft updated!');
       } else {
         // Create
-        const newId = await createBlogPost(payload, 'admin@kdpstudio.io');
+        const newId = await createBlogPost(sanitizedPayload as any, 'admin@kdpstudio.io');
         localStorage.removeItem('kdp_blog_draft_new');
         setStatus(targetStatus);
         setOriginalStatus(targetStatus);

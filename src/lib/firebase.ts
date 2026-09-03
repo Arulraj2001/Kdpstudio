@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 
 /**
@@ -115,7 +115,16 @@ if (!getApps().length) {
 }
 
 export const auth: Auth = getAuth(app);
-export const db: Firestore = getFirestore(app);
+
+let firestoreDb: Firestore;
+try {
+  firestoreDb = initializeFirestore(app, {
+    ignoreUndefinedProperties: true,
+  });
+} catch {
+  firestoreDb = getFirestore(app);
+}
+export const db: Firestore = firestoreDb;
 export const storage: FirebaseStorage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
