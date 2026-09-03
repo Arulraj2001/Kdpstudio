@@ -226,6 +226,46 @@ export function cleanUndefined<T extends Record<string, any>>(obj: T): Partial<T
   return clean;
 }
 
+async function offloadBase64Image(dataUrl: string, slug: string): Promise<string> {
+  if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image')) {
+    return dataUrl;
+  }
+  const imageId = `cover-${slug || Date.now()}`;
+  const apiUrl = typeof window !== 'undefined'
+    ? ((window as any).VITE_API_BASE_URL || 'https://kdpstudio-api.onrender.com')
+    : (process.env.VITE_API_BASE_URL || 'https://kdpstudio-api.onrender.com');
+
+  const admin = getAdminDb();
+  if (admin) {
+    try {
+      await admin.collection('blogImages').doc(imageId).set({
+        id: imageId,
+        slug,
+        base64: dataUrl,
+        mimeType: 'image/jpeg',
+        createdAt: new Date().toISOString(),
+      });
+      return `${apiUrl}/api/blog-images/${imageId}.jpg`;
+    } catch (err) {
+      console.warn('Failed to offload base64 image to admin Firestore:', err);
+    }
+  } else if (db) {
+    try {
+      await setDoc(doc(db, 'blogImages', imageId), {
+        id: imageId,
+        slug,
+        base64: dataUrl,
+        mimeType: 'image/jpeg',
+        createdAt: new Date().toISOString(),
+      });
+      return `${apiUrl}/api/blog-images/${imageId}.jpg`;
+    } catch (err) {
+      console.warn('Failed to offload base64 image to client Firestore:', err);
+    }
+  }
+  return dataUrl;
+}
+
 export async function createBlogPost(
   data: Omit<
     BlogPost,
@@ -286,6 +326,13 @@ export async function createBlogPost(
     revisionCount: 1,
     internalNotes: data.internalNotes || '',
   };
+
+  if (postPayload.featuredImage?.url?.startsWith('data:image')) {
+    const cleanUrl = await offloadBase64Image(postPayload.featuredImage.url, slug);
+    postPayload.featuredImage.url = cleanUrl;
+    if (postPayload.ogImage?.startsWith('data:image')) postPayload.ogImage = cleanUrl;
+    if (postPayload.twitterImage?.startsWith('data:image')) postPayload.twitterImage = cleanUrl;
+  }
 
   const sanitizedPostPayload = cleanUndefined(postPayload);
   const admin = getAdminDb();
@@ -357,6 +404,14 @@ export async function updateBlogPost(
   // Ensure canonicalUrl always has a valid fallback instead of undefined or empty string
   if (!updateData.canonicalUrl && (data.slug || updateData.slug || id)) {
     updateData.canonicalUrl = `https://kdpstudio-aio.web.app/blog/${data.slug || updateData.slug || id}`;
+  }
+
+  if (updateData.featuredImage?.url?.startsWith('data:image')) {
+    const targetSlug = updateData.slug || data.slug || id;
+    const cleanUrl = await offloadBase64Image(updateData.featuredImage.url, targetSlug);
+    updateData.featuredImage.url = cleanUrl;
+    if (updateData.ogImage?.startsWith('data:image')) updateData.ogImage = cleanUrl;
+    if (updateData.twitterImage?.startsWith('data:image')) updateData.twitterImage = cleanUrl;
   }
 
   const sanitizedData = cleanUndefined(updateData);

@@ -559,8 +559,22 @@ ${posts.map((p) => {
         const coverPrompt = `Modern 3D editorial illustration for an Amazon KDP self-publishing guide about ${cluster.keyword}, sleek book design, professional studio lighting, 16:9 widescreen, clean composition, photorealistic, 4k`;
         const imgRes = await generateImageWithFallback(coverPrompt, '16:9');
         if (imgRes && !imgRes.fallback && imgRes.imageUrl) {
-          coverImageUrl = imgRes.imageUrl;
-          console.log(`[AutoPublish] AI cover image created successfully via ${imgRes.source}!`);
+          if (imgRes.imageUrl.startsWith('data:image')) {
+            const imageId = `cover-${postSlug}`;
+            await adminDb.collection('blogImages').doc(imageId).set({
+              id: imageId,
+              slug: postSlug,
+              base64: imgRes.imageUrl,
+              mimeType: 'image/jpeg',
+              createdAt: now.toISOString(),
+            });
+            const apiUrl = process.env.VITE_API_BASE_URL || 'https://kdpstudio-api.onrender.com';
+            coverImageUrl = `${apiUrl}/api/blog-images/${imageId}.jpg`;
+            console.log(`[AutoPublish] Stored AI cover image in blogImages collection. Public URL: ${coverImageUrl}`);
+          } else {
+            coverImageUrl = imgRes.imageUrl;
+            console.log(`[AutoPublish] AI cover image created successfully via ${imgRes.source}!`);
+          }
         }
       } catch (imgErr: any) {
         console.warn('[AutoPublish] Image generation fallback used:', imgErr?.message);
@@ -841,6 +855,66 @@ ${posts.map((p) => {
       });
     } catch (err: any) {
       return res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // High-Performance Public Image Serving Route (Eliminates Firestore 1MB Bloat)
+  app.get('/api/blog-images/:slug', async (req, res) => {
+    try {
+      const cleanId = req.params.slug.replace(/\.(jpg|jpeg|png|webp)$/i, '');
+      const { getAdminDb } = await import('./src/lib/firebase-admin');
+      const adminDb = getAdminDb();
+      if (!adminDb) {
+        return res.redirect('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80');
+      }
+
+      const doc = await adminDb.collection('blogImages').doc(cleanId).get();
+      if (!doc.exists) {
+        return res.redirect('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80');
+      }
+
+      const data = doc.data();
+      let base64Str = data?.base64 || '';
+      let mimeType = data?.mimeType || 'image/jpeg';
+      if (base64Str.startsWith('data:')) {
+        const match = base64Str.match(/^data:([^;]+);base64,(.+)$/);
+        if (match) {
+          mimeType = match[1];
+          base64Str = match[2];
+        }
+      }
+      const buffer = Buffer.from(base64Str, 'base64');
+      res.setHeader('Content-Type', mimeType);
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      return res.send(buffer);
+    } catch (err) {
+      return res.redirect('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80');
+    }
+  });
+
+  // Client-Side Image Upload to blogImages Collection
+  app.post('/api/blog-images/upload', async (req, res) => {
+    try {
+      const { imageBase64, slug, mimeType } = req.body;
+      if (!imageBase64) return res.status(400).json({ error: 'Image base64 is required' });
+      const { getAdminDb } = await import('./src/lib/firebase-admin');
+      const adminDb = getAdminDb();
+      if (!adminDb) return res.status(500).json({ error: 'Database unavailable' });
+
+      const imageId = slug ? `cover-${slug}` : `img-${Date.now()}`;
+      await adminDb.collection('blogImages').doc(imageId).set({
+        id: imageId,
+        base64: imageBase64,
+        mimeType: mimeType || 'image/jpeg',
+        createdAt: new Date().toISOString(),
+      });
+      const apiUrl = process.env.VITE_API_BASE_URL || 'https://kdpstudio-api.onrender.com';
+      return res.json({
+        success: true,
+        url: `${apiUrl}/api/blog-images/${imageId}.jpg`,
+      });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
     }
   });
 
