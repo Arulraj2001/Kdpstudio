@@ -31,16 +31,21 @@ export async function callGemini(prompt: string, systemPrompt?: string): Promise
           return response.text || '';
         } catch (err: any) {
           lastErr = err;
-          const isRetryable =
-            err?.message?.includes('503') ||
+          const isRateLimit =
             err?.message?.includes('429') ||
+            err?.message?.includes('quota') ||
+            err?.message?.includes('RESOURCE_EXHAUSTED');
+
+          const isRetryable =
+            isRateLimit ||
+            err?.message?.includes('503') ||
             err?.message?.includes('high demand') ||
             err?.message?.includes('UNAVAILABLE') ||
             err?.status === 'UNAVAILABLE';
 
           if (isRetryable && attempt < 3) {
-            const delayMs = (attempt + 1) * 2000;
-            console.warn(`[callGemini] 503/429 high demand detected. Retrying attempt ${attempt + 2}/4 in ${delayMs}ms...`);
+            const delayMs = isRateLimit ? 10500 : (attempt + 1) * 3000;
+            console.warn(`[callGemini] Rate limit / high demand detected. Retrying attempt ${attempt + 2}/4 in ${delayMs}ms...`);
             await new Promise((resolve) => setTimeout(resolve, delayMs));
             continue;
           }
