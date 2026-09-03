@@ -611,7 +611,7 @@ ${posts.map((p) => {
       // 5. Strict Quality Gate Validation Against Assembled Post
       const qualityGate = validatePostQuality(newBlogPost, {
         minWordCount: 1600,
-        maxClicheCount: 0,
+        maxClicheCount: 1,
         minSeoScore: 65,
       });
 

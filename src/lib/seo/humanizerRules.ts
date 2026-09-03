@@ -227,10 +227,15 @@ export function humanizeContent(rawHtml: string): {
     [/\bmoreover,\b/gi, 'In addition,'],
     [/\bdive deep into\b/gi, 'examine'],
     [/\bdive deep\b/gi, 'break down'],
+    [/\blet's dive into\b/gi, 'let us examine'],
+    [/\bwe will dive into\b/gi, 'we will look at'],
+    [/\bdive into\b/gi, 'examine'],
+    [/\bdiving into\b/gi, 'examining'],
     [/\bnavigating the\b/gi, 'handling'],
     [/\bdemystifying\b/gi, 'explaining'],
     [/\bshed light on\b/gi, 'clarify'],
     [/\bin the realm of\b/gi, 'in'],
+    [/\brealm\b/gi, 'field'],
   ];
 
   const violationsFound: string[] = [];
