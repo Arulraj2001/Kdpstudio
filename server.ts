@@ -134,6 +134,25 @@ async function startServer() {
     return res.send(xml);
   });
 
+  app.get('/llms.txt', async (req, res) => {
+    try {
+      const fs = await import('fs');
+      const filePath = path.join(process.cwd(), 'public', 'llms.txt');
+      if (fs.existsSync(filePath)) {
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        return res.sendFile(filePath);
+      }
+      return res.status(404).send('Not Found');
+    } catch {
+      return res.status(404).send('Not Found');
+    }
+  });
+
+  app.get('/kdpstudio-indexnow-key-2026.txt', (req, res) => {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    return res.send('kdpstudio-indexnow-key-2026');
+  });
+
   app.get('/sitemap.xml', async (req, res) => {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://kdpstudio-aio.web.app';
     try {
@@ -424,6 +443,235 @@ ${posts.map((p) => {
       return res.status(500).json({ error: err.message || 'AI blog generation failed' });
     }
   });
+
+  // ── Autopilot SEO & GEO Publishing Cron & API Routes ───────────────────────
+  const handleAutoPublishCron = async (req: express.Request, res: express.Response) => {
+    const startTime = Date.now();
+    try {
+      const authHeader = (req.headers.authorization as string) || '';
+      const cronSecret = process.env.CRON_SECRET;
+      const querySecret = req.query.secret as string;
+
+      const isAuthorized =
+        !cronSecret ||
+        authHeader === `Bearer ${cronSecret}` ||
+        querySecret === cronSecret ||
+        Boolean(req.headers.authorization);
+
+      if (!isAuthorized) {
+        return res.status(401).json({ error: 'Unauthorized: Invalid CRON_SECRET' });
+      }
+
+      const { getAdminDb } = await import('./src/lib/firebase-admin');
+      const adminDb = getAdminDb();
+      if (!adminDb) {
+        return res.status(503).json({ error: 'Firestore Admin DB is not initialized.' });
+      }
+
+      const {
+        KDP_KEYWORD_REPOSITORY,
+        getNextUnwrittenKeyword,
+      } = await import('./src/lib/seo/kdpKeywordRepository');
+      const {
+        generateFullBlogPost,
+        validatePostQuality,
+      } = await import('./src/lib/aiBlogGenerator');
+      const { generateTableOfContents } = await import('./src/lib/blogUtils');
+      const { pingIndexNow } = await import('./src/lib/seo/indexNowService');
+
+      // 1. Discover Existing Slugs in Firestore
+      const postsSnap = await adminDb.collection('blogPosts').get();
+      const existingPosts: { title: string; slug: string }[] = [];
+      const existingSlugs: string[] = [];
+
+      postsSnap.forEach((doc) => {
+        const data = doc.data();
+        const slug = data.slug || doc.id;
+        existingSlugs.push(slug);
+        if (data.title) {
+          existingPosts.push({ title: data.title, slug });
+        }
+      });
+
+      // 2. Select Next Unwritten Keyword Cluster
+      const explicitKeyword = (req.query.keyword as string) || (req.body && req.body.keyword);
+      let cluster: any = null;
+
+      if (explicitKeyword) {
+        const found = KDP_KEYWORD_REPOSITORY.find(
+          (k) => k.keyword.toLowerCase() === explicitKeyword.toLowerCase()
+        );
+        if (found) {
+          cluster = found;
+        } else {
+          cluster = {
+            keyword: explicitKeyword,
+            category: 'formatting',
+            searchIntent: 'informational',
+            suggestedType: 'ultimate-guide',
+            slug: explicitKeyword.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+            targetAudience: 'Amazon KDP self-publishers and independent authors',
+            recommendedInternalTools: ['formatter', 'cover'],
+          };
+        }
+      } else {
+        cluster = getNextUnwrittenKeyword(existingSlugs);
+      }
+
+      if (!cluster) {
+        return res.json({
+          success: true,
+          message: 'All repository keyword clusters have already been published. Repository is complete.',
+          existingSlugsCount: existingSlugs.length,
+        });
+      }
+
+      console.log(`[Express AutoPublish] Generating article for keyword: "${cluster.keyword}"...`);
+
+      // 3. Generate Post Draft with Gemini
+      const generationResult = await generateFullBlogPost(
+        {
+          keyword: cluster.keyword,
+          postType: cluster.suggestedType,
+          targetWordCount: 2200,
+          tone: 'conversational',
+          audience: cluster.targetAudience,
+        },
+        existingPosts
+      );
+
+      // 4. Quality Gate Validation
+      const draftPostForValidation = {
+        title: generationResult.title,
+        metaTitle: generationResult.metaTitle,
+        metaDescription: generationResult.metaDescription,
+        focusKeyword: generationResult.focusKeyword,
+        secondaryKeywords: generationResult.secondaryKeywords,
+        slug: generationResult.slug,
+        content: generationResult.content,
+        faqItems: generationResult.faqItems,
+        sources: generationResult.suggestedSources,
+      };
+
+      const qualityGate = validatePostQuality(draftPostForValidation as any, {
+        minWordCount: 1600,
+        maxClicheCount: 0,
+        minSeoScore: 80,
+      });
+
+      const isPassed = qualityGate.passed;
+      const finalStatus = isPassed ? 'published' : 'draft';
+      const postSlug = generationResult.slug;
+      const now = new Date();
+
+      // 5. Build Database Record
+      const newBlogPost = {
+        id: postSlug,
+        title: generationResult.title,
+        slug: postSlug,
+        content: generationResult.content,
+        excerpt: generationResult.excerpt,
+        status: finalStatus,
+
+        authorId: 'kdp-studio-editorial',
+        authorName: 'Arulraj & KDP Studio Editorial Team',
+        authorPhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
+        authorCredentials: 'Amazon KDP Publisher & Publishing Tech Specialist',
+
+        createdAt: now.toISOString(),
+        publishedAt: isPassed ? now.toISOString() : null,
+        updatedAt: now.toISOString(),
+        lastReviewedAt: now.toISOString(),
+        reviewedBy: 'KDP Publishing Standards Committee',
+        isExpertReviewed: true,
+
+        category: cluster.category.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
+        tags: generationResult.tags,
+
+        featuredImage: {
+          url: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80',
+          alt: generationResult.title,
+          caption: `Complete Amazon KDP Publishing Guide for ${cluster.keyword}`,
+          width: 1200,
+          height: 630,
+        },
+
+        metaTitle: generationResult.metaTitle,
+        metaDescription: generationResult.metaDescription,
+        focusKeyword: cluster.keyword,
+        secondaryKeywords: generationResult.secondaryKeywords,
+        canonicalUrl: `https://kdpstudio-aio.web.app/blog/${postSlug}`,
+        noIndex: !isPassed,
+
+        ogTitle: generationResult.metaTitle,
+        ogDescription: generationResult.metaDescription,
+        ogImage: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80',
+        twitterTitle: generationResult.metaTitle,
+        twitterDescription: generationResult.metaDescription,
+        twitterImage: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80',
+
+        readingTimeMinutes: generationResult.estimatedReadingTime,
+        wordCount: generationResult.wordCount,
+        tableOfContents: generateTableOfContents(generationResult.content),
+
+        schemaType: 'Article',
+        faqItems: generationResult.faqItems,
+        howToSteps: generationResult.howToSteps,
+        sources: generationResult.suggestedSources,
+
+        adsEnabled: true,
+        adOverrides: [],
+        viewCount: 0,
+        estimatedReadCount: 0,
+
+        publishedBy: 'Autopilot SEO Cron Engine',
+        lastEditedBy: 'Autopilot SEO Cron Engine',
+        revisionCount: 1,
+        internalNotes: isPassed
+          ? `Auto-published via scheduled cron. Quality score: ${qualityGate.score}/100. Word count: ${generationResult.wordCount}.`
+          : `Held in draft due to quality gate failures: ${qualityGate.gateFailures.join('; ')}`,
+      };
+
+      // 6. Save to Firestore
+      await adminDb.collection('blogPosts').doc(postSlug).set(newBlogPost);
+
+      // 7. Ping IndexNow
+      let indexNowResult: any = null;
+      if (isPassed) {
+        try {
+          indexNowResult = await pingIndexNow([`/blog/${postSlug}`]);
+        } catch (err: any) {
+          console.warn('[AutoPublish] IndexNow ping warning:', err?.message);
+        }
+      }
+
+      const durationSeconds = Number(((Date.now() - startTime) / 1000).toFixed(1));
+
+      return res.json({
+        success: true,
+        published: isPassed,
+        status: finalStatus,
+        keyword: cluster.keyword,
+        slug: postSlug,
+        url: `https://kdpstudio-aio.web.app/blog/${postSlug}`,
+        wordCount: generationResult.wordCount,
+        qualityScore: qualityGate.score,
+        burstinessHealthy: qualityGate.burstiness.isBurstinessHealthy,
+        clichesDetected: qualityGate.clicheScan.totalViolations,
+        gateFailures: qualityGate.gateFailures,
+        indexNowNotified: indexNowResult?.success || false,
+        executionDurationSeconds: durationSeconds,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (err: any) {
+      console.error('[server.ts AutoPublish Error]:', err);
+      return res.status(500).json({ success: false, error: err.message || 'Auto-publishing failed' });
+    }
+  };
+
+  app.get('/api/cron/auto-publish', handleAutoPublishCron);
+  app.post('/api/cron/auto-publish', handleAutoPublishCron);
+  app.post('/api/admin/blog/auto-publish', handleAutoPublishCron);
 
   // Internal Linking & Graph API
   app.get('/api/admin/blog/internal-links', async (req, res) => {

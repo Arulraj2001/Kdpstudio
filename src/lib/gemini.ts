@@ -6,6 +6,22 @@
 import { apiPost, getAuthHeaders, getApiUrl } from './apiClient';
 
 export async function callGemini(prompt: string, systemPrompt?: string): Promise<string> {
+  const serverApiKey = process.env.GEMINI_API_KEY;
+  if (typeof window === 'undefined' && serverApiKey && !serverApiKey.includes('REPLACE')) {
+    try {
+      const { GoogleGenAI } = await import('@google/genai');
+      const ai = new GoogleGenAI({ apiKey: serverApiKey });
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: systemPrompt ? { systemInstruction: systemPrompt } : undefined,
+      });
+      return response.text || '';
+    } catch (serverErr: any) {
+      console.warn('[callGemini server direct execution fallback]:', serverErr?.message);
+    }
+  }
+
   try {
     const response = await apiPost('/api/gemini', {
       action: 'generate',

@@ -37,7 +37,7 @@ async function run() {
   // Ensure critical assets, sw.js and og-image are present and updated in dist/
   const distDir = path.resolve('dist');
   const publicDir = path.resolve('public');
-  ['sw.js', 'firebase-messaging-sw.js', 'manifest.json', 'site.webmanifest', 'og-image.png', 'og-image.svg', 'brand-icon.png', 'logo.png'].forEach(file => {
+  ['sw.js', 'firebase-messaging-sw.js', 'manifest.json', 'site.webmanifest', 'og-image.png', 'og-image.svg', 'brand-icon.png', 'logo.png', 'llms.txt', 'kdpstudio-indexnow-key-2026.txt'].forEach(file => {
     const src = path.join(publicDir, file);
     const dest = path.join(distDir, file);
     if (fs.existsSync(src)) {
