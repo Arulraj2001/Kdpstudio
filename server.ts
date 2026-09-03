@@ -331,9 +331,8 @@ ${posts.map((p) => {
   // Blog API routes
   app.get('/api/blog', async (req, res) => {
     try {
-      const { getAllBlogPostsServer } = await import('./lib/blog');
-      const posts = await getAllBlogPostsServer();
-      return res.json({ posts });
+      const posts = await getPublishedPosts();
+      return res.json({ posts: posts && posts.length > 0 ? posts : (await import('./src/lib/blog')).SEED_BLOG_POSTS });
     } catch (e: any) {
       const { SEED_BLOG_POSTS } = await import('./src/lib/blog');
       return res.json({ posts: SEED_BLOG_POSTS });
@@ -342,12 +341,14 @@ ${posts.map((p) => {
 
   app.get('/api/blog/:slug', async (req, res) => {
     try {
-      const { getBlogPostServer } = await import('./lib/blog');
-      const post = await getBlogPostServer(req.params.slug);
-      if (!post) {
-        return res.status(404).json({ error: 'Post not found' });
+      const post = await getBlogPostBySlug(req.params.slug);
+      if (post) {
+        return res.json({ post });
       }
-      return res.json({ post });
+      const { SEED_BLOG_POSTS } = await import('./src/lib/blog');
+      const seed = SEED_BLOG_POSTS.find((p) => p.slug === req.params.slug);
+      if (seed) return res.json({ post: seed });
+      return res.status(404).json({ error: 'Post not found' });
     } catch (e: any) {
       const { SEED_BLOG_POSTS } = await import('./src/lib/blog');
       const post = SEED_BLOG_POSTS.find((p) => p.slug === req.params.slug);
