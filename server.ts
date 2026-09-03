@@ -540,38 +540,17 @@ ${posts.map((p) => {
         existingPosts
       );
 
-      // 4. Quality Gate Validation
-      const draftPostForValidation = {
-        title: generationResult.title,
-        metaTitle: generationResult.metaTitle,
-        metaDescription: generationResult.metaDescription,
-        focusKeyword: generationResult.focusKeyword,
-        secondaryKeywords: generationResult.secondaryKeywords,
-        slug: generationResult.slug,
-        content: generationResult.content,
-        faqItems: generationResult.faqItems,
-        sources: generationResult.suggestedSources,
-      };
-
-      const qualityGate = validatePostQuality(draftPostForValidation as any, {
-        minWordCount: 1600,
-        maxClicheCount: 0,
-        minSeoScore: 80,
-      });
-
-      const isPassed = qualityGate.passed;
-      const finalStatus = isPassed ? 'published' : 'draft';
       const postSlug = generationResult.slug;
       const now = new Date();
 
-      // 5. Build Database Record
-      const newBlogPost = {
+      // 4. Assemble Full Post Entity for Complete Validation & Firestore
+      const newBlogPost: any = {
         id: postSlug,
         title: generationResult.title,
         slug: postSlug,
         content: generationResult.content,
         excerpt: generationResult.excerpt,
-        status: finalStatus,
+        status: 'draft', // updated after quality gate
 
         authorId: 'kdp-studio-editorial',
         authorName: 'Arulraj & KDP Studio Editorial Team',
@@ -579,7 +558,7 @@ ${posts.map((p) => {
         authorCredentials: 'Amazon KDP Publisher & Publishing Tech Specialist',
 
         createdAt: now.toISOString(),
-        publishedAt: isPassed ? now.toISOString() : null,
+        publishedAt: null,
         updatedAt: now.toISOString(),
         lastReviewedAt: now.toISOString(),
         reviewedBy: 'KDP Publishing Standards Committee',
@@ -601,7 +580,7 @@ ${posts.map((p) => {
         focusKeyword: cluster.keyword,
         secondaryKeywords: generationResult.secondaryKeywords,
         canonicalUrl: `https://kdpstudio-aio.web.app/blog/${postSlug}`,
-        noIndex: !isPassed,
+        noIndex: false,
 
         ogTitle: generationResult.metaTitle,
         ogDescription: generationResult.metaDescription,
@@ -627,10 +606,23 @@ ${posts.map((p) => {
         publishedBy: 'Autopilot SEO Cron Engine',
         lastEditedBy: 'Autopilot SEO Cron Engine',
         revisionCount: 1,
-        internalNotes: isPassed
-          ? `Auto-published via scheduled cron. Quality score: ${qualityGate.score}/100. Word count: ${generationResult.wordCount}.`
-          : `Held in draft due to quality gate failures: ${qualityGate.gateFailures.join('; ')}`,
       };
+
+      // 5. Strict Quality Gate Validation Against Assembled Post
+      const qualityGate = validatePostQuality(newBlogPost, {
+        minWordCount: 1600,
+        maxClicheCount: 0,
+        minSeoScore: 65,
+      });
+
+      const isPassed = qualityGate.passed;
+      const finalStatus = isPassed ? 'published' : 'draft';
+      newBlogPost.status = finalStatus;
+      newBlogPost.publishedAt = isPassed ? now.toISOString() : null;
+      newBlogPost.noIndex = !isPassed;
+      newBlogPost.internalNotes = isPassed
+        ? `Auto-published via scheduled cron. Quality score: ${qualityGate.score}/100. Word count: ${generationResult.wordCount}.`
+        : `Held in draft due to quality gate failures: ${qualityGate.gateFailures.join('; ')}`;
 
       // 6. Save to Firestore
       await adminDb.collection('blogPosts').doc(postSlug).set(newBlogPost);

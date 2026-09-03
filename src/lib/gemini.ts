@@ -19,12 +19,35 @@ export async function callGemini(prompt: string, systemPrompt?: string): Promise
     if (serverApiKey && !serverApiKey.includes('REPLACE')) {
       const { GoogleGenAI } = await import('@google/genai');
       const ai = new GoogleGenAI({ apiKey: serverApiKey });
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
-        contents: prompt,
-        config: systemPrompt ? { systemInstruction: systemPrompt } : undefined,
-      });
-      return response.text || '';
+
+      let lastErr: any = null;
+      for (let attempt = 0; attempt < 4; attempt++) {
+        try {
+          const response = await ai.models.generateContent({
+            model: 'gemini-3.6-flash',
+            contents: prompt,
+            config: systemPrompt ? { systemInstruction: systemPrompt } : undefined,
+          });
+          return response.text || '';
+        } catch (err: any) {
+          lastErr = err;
+          const isRetryable =
+            err?.message?.includes('503') ||
+            err?.message?.includes('429') ||
+            err?.message?.includes('high demand') ||
+            err?.message?.includes('UNAVAILABLE') ||
+            err?.status === 'UNAVAILABLE';
+
+          if (isRetryable && attempt < 3) {
+            const delayMs = (attempt + 1) * 2000;
+            console.warn(`[callGemini] 503/429 high demand detected. Retrying attempt ${attempt + 2}/4 in ${delayMs}ms...`);
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+            continue;
+          }
+          throw err;
+        }
+      }
+      throw lastErr;
     }
   }
 
