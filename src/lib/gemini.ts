@@ -6,19 +6,25 @@
 import { apiPost, getAuthHeaders, getApiUrl } from './apiClient';
 
 export async function callGemini(prompt: string, systemPrompt?: string): Promise<string> {
-  const serverApiKey = process.env.GEMINI_API_KEY;
-  if (typeof window === 'undefined' && serverApiKey && !serverApiKey.includes('REPLACE')) {
-    try {
+  if (typeof window === 'undefined') {
+    let serverApiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+    if (!serverApiKey) {
+      try {
+        const dotenv = await import('dotenv');
+        dotenv.config();
+        serverApiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+      } catch {}
+    }
+
+    if (serverApiKey && !serverApiKey.includes('REPLACE')) {
       const { GoogleGenAI } = await import('@google/genai');
       const ai = new GoogleGenAI({ apiKey: serverApiKey });
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.6-flash',
         contents: prompt,
         config: systemPrompt ? { systemInstruction: systemPrompt } : undefined,
       });
       return response.text || '';
-    } catch (serverErr: any) {
-      console.warn('[callGemini server direct execution fallback]:', serverErr?.message);
     }
   }
 

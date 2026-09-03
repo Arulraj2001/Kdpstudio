@@ -10,7 +10,14 @@ const API_BASE =
   (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_BASE_URL) || '';
 
 export function getApiUrl(path: string): string {
-  return `${API_BASE}${path}`;
+  if (API_BASE) {
+    return `${API_BASE}${path}`;
+  }
+  if (typeof window === 'undefined') {
+    const port = process.env.PORT || '3000';
+    return `http://127.0.0.1:${port}${path}`;
+  }
+  return path;
 }
 
 /**
